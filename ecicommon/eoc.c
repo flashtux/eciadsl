@@ -131,10 +131,10 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 			printf("OEC.C - parse_eoc_buffer - CYCLE1 [eocmesval : %04x| eoccode . %04x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 			switch(eocstate) {
 				case _preread:
-						printf("OEC.C - parse_eoc_buffer - CYCLE2 [eocstate : _preread]\n");
+						printf("OEC.C - parse_eoc_buffer - PREREAD [eocstate : _preread]\n");
 						switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
-								printf("OEC.C - parse_eoc_buffer - CYCLE2A [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
+								printf("OEC.C - parse_eoc_buffer - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
 									eocstate = _read;
 								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
@@ -145,22 +145,22 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								}
 								break;
 							case EOC_OPCODE_RTN:
-								printf("OEC.C - parse_eoc_buffer - CYCLE2B [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+								printf("OEC.C - parse_eoc_buffer - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 							case EOC_OPCODE_HOLD:
-								printf("OEC.C - parse_eoc_buffer - CYCLE2C [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
+								printf("OEC.C - parse_eoc_buffer - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 								if(eocmescnt >= 2) 
 									eocstate = _idle;
 								break;
 						}
 						if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-							printf("OEC.C - parse_eoc_buffer - CYCLE2D [eoc_out_buffer_pos < 30]\n");							
+							printf("OEC.C - parse_eoc_buffer - PREREAD [eoc_out_buffer_pos < 30]\n");							
 							eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
 							eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;						} else {
 							return -EIO;
 						}
 						break;
 				case _idle:	/*like G992.2 recomendation */
-					printf("OEC.C - parse_eoc_buffer - CYCLE3 [eocstate : _idle]\n");
+					printf("OEC.C - parse_eoc_buffer - IDLE [eocstate : _idle]\n");
 					if(eocmescnt >=2) /* execute third time with same message */
 						eoc_execute(eocmesval);
 					if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
@@ -171,10 +171,10 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 					}
 					break;
 				case _read:
-					printf("OEC.C - parse_eoc_buffer - CYCLE4 [eocstate : _read]\n");
+					printf("OEC.C - parse_eoc_buffer - READ [eocstate : _read]\n");
 					switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
-								printf("OEC.C - parse_eoc_buffer - CYCLE4A [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
+								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
 								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
 									eoc_out_buf[eoc_out_buffer_pos++] = (mes & 0xff00) >> 8;
@@ -184,7 +184,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								}
 								break;
 							case EOC_OPCODE_RTN:
-								printf("OEC.C - parse_eoc_buffer - CYCLE4B [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 							case EOC_OPCODE_HOLD:
 								printf("OEC.C - parse_eoc_buffer - CYCLE4C [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 								if(eocmescnt >= 2) 
@@ -194,7 +194,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 						break;
 			}
 		}
-		printf("OEC.C - parse_eoc_buffer - CYCLE5 [eocmesval : %04x| eoccode . %04x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
+		printf("OEC.C - parse_eoc_buffer - LOOP [eocmesval : %04x| eoccode . %02x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 	}
 	printf("OEC.C - parse_eoc_buffer - END  [eocmesval : %04x]\n", eocmesval);
 	return 0;
