@@ -50,6 +50,13 @@ Sorted according to priority (the upper in the list, the prior):
 * fix a hole in makeconfig: updated a pre-existing eciadsl.conf does not re-add missing fields
 + complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
 - add better documentation in the TROUBLESHOOTING/INSTALL files about DHCP/static IP and the PPP mode.
+- eciconf*: allow/disallow username/passwd DHCP or STATICIP following the PPP MODE selected:
+  if (VCM_RFC2364 || LLC_RFC2364) -> !DHCP, !staticip, user/pass
+  if RFC1483_ETH for both -> (dhcp && if !dhcp -> static ip), !user/pass
+  if ROUTED_IP -> !dhcp, !user/pass
+  also allow/disallow username+passwd input (routed_ip or dhcp, no need for such info)
+- get back password from previous config
+- get back DNS IPs from current config if Other is set (and even if Other is not set)
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)
