@@ -464,6 +464,7 @@ struct eci_instance 		/*	Private data for driver	*/
 							to INT		*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
 	unsigned char 		*interrupt_buffer;
+	unsigned char 		*pooling_buffer;
 
 
 	/* -- Transmission Elements -- */
@@ -647,6 +648,12 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			ERR_OUT("Can't allocate int buffer\n");
 			return 0;
 		}
+		if(!(out_instance->pooling_buffer = kmalloc(34+8, GFP_KERNEL)))
+		{
+			ERR_OUT("Can't alloc buffer for interrupt polling\n");
+			return 0;
+		}
+		eciurb->setup_packet = eciurb->transfer_buffer  +34;	
 		DBG_OUT("interrupt buffer = %x\n", out_instance->interrupt_buffer);
 		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
 			out_instance->interrupt_buffer,64,
@@ -974,13 +981,7 @@ static void _eci_send_init_urb(struct urb *eciurb)
 	else
 	{	/*	gotta free urb and buffer !	*/
 		kfree(eciurb->transfer_buffer);
-		if(!(eciurb->transfer_buffer = kmalloc(34+8, GFP_KERNEL)))
-		{
-			ERR_OUT("Can't alloc buffer for interrupt polling\n");
-			return;
-		}
-		eciurb->setup_packet = eciurb->transfer_buffer  +34;	
-		instance->vendor_urb = eciurb;
+		eciurb->transfer_buffer = 0;
 	}
 }
 
@@ -1075,18 +1076,18 @@ static void eci_ep_int_callback(struct urb *urb)
 	struct urb *eci_vendor;
 	int i; 		/*loop counter	*/
 	int outi = 0; 
-	static int eci_int_count = 0;
 	unsigned char *in_buf, b1, b2;
+	static int eci_int_count = 0;
 	static unsigned char replace_b1[] = { 0x73, 0x73, 0x63, 0x63,
 		0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63 , 0x63 };
 	static unsigned char replace_b2[] = { 0x11, 0x11, 0x13, 0x13,
 		0x13, 0x13, 0x11, 0x11, 0x1, 0x1, 0x1, 0x01 };
-	unsigned char eci_outbuf[34] = {
+	static unsigned char eci_outbuf[34] = {
 		0xff, 0xff, 
-		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
-		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
-		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
-		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc,
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc,
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc,
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc
 	}; 
 
 
@@ -1118,24 +1119,43 @@ static void eci_ep_int_callback(struct urb *urb)
 
 */
 			in_buf = instance->interrupt_buffer;
+			DBG_RAW_OUT("int buffer :",in_buf, 0x40);
+			outi = 0;
 			DBG_OUT("INT buf %x\n", in_buf);
-			/*for(i=0;i<15;i++)
+			for(i=0; i<34;) 
+				instance->pooling_buffer[i] = 
+					eci_outbuf[i++];
+			for(i=0;i<15;i++)
 			{
 				b1 = in_buf[6+2*i+0];
 				b2 = in_buf[6+2*i+1];
 				if( b1 != 0x0c || b2 !=0x0c)
 				{
 
-					eci_int_count %= 12;
-					eci_outbuf[10 + outi++]=
-						replace_b1[eci_int_count];
-					eci_outbuf[10 + outi++]=
-						replace_b2[eci_int_count];
+					if((b1 == 0x73) && (b2 == 0x11)) 
+					{
+					  eci_int_count %= 12;
+					  b1 = replace_b1[eci_int_count];
+					  b2 = replace_b2[eci_int_count++];
+					  if(!eci_int_count)
+					  {
+						replace_b2[8] =
+						replace_b2[9] =
+						replace_b2[10] =
+						replace_b2[11] = 0x53;
+					  }
+					  DBG_OUT(" remplacement\n"); 
+					}
+					instance->pooling_buffer[10 + 
+						outi++] = b1;
+					instance->pooling_buffer[10 + 
+						outi++] = b2;
 				}
+				DBG_OUT(" outi %d\n" , outi);
 			}
-			usb_control_msg(instance->usb_wan_dev, 
+			/*usb_control_msg(instance->usb_wan_dev, 
 				 usb_pipecontrol(0), 0xdd, 0x40, 0xc02,
-				 0x580 , eci_outbuf, 0x64, HZ);*/
+				 0x580 , eci_outbuf, sizeof(eci_outbuf), HZ);*/
 			DBG_OUT("EP INT received 64 bytes\n");
 		}
 	}
