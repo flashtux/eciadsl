@@ -8,22 +8,33 @@
 # *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
 # *           - Crevetor : ziva@caramail.com                             *
 # *                                                                      *
-# *          Lincence : GPL                                              *
+# *          License : GPL                                              *
 # *                                                                      *
 # ************************************************************************
 
-lsmod|grep dabusb
-if [ $? != 0 ]; then
-    echo "Dabusb not present - nothing to do !"
+lsmod | grep dabusb
+if [ $? -ne 0 ]; then
+    echo "dabusb not present - nothing to do !"
 else
-    kernel=$(uname -r)
-    mv /lib/modules/$kernel/kernel/drivers/usb/dabusb.o* dabusb.old
-    echo -e "\nmoved dabusb to /lib/modules/$kernel/kernel/drivers/usb/dabusb.old"
-    rmmod dabusb
-    lsmod|grep dabusb
-    if [ $? != 0 ]; then
-        echo "dabusb succesfully removed"
+	module=$(modprobe -l | grep dabusb)
+	if [ -n "$module" ]: then
+	then
+	    mv "$module" "$module.removed"
+	    if [ $? -eq 0 ]; then
+			echo -e "\ndabusb module file renamed to $module.removed"
+			depmod -a
+		else
+			echo -e "\ncouldn't rename file $module"
+		fi
+	else
+		echo -e "\ncouldn't find dabusb module file"
+	fi
+    modprobe -r dabusb
+	sleep 1
+    lsmod | grep dabusb
+    if [ $? -ne 0 ]; then
+        echo "dabusb successfully unloaded"
     else
-        echo "Couldn't remove dabusb... try rmmod dabusb after unplugging your modem"
+        echo "couldn't unload dabusb module... try to rmmod dabusb after unplugging your modem"
     fi
 fi
