@@ -13,6 +13,7 @@ Available Synch .bin files list:
 	synch11.bin (formerly eci_foggia.webpower.bin)
 	synch12.bin (formerly eci_bastia.bin)
 	synch13.bin (formerly eci_wan2.troll.bin - Italy/Napoli/Telecom Italia)
+    synch14.bin (formerly eci_cergy.bin)
 
 WARNING:
 the former names are DEPRECATED, because they are not friendly since they do NOT
