@@ -156,12 +156,6 @@ const char* mode_name[] =
 
 encapsulation_mode default_frame_type=VCM_RFC2364;
 
-#ifdef USE_BIG_ENDIAN
-#define HDLC_HEADER (short)0xff03
-#else
-#define HDLC_HEADER (short)0x03ff
-#endif
-
 const char* frame_header[] =
 {
 	"",											/* VCM_RFC2364 */
@@ -547,7 +541,9 @@ int ppp_write(int fd, unsigned char* buf, int n)
 	if (syncHDLC)
 	{
 		static unsigned char ppp_buf[synclen+max_frame_header_len + PPP_BUF_SIZE];
-		*(short*)ppp_buf = HDLC_HEADER;
+
+    ppp_buf[0] = 0xff;
+    ppp_buf[1] = 0x03;
 
 		if (frame_type)
 		{
