@@ -51,8 +51,15 @@ Official links are :
 \begin{itemize}
 \item Summary :
 \htmladdnormallink{http://www.cypress.com/products/datasheet.cfm?partnum=AN2131QC}{http://www.cypress.com/products/datasheet.cfm?partnum=AN2131QC}
-\item Datasheet (PDF) :
-\htmladdnormallink{http://www.cypress.com/cfuploads/img/products/AN2131SC.pdf}{http://www.cypress.com/cfuploads/img/products/AN2131SC.pdf}
+\item \htmladdnormallink{EZ-USB Technical Reference Manual
+v1.9}{http://www.cypress.com/cfuploads/support/developer\_kits/EF9F4266-6D9F-43B3-97CC2EDFBEC57C68\_doc\_1.pdf},
+1558199 bytes (pdf).
+\item \htmladdnormallink{EZ-USB FX Technical Reference Manual
+v1.2}{http://www.cypress.com/cfuploads/support/developer\_kits/FF8EFAB3-2E98-4448-92418D0EA786766D\_doc\_1.pdf},
+5462001 bytes (pdf).
+\item \htmladdnormallink{EZ-USB FX2 Technical Reference Manual
+v2.1}{http://www.cypress.com/cfuploads/support/developer\_kits/D264112D-9052-4BA8-9DBB23543A0A1A9B\_doc\_1.zip},
+2440894 bytes (pdf/zip).
 \item EZ-USB IO Ports (PDF) :
 \htmladdnormallink{http://www.cypress.com/cfuploads/support/app\_notes/EZUSB\_IO\_Ports.pdf}{http://www.cypress.com/cfuploads/support/app\_notes/EZUSB\_IO\_Ports.pdf}
 \item Software SPI Implementation on EZ-USB (PDF) :
@@ -140,8 +147,34 @@ Here are some links:
 \begin{itemize}
 \item 8051 Disassembler :
 \htmladdnormallink{http://wuarchive.wustl.edu/aminet/dirs/aminet/dev/cross/8051.lha}{http://wuarchive.wustl.edu/aminet/dirs/aminet/dev/cross/8051.lha}
+
+To install this disassembler, use the following procedure :
+\begin{verbatim}
+$ lha x ../ftp/ezusb/8051.lha
+$ cd 8051/DisAsm/
+$ gcc -o d51 Dis8051.c
+\end{verbatim}
+
+To use it, don't forget to create a file \textit{entries} in the
+current directory, containing all entry points (in our case,
+0000). And next, using an Intel Hex Record file as input:
+\begin{verbatim}
+$ d51 < firm.hex > firm.s
+\end{verbatim}
+
 \item 8051 C Compiler :
 \htmladdnormallink{http://sdcc.sourceforge.net/}{http://sdcc.sourceforge.net/}
+
+To install sdcc from the source package, get sdcc-XXX.tar.gz from the
+above link, unpack the archive and use the usual magic process :
+\begin{verbatim}
+$ cd sdcc
+$ ./configure
+$ make
+$ su
+# make install
+\end{verbatim}
+
 \end{itemize}
 
 \end{document}
