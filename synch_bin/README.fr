@@ -138,6 +138,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch40.bin (généré en France/Bordeaux, fournisseur Nerim (dégroupé), T1.413)
 	synch41.bin (généré en Angleterre, fournisseur Etisalat, Multimode)
 	synch42.bin (généré en Italie/Iglesias, fournisseur Tin.it, G.DMT)
+	synch43.bin (généré en Australie/Perth, fournisseur Arachnet, G.DMT)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !

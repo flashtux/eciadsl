@@ -138,6 +138,7 @@ Available Synch .bin files list:
 	synch40.bin (generated in France/Bordeaux, provider Nerim, T1.413)
 	synch41.bin (generated in UK, provider Etisalat, Multimode)
 	synch42.bin (generated in Italy/Iglesias, provider Tin.it, G.DMT)
+	synch43.bin (generated in Australia/Perth, provider Arachnet, G.DMT)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
