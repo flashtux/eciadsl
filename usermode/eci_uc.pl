@@ -11,7 +11,7 @@
 
 # 7f92 : CPUCS $12.5 EZ-USB tech. ref.
 
-# eci_firmware.bin has the following file format :
+# firmware.bin has the following file format :
 # it's a list of the following structure.
 # 2 bytes : in big endian : addr
 # 2 bytes : in big endian : content's length
