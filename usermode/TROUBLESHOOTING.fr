@@ -132,25 +132,19 @@ Q:	eci-doctor.sh m'indique que le module DABUSB est chargé, ou startmodem
 	dit que avoir trouvé dabusb, mais je ne peux pas l'enlever !
 
 --------------------------------------------------------------------------------
-R:	Vous pouvez supprimer le module dabusb de votre système en utilisant
-	eciconf.sh.
+R:	Démarrez votre machine Linux avec votre modem *DÉBRANCHÉ* puis:
 
-	Vous pouvez aussi directement appeler remove_dabusb.
+	Vous pouvez supprimer le module dabusb de votre système en utilisant
+	eciconf.sh ou eciconftxt.sh.
 
-	Ou, manuellement, débranchez votre modem, et tapez la commande suivante :
+	Vous pouvez aussi directement appeler remove_dabusb (dans /usr/local/bin
+	par défaut).
+
+	Ou encore, manuellement, tapez la commande suivante :
 		modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
-
-	Si le module ne peut pas être déchargé, essayer d'entrer en mode init 1
-	(fermez toutes les applications, allez en mode console, logguez vous en root
-	et tapez `init 1`, puis lancez enfin remove_dabusb).
 
 	Si le noyau a été compilé à la main, n'oubliez pas de retirer dabusb de la
 	configuration du noyau.
-
-	Si vous n'arrivez toujours pas à supprimer le fichier module dabusb, et que
-	MS Windows est installé sur la même machine, installez explore2fs et activez
-	le support pour l'écriture. Avec cet outil, effacez alors le fichier module
-	de dabusb (voir plus haut pour savoir où le trouver).
 
 
 2.2

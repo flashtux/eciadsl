@@ -141,24 +141,18 @@ Q:	ecidoctor reports me that the DABUSB module is loaded, or startmodem says
 	dabusb has been found, but couldn't remove it!
 
 --------------------------------------------------------------------------------
-A:	You can remove the dabusb module from your system using eciconf.
+A:	Boot your Linux machine with your modem *UNPLUGGED*, then:
 
-	You can also directly call remove_dabusb.
+	You can remove the dabusb module from your system using eciconf.sh or
+	eciconftxt.sh.
 
-	Or, manually, unplug your modem, then type the following command:
+	You can also directly call remove_dabusb (in /usr/local/bin by default).
+
+	Or, manually type the following command:
 		modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
-
-	If the module cannot be removed, try to enter init 1 mode (close all apps,
-	then in console mode, login as root then type `init 1`, now run
-	remove_dabusb).
 
 	If this kernel has been compiled by hand, don't forget to remove dabusb
 	support from the kernel configuration too.
-
-	If still unable to remove this f*cking module, and if MS Windows is
-	installed on the same machine, boot under MS Windows, install explore2fs and
-	enable the write support. Then, using this tool, remove the dabusb file (see
-	its location above).
 
 
 2.2
