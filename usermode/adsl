@@ -20,6 +20,7 @@ holdoff 1
 maxfail 0
 usepeerdns
 noauth
-#lcp-echo-interval 600
-#lcp-echo-failure 10
+lcp-echo-interval 600
+lcp-echo-failure 10
+mtu 1432
 
