@@ -13,8 +13,16 @@ base = howto
 pwd = `pwd`
 cvsroot= :pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl
 
-all: $(base).dvi $(base).html $(base).ps $(base).txt eciadsl_kernelmode.dvi eciadsl_kernelmode.ps eciadsl_kernelmode.txt eciadsl_kernelmode.html\
-	kernelmode-design.html technical-reference.html \
+SRC = kernelmode-design.tex usermode-design.tex technical-reference.tex \
+	howto.tex howto-en.tex eciadsl_kernelmode.tex
+DVI  = $(SRC:.tex=.dvi)
+HTML = $(SRC:.tex=.html)
+CSS  = $(SRC:.tex=.css)
+PS   = $(SRC:.tex=.ps)
+PDF  = $(SRC:.tex=.pdf)
+TXT  = $(SRC:.tex=.txt)
+
+all: $(DVI) $(HTML) $(PS) $(PDF) $(TXT) \
 	keep-useful-files-only
 
 %.aux: %.tex
@@ -27,7 +35,7 @@ all: $(base).dvi $(base).html $(base).ps $(base).txt eciadsl_kernelmode.dvi ecia
 	latex $<
 
 %.html: %.tex %.aux
-	latex2html -dir $(pwd) -nonavigation -noauto_link -ascii_mode -show_section_numbers -split 0 $<
+	latex2html -dir $(pwd) -nonavigation -noauto_link -ascii_mode -show_section_numbers -split 0 -noinfo $<
 # we removed reference to howto.html
 	sed s/$@// $@ > tmp.html
 	mv tmp.html $@
@@ -35,9 +43,7 @@ all: $(base).dvi $(base).html $(base).ps $(base).txt eciadsl_kernelmode.dvi ecia
 %.ps: %.dvi 
 	dvips -f $< > $@
 
-%.pdf: %.tex
-	$(RM) $*.aux
-	pdflatex $<
+%.pdf: %.tex %.aux
 	pdflatex $<
 
 %.txt: %.html
@@ -52,6 +58,4 @@ keep-useful-files-only:
 	$(RM) internals.pl labels.pl warnings *.log *.aux *.toc *.out
 
 clean: keep-useful-files-only
-	$(RM) $(base).html $(base).css $(base).dvi $(base).ps $(base).pdf $(base).txt
-	$(RM) kernelmode-design.html kernelmode-design.css kernelmode-design.dvi
-	$(RM) technical-reference.html technical-reference.css technical-reference.dvi
+	$(RM) $(DVI) $(HTML) $(CSS) $(PS) $(PDF) $(TXT)
