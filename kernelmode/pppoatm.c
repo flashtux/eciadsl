@@ -20,6 +20,9 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#define _PATH_ATMOPT _ROOT_PATH "/etc/ppp/options"
+
+
 static struct sockaddr_atmpvc pvcaddr;
 static char *qosstr = NULL;
 static int pppoatm_accept = 0;
@@ -28,6 +31,16 @@ static bool vc_encaps = 0;
 static int device_got_set = 0;
 static int pppoatm_max_mtu, pppoatm_max_mru;
 
+struct channel pppoa_channel;
+static char *bad_options[] = {
+	"noaccomp", "-ac",
+	"default-asyncmap", "-am", "asyncmap", "-as", "escape",
+	"receive-all",
+	"crtscts", "-crtscts", "nocrtscts",
+	"cdtrcts", "nocdtrcts",
+	"xonxoff",
+	"modem", "local", "sync",
+	NULL };
 
 /* returns:
  *  -1 if there's a problem with setting the device
@@ -42,9 +55,13 @@ static int pppoatm_max_mtu, pppoatm_max_mru;
  *     don't get confused that we're on stdin.
  */
 
+static int open_device_pppoatm(void);
+static void set_line_discipline_pppoatm(int fd);
+
 static int setdevname_pppoatm(const char *cp)
 {
 	struct sockaddr_atmpvc addr;
+	int fd;
 	extern struct stat devstat;
 	if (device_got_set)
 		return 0;
@@ -58,22 +75,34 @@ static int setdevname_pppoatm(const char *cp)
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
 	strlcpy(devnam, cp, sizeof devnam);
 	devstat.st_mode = S_IFSOCK;
+	if(the_channel != &pppoa_channel) {
+		char **a;
+
+		the_channel = &pppoa_channel;
+		info("registering channel\n");
+		/**for (a = bad_options; *a != NULL; a++)
+			remove_option(*a);*/
+	}
 	info("PPPoATM setdevname_pppoatm - SUCCESS");
 	device_got_set = 1;
+	fd = open_device_pppoatm();
+	set_line_discipline_pppoatm(fd);
 	return 1;
 }
 
 static int setspeed_pppoatm(const char *cp)
 {
+	info("Setspeed pppoatm\n");
 	return 0;
 }
 
-/*
-static int options_for_pppoatm(void)
-{
-	return options_from_devfile(_PATH_ATMOPT, devnam);
+
+static void options_for_pppoatm(void)
+{  
+	info("option for pppoatm\n");
+	return;
 }
-*/
+
 
 #define pppoatm_overhead() (llc_encaps ? 6 : 2)
 
@@ -88,6 +117,7 @@ static int open_device_pppoatm(void)
 	int fd;
 	struct atm_qos qos;
 
+	info("open device pppoatm\n");
 	if (!device_got_set)
 		no_device_given_pppoatm();
 	fd = socket(AF_ATMPVC, SOCK_DGRAM, 0);
@@ -133,6 +163,8 @@ static void set_line_discipline_pppoatm(int fd)
 {
 	struct atm_backend_ppp be;
 	be.backend_num = ATM_BACKEND_PPP;
+
+	info("set line dicipline pppoatm\n");
 	if (!llc_encaps)
 		be.encaps = PPPOATM_ENCAPS_VC;
 	else if (!vc_encaps)
@@ -155,7 +187,7 @@ static void reset_line_discipline_pppoatm(int fd)
 }
 */
 
-/*
+
 static void send_config_pppoatm(int unit, int mtu, u_int32_t asyncmap,
 	int pcomp, int accomp)
 {
@@ -172,16 +204,16 @@ static void send_config_pppoatm(int unit, int mtu, u_int32_t asyncmap,
 		fatal("ioctl(SIOCSIFMTU): %m");
 	(void) close (sock);
 }
-*/
 
-/*
+
+
 static void recv_config_pppoatm(int unit, int mru, u_int32_t asyncmap,
 	int pcomp, int accomp)
 {
 	if (mru > pppoatm_max_mru)
 		error("Couldn't increase MRU to %d", mru);
 }
-*/
+
 
 static void set_xaccm_pppoatm(int unit, ext_accm accm)
 {
@@ -254,15 +286,6 @@ static option_t my_options[] = {
 
 void plugin_init(void)
 {
-	static char *bad_options[] = {
-		"noaccomp", "-ac",
-		"default-asyncmap", "-am", "asyncmap", "-as", "escape",
-		"receive-all",
-		"crtscts", "-crtscts", "nocrtscts",
-		"cdtrcts", "nocdtrcts",
-		"xonxoff",
-		"modem", "local", "sync",
-		NULL };
 	info("PPPoATM plugin_init");
 	add_options(my_options);
 	add_notifier(&phasechange,pppoatm_phase_change,0);
@@ -291,3 +314,16 @@ void plugin_init(void)
 	lcp_wantoptions[0].neg_pcompression = 0;
 }
 
+struct channel pppoatm_channel = {
+options: my_options,
+process_extra_options: &options_for_pppoatm,
+check_options: NULL,
+connect: &open_device_pppoatm,
+disconnect: NULL,
+establish_ppp: &set_line_discipline_pppoatm,
+disestablish_ppp: NULL ,
+send_config: &send_config_pppoatm,
+recv_config: &recv_config_pppoatm,
+close: NULL,
+cleanup: NULL,
+};
