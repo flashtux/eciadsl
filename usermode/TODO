@@ -40,8 +40,7 @@ Sorted according to priority (the upper in the list, the prior):
   adsl file, is this relevant in Makefile?
 - keep previous settings when installing
 - complete translations
-- merge pending patches
-- -mode selection (protocol) using eciconf*
+- merge pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
 
 
 0.7:
