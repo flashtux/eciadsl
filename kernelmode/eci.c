@@ -567,7 +567,6 @@ static int _eci_rx_aal5(
 		struct eci_instance*,
 		aal5_t*
 ) ;
-static void _eci_bulk_callback(struct urb *) ;
 
 /*
  * Send data from USB (single uni cell) to ATM
@@ -641,8 +640,7 @@ struct eci_instance 		/*	Private data for driver	*/
 
 	/* -- test -- */
 	struct atm_vcc		*pcurvcc ;
-	byte			bklog[ATM_CELL_SZ];/*	buffer to complete */
-	size_t			szbklog ;	/*	filled bytes */
+ 	struct aal5		*pbklogaal5;	/*	AAL5 to complete */
 };
 
 struct eci_instance	*eci_instances= NULL;		/*  Driver list	*/
@@ -733,6 +731,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			out_instance->usb_wan_dev= dev;
 			out_instance->setup_packets = eci_init_setup_packets;
 			/*init_waitqueue_head(&out_instance->eci_wait);*/
+			out_instance->iso_celbuf_pos = 0 ;
 		}
 		else
 		{
@@ -873,7 +872,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 
 	DBG_OUT(" doing ATM\n");
 
-	out_instance->pcurvcc = NULL ;
+	out_instance->pcurvcc 		= NULL ;
+	out_instance->pbklogaal5	= NULL ;
 
 	out_instance->atm_dev = atm_dev_register(
 			eci_drv_label,
@@ -911,6 +911,8 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 #ifdef __USE_ATM__
 		DBG_OUT("disconnect : freeing atm_dev\n");
 		atm_dev_deregister(eci_instances->atm_dev);
+		if (eci_instances->pbklogaal5)
+			_aal5_free(eci_instances->pbklogaal5) ;
 #endif /* __USE_ATM__ */
 
 		DBG_OUT("disconnect : freeing int urb\n");
@@ -1007,7 +1009,14 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 /*----------------------------------------------------------------------*/
 static void eci_atm_close(struct atm_vcc *vcc)
 {
+	struct eci_instance * lp_instance = 
+		(struct eci_instance*)vcc->dev->dev_data ;
 	DBG_OUT("eci_atm_close in\n");
+	lp_instance->pcurvcc = NULL ;
+	if (lp_instance->pbklogaal5) {
+		_aal5_free(lp_instance->pbklogaal5) ;
+		lp_instance->pbklogaal5 = NULL ;
+	}
 	DBG_OUT("eci_atm_close out\n");
 };
 
@@ -1345,6 +1354,9 @@ static void eci_iso_callback(struct urb *urb)
  	struct uni_cell_list	*cells;		/* New computed queue of cell */
 	struct uni_cell 	*cell;		/* Working cell		*/
 	unsigned char 		*buf;		/* Working buffer pointer */
+	int			lv_size;	/* Packet data size	*/
+	int			lv_needed;	/* Bytes needed to complete */
+	int			lv_used;	/* Bytes used to complete */
 
 	instance = (struct eci_instance *)urb->context;
 	if (!urb->status && urb->actual_length)
@@ -1356,49 +1368,71 @@ static void eci_iso_callback(struct urb *urb)
 		for (i=0;i<ECI_NB_ISO_PACKET;i++)
 		{
 			if (!urb->iso_frame_desc[i].status &&
-					urb->iso_frame_desc[i].actual_length)
+				(lv_size = urb->iso_frame_desc[i].actual_length))
 			{
+
 				DBG_OUT("Data available in frame [%d]\n", i) ;
 				DBG_RAW_OUT(
 					"received data", 
 					urb->transfer_buffer +
 						urb->iso_frame_desc[i].offset,
-					urb->iso_frame_desc[i].actual_length);
+					lv_size);
 				if(instance->iso_celbuf_pos)
 				{	
+					lv_needed = ATM_CELL_SZ 
+						- instance->iso_celbuf_pos ;
+					lv_used = (lv_size < lv_needed ? 
+							lv_size :
+							lv_needed) ;
 					memcpy(instance->iso_celbuf + 
 					       instance->iso_celbuf_pos,
-						urb->transfer_buffer, 
-						ATM_CELL_SZ - 
-						instance->iso_celbuf_pos);
-					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
-						   instance->iso_celbuf);
- 					if(_uni_cell_list_append(
-						 	cells, cell))
- 					{
- 				  		ERR_OUT(
-					   "Couldn't queue One cell\n");
- 				  		_uni_cell_free(cell);
- 					}
+						urb->transfer_buffer +
+							urb->iso_frame_desc[i].offset, 
+						lv_used) ;
+						instance->iso_celbuf_pos += lv_used ;
+					if (lv_used == lv_needed) {
+						/* the cell is completed */
+						instance->iso_celbuf_pos = 0 ;
+						cell = _uni_cell_fromRaw(ATM_CELL_SZ,
+							   instance->iso_celbuf);
+						if (!cell)
+						{
+							ERR_OUT(
+						   "not enough mem for new cell\n") ;
+						}
+						else if(_uni_cell_list_append(
+								cells, cell))
+						{
+							ERR_OUT(
+						   "Couldn't queue One cell\n");
+							_uni_cell_free(cell);
+						}
+					}
 				}
-				pos=instance->iso_celbuf_pos;
-				instance->iso_celbuf_pos = 0;
- 				for(buf=urb->transfer_buffer + 
- 				    urb->iso_frame_desc[i].offset;
- 				    pos + ATM_CELL_SZ < 
- 			 	    urb->iso_frame_desc[i].actual_length;
- 				    pos+=ATM_CELL_SZ)
- 				{
- 					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
+				else
+				{
+					lv_used = 0 ;
+				}
+				pos = lv_used ;
+				for(buf=urb->transfer_buffer +
+					urb->iso_frame_desc[i].offset;
+					pos + ATM_CELL_SZ <= lv_size;
+					pos+=ATM_CELL_SZ)
+				{
+					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
 						buf + pos);
- 					if(_uni_cell_list_append(cells, cell))
- 					{
- 					  ERR_OUT("Couldn't queue One cell\n");
- 					  _uni_cell_free(cell);
- 					}
- 				}
-				if((instance->iso_celbuf_pos = 
-				   urb->iso_frame_desc[i].actual_length - pos))
+					if (!cell)
+					{
+						ERR_OUT(
+					   "not enough mem for new cell\n") ;
+					}
+					else if(_uni_cell_list_append(cells, cell))
+					{
+					  ERR_OUT("Couldn't queue One cell\n");
+					  _uni_cell_free(cell);
+					}
+				}
+				if((instance->iso_celbuf_pos = lv_size - pos))
 				{
 					memcpy(instance->iso_celbuf, buf +pos,
 						instance->iso_celbuf_pos);
@@ -1483,19 +1517,18 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 		kfree(buf);
 		return(0);
 	}
-	/* Incorrect place (not sent yet)
-	usb_free_urb(urb);
-	*/
 	return(ret);	
 }
 
 static void eci_bulk_callback(struct urb *urb)
 {
+	if (!urb) return ;
 	if(urb->status)
 	{
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
 	kfree(urb->transfer_buffer);
+	usb_free_urb(urb) ;
 }
 /**********************************************************************
 		END USB CODE
@@ -1634,17 +1667,29 @@ static int eci_atm_receive_cell(
 		uni_cell_list_t *		plist
 ) {
 	uni_cell_t *		lp_cell		= NULL ;
-	aal5_t 			lv_aal5 ;
+ 	aal5_t *		lp_aal5 	= NULL ;
 	int			lv_rc ;
 	
 	/* Check Interface */
 	if (!pinstance || !plist)
 		return -EINVAL ;
 
-	lv_rc = _aal5_init(&lv_aal5) ;
-	if (lv_rc) {
-		ERR_OUT("AAL5 init failed\n") ;
-		return lv_rc ;
+	/* Check if VCC available */
+	if (!pinstance->pcurvcc){
+		ERR_OUT("No opened VC\n") ;
+		return -ENXIO ;
+	}
+
+ 	/* Manage backlog AAL5 */
+ 	if (pinstance->pbklogaal5) {
+ 		lp_aal5 = pinstance->pbklogaal5 ;
+ 		pinstance->pbklogaal5 = NULL ;
+ 	} else {
+ 		lp_aal5 = _aal5_alloc() ;
+ 		if (!lp_aal5) {
+ 			ERR_OUT("AAL5 init failed\n") ;
+ 			return -ENOMEM ;
+ 		}
 	}
 
 	/* Parse The complete list */
@@ -1668,27 +1713,35 @@ static int eci_atm_receive_cell(
 				continue ;
 			}
 			
-			lv_rc = _aal5_add_cell(&lv_aal5, lp_cell) ;
+			lv_rc = _aal5_add_cell(lp_aal5, lp_cell) ;
 			if (lv_rc) {
-				ERR_OUT("Failed to add new cell\n") ;
+				ERR_OUT("Failed to add new cell drop frame\n") ;
 				_uni_cell_free(lp_cell) ;
+				_aal5_clean(lp_aal5) ;
 				goto end;
 			}
-		} while (!_aal5_iscomplete(&lv_aal5)) ;
+		} while (!_aal5_iscomplete(lp_aal5)) ;
 
 		/* Now send it to ATM layer */
-		_eci_rx_aal5(pinstance, &lv_aal5) ;
+		_eci_rx_aal5(pinstance, lp_aal5) ;
 
 		/* Reset AAL5 */
-		_aal5_clean(&lv_aal5) ;
+		_aal5_clean(lp_aal5) ;
 	} while (true) ;
 		
 	end:
-	_aal5_clean(&lv_aal5) ;
+
+ 	/* Manage AAL5 backlog */
+ 	if (_aal5_getNbCell(lp_aal5) && !_aal5_iscomplete(lp_aal5)) {
+ 		pinstance->pbklogaal5 = lp_aal5 ;
+ 		DBG_OUT(
+ 			"store bklog AAL5 with [%d] cells\n",
+ 			_aal5_getNbCell(lp_aal5)) ;
+ 	} else {
+ 		_aal5_free(lp_aal5) ;
+ 	}
 	_uni_cell_list_free(plist) ;
 	return 0 ;
-
-
 }
 
 /*----------------------------------------------------------------------
@@ -1770,36 +1823,6 @@ static int _eci_rx_aal5(
 
 	return 0 ;
 
-}
-
-/*----------------------------------------------------------------------
- * 
- * Callback to handle BULK urb completion
- * Free the transfer buffer + the urb itself
- *
- */
-static void _eci_bulk_callback(struct urb *purbsent) {
-	char * lp_buf = NULL ;
-
-	DBG_OUT("_eci_bulk_callback in \n") ;
-
-	/* Check Interface */
-	if (!purbsent) {
-		ERR_OUT("Interface Error\n") ;
-		return ;
-	}
-	
-	usb_unlink_urb(purbsent) ;
-
-	lp_buf = purbsent->transfer_buffer ;
-
-	/* Free urb */
-	usb_free_urb(purbsent) ;
-
-	/* Free transfert buffer */
-	if (lp_buf) kfree(lp_buf) ;
-
-	DBG_OUT("_eci_bulk_callback out\n") ;
 }
 
 /*
@@ -2526,6 +2549,7 @@ static uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *plist) {
 		plist->last = NULL ;
 
 	lp_cell->next = NULL ;
+	plist->nbcells-- ;
 	return lp_cell ;
 }
 
@@ -2560,11 +2584,12 @@ static int _uni_cell_list_append(uni_cell_list_t *plist, uni_cell_t *pcell) {
 	pcell->next = NULL ;
 
 	/* Manage empty list case */
-	if (!plist->first) {
+	if (!plist->nbcells) {
 		plist->first		= pcell ;
 		plist->last		= pcell ;
 	} else {
 		plist->last->next	= pcell ;
+		plist->last		= pcell ;
 	}
 
 	plist->nbcells++ ;
@@ -3005,7 +3030,11 @@ static int _aal5_add_cell(
 		lv_length = (lv_length + 8 + 
 				ATM_CELL_PAYLOAD - 1) / ATM_CELL_PAYLOAD ;
 		if (lv_length != (paal5->nbcells + 1)) {
-			ERR_OUT("Invalid length field in trailed\n") ;
+			ERR_OUT("Invalid length field in trailer\n") ;
+ 			DBG_OUT(
+ 				"should have [%d] cells and have [%d]\n",
+ 				lv_length,
+ 				paal5->nbcells + 1) ;
 			return -EINVAL ;
 		}
 
