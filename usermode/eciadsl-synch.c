@@ -339,8 +339,10 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		return(0);
 	}
 
-	/* initialize the USB device */
-
+	/*
+    initialize the USB device : prevent USB hotplug from properly working
+  */
+/*
 	if (pusb_set_configuration(dev, 1) < 0)
 	{
 		printf("can't set configuration 1\n");
@@ -348,7 +350,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		fclose(fp);
 		return(0);
 	}
-
+*/
 	/* let some time... is it needed ? */
 	sleep(1);
 

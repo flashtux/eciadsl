@@ -240,8 +240,11 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 		return(0);
 	}
 
-	/* initialize the USB device */
-
+	/*
+    initialize the USB device : useless since our device has only 1
+    configuration and prevent hotplug from properly working
+  */
+/*
 	if (pusb_set_configuration(dev, 1) < 0)
 	{
 		printf("can't set configuration 1\n");
@@ -249,7 +252,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 		fclose(fp);
 		return(0);
 	}
-
+*/
 	if (pusb_set_interface(dev, 0, 1) < 0)
 	{
 		perror("can't set interface 0 to use alt setting 1\n");
