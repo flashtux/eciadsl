@@ -23,10 +23,15 @@
 
 # 20/12/2001 : removed stupid hardcoded value!
 
-$active = 0;
+# 13/01/2002 : added the $interrupt flag which is set when we search for
+# an interrupt packet of 64 bytes is received. At this time, we stop the
+# generation of the .bin file.
 
-@urb_list = ();
-$idx = -1;
+# Due to the source code organisation, incorrect URBs are just ignored and
+# not always reported! Use eci_data.pl to check the validity of your USB log
+# file.
+
+$active = 0;
 
 $file = "eci_vendor.bin";
 
@@ -34,11 +39,14 @@ open BIN, ">$file" or die "Can't open $file: $!\n";
 
 while (<>) {
 
-	if (/\[([0-9]+) ms\]/) {
-		$t = $1;
-	}
+# At the start of each URB , we reset all our variables and write down the
+# URB number.
+	if ((/URB ([0-9]+) going down/)
+		|| (/URB ([0-9]+) coming back/)) {
 
-	if (/going down/ || /coming back/) {
+		$active = 0;
+		$urb = $1;
+
 		undef ($request_type);
 		undef ($request);
 		undef ($value);
@@ -47,146 +55,168 @@ while (<>) {
 
 		$buf = '';
 		$vendor = 0;
+		$interrupt = 0;
+
+		if (/coming back/) {
+			$urb_direction = 'in';
+		} else {
+			$urb_direction = 'out';
+		}
 	}
 
-	if (/URB ([0-9]+) going down/) {
-		$active = 0;
-		$urb = $1;
-
-		$idx ++;
-		$urb_list[$idx] = "$t URB $1 going down ";
-	}
-
-	if (/URB ([0-9]+) coming back/) {
-		$active = 0;
-		$urb = $1;
-
-		$idx ++;
-		$urb_list[$idx] = "$t URB $1 coming back";
+	if (/URB_FUNCTION_BULK_OR_INTERRUPT_TRANSFER/) {
+# To received an INT packet, we are only interested in "coming back" URB.
+		if ($urb_direction eq 'in') {
+			$interrupt = 1;
+		}
+		next;
 	}
 
 	if (/URB_FUNCTION_CONTROL_TRANSFER/) {
-		$urb_list[$idx] .= ":ignored(transfer)";
 		$active = 1;
-	}
-
-	if (/URB_FUNCTION_GET_DESCRIPTOR_FROM_DEVICE/) {
-		$urb_list[$idx] .= ":ignored(descriptor)";
-	}
-
-	if (/URB_FUNCTION_SELECT_CONFIGURATION/) {
-		$urb_list[$idx] .= ":ignored(configuration)";
-	}
-
-	if (/URB_FUNCTION_RESET_PIPE/) {
-		$urb_list[$idx] .= ":ignored(reset)";
+		$vendor = 0;
+		next;
 	}
 
 	if (/URB_FUNCTION_VENDOR_DEVICE/) {
-		$urb_list[$idx] .= ":vendor";
 		$active = 1;
 		$vendor = 1;
+		next;
 	}
 
-	if (/non printable/) {
-		$urb_list[$idx] .= ":ignored(non printable)";
+	if ($interrupt && /endpoint[ \t]+0x([0-9a-f]+)/i) {
+# we are only interested in endpoint 0x86 which is the INT endpoint 
+		if (hex($1) != 0x86) {
+			$interrupt = 0;
+		}
+		next ;
 	}
-
-#	if (/SetupPacket[ \t]+:([ 0-9a-f]+)/) {
-#		$urb_list[$idx] .= "[Setup: $1]";
-#	}
 
 	if (/USBD_TRANSFER_DIRECTION_OUT/) {
-		$direction = "out";
 		if ($vendor) {
-			$urb_list[$idx] .= " request_type=0x40";
 			$request_type = 0x40;
 		}
+		next;
 	}
 
 	if (/USBD_TRANSFER_DIRECTION_IN/) {
-		$direction = "in";
 		if ($vendor) {
-			$urb_list[$idx] .= " request_type=0xc0";
 			$request_type = 0xc0;
 		}
+		next;
 	}
 
-	if (/SetupPacket/) {
-		$active = 0;
-	}
-
-	if (/endpoint[ \t]+0x([0-9a-f]+)/) {
-#		print "endpoint $1\n";
-		
-#		print "x : $urb_list[$idx]\n";
-		$urb_list[$idx] .= ":endpoint $1";
-		
-		$active = 1;
-	}
-
-	if ($active && /Request[ \t]+=[ \t]+([0-9a-f]+)/) {
-		if ($vendor) {
-			$urb_list[$idx] .= " request=$1";
-			$request = hex ($1);
-		}
-	}
-	
-	if ($active && /Value[ \t]+=[ \t]+([0-9a-f]+)/) {
-		if ($vendor) {
-			$urb_list[$idx] .= " value=$1";
-			$value = hex($1);
-		}
-	}
-		
-	if ($active && /TransferBufferLength[ \t]+=[ \t]+([0-9a-f]+)/) {
-		if ($vendor) {
-			$size = hex ($1);
-		}
-	}
-
-# since we save the buffer in the .bin file when the 'Index' keyword
-# is present, data received are not saved. (buffer from IN URBs).
-
-	if ($active && /Index[ \t]+=[ \t]+([0-9a-f]+)/) {
-		if ($vendor) {
-			$urb_list[$idx] .= " index=$1 size=$size";
-			$index = hex($1);
-
-			# everything should be OK!
-
-			if (defined ($request_type)
-				&& defined($request)
-				&& defined($value)
-				&& defined($index)
-				&& defined($size)) {
-
-#			if ((length($buf) eq $size)) {
-
-				print "saving urb $urb\n";
-
-				print BIN chr($request_type);
-				print BIN chr($request);
-				print BIN chr($value >> 8);
-				print BIN chr($value&0xff);
-				print BIN chr($index >> 8);
-				print BIN chr($index&0xff);
-				print BIN chr($size >> 8);
-				print BIN chr($size&0xff);
-				print BIN $buf;
-
-			} else {
-				print "Error ($urb): length=" . length($buf) . " size=$size\n";
+	if (/TransferBufferLength[ \t]+=[ \t]+([0-9a-f]+)/i) {
+		if ($interrupt) {
+# we check if the interrupt packet is 64 bytes long. If so, end the loop.
+			if (hex ($1) == 64) {
+				last;
 			}
 		}
+				
+		if ($active) {
+			if ($vendor) {
+				$size = hex ($1);
+			}
+		}
+		next;
 	}
-
+	
 	if ($active && /[0-9a-f]+: ([0-9a-f ]+)/i) {
 		@list = split / /, $1;
 
 		foreach $byte (@list) {
 			$buf .= chr(hex($byte));
 		}
+		next;
+	}
+
+	if ($active && /Request[ \t]+=[ \t]+([0-9a-f]+)/i) {
+		if ($vendor) {
+			$request = hex ($1);
+		}
+		next;
+	}
+	
+	if ($active && /Value[ \t]+=[ \t]+([0-9a-f]+)/i) {
+		if ($vendor) {
+			$value = hex($1);
+		}
+		next;
+	}
+		
+# since we save the buffer in the .bin file when the 'Index' keyword
+# is present, data received is not saved. (buffer from IN URBs).
+
+	if ($active && /Index[ \t]+=[ \t]+([0-9a-f]+)/i) {
+		if ($vendor) {
+			$index = hex($1);
+
+			# we check everything!
+
+			if (!defined ($request_type)) {
+				print "Fatal error: URB $urb has undefined RequestType\n";
+				exit;
+			}
+
+			if (!defined($request)) {
+				print "Fatal error: URB $urb has undefined Request\n";
+				exit;
+			}
+
+			if (!defined($value)) {
+				print "Fatal error: URB $urb has undefined Value\n";
+				exit;
+			}
+
+			if (!defined($index)) {
+				print "Fatal error: URB $urb has undefined Index\n";
+				exit;
+			}
+
+			if (!defined ($size)) {
+				print "Fatal error: URB $urb has undefined TransferBufferLength\n";
+				exit;
+			}
+
+# remember that buf is empty for "IN" request. Thus, we check $buf's length
+# only for "OUT" requests.
+
+			if ($request_type == 0x40) { # OUT request
+				if (length($buf) != $size) {
+					print "Fatal error: URB $urb: length=" .
+						length($buf) . " expecting $size bytes\n";
+					exit;
+				}
+			}
+
+			if ($request_type == 0xc0) { # IN request
+				if (length($buf) != 0) {
+					print "Fatal error: URB $urb: length=" .
+						length($buf) . " expecting nothing\n";
+				}
+			}
+			
+			print "saving urb $urb\n";
+			
+			print BIN chr($request_type);
+			print BIN chr($request);
+			print BIN chr($value >> 8);
+			print BIN chr($value&0xff);
+			print BIN chr($index >> 8);
+			print BIN chr($index&0xff);
+			print BIN chr($size >> 8);
+			print BIN chr($size&0xff);
+			print BIN $buf;
+		}
+		next;
+	}
+
+# 'SetupPacket' is followed by a buffer, that we don't want to analyze. That's
+# why we reset the $active flag to 0.
+	if (/SetupPacket/) {
+		$active = 0;
+		next;
 	}
 }
 
