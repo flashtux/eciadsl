@@ -142,10 +142,14 @@ case "$1" in
     providers="Select your provider"
     servers_dns1="*"
     servers_dns2="*"
-	if [ -n "$prev_provider" -a -n "$prev_dns1" -a -n "$prev_dns2" ]; then
+	if [ -n "$prev_provider" -a -n "$prev_dns1" -o -n "$prev_dns2" ]; then
+		test -z "$prev_dns1" && prev_dns1="?"
+		test -z "$prev_dns2" && prev_dns2="?"
+		# if the saved provider label is known but the saved DNS don't match,
+		# assume Other and keep DNS
 		dns1_="$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 2)"
 		dns2_="$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 3)"
-		if [ "$prev_provider" != "Other" -a "$dns1" != "$prev_dns1" -o "$dns2_" != "$prev_dns2" ]; then
+		if [ "$prev_provider" != "Other" -a "$dns1_" != "$prev_dns1" -o "$dns2_" != "$prev_dns2" ]; then
 			prev_provider="Other"
 			servers_dns1="$servers_dns1|$prev_dns1"
 			servers_dns2="$servers_dns2|$prev_dns2"
@@ -172,10 +176,26 @@ case "$1" in
     modems="Select your modem"
     vid1pid1="*"
     vid2pid2="*"
-	if [ -n "$prev_modem" -a -n "$prev_vid1" -a -n "$prev_pid1" -a -n "$prev_vid2" -a -n "$prev_pid2" ]; then
+	if [ -n "$prev_modem" -a -n "$prev_vid1" -o -n "$prev_pid1" -o -n "$prev_vid2" -o -n "$prev_pid2" ]; then
+		test -z "$prev_vid1" && prev_vid1="????"
+		test -z "$prev_pid1" && prev_pid1="????"
+		test -z "$prev_vid2" && prev_vid2="????"
+		test -z "$prev_pid2" && prev_pid2="????"
+		# if the saved modem label is known but the saved VIDPID don't match,
+		# assume Other and keep VIDPID
+		vid1_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 2)"
+		pid1_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 3)"
+		vid2_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 4)"
+		pid2_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 5)"
+		if [ "$prev_modem" != "Other" -a "$vid1_" != "$prev_vid1" -o "$pid1_" != "$prev_pid1" -o "$vid2_" != "$prev_vid2" -o "$pid2_" != "$prev_pid2" ]; then
+			prev_modem="Other"
+			vid1pid1="$vid1pid1|$prev_vid1$prev_pid1"
+			vid2pid2="$vid2pid2|$prev_vid2$prev_pid2"
+		else
+			vid1pid1="$vid1pid1|$vid1_$pid1_"
+			vid2pid2="$vid2pid2|$vid2_$pid2_"
+		fi
 		modems="$modems|$previous ($prev_modem)"
-		vid1pid1="$vid1pid1|$prev_vid1$prev_pid1"
-		vid2pid2="$vid2pid2|$prev_vid2$prev_pid2"
 	fi
 	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 1); do
 		modems="$modems|$LINE"
@@ -231,16 +251,17 @@ case "$1" in
 				TMP=""
 			fi
             stty -echo
-            password=""
-            while [ -z "$password" ]; do
+            password1=""
+            while [ -z "$password1" ]; do
                 echo -n "Type in your password (given by your provider$TMP): "
-                read password
+                read password1
                 echo
-				if [ -z "$password" -a -n "$prev_pppd_passwd" ]; then
-					password="$prev_pppd_passwd"
+				if [ -z "$password1" -a -n "$prev_pppd_passwd" ]; then
+					password1="$prev_pppd_passwd"
+					echo "* password unchanged"
 				fi
             done
-			if [ "$password" == "$prev_pppd_passwd" ]; then
+			if [ "$password1" == "$prev_pppd_passwd" ]; then
 				password2="$password1"
 			else
 	            password2=""
@@ -249,9 +270,9 @@ case "$1" in
 	                read password2
 	                echo
 	            done
-	            stty echo
 			fi
-            if [ "$password" == "$password2" ]; then
+            stty echo
+            if [ "$password1" == "$password2" ]; then
                 pwdmatch=1
             else
                 echo -e "** passwords don't match, try again\n"
@@ -589,9 +610,9 @@ case "$1" in
 
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
-			if [ -n "$prev_use_static" ]; then
+			if [ -n "$prev_use_staticip" ]; then
 				echo -n "In current config, static IP is "
-				if [ "$prev_use_static" == "yes" ]; then
+				if [ "$prev_use_staticip" == "yes" ]; then
 					echo "used"
 					TMP=" or press ENTER to keep current setting"
 				else
@@ -714,7 +735,7 @@ case "$1" in
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
 
-        $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" $dns1 $dns2 \
+        $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2" \
 			"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware" \
 			"$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"
         if [ $? -eq 0 ]; then
