@@ -321,7 +321,7 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 	   or maybe only the Linux USB stack ... 
 	*/
 
-	sleep(1);
+	sleep(2);
 
 	for (i = 0; i < RETRY_MAX; i++)
 	{

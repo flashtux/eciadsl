@@ -13,3 +13,11 @@ Changelog
 *.orig
 *.rej
 core
+.cdtbuild
+.cdtproject
+.project
+eciadsl-check-hdlc
+eciadsl-check-hdlc-bug
+eciadsl-firmware
+eciadsl-pppoeci
+eciadsl-synch
