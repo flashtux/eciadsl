@@ -93,6 +93,8 @@ int main(int argc, const char *argv[])
 		dump(pkt,sizeof(pkt));
 	}
 
+	pusb_close(dev);
+
 	return 0;
 }
 
