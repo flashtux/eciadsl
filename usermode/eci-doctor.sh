@@ -259,6 +259,12 @@ if [ ! -f /etc/ppp/peers/adsl ]; then
 	fatal;
 fi
 
+# Note: user option (either in /etc/ppp/peers/adsl or /etc/ppp/chap-secrets)
+# can be :
+# user TheUser
+# user "TheUser"
+# user 'TheUser'
+
 # check for an existing user param. The actual user param may be 
 # within "" or not.
 user=`grep "^user" /etc/ppp/peers/adsl | awk '{print $2}'`
@@ -267,10 +273,14 @@ if [ "$user" = "" ]; then
 	fatal ;
 fi
 
-# remove "" from $user if needed.
-o=`echo $user | awk -F'"' '{print $2}'` ;
-if [ "$o" != "" ]; then
-	user=$o ;
+# remove "" and '' from $user if needed.
+n=`echo $user | cut -d'"' -f2` ;
+if [ "$n" != "" ]; then
+	user=$n;
+fi
+n=`echo $user | cut -d'"' -f2`;
+if [ "$n" != "" ]; then
+	user=$n;
 fi
 
 # check that the user param is the same is /etc/ppp/peers/adsl and
@@ -278,10 +288,16 @@ fi
 
 grep "^$user[ \t]*" /etc/ppp/chap-secrets > /dev/null
 if [ $? -ne 0 ]; then
-	echo "/etc/ppp/chap-secrets: no password for $user" ;
-	echo "Give me the password for $user:"
-	read pwd
-	echo "$user * $pwd *" >> /etc/ppp/chap-secrets
+	grep "^'$user'[ \t]*" /etc/ppp/chap-secrets > /dev/null
+	if [ $? -ne 0 ]; then
+		grep "^\"$user\"[ \t]*" /etc/ppp/chap-secrets > /dev/null
+		if [ $? -ne 0 ]; then
+			echo "/etc/ppp/chap-secrets: no password for $user" ;
+			echo "Give me the password for $user:"
+			read pwd
+			echo "$user * $pwd *" >> /etc/ppp/chap-secrets
+		fi
+	fi
 else
 	echo "/etc/ppp/chap-secrets is OK" ;
 fi
