@@ -35,25 +35,25 @@ if [ $UID -ne 0 ]; then
 fi
 
 if [ -s "$CONF_DIR/eciadsl.conf" ]; then
-	prev_vpi=`grep -E "^[ \t]*VPI[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_vci=`grep -E "^[ \t]*VCI[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_mode=`grep -E "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_firmware=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_use_staticip=`grep -E "^[ \t]*USE_STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	prev_modem=`grep -E "^[ \t]*MODEM[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_provider=`grep -E "^[ \t]*PROVIDER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_dns1=`grep -E "^[ \t]*DNS1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_dns2=`grep -E "^[ \t]*DNS2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_pppd_user=`grep -E "^[ \t]*PPPD_USER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	prev_pppd_passwd=`grep -E "^[ \t]*PPPD_PASSWD[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_vpi=`grep -E "^[ \t]*VPI[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_vci=`grep -E "^[ \t]*VCI[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_mode=`grep -E "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_firmware=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_use_staticip=`grep -E "^[ \t]*USE_STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_modem=`grep -E "^[ \t]*MODEM[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_provider=`grep -E "^[ \t]*PROVIDER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_dns1=`grep -E "^[ \t]*DNS1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_dns2=`grep -E "^[ \t]*DNS2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_pppd_user=`grep -E "^[ \t]*PPPD_USER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_pppd_passwd=`grep -E "^[ \t]*PPPD_PASSWD[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 fi
 
 case "$1" in
