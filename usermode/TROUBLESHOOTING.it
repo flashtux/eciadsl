@@ -801,7 +801,8 @@ A:	Verifica che il tuo modem sia supportato. Se il modem non è nella lista dei
 	contattaci.
 
 	FYI:
-		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX
+		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX o
+			RFC2364 PPPoATM NULL Encapsulation
 		RFC1483 LLC PPPoA == RFC2364 LLC Routed
 		RFC1483 BRIDGED ETH senza FCS (ethernet over ADSL, ETHoA o ETHoATM)
 			E' una modalità usata tipicamente per incapsulare frame ethernet, e
