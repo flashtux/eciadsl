@@ -127,9 +127,9 @@ fi
 if [ $? -eq 0 ]; then
     echo "  Load Firmware ..."
     if [ $# -ne 4 ]; then
-        $(BIN_DIR)/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 $CONF_DIR/firmware.bin
+        $BIN_DIR/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 $CONF_DIR/firmware.bin
     else
-        $(BIN_DIR)/eci-load1 0x$1 0x$2 0x$3 0x$4 $CONF_DIR/firmware.bin
+        $BIN_DIR/eci-load1 0x$1 0x$2 0x$3 0x$4 $CONF_DIR/firmware.bin
     fi
     if [ $? -ne 0 ]; then
         echo "Failed to load firmware"
@@ -150,9 +150,9 @@ fi
 
 echo "  Setup modem ..."
 if [ $# -ne 4 ]; then
-    $(BIN_DIR)/eci-load2 0x$vid2 0x$pid2 $CONF_DIR/synch.bin
+    $BIN_DIR/eci-load2 0x$vid2 0x$pid2 $CONF_DIR/synch.bin
 else
-    $(BIN_DIR)/eci-load2 0x$3 0x$4 $CONF_DIR/synch.bin
+    $BIN_DIR/eci-load2 0x$3 0x$4 $CONF_DIR/synch.bin
 fi
 if [ $? -ne 0 ] ; then
     echo "Failed to setup the modem"
