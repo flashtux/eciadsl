@@ -241,7 +241,7 @@ case "$1" in
         echo "Press Enter to create config files or Ctrl+C now to exit now without saving."
         read quitte
 
-        makeconfig "$user" "$password" /usr/local/bin/pppoeci $dns1 $dns2 $vpi $vci \
+        $BIN_DIR/makeconfig "$user" "$password" /usr/local/bin/pppoeci $dns1 $dns2 $vpi $vci \
 			$(echo $vid1pid1 | cut -f $modem -d '|') $(echo $vid2pid2 | cut -f $modem -d '|') "$binfile"
 
         if [ $? -eq 0 ]; then
