@@ -17,7 +17,7 @@
   1 process. using sig handler for SIGRTMIN
   20 ISO URB submitted
   1  ISO int submitted
-  
+
   for (;;)
   {
     read (pppfd)
@@ -70,7 +70,7 @@
 	26/12/2001 : Rewrite the select() and ioctl() loop. We will have 2 threads
 	thread 1: for (;;) { ppp_read() ; aal5_write(); }
 	thread 2: init_ep_int, init_ep_data, for (;;) { BIG_ioctl(REAPURB);
-	  if (urb == urb_int) handle_ep_int(). 
+	  if (urb == urb_int) handle_ep_int().
 	  if (urb == urb_data) handle_ep_data().
 */
 
@@ -84,7 +84,7 @@
 #include <dirent.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>      /* N_HDLC & TIOCSETD */
-#include <sys/time.h>       
+#include <sys/time.h>
 #include <sys/resource.h>	/* setpriority() */
 #include <string.h>
 #include <sched.h>		/* for sched_setscheduler */
@@ -96,15 +96,38 @@
 /* my USB library */
 #include "pusb.h"
 
+#define LOG_FILE "/tmp/pppoeci.log"
+
+/* main program error codes (must be returned as negative ints) */
+typedef enum
+{
+	ERR_NONE=0,
+	ERR_USAGE,
+	ERR_SIGTERM,
+	ERR_OPEN_LOGFILE,
+	ERR_LOADING_N_HDLC,
+	ERR_FOUNDING_MODEM,
+	ERR_PUSB_SET_INTERFACE,
+	ERR_PUSB_CLAIM_INTERFACE,
+	ERR_PUSB_OPEN_EP_INT,
+	ERR_PUSB_OPEN_EP_DATA_IN,
+	ERR_PUSB_OPEN_EP_DATA_OUT,
+	ERR_PUSB_INIT_EP_INT,
+	ERR_PUSB_INIT_EP_DATA_INT
+} error_codes;
+
+#define ERR_BUFSIZE (1024 - 1)
+char errText[ERR_BUFSIZE + 1];
+
 #define PAD_SIZE 11
-/*	For debugin only	*/
-void dump_urb(char *buffer,int size);
+/*	For debugin only */
+void dump_urb(char *buffer, int size);
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
 /* USB level */
-#define DATA_TIMEOUT 100
+#define DATA_TIMEOUT 300
 #include "modem.h"
 
 /* max size of data endpoint (Windows driver uses 448). */
@@ -118,6 +141,11 @@ static const char id[] = "@(#) $Id$";
 int my_vpi = -1;
 int my_vci = -1;
 
+unsigned int vendor = 0;
+unsigned int product = 0;
+
+int pusb_set_interface_alt = 0;
+
 #define CELL_SIZE 53
 #define CELL_HDR  05
 #define CELL_DATA 48
@@ -125,13 +153,13 @@ int my_vci = -1;
 /* PPP level : DO NOT MODIFY */
 #define syncHDLC 1
 
-/*global parameters*/
-int   verbose = 0;
-int   usb_sync  = 1;
+/* global parameters */
+int verbose = 0;
+int usb_sync  = 1;
 pusb_device_t fdusb;
-/*unsigned char lbuf[20][4400];*/
-pusb_endpoint_t ep_data_out,ep_data_in, ep_int;
-pid_t this_process;		/*always the current   process pid*/
+/* unsigned char lbuf[20][4400]; */
+pusb_endpoint_t ep_data_out, ep_data_in, ep_int;
+pid_t this_process;		/* always the current process pid */
 
 /* predeclarations */
 
@@ -139,10 +167,9 @@ int aal5_read(unsigned char *cell_buf, size_t count,
 			  unsigned int vpi, unsigned int vci, unsigned int pti, int fdout);
 
 /*
-* variable that will be used in several function
-*   => so global
-*/
-
+ * variable that will be used in several function
+ *   => so global
+ */
 
 
 int gfdout;
@@ -151,9 +178,10 @@ int g_fdin;
 #define CRC32_REMAINDER CBF43926
 #define CRC32_INITIAL 0xffffffff
 
-#define CRC32(c,crc) (crc32tab[((size_t)(crc>>24) ^ (c)) & 0xff] ^ (((crc) << 8)))
+#define CRC32(c, crc) (crc32tab[((size_t)((crc) >> 24) ^ (c)) & 0xff] ^ (((crc) << 8)))
 
-unsigned long crc32tab[256] = {
+unsigned long crc32tab[256] =
+{
 	0x00000000L, 0x04C11DB7L, 0x09823B6EL, 0x0D4326D9L,
 	0x130476DCL, 0x17C56B6BL, 0x1A864DB2L, 0x1E475005L,
 	0x2608EDB8L, 0x22C9F00FL, 0x2F8AD6D6L, 0x2B4BCB61L,
@@ -223,7 +251,6 @@ unsigned long crc32tab[256] = {
 unsigned int
 calc_crc(unsigned char *mem, int len, unsigned int initial)
 {
-
 	unsigned int crc;
 
 	crc = initial;
@@ -231,47 +258,53 @@ calc_crc(unsigned char *mem, int len, unsigned int initial)
 	for(; len; mem++, len--)
 		crc = CRC32(*mem, crc);
 
-
-	return (crc);
-
+	return(crc);
 }
 
 /*
-* display a convenient string about the current time.
-* the line printed is not \n terminated
-*/
+ * display a convenient string about the current time.
+ * the line printed is not \n terminated
+ */
 
 void
-print_time()
+print_time(void)
 {
-
 	struct timeval tv;
 
 	gettimeofday(&tv, NULL);
-
-	printf("< pid=%u > [%.24s %6ld] ",getpid(),ctime(&tv.tv_sec), tv.tv_usec);
+	printf("< pid=%u > [%.24s %6ld] ", getpid(), ctime(&tv.tv_sec), tv.tv_usec);
 }
 
-void
-print_char(unsigned char c)
+void message(const char* text)
 {
-
-	if(c >= ' ' && c < 0x7f)
-		printf("%c", c);
-	/*
-	else if (c=='\r' || c=='\n' || c=='\t' || c=='\b')
-	printf("%c",c);
-	*/
-	else
-		printf(".");
+	print_time();
+	printf("%s\n", text);
 }
+
+void fatal_error(const error_codes err, const char* text)
+{
+	if (text)
+		message(text);
+	exit(-err);
+}
+
+#define PRINTCHAR(X) \
+			if((X) >= ' ' && (X) < 0x7f) \
+				printf("%c", (X)); \
+			/* \
+			else if ((X) == '\r' || (X) == '\n' || (X) == '\t' || (X) == '\b')  \
+				printf("%c", (X)); \
+			*/ \
+			else \
+				printf(".");
 
 void
 dump(unsigned char *buf, int len)
 {
 	int i, j;
 
-	for(i = 0; i < len; i += 16) {
+	for(i = 0; i < len; i += 16)
+	{
 
 		for(j = i; j < len && j < i + 16; j++)
 			printf("%02x ", buf[j]);
@@ -280,68 +313,72 @@ dump(unsigned char *buf, int len)
 			printf("   ");
 
 		for(j = i; j < len && j < i + 16; j++)
-			print_char(buf[j]);
+			PRINTCHAR(buf[j])
 
 		printf("\n");
 	}
 }
 
 /*
-* ppp_read returns a pointer to a static buffer.
-* it returns the number of bytes read or -1 in case of errors.
-* 0 should indicates that pppd exited (not tested).
-*/
+ * ppp_read returns a pointer to a static buffer.
+ * it returns the number of bytes read or -1 in case of errors.
+ * 0 should indicates that pppd exited (not tested).
+ */
 
 int
 ppp_read(int fd, unsigned char **buf, int *n)
 {
-
 	/*
-	* we must handle HDLC framing, since this is what pppd
-	* sends to us. I use some code from rp-pppoe
-	*/
+	 * we must handle HDLC framing, since this is what pppd
+	 * sends to us. I use some code from rp-pppoe
+	 */
 
 	static unsigned char ppp_buf[64 * 1024];
 	int r;
 
-	for(;;) {
+	for(;;)
+	{
 
-		do {
+		do
+		{
 			r = read(fd, ppp_buf, sizeof(ppp_buf));
-		} while(r < 0 && errno == EINTR);
+		}
+		while(r < 0 && errno == EINTR);
 
 		if(r < 0)
 		{
-			print_time();
-			printf("Error reading from pppd, see the reason just below\n");
-			perror("Reason");
+			message("error reading from PPP");
+			perror("reason");
 		}
 
-		/*Debug message*/
-		if(verbose>1) {
-			print_time();
-			printf(" Read from ppp, len = %d\n", r);
+		/* debug message */
+		if(verbose > 1)
+		{
+			snprintf(errText, ERR_BUFSIZE, "reading from PPP: len=%d", r);
+			message(errText);
 			dump(ppp_buf, r);
 		}
 
 		if(r <= 0)
-			return r;
+			return(r);
 
-		/* supress leading 2 bytes */
+		/* suppress leading 2 bytes */
 
-		if(syncHDLC) {
-
+		if(syncHDLC)
+		{
 			if(r < 3)
 			{
-				print_time();
-				printf(" Read from ppp short on data, r=%d => ignored\n", r);
+				snprintf(errText, ERR_BUFSIZE,
+						"reading from PPP: short on data, r=%d => ignored", r);
+				message(errText);
 				continue;
 			}
 
 			if(r == sizeof(ppp_buf))
 			{
-				print_time();
-				printf(" Read from ppp too much data, r=%d => ignored\n", r);
+				snprintf(errText, ERR_BUFSIZE,
+						"reading from PPP: too much data, r=%d => ignored", r);
+				message(errText);
 				continue;
 			}
 
@@ -349,18 +386,12 @@ ppp_read(int fd, unsigned char **buf, int *n)
 			*n = r - 2;
 
 			return(r - 2);
-
 		}
 		else
-		{
-			print_time();
-			printf("async HDLC not handled\n");
-		}
+			message("async HDLC not handled");
 
 		break;
-
 	}
-
 }
 
 #define NOBUF_RETRIES 5
@@ -371,69 +402,75 @@ ppp_write(int fd, unsigned char *buf, int n)
 	unsigned char ppp_buf[64 * 1024];
 	int r;
 	static int errs = 0;
-	int retries = 0;
+	int retries;
 
-	if(syncHDLC) {
-		ppp_buf[0] = 0xff;	//FRAME_ADDR;
-		ppp_buf[1] = 0x03;	//FRAME_CTRL;
+	if(syncHDLC)
+	{
+		ppp_buf[0] = 0xff;	/* FRAME_ADDR; */
+		ppp_buf[1] = 0x03;	/* FRAME_CTRL; */
 
 		memcpy(ppp_buf + 2, buf, n);
 
-		if(verbose>1) {
-			print_time();
-			printf(" writing to ppp, len = %d\n", n + 2);
+		if(verbose > 1)
+		{
+			snprintf(errText, ERR_BUFSIZE,
+					"writing to PPP: len=%d", n + 2);
+			message(errText);
 			dump(ppp_buf, n + 2);
 		}
 
-	retry:
+		retries = 0;
+		while (retries < NOBUF_RETRIES)
+		{
+			if((r = write(fd, ppp_buf, n + 2)) < 0)
+			{
+				/*
+				 * We sometimes run out of mbufs doing simultaneous
+				 * up- and down-loads on FreeBSD.  We should find out
+				 *  why this is, but for now...
+				 */
 
-		if((r = write(fd, ppp_buf, n + 2)) < 0) {
+				if(errno == ENOBUFS)
+				{
+					errs++;
 
-			/*
-			* We sometimes run out of mbufs doing simultaneous
-			* up- and down-loads on FreeBSD.  We should find out
-			*  why this is, but for now...
-			*/
+					if(verbose && (errs < 10 || errs % 100 == 0))
+					{
+						snprintf(errText, ERR_BUFSIZE,
+								"writing to PPP: %d ENOBUFS errors", errs);
+						message(errText);
+					}
 
-			if(errno == ENOBUFS) {
-
-				errs++;
-
-				if((errs < 10 || errs % 100 == 0) && verbose)
-					fprintf(stderr, "< pid=%d > ppp_write: %d ENOBUFS errors\n", this_process, errs);
-
-				if(retries++ < NOBUF_RETRIES) {
-					/* retry after delay */
-					sleep(1);
-					goto retry;
+					if(retries++ < NOBUF_RETRIES)
+						/* retry after delay */
+						sleep(1);
 				}
-				else { /* throw away the packet */
-					return(0);
+				else
+				{
+					message("error writing to PPP");
+					perror("reason");
+					/* unexpected error */
+					return(r);
 				}
-
 			}
 			else
-			{
-				print_time();
-				printf("Error writing to pppd, see the reason below\n");
-				perror("Reason");
-			}
+				/* PPP write is OK */
+				return(r);
 		}
-		return(r);
+		/* all retries have failed */
+		/* throw away the packet */
+		return(0);
 	}
 	else
-	{
-		print_time();
-		printf("async HDLC not handled\n");
-	}
+		message("async HDLC not handled");
 
 	return(-1);
 }
 
 /*
-* cell_read : is used to decode an individual cell and to try to make
-* an AAL5 frame.
-*/
+ * cell_read : is used to decode an individual cell and to try to make
+ * an AAL5 frame.
+ */
 
 int
 cell_read(unsigned char *cellbuf, size_t count, int fdout)
@@ -474,16 +511,16 @@ cell_write(unsigned char *cellbuf,
 	cellbuf[4] = hec;
 
 	memcpy(cellbuf + CELL_HDR,  buf, CELL_DATA);
-	memset(cellbuf + CELL_SIZE,0xff, PAD_SIZE);
+	memset(cellbuf + CELL_SIZE, 0xff, PAD_SIZE);
 
 	return(CELL_SIZE + PAD_SIZE);
 }
 
-/* 
-* parse an ATM cell and try to complete (or make a new one)
-* AAL5 frame. If succes, the frame is sent to pppd. If error, -1 is returned
-* (0 otherwise)
-*/
+/*
+ * parse an ATM cell and try to complete (or make a new one)
+ * AAL5 frame. If success, the frame is sent to pppd. If error, -1 is returned
+ * (0 otherwise)
+ */
 
 int
 aal5_read(unsigned char *cell_buf, size_t count,
@@ -497,42 +534,39 @@ aal5_read(unsigned char *cell_buf, size_t count,
 	unsigned int real_len;
 	unsigned int crc1, crc2;
 
-	if(vpi != my_vpi || vci != my_vci) {
-/*
-		if(verbose) {
-			printf("< pid=%d > ", this_process);
-			print_time();
-			printf(" vpi.vci mismatch (%d/%d instead of %d/%d) ... ignored!\n",
-				 vpi, vci, my_vpi, my_vci);
+	if(vpi != my_vpi || vci != my_vci)
+	{
+		if(verbose > 1)
+		{
+			snprintf(errText, ERR_BUFSIZE,
+					"vpi.vci mismatch (%d.%d instead of %d.%d) => ignored",
+					 vpi, vci, my_vpi, my_vci);
+			message(errText);
 			dump(cell_buf, CELL_DATA);
 		}
-*/
 		return(0);
-	
 	}
 
 	/*
-	* We should add a check for OAM cells, which should be done before
-	* copying the cell's content to our buffer
-	*/
+	 * We should add a check for OAM cells, which should be done before
+	 * copying the cell's content to our buffer
+	 */
 
-	if(len + CELL_DATA < sizeof(buf)) {
-
+	if(len + CELL_DATA < sizeof(buf))
+	{
 		memcpy(buf + len, cell_buf, CELL_DATA);
 		len += CELL_DATA;
-
 	}
 	else
 	{
 		if(verbose)
 		{
-			print_time();
-			printf(" aal5_read: buffer overflow (len=%d) => reseting buffer\n",len);
+			snprintf(errText, ERR_BUFSIZE,
+					"aal5_read: buffer overflow (len=%d) => resetting buffer", len);
+			message(errText);
 		}
-
 		len = 0;
 		return(0);
-
 	}
 
 	/* check if PTI=1, which indicated last cell of an AAL5 frame */
@@ -541,33 +575,38 @@ aal5_read(unsigned char *cell_buf, size_t count,
 
 	real_len = (buf[len - 6] << 8) | buf[len - 5];
 
-	if(verbose>1)
-		printf("< pid=%d > aal5_read: len=%d => real_len=%d\n", this_process, len, real_len);
+	if(verbose > 1)
+	{
+		snprintf(errText, ERR_BUFSIZE,
+				"aal5_read: len=%d => real_len=%d", len, real_len);
+		message(errText);
+	}
 
 	/*
-	  Check the CRC of received AAL5 frames. 
+	  Check the CRC of received AAL5 frames.
 	  crc1 : computed crc on the current AAL5 frame (the theoretical value)
 	  crc2 : crc read from the AAL5 frame (the real value)
 	*/
 
-	crc1 = ~calc_crc(buf, len -4, -1);
-	crc2 = (buf[len-4] << 24) | (buf[len-3] << 16)
-		| (buf[len-2]<<8) | buf[len-1];
+	crc1 = ~calc_crc(buf, len - 4, -1);
+	crc2 = (buf[len - 4] << 24) | (buf[len - 3] << 16)
+			| (buf[len - 2] << 8) | buf[len - 1];
 
-	if (crc1!=crc2 && !(verbose>1))
+	if (crc1 != crc2 && !(verbose > 1))
 	{
-		print_time();
-		printf("aal5_read: len=%d => real_len=%d\n",len, real_len);
+		snprintf(errText, ERR_BUFSIZE,
+				"aal5_read: len=%d => real_len=%d", len, real_len);
+		message(errText);
 	}
-		
+
 	if (crc1 != crc2)
 	{
-		print_time();
-		printf("bad crc %08x (instead of %08x) => dropping AAL5 frame\n",
-			   crc2,crc1);
-		
+		snprintf(errText, ERR_BUFSIZE,
+				"bad crc %08x (instead of %08x) => dropping AAL5 frame",
+				crc2, crc1);
+		message(errText);
 		len = 0;
-		return 0;
+		return(0);
 	}
 
 	ret = ppp_write(fdout, buf, real_len);
@@ -579,19 +618,19 @@ aal5_read(unsigned char *cell_buf, size_t count,
 
 	if (ret < 0)
 	{
-		print_time();
-		printf("Error writing to pppd : %d => exit\n",ret);
-		exit (0);
+		snprintf(errText, ERR_BUFSIZE,
+				"error writing to PPP: %d => leaving", ret);
+		fatal_error(ERR_NONE, errText);
 	}
 
-	return ret;
+	return(ret);
 }
 
 /*
-* Warning: (ok, tooks me half an hour to find my own buf)
-* buf must be large enough to contains the whole AAL5 frame,
-* with its layer.
-*/
+ * Warning: (ok, tooks me half an hour to find my own buf)
+ * buf must be large enough to contains the whole AAL5 frame,
+ * with its layer.
+ */
 
 int
 aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
@@ -601,9 +640,9 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 	unsigned int crc, pti = 0;
 
 	/*
-	* this buffer will contain all cells for an AAL5 frame,
-	* so AAL5 frame is max 64K + 48 that's 1367 cells at max
-	*/
+	 * this buffer will contain all cells for an AAL5 frame,
+	 * so AAL5 frame is max 64K + 48 that's 1367 cells at max
+	 */
 
 	unsigned char bigbuf[1367 * 53];
 	int ptr;
@@ -611,7 +650,7 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 /*
 	unsigned char * bigbuf = (unsigned char *)malloc(1367 * 53);
 	if (bigbuf == NULL)
-		return -1;
+		return(-1);
 */
 	memset(buf + n, 0, total_len - n);
 
@@ -626,13 +665,14 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 	buf[total_len - 1] = crc;
 
 	ptr = 0;
-	while(total_len > 0) {
+	while(total_len > 0)
+	{
 
 		if(total_len <= CELL_DATA)
 			/* this is the last cell, so mark it */
 			pti = 2;
 
-		ptr += cell_write(bigbuf + ptr, buf, 
+		ptr += cell_write(bigbuf + ptr, buf,
 				CELL_DATA, my_vpi, my_vci, pti);
 
 		/* send the same cell over another vpi/vci */
@@ -642,15 +682,17 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 
 	}
 
-	/*Debud message*/
-	if(verbose>1) {
-		print_time();
-		printf(" writing to usb, len = %d\n", ptr);
+	/* debug message */
+	if(verbose > 1)
+	{
+		snprintf(errText, ERR_BUFSIZE,
+				"writing to USB: len=%d", ptr);
+		message(errText);
 		dump(bigbuf, ptr);
 	}
 /*
 	{
-		static int count = 0, count_seconds=0;
+		static int count = 0, count_seconds = 0;
 		static time_t last_time = 0;
 		time_t now;
 
@@ -661,29 +703,27 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 		time(&now);
 		if (now != last_time)
 		{
-			printf(" writing %d bytes to USB, last second = %d bytes\n",ptr,
+			printf("Writing %d bytes to USB, last second = %d bytes\n", ptr,
 				   count_seconds);
 
 			count_seconds = 0;
 			last_time = now;
 		}
 		else
-			printf(" writing %d bytes to USB\n",ptr);
+			printf("Writing %d bytes to USB\n", ptr);
 	}
 */
-	ret = pusb_endpoint_write(epdata, bigbuf, ptr,DATA_TIMEOUT);
+	ret = pusb_endpoint_write(epdata, bigbuf, ptr, DATA_TIMEOUT);
 /*
-	ret = pusb_endpoint_submit_write (epdata,bigbuf,ptr,0);
+	ret = pusb_endpoint_submit_write (epdata, bigbuf, ptr, 0);
 */
 	if (ret < 0)
 	{
-		print_time();
-		printf("Error writing to usb, see the reason\n");
-		perror("Reason");
+		message("error writing to USB");
+		perror("reason");
 	}
 
 	return(ret);
-
 }
 /* returns -1 in case of errors */
 
@@ -691,14 +731,16 @@ int
 decode_usb_pkt(unsigned char *buf, int len)
 {
 	int r;
-	static unsigned char rbuf [ 64*1024];
+	static unsigned char rbuf [64 * 1024];
 	static int rlen = 0;
 	int pos;
 
-	/*Debug message*/
-	if(verbose>1) {
-		print_time();
-		printf(" read from usb, len = %d\n", len);
+	/* debug message */
+	if(verbose > 1)
+	{
+		snprintf(errText, ERR_BUFSIZE,
+				"reading from USB: len=%d", len);
+		message(errText);
 		dump(buf, len);
 	}
 
@@ -711,12 +753,14 @@ decode_usb_pkt(unsigned char *buf, int len)
 	}
 	else
 	{
-		print_time();
-		printf("warning: no space for %d bytes\n",len);
+		snprintf(errText, ERR_BUFSIZE,
+				"warning: no space for %d bytes", len);
+		message(errText);
 	}
 
 	pos = 0;
-	while((rlen - pos) >= CELL_SIZE) {
+	while((rlen - pos) >= CELL_SIZE)
+	{
 
 		if((r = cell_read(rbuf + pos, CELL_SIZE, gfdout)) < 0)
 		{
@@ -726,7 +770,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 			return(r);
 		}
 		pos += CELL_SIZE;
-	};
+	}
 	rlen -= pos;
 
 	if (rlen != 0)
@@ -736,18 +780,35 @@ decode_usb_pkt(unsigned char *buf, int len)
 }
 
 void
-usage()
+version(void)
+{
+	fprintf(stderr, "pppoeci version $Name$ (built on %s %s)\n", __DATE__, __TIME__);
+	exit(ERR_NONE);
+}
+
+void
+usage(const int return_an_error)
+/* if 'error' is 0, usage() hasn't to quit with an <0 error code */
 {
 
-	fprintf(stderr, "pppoeci version $Name$\n");
-	fprintf(stderr, "usage: pppoeci [-v val] [-f logfile] -vpi val -vci val\n");
-	fprintf(stderr, "  -v       : defines the verbosity level [0-2] ( Enables logging )\n");
-	fprintf(stderr, "  -f       : defines the log filename to use ( Default /tmp/pppoa2.log )\n");
-	fprintf(stderr, "  -vpi.vci : defined the vpi.vci that your provider is\n");
-	fprintf(stderr, "             using, 8.35 for France, 0.38 for UK\n");
-	fprintf(stderr, "  --help   : this message\n");
-	exit(-1);
 
+	fprintf(stderr,	"pppoeci version $Name$\n"
+					"usage:\n"
+					"  pppoeci [switches..] -vpi num -vci num -vendor hex -product hex\n"
+					"switches:\n"
+					"  -alt num        : force the use of an alternate method to set USB interface\n"
+					"  -v              : defines the verbosity level [0-2] (enables logging)\n"
+					"  -f              : defines the log filename to use (default " LOG_FILE ")\n"
+					"  --help          : this message\n"
+					"  --version       : displays the version number then exit\n"
+					"\n"
+					"The vpi and vci are numerical values. They define the vpi.vci that\n"
+					"your provider is using (for instance: 8.35 for France, 0.38 for UK).\n"
+					"\n"
+					"The vendor and product are hexadecimal values (4-digit max with a leading 0x)\n"
+					"They define the vendor ID and product ID (for instance: 0x0915/0x8000 for\n"
+					"an ECI Telecom USB ADSL Wan Modem).\n");
+	exit(return_an_error?ERR_USAGE:ERR_NONE);
 }
 
 /*
@@ -760,67 +821,72 @@ int init_ep_int(pusb_endpoint_t ep_int)
 	  The buffer needs to be static, since its kept by
 	  pusb_endpoint_submit_read. We use a buffer size of 0x40 (64)
 	  like the Windows driver. If we we using a buffer of size 100 bytes,
-	  we would receive 100 bytes instead... 
+	  we would receive 100 bytes instead...
 	*/
 
 #define NB_PKT_EP_INT 64
 	static unsigned char buf[NB_PKT_EP_INT][0x40];
-	int i,ret;
-   
-	for (i=0;i<NB_PKT_EP_INT;i++)
+	int i, ret;
+
+	for (i = 0; i < NB_PKT_EP_INT; i++)
 	{
 		/* we use a BULK transfer instead, since INTERRUPT transfer
-		   are not supported by usbdevfs (devio.c) */
-		ret = pusb_endpoint_submit_int_read(ep_int,buf[i],
-						    sizeof(buf[i]), 0); // SIGRTMIN);
+		   are not supported by usbdevfs (devio.c)
+		*/
+		ret = pusb_endpoint_submit_int_read(ep_int, buf[i],
+						    sizeof(buf[i]), 0); /* SIGRTMIN); */
 		if (ret < 0)
 		{
-			print_time();
-			printf("Error in initial submit of URB %d on EP_INT\n",i);
+			snprintf(errText, ERR_BUFSIZE,
+					"error on initial submit of URB %d on EP_INT", i);
+			message(errText);
 			perror("error: init_ep_int");
-			return ret;
+			return(ret);
 		}
 	}
 
-	return 0;
+	return(0);
 }
 
 int init_ep_data_in(pusb_endpoint_t ep_data_in)
 {
-	static unsigned char buf[NB_PKT_EP_DATA_IN][MAX_EP_SIZE*PKT_NB];
+	static unsigned char buf[NB_PKT_EP_DATA_IN][MAX_EP_SIZE * PKT_NB];
 	int i, ret;
 
-	for (i=0;i<NB_PKT_EP_DATA_IN;i++)
+	for (i = 0; i < NB_PKT_EP_DATA_IN; i++)
 	{
-		ret = pusb_endpoint_submit_iso_read(ep_data_in,buf[i],MAX_EP_SIZE,
-						    PKT_NB,0); //SIGRTMIN);
+		ret = pusb_endpoint_submit_iso_read(ep_data_in, buf[i], MAX_EP_SIZE,
+						    PKT_NB, 0); /* SIGRTMIN); */
 		if (ret < 0)
 		{
-			print_time();
-			printf("Error on initial submit of URB %d on EP_DATA_IN\n",i);
+			snprintf(errText, ERR_BUFSIZE,
+					"error on initial submit of URB %d on EP_DATA_IN", i);
+			message(errText);
 			perror("error: init_ep_data_in");
-			return ret;
+			return(ret);
 		}
 	}
 
-	return 0;
+	return(0);
 }
 
 void replace_b1_b2(unsigned char *b1, unsigned char *b2)
 {
 	/* we should return :
 	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x01 0x01 0x01 0x01
-	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x53 0x53 0x53 0x53 
+	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x53 0x53 0x53 0x53
 	   The last line is repeated infinitely
 	*/
-	
+
 	static int count = 0;
 
-	static unsigned char replace_b1[] = {
+	static unsigned char replace_b1[] =
+	{
 		0x73, 0x73, 0x63, 0x63, 0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63, 0x63
 	};
 
-	static unsigned char replace_b2[] = {
+	static unsigned char replace_b2[] =
+	{
 		0x11, 0x11, 0x13, 0x13, 0x13, 0x13, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
 	};
 
@@ -835,56 +901,60 @@ void replace_b1_b2(unsigned char *b1, unsigned char *b2)
 
 void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 {
-	unsigned char outbuf[40] = {
-		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
+	unsigned char outbuf[40] =
+	{
+		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
 		0x0c, 0x0c
 	};
 
 	int i, outi = 0;
 	static int lost_synchro = 0;
 
-	if (verbose>1)
+	if (verbose > 1)
 	{
-		print_time();
-		printf(" read from ep int, len = %d\n", size);
+		snprintf(errText, ERR_BUFSIZE,
+						"reading from ep int: len=%d", size);
+		message(errText);
 		dump(buf, size);
 	}
 
 	if (!lost_synchro)
 	{
-		for (i=3;i<18;i++)
+		for (i = 3; i < 18; i++)
 		{
-			unsigned short w = (buf[2*i+0] << 8) | buf[2*i+1];
-			
-			if (w!=0x0c0c &&
-				w!=0x734d && w!=0x7311 && w!=0xf301 && w!=0xf34f)
+			unsigned short w = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
+
+			if (w != 0x0c0c &&
+				w != 0x734d && w != 0x7311 && w != 0xf301 && w != 0xf34f)
 			{
-				print_time();
-				printf("perte de synchro! w=%04x\n",w);
+				snprintf(errText, ERR_BUFSIZE,
+						"synchro loss! w=%04x", w);
+				message(errText);
 				lost_synchro = 1;
 			}
 		}
 	}
-	
-	for (i=0;i<15;i++)
+
+	for (i = 0; i < 15; i++)
 	{
 		unsigned char b1, b2;
 
-		b1 = buf[6+2*i+0];
-		b2 = buf[6+2*i+1];
+		b1 = buf[6 + 2 * i + 0];
+		b2 = buf[6 + 2 * i + 1];
 
 		/* each word != 0x0c 0x0c is copied in the output buffer */
 
 		if (b1 != 0x0c || b2 != 0x0c)
 		{
 			/* however 0x7311 need to be replace by
-			   0x6313, 0x6301, 0x6313, 0x6353 ...  */
+			   0x6313, 0x6301, 0x6313, 0x6353 ...
+			*/
 
 			if (b1 == 0x73 && b2 == 0x11)
-				replace_b1_b2(&b1,&b2);
+				replace_b1_b2(&b1, &b2);
 
 
 			/* we check that we are not writing outside our buffer.
@@ -893,9 +963,8 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 
 			if (10 + outi >= sizeof(outbuf))
 			{
-				print_time();
-				printf("Warning: outbuf is too small\n");
-				dump(buf,size);
+				message("warning: outbuf is too small");
+				dump(buf, size);
 				break;
 			}
 
@@ -907,22 +976,22 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 	if (outi != 0)
 	{
 /*
-		printf("vendor device buf, len = %d\n",sizeof(outbuf));
-		dump(outbuf,sizeof(outbuf));
-*/	
-		if (pusb_control_msg(fdusb,0x40,0xdd,0xc02,0x580,outbuf,
-							 sizeof(outbuf),DATA_TIMEOUT) != sizeof(outbuf))
+		printf("vendor device buf, len = %d\n", sizeof(outbuf));
+		dump(outbuf, sizeof(outbuf));
+*/
+		if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
+							 sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
 		{
-			print_time();
-			printf("Error on sending vendor device URB\n");
-			perror("error: can't send vendor device!!!");
+			message("error on sending vendor device URB");
+			perror("error: can't send vendor device!");
 		}
 		else
 		{
-			if (verbose>1)
+			if (verbose > 1)
 			{
-				print_time();
-				printf(" ctrl msg sent, len = %d\n", sizeof(outbuf));
+				snprintf(errText, ERR_BUFSIZE,
+						"ctrl msg sent: len=%d", sizeof(outbuf));
+				message(errText);
 				dump(outbuf, sizeof(outbuf));
 			}
 		}
@@ -931,7 +1000,7 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 
 void handle_ep_data_in(unsigned char * buf, int size)
 {
-	decode_usb_pkt(buf,size);
+	decode_usb_pkt(buf, size);
 }
 
 void handle_urb(pusb_urb_t urb)
@@ -942,57 +1011,58 @@ void handle_urb(pusb_urb_t urb)
 	switch (pusb_urb_get_epnum(urb))
 	{
 	case EP_INT:
-		/*printf("interrupt !!!\n");*/
+		/* printf("interrupt!\n"); */
 
-		if (pusb_urb_buffer_first(urb,&buf,&size,&idx))
+		if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
 		{
-			do {
+			do
+			{
 /*
 				printf("interrupt %02x, packet len = %d\n",
-					   EP_INT,size);
-				dump(buf,size);
+					   EP_INT, size);
+				dump(buf, size);
 */
-				handle_ep_int(buf,size, fdusb);
+				handle_ep_int(buf, size, fdusb);
 
-			} while (pusb_urb_buffer_next(urb,&buf,&size,&idx));
-		
+			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
+
 			/* we use the last buffer & size. And since, there is ONLY
-			   one buffer in INT transfer, this works */
-			ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, 0); //SIGRTMIN);
+			   one buffer in INT transfer, this works
+			*/
+			ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, 0); /* SIGRTMIN); */
 			if (ret < 0)
 			{
-				print_time();
-				printf("Error on re-submit URB on EP_INT\n");
-				perror("error: can re-submit on EP_INT");
+				message("error on re-submit URB on EP_INT");
+				perror("error: can't re-submit on EP_INT");
 			}
 		}
 		break;
-		
+
 	case EP_DATA_IN:
-		/*printf("data in !!!\n");*/
-		
-		if (pusb_urb_buffer_first(urb,&buf,&size,&idx))
+		/* printf("data in!\n"); */
+
+		if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
 		{
 			sbuf = buf;
-	
-			do {
+
+			do
+			{
 				if (size != 0)
 				{
 /*
 					printf("data_in %02x, packet len = %d\n",
-						   EP_DATA_IN,size);
-					dump(buf,size);
+						   EP_DATA_IN, size);
+					dump(buf, size);
 */
-					handle_ep_data_in(buf,size);
+					handle_ep_data_in(buf, size);
 				}
-			} while (pusb_urb_buffer_next(urb,&buf,&size,&idx));
+			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
 
-			ret=pusb_endpoint_submit_iso_read(ep_data_in,sbuf,MAX_EP_SIZE,
-							  PKT_NB,0); //SIGRTMIN);
+			ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, MAX_EP_SIZE,
+							  PKT_NB, 0); /* SIGRTMIN); */
 			if (ret < 0)
 			{
-				print_time();
-				printf("Error on re-submit URB on EP_DATA_IN\n");
+				message("error on re-submit URB on EP_DATA_IN");
 				perror("error: can't re-submit on ep EP_DATA_IN");
 			}
 		}
@@ -1003,8 +1073,9 @@ void handle_urb(pusb_urb_t urb)
 		break;
 
 	default:
-		print_time();
-		printf("Error: unknown endpoint : %02x\n",pusb_urb_get_epnum(urb));
+		snprintf(errText, ERR_BUFSIZE,
+				"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
+		message(errText);
 		break;
 	}
 }
@@ -1037,13 +1108,12 @@ void handle_ep_data_in_ep_int(pusb_endpoint_t ep_data_in,
 		free (urb);
 	}
 
-	print_time();
-	printf("Fin de handle_ep_data_in_ep_int\n");
+	message("end of handle_ep_data_in_ep_int");
 }
 
-/* 
+/*
    endpoint 0x02 is used for sending ATM cells
-   
+
    to handle synchronous write, we does an infinite
    loop, keeping writing on endpoint EP_DATA_OUT
 */
@@ -1052,30 +1122,31 @@ void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 {
 	int r, n;
 	unsigned char *buf;
-	
+
 	for(;;)
 	{
 	    n = ppp_read(fdin, &buf, &n);
-		
+
 	    if(n <= 0)
 		{
-			print_time();
-			printf("ppp_read=%d\n",n);
+			snprintf(errText, ERR_BUFSIZE,
+					"reading from PPP=%d", n);
+			message(errText);
 			break;
 		}
-	    
+
 	    r = aal5_write(epdata, buf, n);
-	    
+
 	    if(r < 0)
 		{
-			print_time();
-			printf("aal5_write=%d\n",r);
+			snprintf(errText, ERR_BUFSIZE,
+					"aal5_write=%d", r);
+			message(errText);
 			break;
 		}
 	}
 
-	print_time();
-	printf("Fin de handle_ep_data_out\n");
+	message("end of handle_ep_data_out");
 }
 
 void * fn_handle_ep_data_out(void * ignored)
@@ -1083,261 +1154,316 @@ void * fn_handle_ep_data_out(void * ignored)
 	handle_ep_data_out(ep_data_out, g_fdin);
 
 	/* when the thread is terminating, we need to exit the whole process */
-	exit (0);
+	exit(0);
 
-	return NULL;
+	return(NULL);
 }
 
 void sig_term(int sig)
 {
-	print_time();
-	printf("SIGTERM received... exiting\n");
-	exit (-1);
+	snprintf(errText, ERR_BUFSIZE,
+			"SIGTERM received.. exiting");
+	fatal_error(ERR_SIGTERM, errText);
+}
+
+void get_unsigned_value(const char* param, unsigned int* var)
+{
+	unsigned int value;
+	char* chk;
+
+	value = (unsigned int) strtoul(param, &chk, 10);
+	if (! *chk)
+		*var = value;
+}
+
+void get_signed_value(const char* param, int* var)
+{
+	int value;
+	char* chk;
+
+	value = (int) strtol(param, &chk, 10);
+	if (! *chk)
+		*var = value;
+}
+
+void get_hexa_value(const char* param, int* var)
+{
+	int value;
+	char* chk;
+
+	value = (unsigned int) strtoul(param, &chk, 0);
+	if (! *chk)
+		*var = value;
 }
 
 int main(int argc, char *argv[])
 {
-	const char *logfile = "/tmp/pppoa2.log";
+	const char *logfile = LOG_FILE;
 	int   fdin, fdout, log;
 	int   i;
 
 	this_process = getpid();
 	log = 0;
 
-	for(i = 1; i < argc; i++) {
-
+	for(i = 1; i < argc; i++)
+	{
 		if(strcmp(argv[i], "-v") == 0 && i + 1 < argc)
-			verbose = atoi(argv[++i]);
+			get_signed_value(argv[++i], &verbose);
 		else if(strcmp(argv[i], "-vpi") == 0 && i + 1 < argc)
-			my_vpi = atoi(argv[++i]);
+			get_unsigned_value(argv[++i], &my_vpi);
 		else if(strcmp(argv[i], "-vci") == 0 && i + 1 < argc)
-			my_vci = atoi(argv[++i]);
+			get_unsigned_value(argv[++i], &my_vci);
+		else if(strcmp(argv[i], "-vendor") == 0 && i + 1 < argc)
+			get_hexa_value(argv[++i], &vendor);
+		else if(strcmp(argv[i], "-product") == 0 && i + 1 < argc)
+			get_hexa_value(argv[++i], &product);
+		else if(strcmp(argv[i], "-alt") == 0)
+			get_signed_value(argv[++i], &pusb_set_interface_alt);
+		else if(strcmp(argv[i], "--version") == 0)
+			version();
 		else if(strcmp(argv[i], "--help") == 0)
-			usage();
-		else if(strcmp(argv[i], "-f") == 0 && i + 1 < argc) {
-			logfile   = argv[++i];
-			if(!verbose) verbose = 1;
+			usage(0);
+		else if(strcmp(argv[i], "-f") == 0 && i + 1 < argc)
+		{
+			logfile = argv[++i];
+			if(!verbose)
+				verbose = 1;
 		}
-		else 
-			usage();
+		else
+			usage(1);
 	}
 
-	if(my_vpi == -1 || my_vci == -1)
-		usage();
+	if(my_vci < 0 || my_vpi < 0
+		|| verbose < 0 || verbose > 2
+		|| vendor == 0 || product == 0
+		|| pusb_set_interface_alt < 0)
+		usage(1);
 
 	if(verbose)
-		fprintf(stderr, "Using vpi.vci=%d.%d\n", my_vpi, my_vci);
+		fprintf(stderr, "Using:\n"
+						" vpi.vci=%d.%d\n"
+						" vendor/product=0x%04x/0x%04x\n"
+						"%s"
+						" verbose level=%d\n"
+						" log file=%s (%sabled)\n",
+						my_vpi, my_vci, vendor, product,
+						pusb_set_interface_alt?" pusb_set_interface_alt=\n":"",
+						verbose, logfile,
+						verbose?"en":"dis");
 
-	/*Duplicate in and out fd*/
+	/* duplicate in and out fd */
 	fdin  = dup(0);
 	fdout = dup(1);
 
 	/*
-	* If the verbosity level is greater than 0
-	* we have to create a log
-	*/
-	if(verbose) {
-
+	 * If the verbosity level is greater than 0
+	 * we have to create a log
+	 */
+	if(verbose)
+	{
 		log = open(logfile, O_CREAT | O_RDWR | O_APPEND, 0600);
 
-		if(log < 0) {
-			if(verbose) perror(logfile);
-			return(-1);
+		if(log < 0)
+		{
+			if(verbose)
+				perror(logfile);
+			fatal_error(ERR_OPEN_LOGFILE, NULL);
 		}
 
-		for(i=0; i<8 ; i++)
-			write(log, "##########",10);
+		for(i = 0; i < 8; i++)
+			write(log, "##########", 10);
 
-		write(log, "\n\n",2);
-
+		write(log, "\n\n", 2);
 	}
 
-	/*Close all standard streams : input, output, error*/
+	/* Close all standard streams : input, output, error */
 	close(0);
 	close(1);
 	close(2);
 
 	/*
-	* Like the verbosity level is > 0
-	* we will redirect all standard streams to the log file
-	* so we are sure to catch all messages from this program :)
-	*/
+	 * Like the verbosity level is > 0
+	 * we will redirect all standard streams to the log file
+	 * so we are sure to catch all messages from this program :)
+	 */
 	if(verbose)
 	{
-		/*Duplicate log fd, so 0,1,2 point to the log file*/
+		/* duplicate log fd, so 0, 1, 2 point to the log file */
 		dup(log);
 		dup(log);
 		dup(log);
 
-		/*We don't need log fd anymore*/
+		/* We don't need log fd anymore */
 		close(log);
 
 		/* no buffering on stdout & stderr : it doesn't seem to work */
 		setbuf(stdout, NULL);
 		setbuf(stderr, NULL);
 
-		print_time();
-		printf("Log started (binary compiled on %s %s)\n",__DATE__,__TIME__);
+		snprintf(errText, ERR_BUFSIZE,
+				"log started (binary compiled on %s %s)", __DATE__, __TIME__);
+		message(errText);
 	}
 
-	/*Debug messages*/
+	/* debug messages */
 	if(verbose > 1)
 	{
-		print_time();
-		printf("Hi I am the parent process, i handle the endpoint 0x07\n");
+		message("hi! I'm the parent process, I handle the endpoint 0x07");
 
-		print_time();
-		printf("File descriptors : fdin=%d, fdout=%d\n",fdin, fdout);
+		snprintf(errText, ERR_BUFSIZE,
+				"file descriptors: fdin=%d, fdout=%d", fdin, fdout);
+		message(errText);
 	}
 
 
-
-	/* Increase priority of the pppoa process*/
+	/* Increase priority of the pppoa process */
 	if(setpriority(PRIO_PROCESS, this_process, -20) < 0 && verbose)
 	{
-		print_time();
-		printf("setpriority, see the reason just below\n");
-		perror("Reason");
+		message("setpriority failed");
+		perror("reason");
 	}
 
 #if defined(__FreeBSD__) || defined(__NetBSD__)
-#define SOCKBUF (64*1024)
+#define SOCKBUF (64 * 1024)
 	{
 		int sbuf, ss = sizeof(sbuf);
 
-		if(getsockopt(fdin, SOL_SOCKET, SO_SNDBUF, &sbuf, &ss) == 0) {
+		if(getsockopt(fdin, SOL_SOCKET, SO_SNDBUF, &sbuf, &ss) == 0)
+		{
 
-			/*Debug message*/
+			/* debug message */
 			if(verbose > 1)
-				fprintf(stderr, "< pid=%d > Increasing SNDBUF from %d to %d\n", this_process, sbuf, SOCKBUF);
+			{
+				snprintf(errText, ERR_BUFSIZE,
+						"increasing SNDBUF from %d to %d",
+						sbuf, SOCKBUF);
+				message(errText);
+			}
 
 			sbuf = SOCKBUF;
 
-			if(setsockopt(fdin, SOL_SOCKET, SO_SNDBUF, &sbuf, ss) < 0 && verbose) {
-				fprintf(stderr,"< pid=%d > setsockopt, see the reason just below\n", this_process);
-				perror("Reason");
+			if(setsockopt(fdin, SOL_SOCKET, SO_SNDBUF, &sbuf, ss) < 0 && verbose)
+			{
+				message("setsockopt failed,");
+				perror("reason");
 			}
 
 		}
 
-		if(getsockopt(fdin, SOL_SOCKET, SO_RCVBUF, &sbuf, &ss) == 0) {
-
-			/*Debug message*/
+		if(getsockopt(fdin, SOL_SOCKET, SO_RCVBUF, &sbuf, &ss) == 0)
+		{
+			/* debug message */
 			if(verbose > 1)
-				fprintf(stderr, "< pid=%d > Increasing RCVBUF from %d to %d\n", sbuf, SOCKBUF, this_process);
+			{
+				snprintf(errText, ERR_BUFSIZE,
+						"increasing RCVBUF from %d to %d",
+						sbuf, SOCKBUF);
+				message(errText);
+			}
 
 			sbuf = SOCKBUF;
 
-			if(setsockopt(fdin, SOL_SOCKET, SO_RCVBUF, &sbuf, ss) < 0 && verbose) {
-				fprintf(stderr, "< pid=%d > setsockopt, see the reason just below\n", this_process);
-				perror("Reason");
+			if(setsockopt(fdin, SOL_SOCKET, SO_RCVBUF, &sbuf, ss) < 0 && verbose)
+			{
+				snprintf(errText, ERR_BUFSIZE,
+						"setsockopt failed",
+						this_process);
+				message(errText);
+				perror("reason");
 			}
-
 		}
-
 	}
 #endif
 
 	/*
-	* Install HDLC line discipline on fdin if it is a tty and
-	* the OS has such a thing.
-	*/
+	 * Install HDLC line discipline on fdin if it is a tty and
+	 * the OS has such a thing.
+	 */
 
-	if(isatty(fdin)) {
-/*#undef N_HDLC*/
+	if(isatty(fdin))
+	{
+/* #undef N_HDLC */
 #ifdef N_HDLC
 		int disc = N_HDLC;
 
 		if(ioctl(fdin, TIOCSETD, &disc) < 0)
-		{
-			print_time();
-			printf("Error loading N_HDLC\n");
-			return(-1);
-		}
+			fatal_error(ERR_LOADING_N_HDLC, "error loading N_HDLC");
 #endif
 	}
 
 	/*
-	  Install a SIGTERM signal handler. This is the signal sent by pppd
-	  to kill our process. We do so just to make the log clear on that point
-	*/
+	 * Install a SIGTERM signal handler. This is the signal sent by pppd
+	 * to kill our process. We do so just to make the log clear on that point
+	 */
 
 	signal(SIGTERM, sig_term);
 
-	/* 
-	 * Install a SIGRTMIN signal handler. This signal is used for the 
-	 * completion of an URB */
+	/*
+	 * Install a SIGRTMIN signal handler. This signal is used for the
+	 * completion of an URB
+	 */
 
-	//signal(SIGRTMIN, sig_rtmin);
+	/* signal(SIGRTMIN, sig_rtmin); */
 
 	/*
-	*  We search for the first USB device matching ST_VENDOR & ST_PRODUCT.
-	*  usbdevfs must be mount on /proc/bus/usb (or you may change the path
-	*  here, according to your config
-	*/
+	 *  We search for the first USB device matching ST_VENDOR & ST_PRODUCT.
+	 *  usbdevfs must be mount on /proc/bus/usb (or you may change the path
+	 *  here, according to your config
+	 */
 
-	fdusb = pusb_search_open(GS_VENDOR, GS_PRODUCT);
+	fdusb = pusb_search_open(vendor, product);
 
 	if(fdusb == NULL && verbose)
-	{
-		print_time();
-		printf("Where is this crappy modem ?!\n");
-		return(-1);
-	}
+		fatal_error(ERR_FOUNDING_MODEM, "where is this crappy modem?!");
 
-	/*Debug message*/
+	/* debug message */
 	if(verbose > 1)
-	{
-		print_time();
-		printf("Got the modem, yipiyeah !\n");
-	}
+		message("got the modem, yipiyeah!");
 
 	/* Initialize global variables */
 	gfdout = fdout;
 
-	/* We claim interface 1, where endpoints 0x02, 0x86 & 0x88 are */
+	/* set interface */
+
+	if (pusb_set_interface_alt)
+		if(pusb_set_interface(fdusb, 0, pusb_set_interface_alt) < 0)
+		{
+			snprintf(errText, ERR_BUFSIZE,
+					"pusb_set_interface 0 %d failed", pusb_set_interface_alt);
+			fatal_error(ERR_PUSB_SET_INTERFACE, errText);
+		}
+
+	/* we claim interface 0, where endpoints 0x02, 0x86 & 0x88 are */
 
 	if(pusb_claim_interface(fdusb, 0) < 0)
-	{
-		print_time();
-		printf("pusb_claim_interface 1 failed\n");
-		return(-1);
-	}
+		fatal_error(ERR_PUSB_CLAIM_INTERFACE,
+					"pusb_claim_interface 0 failed");
 
 	ep_int = pusb_endpoint_open(fdusb, EP_INT, O_RDWR);
 	if(ep_int == NULL)
-	{
-		print_time();
-		printf("pusb_endpoint_open EP_INT failed\n");
-		return -1;
-	}
+		fatal_error(ERR_PUSB_OPEN_EP_INT,
+					"pusb_endpoint_open EP_INT failed");
 
 	ep_data_in = pusb_endpoint_open(fdusb, EP_DATA_IN, O_RDWR);
 	if(ep_data_in == NULL)
-	{
-		print_time();
-		printf("pusb_endpoint_open EP_DATA_IN failed\n");
-		return -1;
-	}
+		fatal_error(ERR_PUSB_OPEN_EP_DATA_IN,
+					"pusb_endpoint_open EP_DATA_IN failed");
 
 	/*
 	 * endpoint 0x02 is used for sending ATM cells, this function
 	 * is an infinite loop and will return only on errors.
 	 */
-	
+
 	ep_data_out = pusb_endpoint_open(fdusb, EP_DATA_OUT, O_RDWR);
-	if(ep_data_out == NULL) 
-	{
-		print_time();
-		printf("pusb_endpoint_open EP_DATA_OUT failed\n");
-		return -1;
-	}
+	if(ep_data_out == NULL)
+		fatal_error(ERR_PUSB_OPEN_EP_DATA_OUT,
+					"pusb_endpoint_open EP_DATA_OUT failed");
 
 	if (init_ep_int(ep_int) < 0)
-		return -1;
+		fatal_error(ERR_PUSB_INIT_EP_INT, NULL);
 
 	if (init_ep_data_in(ep_data_in) < 0)
-		return -1;
+		fatal_error(ERR_PUSB_INIT_EP_DATA_INT, NULL);
 
 	/*
 	  Relay data between fdin (PPP) => ep_data_out (USB).
@@ -1345,11 +1471,10 @@ int main(int argc, char *argv[])
 	*/
 
 #if 0
-	if (fork () == 0)
+	if (fork() == 0)
 	{
 		handle_ep_data_out(ep_data_out, fdin);
-
-		_exit (0);
+		_exit(0);
 	}
 #endif
 
@@ -1360,12 +1485,11 @@ int main(int argc, char *argv[])
 		pthread_attr_init(&attr);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-		g_fdin        = fdin;
-	
+		g_fdin = fdin;
+
 		if (pthread_create(&th_id, &attr, fn_handle_ep_data_out, NULL) != 0)
 		{
-			print_time();
-			printf("Error creating thread\n");
+			message("error creating thread");
 			perror("pthread_create");
 		}
 	}
@@ -1378,10 +1502,7 @@ int main(int argc, char *argv[])
 
 	/* we release all the interface we'd claim before exiting */
 	if(pusb_release_interface(fdusb, 0) < 0)
-	{
-		print_time();
-		printf("pusb_release_interface failed\n");
-	}
+		message("pusb_release_interface failed");
 
 	pusb_endpoint_close(ep_int);
 	pusb_endpoint_close(ep_data_in);
@@ -1390,5 +1511,4 @@ int main(int argc, char *argv[])
 	pusb_close(fdusb);
 
 	return(0);
-
 }
