@@ -309,18 +309,20 @@ else
 	echo "HDLC support is OK (no bug)" ;
 fi
 
-if [ -e $CONF_DIR/vidpid ]; then
-    vid1=`cat $CONF_DIR/vidpid | cut -f1 -d' '` ;
-    pid1=`cat $CONF_DIR/vidpid | cut -f2 -d' '` ;
-    vid2=`cat $CONF_DIR/vidpid | cut -f3 -d' '` ;
-    pid2=`cat $CONF_DIR/vidpid | cut -f4 -d' '` ;
-    echo "vid/pid read from $CONF_DIR/vidpid: $vid1/$pid1 $vid2/$pid2" ;
+if [ -s "$CONF_DIR/eciadsl.conf" ]; then
+	vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	eciload1_options=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 else
-    vid1="0547" ;
-    pid1="2131" ;
-    vid2="0915" ;
-    pid2="8000" ;
+	echo -e "\ncouldn't find $CONF_DIR/eciadsl.conf, default config assumed"
 fi
+test -z "$vid1" && vid1="0547"
+test -z "$pid1" && pid1="2131"
+test -z "$vid2" && vid2="0915"
+test -z "$pid2" && pid2="8000"
 
 # check for the EZUSB chip
 ezusb=0
@@ -328,13 +330,13 @@ grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
-	$BIN_DIR/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 $CONF_DIR/firmware.bin
+	$BIN_DIR/eci-load1 $eciload1_options
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load EZ-USB firmware" ;
 		fatal ;
 	fi ;
 	echo "Loading the GlobeSpan firmware..." ;
-	$BIN_DIR/eci-load2 0x$vid2 0x$pid2 $CONF_DIR/synch.bin
+	$BIN_DIR/eci-load2 $eciload2_options
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load GlobeSpan firmware" ;
 		fatal ;
@@ -431,7 +433,7 @@ fi
 PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
 	echo "No existing PPP connection... trying to make one (please wait)" ;
-	nice --20 pppd call adsl updetach nopersist | tee /tmp/ppp.log
+	nice --20 pppd call adsl updetach | tee /tmp/ppp.log
 
 # check if we succeed in making a new PPP connection
 	PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
