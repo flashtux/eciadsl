@@ -748,7 +748,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		{
 			MOD_INC_USE_COUNT;
 			eci_instances=out_instance; 
-			spin_lock_init(out_intsance->lock);
+			spin_lock_init(&out_instance->lock);
 			out_instance->usb_wan_dev= dev;
 			out_instance->setup_packets = eci_init_setup_packets;
 			/*init_waitqueue_head(&out_instance->eci_wait);*/
@@ -1273,7 +1273,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 
 	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
-	spin_lock(instance->lock);
+	spin_lock(&instance->lock);
 /*	dev = instance->usb_wan_dev;
 	DBG_OUT("dev = %p\n", dev);	unused */
 
@@ -1318,7 +1318,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 			DBG_OUT("Waiting for data on 0x86 endpoint\n");
 #endif /* DEBUG */
 	}
-	spin_unlock(instance->lock);
+	spin_unlock(&instance->lock);
 	DBG_OUT("Vendor callBack out\n");
 }
 
@@ -1440,7 +1440,7 @@ static void eci_iso_callback(struct urb *urb)
 	unsigned char 		*buf;		/* Working buffer pointer */
 
 	instance = (struct eci_instance *)urb->context;
-	spin_lock(instance->lock);
+	spin_lock(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
  		if(!(cells = _uni_cell_list_alloc())) {
@@ -1543,7 +1543,7 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
-	spin_unlock(instance->lock);
+	spin_unlock(&instance->lock);
 	/*
 	DBG_OUT("Iso Callback Exit\n");
 	*/
