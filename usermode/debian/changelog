@@ -1,3 +1,9 @@
+eciadsl-usermode (0.8-1) unstable; urgency=low
+
+  * Corrected a bug in reporting errors from the USB layer
+
+ -- Benoit PAPILLAULT <benoit.papillault@free.fr>  Tue,  1 Jul 2003 11:42:52 +0200 
+
 eciadsl-usermode (0.7-1) unstable; urgency=low
 
   * Update with the 0.7 release

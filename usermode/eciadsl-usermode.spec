@@ -4,13 +4,13 @@
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
 Name:		eciadsl-usermode
-Version:	0.7
+Version:	0.8
 Release:	1
 License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
 
-Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.7.tar.gz
+Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.8.tar.gz
 
 BuildRoot:	%_tmppath/%name-%version-%release
 Prefix: /usr
@@ -81,22 +81,32 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 %config /etc/eciadsl/modemeci.gif
 # doc files should be : rw-r--r--
 %defattr(644,root,root)
-%dir /usr/local/doc/eciadsl
-%doc /usr/local/doc/eciadsl/README
-%doc /usr/local/doc/eciadsl/README.fr
-%doc /usr/local/doc/eciadsl/INSTALL
-%doc /usr/local/doc/eciadsl/INSTALL.fr
-%doc /usr/local/doc/eciadsl/TROUBLESHOOTING
-%doc /usr/local/doc/eciadsl/TROUBLESHOOTING.fr
-%doc /usr/local/doc/eciadsl/BUGS
-%doc /usr/local/doc/eciadsl/TODO
-%doc /usr/local/doc/eciadsl/rc.adsl
+%doc README
+%doc README.es
+%doc README.fr
+%doc README.it
+%doc README.pt
+%doc INSTALL
+%doc INSTALL.es
+%doc INSTALL.fr
+%doc INSTALL.it
+%doc INSTALL.pt
+%doc TROUBLESHOOTING
+%doc TROUBLESHOOTING.es
+%doc TROUBLESHOOTING.fr
+%doc TROUBLESHOOTING.it
+%doc TROUBLESHOOTING.pt
+%doc BUGS
+%doc TODO
+%doc rc.adsl
 
 %clean
 # in this section, we clean up temporary files generated during the build
 	rm -rf %buildroot
 
 %changelog
+* Tue Jul 01 2003 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.8-1
+- Corrected a bug in reporting errors from the USB layer
 * Wed Jan 22 2003 wwp <subscript@free.fr> 0.7-1
 - last (?) fixes to 0.7.
 * Tue Jan 21 2003 wwp <subscript@free.fr> 0.7-1
