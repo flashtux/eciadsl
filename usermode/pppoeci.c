@@ -1218,6 +1218,7 @@ int main(int argc, char *argv[])
 	*/
 
 	if(isatty(fdin)) {
+/*#undef N_HDLC*/
 #ifdef N_HDLC
 		int disc = N_HDLC;
 
