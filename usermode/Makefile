@@ -29,7 +29,7 @@ check-hdlc-bug.o: check-hdlc-bug.c
 
 install: install_no_system_fixes modules_conf
 
-install_no_system_fixes: all install_scripts install_dirs uninstall_old_bin_files ppp_peer
+install_no_system_fixes: all install_dirs install_scripts uninstall_old_bin_files ppp_peer
 	$(INSTALL_DATA) adsl $(CONF_DIR)/adsl-skel
 	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif $(CONF_DIR)
 	ln -fs $(CONF_DIR)/firmware00.bin $(CONF_DIR)/firmware.bin
@@ -84,6 +84,8 @@ install_scripts:
 	done
 
 install_dirs:
+	$(INSTALL_DIR) $(PREFIX)
+	$(INSTALL_DIR) $(ETC_PREFIX)
 	$(INSTALL_DIR) $(BIN_DIR)
 	$(INSTALL_DIR) $(CONF_DIR)
 	$(INSTALL_DIR) $(PPPD_DIR)
