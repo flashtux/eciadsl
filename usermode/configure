@@ -17,48 +17,53 @@ function version()
 function commandline_help()
 {
 	# display help message then exit with $1
+	cat << EO_HELP
+usage:
+  $BASE [switch..]
 
-	echo "usage:"
-	echo "  $BASE [switches]"
-	echo "switches:"
-	echo "  --prefix={PATH}               set runtime base directory (default=$DIST_PREFIX_DEFAULT)"
-	echo "  --etc-prefix={PATH}           system config base directory (default=$DIST_ETC_DEFAULT)"
-	echo "  --conf-prefix={PATH}          set conf base directory (default=$DIST_CONF_PREFIX_DEFAULT)"
-	echo "  --conf-dir={DIR}              set conf directory (default=$DIST_CONF_DIR_DEFAULT)"
-	echo "  --doc-prefix={PATH}           set conf base directory (default=$DIST_PREFIX_DEFAULT)"
-	echo "  --doc-dir={DIR}               set conf directory (default=$DIST_DOC_DIR_DEFAULT)"
-	echo "  --disable-debug               disable debug messages at runtime (default)"
-	echo "  --enable-debug                enable debug messages at runtime"
-	echo "  --disable-warnings            disable most warnings at compilation"
-	echo "  --enable-warnings             enable most warnings at compilation (default)"
-	echo "  --quiet                       silent operations"
-	echo "  --clean                       clean temporary files then exit"
-	echo "  --disable-make-check          do not check for make"
-	echo "  --disable-gcc-check           do not check for gcc"
-	echo "  --disable-pppd-check          do not check for make"
-	echo "  --disable-wish-check          do not check for wish"
+switches:
+  --prefix={PATH}               set runtime base directory (default=$DIST_PREFIX_DEFAULT)
+  --etc-prefix={PATH}           system config base directory (default=$DIST_ETC_DEFAULT)
+  --conf-prefix={PATH}          set conf base directory (default=$DIST_CONF_PREFIX_DEFAULT)
+  --conf-dir={DIR}              set conf directory (default=$DIST_CONF_DIR_DEFAULT)
+  --doc-prefix={PATH}           set conf base directory (default=$DIST_PREFIX_DEFAULT)
+  --doc-dir={DIR}               set conf directory (default=$DIST_DOC_DIR_DEFAULT)
+  --disable-debug               disable debug messages at runtime (default)
+  --enable-debug                enable debug messages at runtime
+  --disable-warnings            disable most warnings at compilation
+  --enable-warnings             enable most warnings at compilation (default)
 
-	echo "  --disable-make-version        do not check for make version"
-	echo "  --disable-gcc-version         do not check for gcc version"
-	echo "  --disable-pppd-version        do not check for pppd version"
+  --disable-make-check          do not check for make
+  --disable-gcc-check           do not check for gcc
+  --disable-pppd-check          do not check for make
+  --disable-wish-check          do not check for wish
 
-	echo "  --enable-make-check           force check for make (default)"
-	echo "  --enable-gcc-check            force check for gcc (default)"
-	echo "  --enable-pppd-check           force check for pppd (default)"
-	echo "  --enable-wish-check           force check for wish (default)"
+  --disable-make-version        do not check for make version
+  --disable-gcc-version         do not check for gcc version
+  --disable-pppd-version        do not check for pppd version
 
-	echo "  --enable-make-version         force check for make version (default)"
-	echo "  --enable-gcc-version          force check for gcc version (default)"
-	echo "  --enable-pppd-version         force check for pppd version (default)"
+  --enable-make-check           force check for make (default)
+  --enable-gcc-check            force check for gcc (default)
+  --enable-pppd-check           force check for pppd (default)
+  --enable-wish-check           force check for wish (default)
 
-	echo "  --with-kernel-sources={PATH}  where to find the kernel sources (default=$KERNEL_SOURCES_PATH_DEFAULT)"
+  --enable-make-version         force check make version (default)
+  --enable-gcc-version          force check gcc version (default)
+  --enable-pppd-version         force check pppd version (default)
 
-	echo "  --enable-maintainer-mode      use default settings for maintainers (config/make/runtime options)"
-	echo "  --enable-rpm-maintainer-mode  use default settings for rpm maintainers (config/make/runtime options)"
-	echo "  -h or --help                  display this help then exit"
-	echo "  -v or --version               display version info then exit"
-	echo "example:"
-	echo "  $BASE --prefix-dir=/opt --etc-prefix=/opt --disable-debug"
+  --with-kernel-sources={PATH}  where to find the kernel sources (default=$KERNEL_SOURCES_PATH_DEFAULT)
+
+  --enable-maintainer-mode      use default settings for maintainers (config/make/runtime options)
+  --enable-rpm-maintainer-mode  use default settings for rpm maintainers (config/make/runtime options)
+
+  --quiet                       silent operations
+  --clean                       clean temporary files then exit
+
+  -h or --help                  display this help then exit
+  -v or --version               display version info then exit
+example:
+  $BASE --prefix-dir=/opt --etc-prefix=/opt --disable-debug
+EO_HELP
 	exit $1
 }
 
@@ -210,7 +215,7 @@ function insert_edit_warning()
 		done
 		echo >> "$OUTFILE"
 	fi
-	unset OUTFILE PREFIX
+	unset OUTFILE PREFIX POSTFIX
 }
 
 function check_source()
@@ -322,13 +327,12 @@ function configure_env()
 				GCC_VERSION=$(echo "$GCC_VERSION" | head -1)
 				if [ -n "$GCC_VERSION" ]
 				then
-					display 1 $GCC_VERSION
-					
 					case "$GCC_VERSION" in
-						egcs-*)			GCC_VERSION=${GCC_VERSION:5};;
+						"egcs-"*)			GCC_VERSION=${GCC_VERSION:5};;
 						"gcc (GCC)"*)	GCC_VERSION=$(echo "$GCC_VERSION" | head -1 | cut -d " " -f 3);;
 						*)				;;
 					esac
+					display 1 $GCC_VERSION
 
 					GCC_VERSION_TMP="$GCC_VERSION"
 					GCC_VERSION=$(echo $GCC_VERSION | tr "." " ")
