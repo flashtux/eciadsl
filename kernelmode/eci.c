@@ -1656,10 +1656,14 @@ static void eci_bh_bulk(unsigned long pinstance)
 			for(i=53; i < 64; i++) buf[bufpos + i] = 0xff;
 			bufpos += 64;
 			DBG_OUT("Bufpos = %d\n", bufpos);
+			_uni_cell_free(lp_cell) ;
 		}
 		else
+		{
+			if (cell) _uni_cell_free(lp_cell) ;
 			break;
-		if(_uni_cell_list_crs_next(&cell)) break;
+		}
+		/*if(_uni_cell_list_crs_next(&cell)) break;*/
 	}
 	DBG_RAW_OUT("new bulk",buf,bufpos);
 	FILL_BULK_URB(urb, instance->usb_wan_dev, 
