@@ -1,6 +1,6 @@
 # to build : rpm -ba eciadsl-usermode.spec
 # or       : rpm -ta eciadsl-usermode-0.6.tar.gz
-# the tar.gz should contain a directory eciadsl-usermode-0.6
+# the tar.gz should contain a directory eciadsl-usermode-0.7
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
 Name:		eciadsl-usermode
