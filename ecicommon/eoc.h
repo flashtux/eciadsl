@@ -76,7 +76,7 @@
 
 #define EOC_PARITY(x)		(x & 0x0004)
 #define EOC_PARITY_ODD		0x0040
-#define EOC_PARITY_EVEN		0x0040
+#define EOC_PARITY_EVEN		0x0000
 
 
 

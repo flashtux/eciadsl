@@ -73,21 +73,19 @@ void eoc_execute(u_int16_t eocmesval) {
  * Handle the eoc next opcode depending on the current state	
  */
 
-void eoc_next() {
+int eoc_read_next() {
 	int	mes;
 	
-	switch(eocstate) {
-		case _preread:
-			eocstate = _read;
-		break;
-		case _read:
-			if(eocreadpos < eocreadlen) {
-				mes=0;
-				mes |= 0;
-			} else {
-				mes = EOC_OPCODE_EOD;
-			}
-		break;
+	if(eocreadpos < eocreadlen) {
+		mes = 0x2301;
+		if(eocreadpar) {
+			mes |= EOC_PARITY_EVEN;
+		} else {
+			mes |= EOC_PARITY_ODD;
+		}
+		mes |= 0; // should or the register here but with bit manipulation 
+	} else {
+		mes = EOC_OPCODE_EOD;
 	}
 }
 
@@ -143,12 +141,31 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 				case _idle:	/*like G992.2 recomendation */
 					if(eocmescnt >=2) /* execute third time with same message */
 						eoc_execute(eocmesval);
-					if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
-						eoc_out_buf[eoc_out_buffer_pos++] = eocmesval;
+					if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
+						eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval 0xff00) >> 8;
+						eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;
 					} else {
 						return -EIO;
 					}
 					break;
+				case read:
+					switch(EOC_OPCODE(eocmesval)) {
+							case EOC_OPCODE_NEXT:
+								mes = eoc_read_next();
+								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
+									eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
+									eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0xff;
+								} else {
+									return -EIO;
+								}
+								break;
+							case EOC_OPCODE_RTN:
+							case EOC_OPCODE_HOLD:
+								if(eocmescnt >= 2) 
+									eocstate = _idle;
+								break;
+						}
+						break;
 			}
 		}				
 	}
