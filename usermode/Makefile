@@ -24,12 +24,16 @@ eci-eeprom: eci-eeprom.o pusb.o
 check-hdlc: check-hdlc.o
 check-hdlc-bug: check-hdlc-bug.o
 pusb.o: pusb.c pusb-linux.c pusb.h
+	if [ `uname -r | cut -d "." -f 1,2` = "2.6" ]; then\
+		cc  -Wall -I . -c -o pusb.o pusb.c;\
+	fi
 eci-load1.o: eci-load1.c pusb.h modem.h config.h util.h
 eci-load2.o: eci-load2.c pusb.h modem.h config.h util.h semaphore.h
 pppoeci.o: pppoeci.c util.h pusb.h gs7070.h modem.h config.h
 gs7070.o: gs7070.c gs7070.h
 util.o: util.c modem.h config.h util.h
 semaphore.o: semaphore.c semaphore.h
+	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o semaphore.o semaphore.c
 eci-eeprom.o: eci-eeprom.c pusb.h modem.h config.h
 check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c

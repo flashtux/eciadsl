@@ -6,7 +6,7 @@
 # *                                                                          *
 # *          For any support, contact one of us :                            *
 # *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr       *
-# *           - Crevetor : ziva@caramail.com                                 *
+# *           - Crevetor : areversat@tuxfamily.org			     *
 # *                                                                          *
 # ****************************************************************************
 #

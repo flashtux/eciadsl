@@ -7,7 +7,7 @@
 # *          For any support, contact one of us :                        *
 # *           - FlashCode: flashcode@flashtux.org                        *
 # *                        http://eciadsl.flashtux.org                   *
-# *           - Crevetor : ziva@caramail.com                             *
+# *           - Crevetor : areversat@caramail.com			 *
 # *                                                                      *
 # *      Parameters for this script :                                    *
 # *        1  = mode                                                     *
@@ -267,7 +267,7 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "$pppoeci -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode"
+pty "$pppoeci -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode -alt 4"
 sync
 user "$username"
 noaccomp
