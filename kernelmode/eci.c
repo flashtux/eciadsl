@@ -674,6 +674,7 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct tasklet_struct	bh_atm;		/*	outgoing datasBH    */
 	struct sk_buff_head	txq;		/*	outgoing datas Q    */
 	
+	
 	/* -- test -- */
 	struct atm_vcc		*pcurvcc ;
  	struct aal5		*pbklogaal5;	/*	AAL5 to complete */
@@ -768,9 +769,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		}
 	}
 
-	if(dev->descriptor.bDeviceClass == USB_CLASS_VENDOR_SPEC ||
-	   dev->descriptor.idVendor == ECI_WAN_VENDOR_ID ||
-	   dev->descriptor.idProduct == ECI_WAN_PRODUCT_ID )
+	if(dev->descriptor.bDeviceClass == USB_CLASS_VENDOR_SPEC &&
+	   dev->descriptor.idVendor == vid &&
+	   dev->descriptor.idProduct == pid )
 	{
 		out_instance = kmalloc(sizeof(struct eci_instance), 
 							GFP_KERNEL);
@@ -951,6 +952,15 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		_eci_send_init_urb(eciurb);
 	
 	}	
+	else
+	{
+		ERR_OUT("Probleme finding modem !\n");
+		DBG_OUT("vid,pid  = %02x,%02x, should be %02x,%02x\n",
+			vid,pid ,
+	   		dev->descriptor.idVendor, 
+	   		dev->descriptor.idProduct);
+		return 0;
+	}
 	DBG_OUT("Probe: done with usb\n");			
 	
 #ifdef __USE_ATM__
