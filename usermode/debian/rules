@@ -45,7 +45,7 @@ build-indep-stamp:
 	# Add here command to compile/build the arch indep package.
 	# It's ok not to do anything here, if you don't need to build
 	#  anything for this package.
-	#/usr/bin/docbook-to-man debian/eciadsl-ursermode.0.5.sgml > eciadsl-ursermode.0.5.1
+	#/usr/bin/docbook-to-man debian/eciadsl-usermode.0.5.sgml > eciadsl-usermode.0.5.1
 
 	touch build-indep-stamp
 
@@ -68,8 +68,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-	# Add here commands to install the package into debian/eciadsl-ursermode.0.5.
-	$(MAKE) install ROOT=$(CURDIR)/debian/eciadsl-ursermode.0.5
+	# Add here commands to install the package into debian/eciadsl-usermode.0.5.
+	$(MAKE) install ROOT=$(CURDIR)/debian/eciadsl-usermode.0.5
 
 	#dh_movefiles
 
