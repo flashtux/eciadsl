@@ -979,6 +979,10 @@ A:	`killall pppd` or `ifconfig ppp0 down`.
 	because some other USB devices may belong to this module (!), and you may
 	encounter problems re-starting startmodem (need to run it twice or maybe to
 	unplug/replug your modem then launch `startmodem`).
+	
+	You can also automatically stop the running PPP connection when rebooting or
+	shutting down your system. The proper way to configure this is describbed
+	in Q 5.0.
 
 
 5.12
@@ -1025,3 +1029,59 @@ A:	Check if pppd is installed on your system.
 
 	(*) caution: following the Linux distro you use, these files may not exist
 	or some other ones be used instead.
+
+
+5.14
+================================================================================
+Q:	My provider use PPPoE (RFC1483, RFC2516), how can I manage to configure
+	this?
+
+--------------------------------------------------------------------------------
+A:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
+	and used by default in Debian kernel. Use rp-pppoe instead as a userland
+	tool to manage the PPP connection. See 5.3.1 and 5.4.
+
+	Of course, the PPP mode defined in the ECIADSL config must be one of the
+	supported PPPoE modes (see `pppoeci --list`).
+
+	You can find rp-pppoe here:
+		http://www.roaringpenguin.com/pppoe
+
+	Install and configure it so that it uses tap0 as ETH interface.
+
+	Run startmodem, then use rp-pppoe to enable the PPP line (see rp-pppoe
+	documentation).
+
+
+5.15
+================================================================================
+Q:	My provider use PPPoA (RFC2364), how can I manage to configure this?
+
+--------------------------------------------------------------------------------
+A:	
+
+
+5.16
+================================================================================
+Q:	My provider use IPoATM (RFC1483), how can I manage to configure this?
+
+--------------------------------------------------------------------------------
+A:	
+
+
+5.17
+================================================================================
+Q:	My provider use a PPP mode I cannot find in the PPP modes list.
+	What can I do?
+
+--------------------------------------------------------------------------------
+A:	Please contact us.
+
+
+5.18
+================================================================================
+Q:	I don't know which PPP mode is used by my provider.
+	What can I do?
+
+--------------------------------------------------------------------------------
+A:	See 5.17.

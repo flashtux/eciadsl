@@ -242,7 +242,7 @@ Q:	`eci-doctor.sh` affiche :
 R:	Suivez les pré-requis, lisez la documentation en rapport au problème N_HDLC.
 
 	Si vous voulez utiliser l'option 'persist' de pppd pour vous reconnecter
-	automatiquement en cas de déconnection du fournisseur, alors vous devez
+	automatiquement en cas de déconnexion du fournisseur, alors vous devez
 	patcher votre noyau ou utiliser un noyau >= 2.4.18-pre3.
 	Vous trouverez le patch n_hdlc.c.diff dans l'archive du driver pour le modem
 	Speedtouch ici : http://speedtouch.sourceforge.net/.
@@ -399,8 +399,8 @@ Q:	Je suis déconnecté au bout d'un moment, l'option persist de pppd semble
 	fonctionner mais je ne peux rien accéder sur Internet.
 
 --------------------------------------------------------------------------------
-R:	Savez-vous que pppd appelle /etc/ppp/ip-down quand il y a une déconnection
-	et ip-up lors de la reconnection ? Peut-être que le script ip-down de votre
+R:	Savez-vous que pppd appelle /etc/ppp/ip-down quand il y a une déconnexion
+	et ip-up lors de la reconnexion ? Peut-être que le script ip-down de votre
 	distribution restaure la route réseau ou supprime les DNS dans le fichier
 	/etc/resolv.conf ?
 
@@ -448,7 +448,7 @@ R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ? Vérifiez que les
 
 4.5
 ================================================================================
-Q:	Je vois parfois des LCP timeouts dans /var/log/messages, mais ma connection
+Q:	Je vois parfois des LCP timeouts dans /var/log/messages, mais ma connexion
 	est toujours active ou ça ne me déconnecte pas à chaque fois.
 
 --------------------------------------------------------------------------------
@@ -458,7 +458,7 @@ R:	Essayez de décommenter les deux lignes concernant les LCP dans
 	Ceci peut aussi être du à votre fournisseur d'accès, attendez quelques
 	minutes/heures et voyez si vous ne pouvez toujours pas vous connecter.
 
-	Si les LCP timeouts ne perturbent pas votre connection PPP, alors
+	Si les LCP timeouts ne perturbent pas votre connexion PPP, alors
 	oubliez-les.
 
 
@@ -514,7 +514,7 @@ Q:	La ligne PPP tombe parfois (modem hangup).
 
 --------------------------------------------------------------------------------
 R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du
-	fournisseur ou encore à la déconnection journalière due au fournisseur
+	fournisseur ou encore à la déconnexion journalière due au fournisseur
 	(liste non exhaustive).
 
 	Activez l'option 'persist' pour pppd dans le fichier /etc/ppp/peers/adsl
@@ -525,7 +525,7 @@ R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du
 	Vous pouvez aussi essayer en mettant le MTU à 1000 ou même 512 dans le
 	fichier /etc/ppp/peers/adsl.
 
-	Vous pouvez aussi utiliser un script de reconnection automatique, et bien
+	Vous pouvez aussi utiliser un script de reconnexion automatique, et bien
 	sûr vérifiez que votre configuration est OK.
 
 
@@ -551,7 +551,7 @@ R:	Votre chipset USB est-il un VIA ou un SiS 700x ? Certains sont connus pour
 4.10
 ================================================================================
 Q:	Je vois d'étranges caractères dans le terminal/console après que startmodem
-	soit fini, et je n'obtiens pas de connection PPP :
+	soit fini, et je n'obtiens pas de connexion PPP :
 	Connect Modem ...
 	~ÿ}#À!}!}!} }4}"}&} } } } }%}&øïpÆ}
 
@@ -1011,7 +1011,7 @@ R:	Le driver tourne sur différents systèmes GNU/Linux, et bientôt sous *BSD.
 
 5.11
 ================================================================================
-Q:	Comment puis-je stopper la connection PPP ?
+Q:	Comment puis-je stopper la connexion PPP ?
 
 --------------------------------------------------------------------------------
 R:	`killall pppd` ou `ifconfig ppp0 down`.
@@ -1027,6 +1027,10 @@ R:	`killall pppd` ou `ifconfig ppp0 down`.
 	ce module (!), et vous pouvez rencontrer des problèmes en relançant
 	startmodem (besoin de le relancer plusieurs fois ou peut-être de
 	débrancher/rebrancher votre modem et relancer ensuite `startmodem`).
+
+	Il est aussi possible de stopper la connexion PPP de façon automatique quand
+	vous rebootez/éteignez votre système. La méthode complète est décrite dans
+	la question 5.0.
 
 
 5.12
