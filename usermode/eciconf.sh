@@ -23,7 +23,11 @@
 # \
 exec wish "$0" "$@" & exit 0
 
-set titre_fenetre "ECI Linux driver configuration v0.6"
+set PREFIX "/usr/local"
+set BIN_DIR "$PREFIX/bin"
+set CONF_DIR "/etc/eciadsl"
+
+set titre_fenetre "ECI Linux driver configuration v[exec cat VERSION]"
 
 wm title . $titre_fenetre
 
@@ -63,7 +67,7 @@ pack .dabusb -padx 10 -pady 15 -side top
 
 frame .frame1
 label .frame1.label_chemin -text { Path to pppoeci :} -width 15 -anchor e
-set path_pppoeci "/usr/local/bin/pppoeci"
+set path_pppoeci "$BIN_DIR/pppoeci"
 entry .frame1.chemin -textvariable path_pppoeci -background lightblue -width 35
 bind .frame1.chemin <Enter> {pushstate "Enter path to run pppoeci (in case of doubt, don't modify this path)"}
 bind .frame1.chemin <Leave> {popstate}
@@ -272,7 +276,8 @@ bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to 
 bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
-set nom_bin_actuel [exec ls -l /etc/eciadsl/synch.bin | sed s£.*->\ ££ ]
+set lien_bin_final "$CONF_DIR/synch.bin"
+set nom_bin_actuel [exec ls -l $lien_bin_final | sed s£.*->\ ££ ]
 
 label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
 
@@ -280,12 +285,12 @@ frame .bloc2.listebin.liste
 listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scroll set" -width 45 -height 4 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
 
 proc add_bins {chemin} {
-global .bloc2.listebin nom_bin_actuel
+global .bloc2.listebin nom_bin_actuel lien_bin_final
     set returncode [catch {exec find $chemin -name "*.bin" } bin_trouves]
     if {$returncode != 0} {
     } else {
         foreach bin $bin_trouves {
-            if {![regexp "firmware" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
+            if {$lien_bin_final != $bin && ![regexp "firmware" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
                 if {[string compare $bin $nom_bin_actuel] != 0} {
                     .bloc2.listebin.liste.contenu insert end $bin
                 }
@@ -294,7 +299,7 @@ global .bloc2.listebin nom_bin_actuel
     }
 }
 
-add_bins "/etc/eciadsl"
+add_bins "$CONF_DIR"
 
 .bloc2.listebin.liste.contenu selection set 0
 set bin_choisi [.bloc2.listebin.liste.contenu curselection]
@@ -363,7 +368,7 @@ pack .bloc2.vpci.vci.label .bloc2.vpci.vci.entry -side left -padx 5
 # Modem image :
 
 frame .bloc2.vpci.espace -height 3
-image create photo modem_eci -file /etc/eciadsl/modemeci.gif
+image create photo modem_eci -file "$CONF_DIR/modemeci.gif"
 label .bloc2.vpci.image -image modem_eci
 bind .bloc2.vpci.image <Enter> {pushstate "ECI HiFocus USB ADSL modem"}
 bind .bloc2.vpci.image <Leave> {popstate}
