@@ -8,7 +8,7 @@
 \baselineskip=16pt
 
 \title{\huge{How-to pour le driver Linux du modem ECI USB}}
-\author{Bertrand Rougier, Thierry De Baere, Florent Manens }
+\author{Bertrand Rougier, Thierry De Baere, Florent Manens, Benoît Papillault}
 
 \begin{document}
 \pagenumbering{arabic}
@@ -20,76 +20,80 @@
 
 \section{A qui s'adresse ce document ?}
 
-	Ce document s'adresse à tous les possesseurs du modem
-	ECI USB voulant l'utiliser sous Linux.
+    Ce document s'adresse à tous les possesseurs du modem
+    ECI USB voulant l'utiliser sous Linux.
 
 \section{Configuration requise}
 
-	Assurez vous d'abord que vous possédez un noyau Linux 
-	de version supérieure ou égale à 2.4.7-10
+    Assurez vous d'abord que vous possédez un noyau Linux 
+    de version supérieure ou égale à 2.4.7-10
 
-	Distributions où le driver fonctionne : 
-	\begin {itemize}
-	\item	Mandrake Linux 8.1 (noyau 2.4.8-26mk)
-	\item	Redhat Linux 7.2 (noyau 2.4.7-10)
-	\end{itemize}
-	
-	Distributions où le driver ne fonctionne pas :
-	\begin {itemize}
-	\item	Redhat Linux 7.1 (noyau 2.4.2-2)
- 	\end{itemize}
-	
-	Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
-	avec une autre distribution ou avec un noyau plus ancien,
-	n'hésitez pas à nous contacter.
+    Distributions où le driver fonctionne : 
+    \begin {itemize}
+    \item   Mandrake Linux 8.1 (noyau 2.4.8-26mk)
+    \item   Redhat Linux 7.2 (noyau 2.4.7-10)
+    \end{itemize}
+    
+    Distributions où le driver ne fonctionne pas :
+    \begin {itemize}
+    \item   Redhat Linux 7.1 (noyau 2.4.2-2)
+    \end{itemize}
+    
+    Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
+    avec une autre distribution ou avec un noyau plus ancien,
+    n'hésitez pas à nous contacter.
 
 \section {Procédure d'installation (à ne faire qu'une seule fois)}
-	Référence : archive usermode.tgz presente sur http://flashcode.free.fr/linux
+    Référence : archive usermode.tgz présente sur http://flashcode.free.fr/linux
 
 \subsection{Préparation du driver}
 
-	Connectez vous en tant que root puis tapez :
-	make \\
-	make install
+    Connectez vous en tant que root puis tapez :
+    make \\
+    make install
 
-	Il arrive parfois que le modem soit allumé quand vous 
-	démarrez votre ordinateur, cela est du au module dabusb,
-	il faut l'enlever pour pouvoir installer le driver et faire 
-	fonctionner le modem.
-	
-	Tapez les commandes suivantes en remplacant VERSION
-	par la version de votre noyau Linux : 
-	\footnote{(pour connaite la version du noyau tapez : uname -r)}
-	
-	rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz
-	\footnote{( ou rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o selon les distributions)}\\
-	depmod -a
+    Il arrive parfois que le modem soit allumé quand vous 
+    démarrez votre ordinateur, cela est du au module dabusb,
+    il faut l'enlever pour pouvoir installer le driver et faire 
+    fonctionner le modem.
+    
+    Tapez les commandes suivantes en remplaçant VERSION
+    par la version de votre noyau Linux : 
+    \footnote{(pour connaître la version du noyau tapez : uname -r)}
+    
+    rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz
+    \footnote{( ou rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o selon les distributions)}\\
+    depmod -a
 
-	Si vous voulez eviter un reboot :
-	\begin {itemize}
-	\item Faites lsmod.
-	\item Si vous voyez une ligne dabusb : faites rmmod dabusb
-	\end{itemize}
-	
+    Si vous voulez éviter un reboot :
+    \begin {itemize}
+    \item Faites lsmod.
+    \item Si vous voyez une ligne dabusb : faites rmmod dabusb
+    \end{itemize}
+    
 \subsection{Configuration de votre noyau}
 
-Si vous voulez utilisez l'option 'persist' de pppd afin que votre
-connexion se reconnecte automatiquement, alors, il faut patcher votre noyau.
-Vous trouverez le patch au sein de l'archive des drivers.
+Si vous voulez utiliser l'option 'persist' de pppd afin que votre
+connexion se reconnecte automatiquement, alors, il faut patcher votre
+noyau ou utiliser un noyau >= 2.4.18-pre3. Vous trouverez le patch
+n\_hdlc.c.diff au sein de l'archive des drivers speedtouch :
+http://speedtouch.sourceforge.net/. Voici les instructions pour
+l'utiliser :
 
 \begin{verbatim}
 $ cd /usr/src/linux
 $ patch -p1 --dry-run < /repertoire des drivers/n_hdlc.c.diff  ( il y a 2 tirets avant dry-run )
 \end{verbatim}
 
-Si aucun message d'erreur n'est renvoyé par le programme patch, tapez cette commande pour effectuer le patch du source :
+Si aucun message d'erreur n'est renvoyé par la commande patch, tapez
+ceci pour effectuer le patch du source :
 
 \begin{verbatim}
 $ cd /usr/src/linux
 $ patch -p1 < /repertoire des drivers/n_hdlc.c.diff
 \end{verbatim}
 
-Voila, compilez ensuite ces modules pour votre kernel :
+Voila, compilez ensuite ces modules pour votre noyau :
 
 \begin{verbatim}
 $ cd /usr/src/linux
@@ -106,86 +110,86 @@ $ make clean dep modules
 
 \subsubsection{Script /etc/ppp/peers/adsl :}
 
-	Il vient avec l'archive usermode.tgz et se place avec le make install
-	Il doit ressembler a ça :
+    Il vient avec l'archive usermode.tgz et se place avec le make install
+    Il doit ressembler a ça :
 \begin{verbatim}
-	# 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
-	# 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
-	#
-	# This file could be rename but its place is under /etc/ppp/peers
-	# To connect to Internet using this configuration file
-	# pppd call adsl, where "adsl" stands for the name of this file
+    # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
+    # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+    #
+    # This file could be rename but its place is under /etc/ppp/peers
+    # To connect to Internet using this configuration file
+    # pppd call adsl, where "adsl" stands for the name of this file
 
-	debug
-	kdebug 1
-	noipdefault
-	defaultroute
-	pty "/usr/local/bin/pppoeci -vpi 8 -vci 35"
-	sync
-	user "adsl@adsl"
-	noaccomp
-	nopcomp
-	noccp
-	novj
-	holdoff 1
-	maxfail 0
-	usepeerdns
-	noauth
-	#lcp-echo-interval 600
-	#lcp-echo-failure 10
+    debug
+    kdebug 1
+    noipdefault
+    defaultroute
+    pty "/usr/local/bin/pppoeci -vpi 8 -vci 35"
+    sync
+    user "adsl@adsl"
+    noaccomp
+    nopcomp
+    noccp
+    novj
+    holdoff 1
+    maxfail 0
+    usepeerdns
+    noauth
+    #lcp-echo-interval 600
+    #lcp-echo-failure 10
 \end{verbatim}
 
-	\subsubsection{A FAIRE :}
-	\begin{tabular}{ll}
-	- si vous etes abonne wanadoo :&
-	remplacer :\\
-		& user "\textit{adsl@adsl}"\\
-	&par :\\
-		&user "\textit{ fti/votre\_login@fti}"\\
+    \subsubsection{A FAIRE :}
+    \begin{tabular}{ll}
+    - si vous etes abonne wanadoo :&
+    remplacer :\\
+        & user "\textit{adsl@adsl}"\\
+    &par :\\
+        &user "\textit{ fti/votre\_login@fti}"\\
 
-	- si vous etes abonne club-internet :&
-	remplacer :\\
-		&user "\textit{adsl@adsl}"\\
-	&par :\\
-		&user "\textit{votre\_login@clubadsl1}"\\
-	\end{tabular}
-	
-	ASTUCE sur certaines machines Linux :
-	
-		Si vos premieres connexions echoues, voyez dans \textit{ /var/log/messages}
-		Si pppd s'arrete sur un message contenant LCP, alors faites cela :\\
-		dans \textit{ /etc/ppp/peers/adsl :}
-		DE-commentez les 2 dernières lignes parlant de LCP.
+    - si vous etes abonne club-internet :&
+    remplacer :\\
+        &user "\textit{adsl@adsl}"\\
+    &par :\\
+        &user "\textit{votre\_login@clubadsl1}"\\
+    \end{tabular}
+    
+    ASTUCE sur certaines machines Linux :
+    
+        Si vos premieres connexions echoues, voyez dans \textit{ /var/log/messages}
+        Si pppd s'arrete sur un message contenant LCP, alors faites cela :\\
+        dans \textit{ /etc/ppp/peers/adsl :}
+        DE-commentez les 2 dernières lignes parlant de LCP.
 
 \subsubsection{Script d'authentification pppd}
 
-	Votre password sera stocke dans un script d'authentification
-	qui depend de l'operateur internet que vous utilisez :
-	
-	
-	\begin{tabular}{ll}
-	Pour wanadoo :&		\textit{ /etc/ppp/chap-secrets}\\
-	Pour club-internet :&	\textit{ /etc/ppp/pap-secrets}\\
-	\end{tabular}
-	
-	
-	Les 2 scripts ont exactement la meme syntaxe.
-	Vous devez creer un ligne comme suit :
-	
-	
-	\begin{tabular}{ll}
-	Pour wanadoo :&
-		\textit{ fti/votre\_login@fti * votre\_password *}\\
+    Votre password sera stocke dans un script d'authentification
+    qui depend de l'operateur internet que vous utilisez :
+    
+    
+    \begin{tabular}{ll}
+    Pour wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
+    Pour club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
+    \end{tabular}
+    
+    
+    Les 2 scripts ont exactement la meme syntaxe.
+    Vous devez creer un ligne comme suit :
+    
+    
+    \begin{tabular}{ll}
+    Pour wanadoo :&
+        \textit{ fti/votre\_login@fti * votre\_password *}\\
 
-	Pour club-internet :&
-		\textit{ votre\_login@clubadsl1 * votre\_password *}\\
-	\end{tabular}
-	
-	
-	ATTENTION :\\
-	- les "*" sont importants.\\
-	- le premier champ de la ligne DOIT etre egal
-	  au contenu de la ligne user du fichier \textit{ /etc/ppp/peers/adsl}
+    Pour club-internet :&
+        \textit{ votre\_login@clubadsl1 * votre\_password *}\\
+    \end{tabular}
+    
+    
+    ATTENTION :\\
+    - les "*" sont importants.\\
+    - le premier champ de la ligne DOIT etre egal
+      au contenu de la ligne user du fichier \textit{ /etc/ppp/peers/adsl}
 
 \section{Procédure de connexion}
 
@@ -193,38 +197,38 @@ $ make clean dep modules
 
 3 possibilités de connections suivant votre distribution ou votre hardware :
 
-	Toute distribution et sur Chipset VIA ou INTEL :
-	\begin{itemize}
-	\item	rmmod usb-uhci
-	\item	modprobe usb-uhci
-	\item	mount -t usbdevfs none /proc/bus/usb
-	\item	startmodem>log
-	\end{itemize}
-	
-	Pour une CM équipée d'un chip ALI Aladin :\\
-		meme procédure que ci-dessus mais remplacez
-		les références à usb-uhci par usb-ohci
+    Toute distribution et sur Chipset VIA ou INTEL :
+    \begin{itemize}
+    \item   rmmod usb-uhci
+    \item   modprobe usb-uhci
+    \item   mount -t usbdevfs none /proc/bus/usb
+    \item   startmodem>log
+    \end{itemize}
+    
+    Pour une CM équipée d'un chip ALI Aladin :\\
+        meme procédure que ci-dessus mais remplacez
+        les références à usb-uhci par usb-ohci
 
-	Si vous avez la Linux Mandrake 8.1, la procedure suivante peut s'appliquer\\
-		/etc/rc.d/init.d/usb restart
-		startmodem >log
+    Si vous avez la Linux Mandrake 8.1, la procedure suivante peut s'appliquer\\
+        /etc/rc.d/init.d/usb restart
+        startmodem >log
 
-		IMPORTANT (cas particulier sur Mandrake) :\\
-		Modification obligatoire du fichier startmodem avec Mandrake :
+        IMPORTANT (cas particulier sur Mandrake) :\\
+        Modification obligatoire du fichier startmodem avec Mandrake :
 
-		\begin {tabular}{ll}
-		remplacez la ligne :&
-			ppp call adsl\\
-		par :&
-			pppd call adsl\\
-		\end{tabular}
+        \begin {tabular}{ll}
+        remplacez la ligne :&
+            ppp call adsl\\
+        par :&
+            pppd call adsl\\
+        \end{tabular}
 
 CA NE MARCHE PAS :
-	Si vous ne surfez pas apres l'une de ces 3 procedures, voir chapitre 5)
+    Si vous ne surfez pas apres l'une de ces 3 procedures, voir chapitre 5)
 
 \subsection{Automatique au demarrage de Linux}
-	A venir avec les futures versions du driver.
-	Inutile tant que le driver est en Beta.
+    A venir avec les futures versions du driver.
+    Inutile tant que le driver est en Beta.
 
 \subsection{Reprise automatique sur coupure}
         A venir avec les futures versions du driver.
@@ -232,115 +236,115 @@ CA NE MARCHE PAS :
 
 \section{problemes connus et solutions}
 
-	A remplir : cela depend de tout le monde :
-	decrivez vos problemes et les solutions
-	que vous avez trouve sur la ML eci@ml.free.fr
-	Nous les incorporerons ICI.
+    A remplir : cela depend de tout le monde :
+    decrivez vos problemes et les solutions
+    que vous avez trouve sur la ML eci@ml.free.fr
+    Nous les incorporerons ICI.
 
 \subsection{La connexion PPP se fait bien, je vois ppp0 dans ifconfig, mais je ne vais pas sur Internet}
 
-	\subsubsection{Action 1 :}
-		verifier que vos DNS sont reconnus :
-		dans /etc/resolv.conf
-		2 lignes sont presentes commencant par nameserver
+    \subsubsection{Action 1 :}
+        verifier que vos DNS sont reconnus :
+        dans /etc/resolv.conf
+        2 lignes sont presentes commencant par nameserver
 
-		A ce jour :
-		
-%		\begin {tabular}{l} ptete que e v mettre un tableau apres ... on verra
-		Chez wanadoo :\\
-		nameserver 193.252.19.3\\
-		nameserver 193.252.19.4\\
+        A ce jour :
+        
+%       \begin {tabular}{l} ptete que e v mettre un tableau apres ... on verra
+        Chez wanadoo :\\
+        nameserver 193.252.19.3\\
+        nameserver 193.252.19.4\\
 
-		Chez club-internet :\\
-		nameserver 194.117.200.15\\
-		nameserver 194.117.200.10\\
+        Chez club-internet :\\
+        nameserver 194.117.200.15\\
+        nameserver 194.117.200.10\\
 
-		Si ce n'est pas le cas, creer ces 2 lignes dans le fichier.
-	
-	\subsubsection{Action 2 :}
-		faire : nslookup www.wanadoo.fr
-		
-		si pas de reponse et que ppp0 est toujours la dans ifconfig :\\
-		Vous avez surement un probleme de routage :\\
-		faire route -n, cela devrait donner une sortie du genre :\\
-		
-		\begin{tabular}{llllllll}
-		Destination  &   Passerelle  &    Genmask     &    Indic& Metric& Ref &   Use& Iface\\
-		127.0.0.0   &    0.0.0.0    &     255.0.0.0   &    U  &   0  &    0    &    0 &lo\\
-		0.0.0.0    &     212.194.0.1  &   0.0.0.0    &     UG  &  0  &    0    &    0 &ppp0\\
-		\end{tabular}
-		
-		La derniere ligne est importante, c'est la GATEWAY par defaut qui vous fais sortir
-		sur Internet...
+        Si ce n'est pas le cas, creer ces 2 lignes dans le fichier.
+    
+    \subsubsection{Action 2 :}
+        faire : nslookup www.wanadoo.fr
+        
+        si pas de reponse et que ppp0 est toujours la dans ifconfig :\\
+        Vous avez surement un probleme de routage :\\
+        faire route -n, cela devrait donner une sortie du genre :\\
+        
+        \begin{tabular}{llllllll}
+        Destination  &   Passerelle  &    Genmask     &    Indic& Metric& Ref &   Use& Iface\\
+        127.0.0.0   &    0.0.0.0    &     255.0.0.0   &    U  &   0  &    0    &    0 &lo\\
+        0.0.0.0    &     212.194.0.1  &   0.0.0.0    &     UG  &  0  &    0    &    0 &ppp0\\
+        \end{tabular}
+        
+        La derniere ligne est importante, c'est la GATEWAY par defaut qui vous fais sortir
+        sur Internet...
 
-		Si elle n'y est pas, pas de net, donc vous faite sur le shell:
-		
-		\textit{ route add default dev ppp0}
+        Si elle n'y est pas, pas de net, donc vous faite sur le shell:
+        
+        \textit{ route add default dev ppp0}
 
-		Et ca devrait marcher.
+        Et ca devrait marcher.
 
 \subsection{pppd s'arrete sur erreur : LCP timeout}
 
-	Cas 1 : vous avez un probleme de timeout sur la connexion PPP :
-	
-		\textit{Editez etc/ppp/peers/adsl}
-	
-		DE-Commentez les 2 dernieres lignes :
-	
-        	lcp-echo-interval 600 \\
-	        lcp-echo-failure 10\par
+    Cas 1 : vous avez un probleme de timeout sur la connexion PPP :
+    
+        \textit{Editez etc/ppp/peers/adsl}
+    
+        DE-Commentez les 2 dernieres lignes :
+    
+            lcp-echo-interval 600 \\
+            lcp-echo-failure 10\par
 
-	Cas 2 : vous avez un probleme d'authentification (PPP ne le dit pas toujours explicitement)
+    Cas 2 : vous avez un probleme d'authentification (PPP ne le dit pas toujours explicitement)
 
-		Corrigez vos scripts :\\
-		
-			\textit{/etc/ppp/peers/adsl}\\
-			et\\
-			\textit{/etc/ppp/chap-secrets} (wanadoo) ou \textit{/etc/ppp/pap-secrets} (club-internet)\par
+        Corrigez vos scripts :\\
+        
+            \textit{/etc/ppp/peers/adsl}\\
+            et\\
+            \textit{/etc/ppp/chap-secrets} (wanadoo) ou \textit{/etc/ppp/pap-secrets} (club-internet)\par
 
-		=> retour aux chapitres : 3.2.1 et 3.2.2
-	
+        => retour aux chapitres : 3.2.1 et 3.2.2
+    
 \subsection{Vous avez ce message d'erreur : Can't find your ECI Telecom USB ADSL Loader}
 
-	\subsubsection{Message d'erreur }
-	\begin{verbatim}
-	[root@hwi usermode]# ./startmodem
-	/proc/bus/usb: No such file or directory
-	Can't find your ECI Telecom USB ADSL Loader
-	ECI Load 1 : failed!
-	/proc/bus/usb: No such file or directory
-	Can't find your ECI Telecom USB ADSL WAN Modem
-	ECI Load 2 : failed!
-	\end{verbatim}
-	
-	Si vois avez un message qui ressemble a ça, c'est que vous n'avez pas monté le systéme de fichier pour l'usb.
-	
-	\subsubsection{Solution }
-	
-	\textit{mount -t usbdevfs none /proc/bus/usb}
+    \subsubsection{Message d'erreur }
+    \begin{verbatim}
+    [root@hwi usermode]# ./startmodem
+    /proc/bus/usb: No such file or directory
+    Can't find your ECI Telecom USB ADSL Loader
+    ECI Load 1 : failed!
+    /proc/bus/usb: No such file or directory
+    Can't find your ECI Telecom USB ADSL WAN Modem
+    ECI Load 2 : failed!
+    \end{verbatim}
+    
+    Si vois avez un message qui ressemble a ça, c'est que vous n'avez pas monté le systéme de fichier pour l'usb.
+    
+    \subsubsection{Solution }
+    
+    \textit{mount -t usbdevfs none /proc/bus/usb}
 
 \subsection{eci-load2 n'arrive pas a avoir la synchronisation // blockage au packet 259}
-	\subsubsection{Problème}
-	
-	Le driver n'arrive pas a avoir la synchronisation, il faut alors le relancer.
-	
-	\subsubsection{Solution}
-	
-	Pour relancer le driver, nous vous conseillons de repartir du début en débranchant et en rebranchant le modem, il faut ensuite refaire :
-	\textit{./startmodem}
-	
+    \subsubsection{Problème}
+    
+    Le driver n'arrive pas a avoir la synchronisation, il faut alors le relancer.
+    
+    \subsubsection{Solution}
+    
+    Pour relancer le driver, nous vous conseillons de repartir du début en débranchant et en rebranchant le modem, il faut ensuite refaire :
+    \textit{./startmodem}
+    
 \subsection{Passer la patate (Debian patato) en kernel 2.4}
-	C'est vrai que c'est un peu hors sujet mais ça peux aider ceux qui veulent tester le driver.
-	vous trouverez la documentation pour faire ceci a ces adresses : 
-	
-	http://fs.tum.de/~bunk/kernel-24.html
+    C'est vrai que c'est un peu hors sujet mais ça peux aider ceux qui veulent tester le driver.
+    vous trouverez la documentation pour faire ceci a ces adresses : 
+    
+    http://fs.tum.de/~bunk/kernel-24.html
 
-	Bonne upgrade !
+    Bonne upgrade !
 
 \section{Contacts}
 
-	Pour toute question, abonnez-vous à la liste de diffusion de ce projet 
-	en envoyant un mail vide à eci-request@ml.free.fr?subject=subscribe
-	et postez ensuite vos remarques ou suggestions à eci@ml.free.fr 
+    Pour toute question, abonnez-vous à la liste de diffusion de ce projet 
+    en envoyant un mail vide à eci-request@ml.free.fr?subject=subscribe
+    et postez ensuite vos remarques ou suggestions à eci@ml.free.fr 
   
 \end{document}
