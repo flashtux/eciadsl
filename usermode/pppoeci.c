@@ -487,8 +487,8 @@ aal5_read(unsigned char *cell_buf, size_t count,
 	static int len = 0;
 
 	int ret;
-	int i;
 	unsigned int real_len;
+	unsigned int crc1, crc2;
 
 	if(vpi != my_vpi || vci != my_vci) {
 /*
@@ -536,13 +536,38 @@ aal5_read(unsigned char *cell_buf, size_t count,
 	if(verbose>1)
 		printf("< pid=%d > aal5_read: len=%d => real_len=%d\n", this_process, len, real_len);
 
-	if((ret = ppp_write(fdout, buf, real_len)) < 0)
-		return(ret);
+	/*
+	  Check the CRC of received AAL5 frames. 
+	  crc1 : computed crc on the current AAL5 frame (the theoretical value)
+	  crc2 : crc read from the AAL5 frame (the real value)
+	*/
 
+	crc1 = ~calc_crc(buf, len -4, -1);
+	crc2 = (buf[len-4] << 24) | (buf[len-3] << 16)
+		| (buf[len-2]<<8) | buf[len-1];
+
+	if (crc1!=crc2 && !(verbose>1))
+	{
+		printf("< pid=%d > ", this_process);
+		print_time();
+		printf(" aal5_read: len=%d => real_len=%d\n",len, real_len);
+	}
+		
+	if (crc1 != crc2)
+	{
+		printf("< pid=%d > ",this_process);
+		print_time();
+		printf(" bad crc %08x (instead of %08x) => dropping AAL5 frame\n",
+			   crc2,crc1);
+		
+		len = 0;
+		return 0;
+	}
+
+	ret = ppp_write(fdout, buf, real_len);
 	len = 0;
 
-	return(0);
-
+	return ret;
 }
 
 /*
@@ -680,12 +705,23 @@ decode_usb_pkt(unsigned char *buf, int len)
 		memcpy(rbuf + rlen, buf, len);
 		rlen += len;
 	}
+	else
+	{
+		printf("< pid=%d > ",this_process);
+		print_time();
+		printf("warning: no space for %d bytes\n",len);
+	}
 
 	pos = 0;
 	while((rlen - pos) >= CELL_SIZE) {
 
 		if((r = cell_read(rbuf + pos, CELL_SIZE, gfdout)) < 0)
+		{
+			rlen -= pos;
+			if (rlen != 0)
+				memcpy(rbuf, rbuf+pos, rlen);
 			return(r);
+		}
 		pos += CELL_SIZE;
 	};
 	rlen -= pos;
