@@ -271,7 +271,7 @@ int eoc_read_next() {
 	
 	printf("EOC.C - eco_readnext - START [eocdataregpos : %d| eocreadlen : %d]\n", eocdataregpos, eocreadlen);
 	if(eocdataregpos < eocreadlen) {
-		data = *((&eocdatareg)+eocdataregpos);
+		data = eocdatareg[eocdataregpos];
 		mes = 0x4301;
 	} else {
 		mes = 0x5301;		
@@ -294,7 +294,7 @@ int eoc_read_next() {
 void eoc_write_data(u_int16_t code) {
 	printf("EOC.C - eco_writenext - START [eocdataregpos : %d| eocwritelen : %d]\n", eocdataregpos, eocwritelen);
 	if(eocdataregpos < eocwritelen) {
-		*((&eocdatareg)+eocdataregpos) = (code >> 5) & 0xff;
+		eocdatareg[eocdataregpos] = (code >> 5) & 0xff;
 	}
 	printf("EOC.C - eco_writenext - END   [code : %04x]\n", code);
 }
