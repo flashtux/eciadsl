@@ -1,0 +1,107 @@
+INTRODUÇÃO
+==========
+
+O EciAdsl é um driver GNU/Linux para os modems USB ADSL baseados no chipset
+Globespan.
+É sabido que o driver trabalha em muitos países, com diferentes tipos de
+modems USB ADSL, usando diferentes tipos de modos de encapsulamento PPP (veja
+a lista de modems suportados em http://eciadsl.flashtux.org/modems.php).
+
+
+PRÉ-REQUESITOS
+==============
+
+ - um sistema GNU/Linux (arquitectura x86) com as ferramentas standard
+   (MDK9/RH8/top-recentes/exoticos poderão ter problemas (solucionáveis),
+   BSD ou outros sistemas não são oficialmente suportados ainda)
+ - Suporte para hardware USB 1.1
+ - Kernel Linux 2.4.x (>=2.4.18-pre3 ou <2.4.18-pre3+N_HDLC patch de modo a
+   poder usufruir da funcionalidade de reconecção automática do pppd, que é
+   recomendado)
+   	- Suporte para USB (em modulos):
+		- suporte geral para USB
+		- sistema de ficheiros USB preliminar
+		- controlador para o seu HUB USB EM MODULO
+		- nenhum modulo DABUSB activo
+	- Suporte para PPP ( incluíndo o pacote usermode pppd >=2.4.0)
+ - para instalação a partir do código fonte: pacotes standard para
+   desenvolvimento (fonte do Linux em /usr/src/linux, GNU software tal como
+   gcc>=2.91.66, GNU make, etc.)
+ - modem USB (*somente* equipados com chipset Globespan)
+ - bash (>=2.x.x)
+ - opcionalmente: tcl/tk >= 8.x.x, perl
+ - previlégios de root (pelo menos para instalar o driver)
+
+
+INSTALAÇÃO A PARTIR DO CÓDIGO FONTE
+===================================
+
+Leia o ficheiro INSTALL.pt
+
+
+INSTALAÇÃO A PARTIR DE UM PACOTE PRÉ-COMPILADO
+==============================================
+
+Usando o .rpm, como root:
+	rpm -i <o ficheiro>.rpm
+
+Poderá ter de remover versões deste driver instaladas anteriormente (ou usar
+uma flag para ignorar as versões anteriores se receber algum aviso).
+Depois: Ler no ficheiro INSTALL.pt, instalado em /usr/local/doc/eciadsl por
+defeito, a secção de CONFIGURAÇÃO.
+
+
+RESOLUÇÃO DE PROBLEMAS
+======================
+
+Se tiver problemas, veja o ficheiro TROUBLESHOOTING.pt.
+
+
+Onde pedir ajuda:
+	Suporte, pacotes (driver e synch .bin's opcionais) e documentação:
+		- IRC: irc.freenode.net, canal #eci
+		- http://eciadsl.flashtux.org
+		  (documentação, forum, mailing list de utilizadores, etc.)
+
+	O suporte é dado tanto em Inglês como em Francês.
+
+
+Forneça as seguintes informações:
+
+	- versão do kernel (veja: `uname -a` ou `cat /proc/version`). Diga
+	  tambêm se o kernel é aquela que veio com a sua distribuição ou se
+	  o compilou a partir do código fonte
+	- Distribuição Linux
+	- versão do pppd (veja: `pppd --version`)
+	- versão de modutils (veja: `lsmod --version`)
+	- modelo do controlador USB (HUB) (veja: `lspci | grep USB`)
+	- versão do driver eciadsl (veja se o ficheiro VERSION existe no
+	  pacote do código fonte para versões >0.5, ou tente
+	  pppoeci --version, ou pelo nome/data-CVS do pacote) e:
+	  	- informações do driver para MS Windows se tiver (e tambêm o
+		  tipo de modulação que o seu ISP suporta)
+		- o synch .bin que experimentou
+	- a marca/modelo exactos do seu modem
+	- a sua localização (país/estado/região/cidade)
+	- o seu ISP e qual o protocolo usado para
+	  encapsulamento/autenticação PPP
+	- o seu grau de experiência em Linux (por exemplo: novato, mediano,
+	  conformado, experiente, guru)
+	- o output de route -n ates e após correr startmodem se o problema
+	  ocurrer numa rede após o startmodem
+	- o seu ficheiro /etc/eciadsl/eciadsl.conf e, se possível, o ficheiro
+	  /var/log/messages (verifique se ele contêm rasto de actividade desde
+	  o arranque do seu sistema até ao correr do driver ou até o problema
+	  ocurrer).
+
+Ajudava muito se tivesse reunidas todas estas informações quando nos procurar.
+Apanhe tambêm as mensagens emitidas pelos programas que lançou (scripts de
+configuração ou startmodem), as contidas em /var/log/messages e em
+/var/log/log se existir, a informação fornecida por `dmesg`, `lsmod`
+e `cat /proc/bus/usb/devices`.
+
+Se ao nos contactar estiver a utilizar o MS Windows, se a partição do Linux
+estiver na mesma máquina e o sistema de ficheiros for ext2 ou ext3, use o
+programa explore2fs para obter os ficheiros directamente da partição Linux
+sem necessitar de reiniciar de cada vez que precisa de outro ficheiro!
+explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
