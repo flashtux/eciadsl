@@ -68,7 +68,8 @@ Sorted according to priority (the upper in the list, the prior):
 - submit driver to GNU/Linux distro managers
 - better distro/services(init.d?) integration using adsl-start/stop instead of startmodem (use a
   lock file too).
-
+- redesign Makefile to use more Makefile-friendly rules.
+- reimplement .conf reading from shell scripts (simplify that).
 
 0.x:
 - check and merge bsd 0.5 port
