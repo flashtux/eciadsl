@@ -195,8 +195,8 @@ echo "device (because it is not initialized yet), for instance: ? (0547:2131)"
 
 ECILOAD1_OPTIONS=""
 if [ -f "$CONF_DIR/eciadsl.conf" ]; then
-	FIRMWARE=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	ECILOAD1_OPTIONS=`grep -iE "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s " \t" " "`
+	FIRMWARE=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	ECILOAD1_OPTIONS=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	echo -e "\nconfig read from $CONF_DIR/eciadsl.conf"
 else
 	echo -e "\ndefault config assumed"

@@ -73,20 +73,20 @@ if [ "$1" == "--version" -o "$1" == "-v" ]; then
 fi
 
 if [ -s "$CONF_DIR/eciadsl.conf" ]; then
-	vid1=`grep -iE "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	pid1=`grep -iE "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	vid2=`grep -iE "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	pid2=`grep -iE "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	mode=`grep -iE "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	firmware=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	synch=`grep -iE "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	staticip=`grep -iE "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	gateway=`grep -iE "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	use_dhcp=`grep -iE "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	eciload1_options=`grep -iE "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	eciload2_options=`grep -iE "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	pppoeci_options=`grep -iE "^[ \t]*PPPOECI_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	synch_attempts=`grep -iE "^[ \t]*SYNCH_ATTEMPTS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	mode=`grep -E "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	firmware=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	eciload1_options=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	pppoeci_options=`grep -E "^[ \t]*PPPOECI_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	synch_attempts=`grep -E "^[ \t]*SYNCH_ATTEMPTS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 else
 	echo -e "\ncouldn't find $CONF_DIR/eciadsl.conf, default config assumed"
 fi
@@ -322,7 +322,7 @@ case "$mode" in
 	wait_for_iface tun0
 	GW=tun0
 	;;
-*)	echo "unknown PPP_MODE ($mode), check your driver configuration"
+*)	echo "unknown PPP mode ($mode), check your driver configuration"
 	;;
 esac
 
