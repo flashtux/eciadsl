@@ -46,3 +46,4 @@ lcp-echo-interval 0
 # You may need the following, but ONLY as a workaround
 # mtu 1432
 
+persist

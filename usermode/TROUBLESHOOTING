@@ -26,6 +26,7 @@ PRE-REQUISITES
 	  gcc >=2.91.66, GNU make, etc.)
 	- single hardware HUB?
 	- USB/ethernet modem (Globe Span chipset *only*)
+	- bash (>=2.x.x)
 	- optional: tcl/tk >= 8.x.x
 	- root privileges
 
