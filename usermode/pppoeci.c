@@ -1529,18 +1529,21 @@ int main(int argc, char** argv)
 	if (my_vci == 0xffffffff || my_vpi == 0xffffffff
 		|| !vendor || !product)
 	{
-		fprintf(stderr, "vci, vpi, vendor or product ID cannot be guessed:\n");
+		fprintf(stderr, "vci, vpi, vendor or product ID couldn't be guessed:\n");
 		fprintf(stderr, "no default parameters found in config file, couldn't assume default values\n");
 		usage(-1);
 	}	
-	/* now set the mode from conffile if not specified on commandline else we default to VCM_RFC2364 */
+	/* now set the mode from .conf file if not specified on
+	   command-line else we default to VCM_RFC2364
+	*/
 	if (frame_type == -1) 
 	{
 		if (config.mode)
 		{
 			if (!set_mode(config.mode))
 			{
-				fprintf(stderr, "bad mode parameter found in config file, couldn't assume default values\n");
+				fprintf(stderr, "bad PPP mode parameter found in config file (%s), couldn't assume default value\n",
+					config.mode);
 				usage(-1);
 			}
 		}
@@ -1551,19 +1554,44 @@ int main(int argc, char** argv)
 	/* rfc-3292-56 range values check for vpi and vci */
 	if (my_vpi>0xfff)
 	{
-		fprintf(stderr, "incorrect vpi value\n");
+		fprintf(stderr, "incorrect vpi value (%u overflows)\n", my_vpi);
 		usage(-1);
 	}
 	if (my_vci>0xffff)
 	{
-		fprintf(stderr, "incorrect vci value\n");
+		fprintf(stderr, "incorrect vci value (%u overflows)\n", my_vci);
 		usage(-1);
 	}
 
-	if (pusb_set_interface_alt < 0
-		|| data_timeout < 0
-		|| verbose < 0 || verbose > 2)
+	/* check some other params */
+	if (pusb_set_interface_alt < 0)
+	{
+		fprintf(stderr, "incorrect alt interface value (%d underflows)\n",
+			pusb_set_interface_alt);
 		usage(-1);
+	}
+	if (data_timeout < 0)
+	{
+		fprintf(stderr, "incorrect data timeout value (%d underflows)\n",
+			data_timeout);
+		usage(-1);
+	}
+	if ((verbose < 0) || (verbose > 2))
+	{
+		fprintf(stderr, "incorrect verbose level (%d is out of boundaries)\n",
+			verbose);
+		usage(-1);
+	}
+	if (vendor > 0xffff)
+	{
+		fprintf(stderr, "incorrect vendor ID (0x%x overflows)\n", vendor);
+		usage(-1);
+	}
+	if (product > 0xffff)
+	{
+		fprintf(stderr, "incorrect product ID (0x%x overflows)\n", product);
+		usage(-1);
+	}
 
 	if (verbose)
 	{

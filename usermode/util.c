@@ -164,7 +164,7 @@ void read_config_file(void)
 								&& (strcmp(ptr, "DNS2")!=0)
 								)
 								fprintf(stderr,
-									"config: unrecognized entry %s at line %lu\n",
+									"config: unrecognized entry '%s' at line %lu\n",
 									ptr, num);
 						}
 						tmp++;
