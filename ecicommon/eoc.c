@@ -251,7 +251,7 @@ void eoc_execute(u_int16_t eocmesval) {
 			}
 			break;
 		case _read:
-			switch(EOC_OPCODE(eocmesval)) {
+			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_RTN:
 					printf("EOC.C - eco_execute - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 				case EOC_OPCODE_HOLD:
@@ -314,7 +314,9 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	
 	assert(bufflen < EOC_MAX_LEN);
 /*	          1111 
-	6543 21xx 3210 987x
+	6543 21xx 3210 987x	
+	1111 0011 0000 0001 0xF301
+	0111 0011 0100 0001 0x7341
 	1111 0011 0100 1111 0xF34F -  op read_7 !
 	1111 0011 0001 0011	0xF313 -  op request test reg param ??
 	1111 0011 0100 0011	0xF343 -  op read_1 !! fuck!!
@@ -352,15 +354,16 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 				eoc_execute(eocmesval);				
 				printf("EOC.C - parse_eoc_buffer - CYCLE1 [eocmesval : %04x| eoccode . %04x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 				/* do actions if needed - kolja */
-				if(!(eocmesval & EOC_DATA_MASK)) { /* handle data */
-					eoc_write_data(eocmesval);
-					if(eocdataregpos == eocwritelen) { /* if last  tell it to atu-c */
-						eoc_encode(EOC_OPCODE_EOD);
-					}
-					continue;
-				} /* else handle an opcode */
 				/* you could use if statement instead switch ??? - kolja */
 				switch(eocstate) {
+					case _write:
+						if(!(eocmesval & EOC_DATA_MASK)) { /* handle data */
+							eoc_write_data(eocmesval);
+							if(eocdataregpos == eocwritelen) { /* if last  tell it to atu-c */
+								eoc_encode(EOC_OPCODE_EOD);
+							}
+						} 
+						break;
 					case _read:
 						printf("EOC.C - parse_eoc_buffer - READ [eocstate : _read]\n");
 						switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
@@ -421,6 +424,6 @@ void eoc_encode(u_int16_t eoc_opcode) {
 	} else {
 		mes |= EOC_ENCODED_PARITY_EVEN;
 	}
-	eoc_out_buf[eoc_out_buffer_pos-2] = mes & 0xff;
-	eoc_out_buf[eoc_out_buffer_pos-1] = (mes >> 8) & 0xff;		
+	eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
+	eoc_out_buf[eoc_out_buffer_pos-2] = (mes >> 8) & 0xff;		
 };
