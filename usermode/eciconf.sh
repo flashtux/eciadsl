@@ -10,6 +10,8 @@
 # *                                                                          *
 # ****************************************************************************
 #
+# 2002/10/07, FlashCode :
+#   Added modem Zyxel Prestige 630-41 and provider Bluewin
 # 2002/10/05, FlashCode :
 #   Added modems US Robotics 8500, BT Voyager, Xentrix USB
 # 2002/06/13, FlashCode :
@@ -133,7 +135,12 @@ radiobutton .bloc1.fai.ligne4.pipexuk -text "Pipex UK" -width 12 -variable fai -
 .bloc1.fai.ligne4.pipexuk configure -anchor w
 pack .bloc1.fai.ligne4.tiscali .bloc1.fai.ligne4.pipexuk -side left
 
-pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 -side top -anchor w
+frame .bloc1.fai.ligne5
+radiobutton .bloc1.fai.ligne5.bluewin -text "Bluewin" -width 11 -variable fai -value bluewin -command {set dns1 "195.186.1.111"; set dns2 "195.186.4.111"} -selectcolor blue
+.bloc1.fai.ligne5.bluewin configure -anchor w
+pack .bloc1.fai.ligne5.bluewin -side left
+
+pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 .bloc1.fai.ligne5 -side top -anchor w
 
 set fai wanadoo
 
@@ -216,17 +223,24 @@ bind .bloc1.modem.ligne4.btvoyager <Leave> {popstate}
 pack .bloc1.modem.ligne4.webpower .bloc1.modem.ligne4.btvoyager -side left
 
 frame .bloc1.modem.ligne5
-radiobutton .bloc1.modem.ligne5.wisecom -text "Wisecom ad80usg\nor EA100" -width 19 -variable modem -value wisecom -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
-.bloc1.modem.ligne5.wisecom configure -anchor w
-bind .bloc1.modem.ligne5.wisecom <Enter> {pushstate "Wisecom ad80usg or EA100 : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
-bind .bloc1.modem.ligne5.wisecom <Leave> {popstate}
+radiobutton .bloc1.modem.ligne5.zyxel -text "Zyxel Prestige 630-41" -width 19 -variable modem -value zyxel -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne5.zyxel configure -anchor w
+bind .bloc1.modem.ligne5.zyxel <Enter> {pushstate "Zyxel Prestige 630-41 : VendorID/ProductID = 0x0547 / 0x2131, 0x915 / 0x8000"}
+bind .bloc1.modem.ligne5.zyxel <Leave> {popstate}
 radiobutton .bloc1.modem.ligne5.xentrix -text "Xentrix USB" -width 15 -variable modem -value xentrix -command {set vidpid1 "0e600100"; set vidpid2 "09150101"} -padx 10 -selectcolor blue
 .bloc1.modem.ligne5.xentrix configure -anchor w
 bind .bloc1.modem.ligne5.xentrix <Enter> {pushstate "Xentrix USB : VendorID/ProductID = 0x0e60 / 0x0100, 0x915 / 0x0101"}
 bind .bloc1.modem.ligne5.xentrix <Leave> {popstate}
-pack .bloc1.modem.ligne5.wisecom .bloc1.modem.ligne5.xentrix -side left
+pack .bloc1.modem.ligne5.zyxel .bloc1.modem.ligne5.xentrix -side left
 
-pack .bloc1.modem.ligne1 .bloc1.modem.ligne2 .bloc1.modem.ligne3 .bloc1.modem.ligne4 .bloc1.modem.ligne5 -side top -anchor w
+frame .bloc1.modem.ligne6
+radiobutton .bloc1.modem.ligne6.wisecom -text "Wisecom ad80usg\nor EA100" -width 19 -variable modem -value wisecom -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne6.wisecom configure -anchor w
+bind .bloc1.modem.ligne6.wisecom <Enter> {pushstate "Wisecom ad80usg or EA100 : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
+bind .bloc1.modem.ligne6.wisecom <Leave> {popstate}
+pack .bloc1.modem.ligne6.wisecom -side left
+
+pack .bloc1.modem.ligne1 .bloc1.modem.ligne2 .bloc1.modem.ligne3 .bloc1.modem.ligne4 .bloc1.modem.ligne5 .bloc1.modem.ligne6 -side top -anchor w
 
 set modem "eci"
 set vidpid1 "05472131"
@@ -259,7 +273,7 @@ set nom_bin_actuel [exec ls -l /etc/eciadsl/eci_wan.bin | sed s£.*->\ ££ ]
 label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
 
 frame .bloc2.listebin.liste
-listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scroll set" -width 45 -height 5 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
+listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scroll set" -width 45 -height 4 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
 
 proc add_bins {chemin} {
 global .bloc2.listebin nom_bin_actuel
@@ -490,6 +504,7 @@ global majdns
         .bloc1.fai.ligne3.telecomitalia configure -state normal -selectcolor blue
         .bloc1.fai.ligne4.tiscali configure -state normal -selectcolor blue
         .bloc1.fai.ligne4.pipexuk configure -state normal -selectcolor blue
+        .bloc1.fai.ligne5.bluewin configure -state normal -selectcolor blue
         .bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
         .bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
         .bloc1.fai.dns1.labeldns configure -foreground black
@@ -503,6 +518,7 @@ global majdns
         .bloc1.fai.ligne3.telecomitalia configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne4.tiscali configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne4.pipexuk configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne5.bluewin configure -state disabled -selectcolor darkgray
         .bloc1.fai.dns1.entry configure -state disabled -foreground darkgray -background lightgray
         .bloc1.fai.dns2.entry configure -state disabled -foreground darkgray -background lightgray
         .bloc1.fai.dns1.labeldns configure -foreground darkgray
