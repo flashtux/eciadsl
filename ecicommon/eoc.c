@@ -72,7 +72,49 @@ void eoc_execute(u_int16_t eocmesval) {
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 2;
-			break;			
+			break;
+		case EOC_OPCODE_READ_2:	//	SERIAL  Number
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_2]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 32;
+			break;
+		case EOC_OPCODE_READ_3:	//	Self test Result
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_3]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 1;
+			break;
+		case EOC_OPCODE_READ_4:	//	Vendor 1
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_4]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 1;
+			break;
+		case EOC_OPCODE_READ_5:	//	Vendor 2
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_5]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 1;
+			break;
+		case EOC_OPCODE_READ_6:	//	Attenuation
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_6]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 1;
+			break;
+		case EOC_OPCODE_READ_7:	//	SNR margin
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_7]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 1;
+			break;
+		case EOC_OPCODE_READ_8:	//	ATUR config
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_8]\n");
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadlen = 30;
+			break;
 	}
 	printf("OEC.C - eco_execute - END   [eocmesval : %04x]\n", eocmesval);
 }
