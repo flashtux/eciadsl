@@ -19,6 +19,9 @@ if [ `whoami` != "root" ]; then
 	exit -1;
 fi
 
+# display the kernel version
+echo "You are using linux kernel version `uname -r`"
+
 # note the size in lines of /var/log/messages
 line=`wc -l /var/log/messages | awk '{print $1}'`
 
