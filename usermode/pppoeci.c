@@ -183,7 +183,9 @@ typedef enum
 	ERR_PUSB_OPEN_EP_DATA_OUT,
 	ERR_PUSB_INIT_EP_INT,
 	ERR_PUSB_INIT_EP_DATA_INT,
-	ERR_WRONG_FRAME_HEADER
+	ERR_WRONG_FRAME_HEADER,
+	ERR_TUN,
+	ERR_FORK
 } error_codes;
 
 #define ERR_BUFSIZE (1024 - 1)
@@ -1550,12 +1552,20 @@ int main(int argc, char** argv)
 	}
 	else
 		if ((frame_type == LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS)
-			|| (frame_type == VCM_RFC_1483_BRIDGED_ETH))
-			fdin = fdout = tap_open(dev, 0);
+			|| (frame_type == VCM_RFC_1483_BRIDGED_ETH)) 
+			
+		{
+			    if ((fdin = fdout = tap_open(dev, 0)) == -1 )
+				    fatal_error(ERR_TUN, "Could not open tap device");
+		}
 		else
 			if ((frame_type == LLC_RFC1483_ROUTED_IP)
 				|| (VCM_RFC1483_ROUTED_IP))
-				fdin = fdout = tap_open(dev, 1);
+				
+			{
+				if ((fdin = fdout = tap_open(dev, 1)) == -1 )
+					fatal_error(ERR_TUN, "Could not open tun device");
+			}
 #endif	
 
 	/*
@@ -1584,6 +1594,8 @@ int main(int argc, char** argv)
 	close(1);
 	close(2);
 
+
+		
 	/*
 	 * Like the verbosity level is > 0
 	 * we will redirect all standard streams to the log file
@@ -1619,11 +1631,25 @@ int main(int argc, char** argv)
 	}
 
 
-	/* Increase priority of the pppoa process */
+	/* Increase priority of the pppoeci process */
 	if (setpriority(PRIO_PROCESS, this_process, -20) < 0 && verbose)
 	{
 		message("setpriority failed");
 		perror("reason");
+	}
+
+	/*  We fork to background if using an AAL5 extra mode */
+	if(frame_type >= LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS)
+	{
+		switch (fork())
+		{
+			case -1: 
+			    fatal_error(ERR_FORK, "fork failed");
+			case 0:
+			    break;
+			default:
+			    return(0);
+		}
 	}
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)

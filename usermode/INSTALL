@@ -78,10 +78,11 @@ and optionally
 
 
 Setup your kernel for TUN/TAP support:
-	[*] Network device support
-	  ..
-	  <M> Universal TUN/TAP device driver support
-	  ..
+	Network device support --->
+	  [*] Network device support
+	    ..
+	    <M> Universal TUN/TAP device driver support
+	    ..
 then type:
 	mkdir /dev/net
 	mknod /dev/net/tun c 10 200
@@ -124,10 +125,11 @@ Don't forget to add your DNS servers into /etc/resolv.conf.
 
 
 Setup your kernel for TUN/TAP support:
-	[*] Network device support
-	  ..
-	  <M> Universal TUN/TAP device driver support
-	  ..
+	Network device support --->
+	  [*] Network device support
+	    ..
+	    <M> Universal TUN/TAP device driver support
+	    ..
 then type:
 	mkdir /dev/net
 	mknod /dev/net/tun c 10 200

@@ -46,29 +46,24 @@ if [ "$1" == "--version" -o "$1" == "-v" ]; then
 	exit 0
 fi
 
-if [ $# -eq 4 ]; then
-	vid1="$1"
-	pid1="$2"
-	vid2="$3"
-	pid2="$4"
-	echo -en "\ngot vid/pid from command line"
+if [ -f "$CONF_DIR/eciadsl.conf" ]; then
+	vid1=`grep -iE "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 |cut -f 2 -d '=' | tr -d " \t" `
+	pid1=`grep -iE "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	vid2=`grep -iE "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	pid2=`grep -iE "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	mode=`grep -iE "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	firmware=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	synch=`grep -iE "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
 else
-	if [ -f "$CONF_DIR/vidpid" ]; then
-		vid1=`cat "$CONF_DIR/vidpid" | cut -f 1 -d ' '`
-		pid1=`cat "$CONF_DIR/vidpid" | cut -f 2 -d ' '`
-		vid2=`cat "$CONF_DIR/vidpid" | cut -f 3 -d ' '`
-		pid2=`cat "$CONF_DIR/vidpid" | cut -f 4 -d ' '`
-		echo -en "\ngot vid/pid from $CONF_DIR/vidpid"
-	else
-	    vid1="0547"
-	    pid1="2131"
-	    vid2="0915"
-	    pid2="8000"
-		echo -en "\ndefault vid/pid assumed"
-	fi
+	echo -e "\ncouldn't $CONF_DIR/eciadsl.conf, default config assumed"
 fi
-echo ": $vid1/$pid1 $vid2/$pid2"
-
+test -z "$vid1" && vid1="0547"
+test -z "$pid1" && pid1="2131"
+test -z "$vid2" && vid2="0915"
+test -z "$pid2" && pid2="8000"
+test -z "$mode" && mode="VCM_RFC2364"
+test -z "$firmware" && firmware="$CONF_DIR/firmware00.bin"
+test -z "$synch" && synch="$CONF_DIR/synch01.bin"
 
 echo -e "\nsetting up USB support (1/5).."
 
@@ -190,7 +185,7 @@ echo -e "\nloading firmware (2/5)..\n"
 # already loaded ... so continue.
 grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
-    "$BIN_DIR/eci-load1" 0x$vid1 0x$pid1 0x$vid2 0x$pid2 "$CONF_DIR/firmware.bin"
+    "$BIN_DIR/eci-load1" 0x$vid1 0x$pid1 0x$vid2 0x$pid2 "$firmware"
     if [ $? -ne 0 ]; then
         echo "failed to load firmware"
         exit -1
@@ -211,7 +206,7 @@ echo -e "\nsetting up modem (3/5)..\n"
 CNT=1
 RET=$CNT
 while [ $CNT -le $SYNCH_ATTEMPTS ]; do
-	"$BIN_DIR/eci-load2" 0x$vid2 0x$pid2 "$CONF_DIR/synch.bin"
+	"$BIN_DIR/eci-load2" 0x$vid2 0x$pid2 "$synch"
 	sleep 1
 	RET=$?
 	CNT=$(expr $CNT + 1)

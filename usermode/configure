@@ -20,41 +20,43 @@ function commandline_help()
 	# display help message then exit with $1
 
 	echo "usage:"
-	echo "    $BASE [switches]"
+	echo "  $BASE [switches]"
 	echo "switches:"
-	echo "    --prefix={PATH}           set runtime base directory (default=$DIST_PREFIX_DEFAULT)"
-	echo "    --etc-prefix={PATH}       system config base directory (default=$DIST_ETC_DEFAULT)"
-	echo "    --conf-prefix={PATH}      set conf base directory (default=$DIST_CONF_DEFAULT)"
-	echo "    --conf-dir={DIR}          set conf directory (default=$DIST_CONF_DIR_DEFAULT)"
-	echo "    --disable-debug           disable debug messages at runtime (default)"
-	echo "    --enable-debug            enable debug messages at runtime"
-	echo "    --disable-warnings        disable most warnings at compilation"
-	echo "    --enable-warnings         enable most warnings at compilation (default)"
-	echo "    --quiet                   silent operations"
-	echo "    --clean                   clean temporary files then exit"
-	echo "    --disable-make-check      do not check for make"
-	echo "    --disable-gcc-check       do not check for gcc"
-	echo "    --disable-pppd-check      do not check for make (default)"
-	echo "    --disable-wish-check      do not check for wish"
+	echo "  --prefix={PATH}               set runtime base directory (default=$DIST_PREFIX_DEFAULT)"
+	echo "  --etc-prefix={PATH}           system config base directory (default=$DIST_ETC_DEFAULT)"
+	echo "  --conf-prefix={PATH}          set conf base directory (default=$DIST_CONF_DEFAULT)"
+	echo "  --conf-dir={DIR}              set conf directory (default=$DIST_CONF_DIR_DEFAULT)"
+	echo "  --disable-debug               disable debug messages at runtime (default)"
+	echo "  --enable-debug                enable debug messages at runtime"
+	echo "  --disable-warnings            disable most warnings at compilation"
+	echo "  --enable-warnings             enable most warnings at compilation (default)"
+	echo "  --quiet                       silent operations"
+	echo "  --clean                       clean temporary files then exit"
+	echo "  --disable-make-check          do not check for make"
+	echo "  --disable-gcc-check           do not check for gcc"
+	echo "  --disable-pppd-check          do not check for make (default)"
+	echo "  --disable-wish-check          do not check for wish"
 
-	echo "    --disable-make-version    do not check for make version"
-	echo "    --disable-gcc-version     do not check for gcc version"
-	echo "    --disable-pppd-version    do not check for pppd version (default)"
+	echo "  --disable-make-version        do not check for make version"
+	echo "  --disable-gcc-version         do not check for gcc version"
+	echo "  --disable-pppd-version        do not check for pppd version (default)"
 
-	echo "    --enable-make-check       force check for make (default)"
-	echo "    --enable-gcc-check        force check for gcc (default)"
-	echo "    --enable-pppd-check       force check for pppd"
-	echo "    --enable-wish-check       force check for wish (default)"
+	echo "  --enable-make-check           force check for make (default)"
+	echo "  --enable-gcc-check            force check for gcc (default)"
+	echo "  --enable-pppd-check           force check for pppd"
+	echo "  --enable-wish-check           force check for wish (default)"
 
-	echo "    --enable-make-version     force check for make version (default)"
-	echo "    --enable-gcc-version      force check for gcc version (default)"
-	echo "    --enable-pppd-version     force check for pppd version"
+	echo "  --enable-make-version         force check for make version (default)"
+	echo "  --enable-gcc-version          force check for gcc version (default)"
+	echo "  --enable-pppd-version         force check for pppd version"
 
-	echo "    --enable-maintainer-mode  use default settings for maintainers (config/make/runtime options)"
-	echo "    -h or --help              display this help then exit"
-	echo "    -v or --version           display version info then exit"
+	echo "  --with-kernel-sources={PATH}  where to find the kernel sources (default=$KERNEL_SOURCES_PATH_DEFAULT)"
+
+	echo "  --enable-maintainer-mode      use default settings for maintainers (config/make/runtime options)"
+	echo "  -h or --help                  display this help then exit"
+	echo "  -v or --version               display version info then exit"
 	echo "example:"
-	echo "    $BASE --prefix-dir=/opt --etc-prefix=/opt --disable-debug"
+	echo "  $BASE --prefix-dir=/opt --etc-prefix=/opt --disable-debug"
 	exit $1
 }
 
@@ -447,6 +449,10 @@ function configure_dot()
 	then
 		echo "CFLAGS += -g" >> "$MAKEFILE_CONFIG"
 	fi
+	if [ "$KERNEL_SOURCES_PATH" != "$KERNEL_SOURCES_PATH_DEFAULT" ]
+	then
+		echo "CFLAGS += -I$KERNEL_SOURCES_PATH/include" >> "$MAKEFILE_CONFIG"
+	fi
 	display 1 "OK"
 	unset MAKEFILE_CONFIG INMAKEFILE_CONFIG
 
@@ -545,6 +551,8 @@ DIST_CONF_PREFIX=""
 DIST_BIN_DIR=""
 DIST_ETC_DIR=""
 DIST_CONF_DIR=""
+KERNEL_SOURCES_PATH_DEFAULT="/usr/src/linux"
+KERNEL_SOURCES_PATH=""
 
 # commandline analyze
 while [ -n "$1" ]
@@ -558,6 +566,8 @@ do
 									DIST_CONF_PREFIX="$PARAM";;
 		"--conf-dir="*)				check_param "$1"
 									DIST_CONF_DIR="$PARAM";;
+		"--with-kernel-sources="*)	check_param "$1"
+									KERNEL_SOURCES_PATH="$PARAM";;
 		"--disable-make-check")		let MAKE_CHECK=0;;
 		"--disable-gcc-check")		let GCC_CHECK=0;;
 		"--disable-pppd-check")		let PPPD_CHECK=0;;
@@ -605,6 +615,7 @@ test -z "$DIST_CONF_PREFIX" && DIST_CONF_PREFIX="$DIST_CONF_PREFIX_DEFAULT"
 test -z "$DIST_BIN_DIR" && DIST_BIN_DIR="$DIST_BIN_DIR_DEFAULT"
 test -z "$DIST_ETC_DIR" && DIST_ETC_DIR="$DIST_ETC_DIR_DEFAULT"
 test -z "$DIST_CONF_DIR" && DIST_CONF_DIR="$DIST_CONF_DIR_DEFAULT"
+test -z "$KERNEL_SOURCES_PATH" && KERNEL_SOURCES_PATH="$KERNEL_SOURCES_PATH_DEFAULT"
 
 # display a summary of the settings
 display 1 "settings:"
@@ -620,6 +631,8 @@ display 1 -n "system conf files directory = $DIST_ETC_DIR "
 default_or_user "$DIST_ETC_DIR" "$DIST_ETC_DIR_DEFAULT"
 display 1 -n "driver conf files directory = $DIST_CONF_DIR "
 default_or_user "$DIST_CONF_DIR" "$DIST_CONF_DIR_DEFAULT"
+display 1 -n "kernel sources path = $KERNEL_SOURCES_PATH "
+default_or_user "$KERNEL_SOURCES_PATH" "$KERNEL_SOURCES_PATH_DEFAULT"
 
 # fixes trailing and leading /
 test "${DIST_PREFIX:${#DIST_PREFIX}-1}" != "/" && DIST_PREFIX="$DIST_PREFIX/"
@@ -628,6 +641,7 @@ test "${DIST_CONF_PREFIX:${#DIST_CONF_PREFIX}-1}" != "/" && DIST_CONF_PREFIX="$D
 test "${DIST_BIN_DIR:0:1}" == "/" && DIST_BIN_DIR="${DIST_BIN_DIR:1}"
 test "${DIST_ETC_DIR:0:1}" == "/" && DIST_ETC_DIR="${DIST_ETC_DIR:1}"
 test "${DIST_CONF_DIR:0:1}" == "/" && DIST_CONF_DIR="${DIST_CONF_DIR:1}"
+test "${KERNEL_SOURCES_PATH:${#KERNEL_SOURCES_PATH}:1}" == "/" && KERNEL_SOURCES_PATH="${KERNEL_SOURCES_PATH:1}"
 
 # start configuring!
 display 1 -e "\nstarting configuration for $PRODUCT_ID-$PRODUCT_VERSION in $(pwd)..\n"
