@@ -895,7 +895,6 @@ static int eci_usb_probe(struct usb_interface *interface,
 					ERR_OUT(	"not enought memory for iso buffer %d\n", eci_isourbcnt);
 					goto erreure;
 			}
-			out_instance->isourbs[eci_isourbcnt] = eciurb;
 			eciurb->dev = dev;
 			eciurb->context = out_instance;
 			eciurb->pipe = usb_rcvisocpipe(dev, ECI_ISO_PIPE);
@@ -919,9 +918,11 @@ static int eci_usb_probe(struct usb_interface *interface,
 #else
 			if(usb_submit_urb(eciurb, GFP_KERNEL)) {
 #endif			
-				ERR_OUT("error couldn't send iso urbs\n");
+				usb_free_urb(eciurb);
+				ERR_OUT("error couldn't send iso urbs %d\n", eci_isourbcnt);
 				goto erreure;
 			}
+			out_instance->isourbs[eci_isourbcnt] = eciurb;
 		}
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))		
 		if(!(eciurb=usb_alloc_urb(0))) {
@@ -1855,13 +1856,13 @@ static int eci_atm_receive_cell(
 	}
 #else
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
-	read_lock(vcc_sklist_lock);
+	read_lock(&vcc_sklist_lock);
 	for(s = vcc_sklist; s; s = s->next)
 	{
 		vcc = s->protinfo.af_atm;
 		if(vcc->dev == pinstance) break;
 	}
-	read_unlock(vcc_sklist_lock);
+	read_unlock(&vcc_sklist_lock);
 	if(!s)	return -ENXIO ;
 #else
 	for(i=0; i< VCC_HTABLE_SIZE; i++) {
