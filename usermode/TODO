@@ -39,6 +39,7 @@ Sorted according to priority (the upper in the list, the prior):
 + add PPPoE and IPoATM patches to the tracker. Then merge then to the main sources
 * fix EICON problems with 0.6-preX
 * add doc about connecting using startmodem at boot
+- -mode selection (protocol) using eciconf*
 
 
 0.7:
