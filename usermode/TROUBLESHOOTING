@@ -617,3 +617,14 @@ Q:	After a few minutes of Internet access, nothing seems to work anymore. No
 --------------------------------------------------------------------------------
 A:	Often seen on some recent distros (MDK9, Slackware 8.1 and RH8).
 	Think it's network/firewall related, but not sure.
+
+
+================================================================================
+Q:	./configure fails and returns some errors :-\
+
+--------------------------------------------------------------------------------
+A:	Please report us the output of ./configure.
+	Check which options (see ./configure --help) could help you.
+	For instance, you may use --skip-gcc-check if ./configure fails in finding
+	gcc or checking its version number whereas gcc is installed and in your
+	$PATH. This error may happen on some systems, which include a modified gcc.

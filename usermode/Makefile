@@ -40,7 +40,7 @@ install_no_system_fixes: all install_dirs install_scripts uninstall_old_bin_file
 install_scripts:
 # patch scripts with useful pathes, use sed filter for perl, tcl and shell scripts
 # filtered files are in $(TMP_DIR) then installed to $(BIN_DIR)
-	$(INSTALL_DIR) $(TMP_DIR);
+	$(INSTALL_DIR) $(TMP_DIR)
 	@> $(TMP_DIR)/tcl.sed; \
 	TMP=$$(echo "$(BIN_DIR)" | sed "s/\//\\\\\//g"); \
 	echo "s/set BIN_DIR .\+/set BIN_DIR \"$$TMP\"/" >> $(TMP_DIR)/tcl.sed; \
