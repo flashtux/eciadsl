@@ -143,6 +143,7 @@ Available Synch .bin files list:
 	synch45.bin (generated in Italy/Padova, Tin.it, G.DMT)
 	synch46.bin (generated in Belgium/Wavre, Skynet, unknown modulation type)
 	synch47.bin (generated in France/Palaiseau, Club Internet, T1.413)
+	synch48.bin (generated in France/Gouzangrez, Tele2, T1.413)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
