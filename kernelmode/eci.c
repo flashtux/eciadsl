@@ -1075,8 +1075,11 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci) {
 	/*	
 	 * TODO: allow more than one VCC.
 	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
 	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->vccs = vcc;
 	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->last = vcc;	
+#else
+#endif
 	return 0;
 };
 
@@ -1088,8 +1091,11 @@ static void eci_atm_close(struct atm_vcc *vcc) {
 	/*
 	 * 	TO DO allow to open more than one vcc
 	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
 	lp_instance->atm_dev->vccs = NULL;
 	lp_instance->atm_dev->last = NULL;
+#else
+#endif	
 	if (lp_instance->pbklogaal5) {
 		_aal5_free(lp_instance->pbklogaal5) ;
 		lp_instance->pbklogaal5 = NULL ;
@@ -1176,10 +1182,14 @@ static void eci_bh_atm (unsigned long param) {
 	int flags;
 	
 	spin_lock_irqsave(&lp_instance->lock, flags);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
 	if (!(lp_vcc = lp_instance->atm_dev->last)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
 		goto out;
 	}
+#else
+	goto out;
+#endif
 	/*
 	 * 	Allow  more than one VCC
 	 * 	Probleme with eci_tx_all5 param, gotta change it to struct atm_vcc *
@@ -1196,7 +1206,10 @@ static void eci_bh_atm (unsigned long param) {
 		}
 	}
 	/* Free Socket Buffer */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
 	FREE_SKB(lp_instance->atm_dev->vccs, lp_skb) ;
+#else
+#endif
 out:
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
 }
@@ -1671,14 +1684,10 @@ static void eci_bulk_callback(struct urb *urb) {
  * and split it into several UNI cells
  * We need to format the AAL5 trailer
  * Then enqueue each cells
- *
+ *	vpi 	IN: VPI,  vci    IN: VCI
  */
-static int _eci_tx_aal5(
-		int			vpi,	/* IN: VPI		*/
-		int			vci,	/* IN: VCI		*/
-		struct eci_instance *	pinstance,
-		struct sk_buff *	pskb	
-) {
+static int _eci_tx_aal5(int  vpi, int vci, struct eci_instance *	pinstance,
+		struct sk_buff *	pskb) {
 	int		lv_rc 		= 0 ;
 	int		lv_nbsent ;
 	uni_cell_list_t 	lv_list ;
@@ -1687,12 +1696,7 @@ static int _eci_tx_aal5(
 	if (lv_rc) return lv_rc ;
 
 	/* Split AAL5 frame */
-	lv_rc = _aal5_to_cells(
-			vpi,
-			vci,
-			pskb->len,
-			pskb->data,
-			&lv_list) ;
+	lv_rc = _aal5_to_cells(vpi, vci, pskb->len, pskb->data, &lv_list) ;
 	if (lv_rc) {
 		ERR_OUT("Failed to split aal5 frame\n") ;
 		_uni_cell_list_reset(&lv_list) ;
@@ -1703,9 +1707,7 @@ static int _eci_tx_aal5(
 	lv_nbsent = eci_usb_send_urb(pinstance, &lv_list) ;
 
 	if(lv_rc = _uni_cell_list_nbcells(&lv_list)) {
-	       ERR_OUT(
-			       "Not all the cells where sent (%d/%d)\n",
-			       lv_nbsent,
+	       ERR_OUT( "Not all the cells where sent (%d/%d)\n", lv_nbsent,
 			       _uni_cell_list_nbcells(&lv_list)) ;
 		_uni_cell_list_reset(&lv_list) ;
 	}
@@ -1743,10 +1745,14 @@ static int eci_atm_receive_cell(
 		return -EINVAL ;
 
 	/* Check if VCC available */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
 	if (!pinstance->atm_dev->last){
 		ERR_OUT("No opened VC\n") ;
 		return -ENXIO ;
 	}
+#else
+	return -ENXIO ;
+#endif
 
  	/* Manage backlog AAL5 */
  	if (pinstance->pbklogaal5) {
@@ -1854,7 +1860,11 @@ static int _eci_rx_aal5(
 
 	/* Init SKB */
 	skb_put(lp_skb, lv_size) ;
-	ATM_SKB(lp_skb)->vcc = pinstance->atm_dev->vccs ;
+	#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
+		ATM_SKB(lp_skb)->vcc = pinstance->atm_dev->vccs ;
+	#else
+		
+	#endif
 	lp_skb->stamp = xtime ;
 
 	/* Copy data */
@@ -1885,13 +1895,12 @@ static int _eci_rx_aal5(
 		lp_data, 
 		_uni_cell_getPayload(lp_cell), 
 		lv_size) ;
-
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
 	pinstance->atm_dev->vccs->push(pinstance->pcurvcc, lp_skb) ;
 	atomic_inc(&pinstance->atm_dev->vccs->stats->rx) ;
-	
-
+#else
+#endif
 	return 0 ;
-
 }
 
 /*
