@@ -229,7 +229,7 @@ unsigned int my_vci = 0xffffffff;
 unsigned int vendor = 0;
 unsigned int product = 0;
 
-int pusb_set_interface_alt = 0;
+int pusb_set_interface_alt = -1;
 
 #define CELL_SIZE 53
 #define CELL_HDR  05
@@ -1816,11 +1816,11 @@ int main(int argc, char** argv)
 
 	/* set interface */
 
-	if (pusb_set_interface_alt)
+	if (pusb_set_interface_alt != -1)
 		if (pusb_set_interface(fdusb, 0, pusb_set_interface_alt) < 0)
 		{
 			snprintf(errText, ERR_BUFSIZE,
-					"pusb_set_interface 0 %d failed", pusb_set_interface_alt);
+					"pusb_set_interface : interface 0, alt setting : %d failed", pusb_set_interface_alt);
 			fatal_error(ERR_PUSB_SET_INTERFACE, errText);
 		}
 
