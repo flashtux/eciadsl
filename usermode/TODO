@@ -21,7 +21,8 @@ Sorted according to priority (the upper in the list, the prior):
   - fix eciconf* and/or makeconfig: adsl file seems to be blank or not written sometimes
   -? fix ETC_DIR use (separate installation and syst configuration uses)
   -? updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
-  - some more checks in ./configure (see TODO inside)
+  - some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
+    other util stuff..)
   - --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
 + unify websites: eciadsl.sf.net update/move to flashtux
 - update the spec file
