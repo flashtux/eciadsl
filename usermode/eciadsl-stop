@@ -1,0 +1,27 @@
+#/bin/sh
+#
+# eciadsl-stop: stop EciAdsl connection
+#
+# returns: 0 = ok, driver is stopped
+#          1 = failed, driver is not running
+#          2 = failed, can't kill pppd or eciadsl-pppoeci
+#
+# 2004-04-23, by FlashCode <flashcode@flashtux.org>
+#             http://eciadsl.flashtux.org
+#
+
+echo -n "EciAdsl: shutting down... "
+ps ax | grep "eciadsl-pppoeci" | grep -v grep > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    poff -a
+    if [ $? -eq 0 ]; then
+        echo "stopped."
+    else
+        echo "failed to stop"
+        exit 2
+    fi
+else
+    echo "failed (not running)"
+    exit 1
+fi
+exit 0
