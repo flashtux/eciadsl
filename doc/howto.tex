@@ -71,6 +71,37 @@
 	\item Si vous voyez une ligne dabusb : faites rmmod dabusb
 	\end{itemize}
 	
+\subsection{Configuration de votre noyau}
+
+Si vous voulez utilisez l'option 'persist' de pppd afin que votre
+connexion se reconnecte automatiquement, alors, il faut patcher votre noyau.
+Vous trouverez le patch au sein de l'archive des drivers.
+
+\begin{verbatim}
+$ cd /usr/src/linux
+$ patch -p1 --dry-run < /repertoire des drivers/n_hdlc.c.diff  ( il y a 2 tirets avant dry-run )
+\end{verbatim}
+
+Si aucun message d'erreur n'est renvoyé par le programme patch, tapez cette commande pour effectuer le patch du source :
+
+\begin{verbatim}
+$ cd /usr/src/linux
+$ patch -p1 < /repertoire des drivers/n_hdlc.c.diff
+\end{verbatim}
+
+Voila, compilez ensuite ces modules pour votre kernel :
+
+\begin{verbatim}
+$ cd /usr/src/linux
+$ make menuconfig
+     Character devices --->
+     [*] Non-standard serial port support
+     <M> HDLC line discipline support
+     [*]Unix98 PTY support
+$ make clean dep modules
+# make modules_install (as root)
+\end{verbatim}
+    
 \subsection{Configuration de pppd pour l'ouverture de la connexion}
 
 \subsubsection{Script /etc/ppp/peers/adsl :}
