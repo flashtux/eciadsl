@@ -7,8 +7,8 @@ ECI USB voulant l'utiliser sous Linux.
 
 2) Configuration requise
 
-Assurez vous d'abord vous possédez un noyau Linux 
-de version superieure ou egale a 2.4.7-10
+Assurez vous d'abord que vous possédez un noyau Linux 
+de version supérieure ou égale à 2.4.7-10
 
 Distributions où le driver fonctionne : 
 Mandrake Linux 8.1 (noyau 2.4.8-26mk)
@@ -18,8 +18,8 @@ Distributions où le driver ne fonctionne pas :
 Redhat Linux 7.1 (noyau 2.4.2-2)
  
 Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
-avec un autre distribution ou avec un noyau plus ancien,
-n'hésitez pas a contacter à nous contacter.
+avec une autre distribution ou avec un noyau plus ancien,
+n'hésitez pas à nous contacter.
 
 3) Procédure d'installation (à ne faire qu'une seule fois)
 
@@ -44,4 +44,3 @@ Pour toute question, abonnez-vous à la liste de diffusion de ce projet
 en envoyant un mail vide à eci-request@ml.free.fr?subject=subscribe
 et postez ensuite vos remarques ou suggestions à eci@ml.free.fr 
   
-
