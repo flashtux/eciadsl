@@ -26,6 +26,19 @@ if [ ! -f /proc/bus/usb/devices ]; then
 	mount -t usbdevfs none /proc/bus/usb
 fi
 
+#verify if dabusb is loaded
+lsmod|grep dabusb > /dev/null;
+if [ $? == "0" ]; then
+	echo "Dabusb seems to be present trying to remove it...";
+	rmmod dabusb;
+	lsmod|grep dabusb > /dev/null;
+if [ $? == "0" ]; then
+echo "Couldn't remove dabusb try rmmod dabusb manually";
+else
+echo "Removed dabusb successfully";
+fi
+fi
+
 # try to locate UHCI controller
 grep -A 4 USB /proc/pci | grep I/O > /dev/null
 if [ $? -eq 0 ]; then
@@ -54,11 +67,18 @@ echo "Init modem ..." ;
 
 # check for the EZ-USB chips. If it's not there, maybe the firmware is 
 # already loaded ... so continue.
-
-grep "^P:  Vendor=0547 ProdID=2131" /proc/bus/usb/devices > /dev/null
+if [ $# != "4" ]; then
+grep "^P:  Vendor=0547 ProdID=2131" /proc/bus/usb/devices > /dev/null;
+else
+grep "^P:  Vendor=$1 ProdID=$2" /proc/bus/usb/devices > /dev/null;
+fi
 if [ $? -eq 0 ]; then
-	echo "	Load Firmware ..." ;
-	/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
+	echo "	Load Firmware ...";
+	if [ $# != "4" ]; then	
+	/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin;
+	else
+	/usr/local/bin/eci-load1 0x$1 0x$2 0x$3 0x$4 /usr/local/bin/eci_firm_kit_wanadoo.bin;
+	fi
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load firmware" ;
 		exit -1 ;
@@ -66,14 +86,22 @@ if [ $? -eq 0 ]; then
 	echo "	... Load Firmware OK"
 fi
 
-grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null
+if [ $# != "4" ];then
+grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null;
+else
+grep "^P:  Vendor=$3 ProdID=$4" /proc/bus/usb/devices > /dev/null;
+fi
 if [ $? -ne 0 ]; then
 	echo "I can't find your modem... sorry :-("
 	exit -1;
 fi
 
 echo "	Setup modem ..." ;
-/usr/local/bin/eci-load2 /usr/local/bin/eci_wan3.bin
+if [ $# != "4" ]; then
+/usr/local/bin/eci-load2 /usr/local/bin/eci_wan3.bin;
+else
+/usr/local/bin/eci-load2 0x$3 0x$4 /usr/local/bin/eci_wan3.bin;
+fi
 if [ $? -ne 0 ] ; then
 	echo "Failed to setup the modem" ;
 	exit -1 ;

@@ -206,7 +206,7 @@ void read_endpoint(pusb_device_t dev, int epnum)
 	_exit (0);
 }
 
-int eci_load2(const char * file, int vid, int pid)
+int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 {
 	FILE * fp ;
 	struct usb_block block;
@@ -231,7 +231,7 @@ int eci_load2(const char * file, int vid, int pid)
 
 	/* open the USB device */
 #ifndef TESTECI
-	dev = pusb_search_open(GS_VENDOR,GS_PRODUCT);
+	dev = pusb_search_open(vid2,pid2);
 	if (dev == NULL)
 	{
 		printf("Can't find your " GS_NAME "\n");
@@ -422,7 +422,8 @@ int eci_load2(const char * file, int vid, int pid)
 void usage()
 {
 	printf("eci-load2 version $Name$\n");
-	printf("usage: eci-load2 eci_sequence.bin [VENDOR_ID PRODUCT_ID]\n");
+	printf("usage: eci-load2 eci_sequence.bin\n");
+	printf("or eci-load2 2ndVID 2ndPID eci_sequence.bin\n");
 	exit (-1);
 }
 
@@ -433,21 +434,26 @@ void sigusr1()
 
 int main(int argc, char *argv[])
 {
-	const char * file = argv[1];
+	const char * file;
 	int r, status;
-	int vid = GS_VENDOR, pid = GS_PRODUCT;
-
-	if (argc != 2 && argc != 4)
+	unsigned short vid2, pid2;
+	
+	if (argc != 4 && argc != 2)
 		usage();
-	if(argc == 4)
-	{
-		vid = atoi(argv[2]);
-		pid = atoi(argv[3]);
+
+	if (argc == 2){
+	file = argv[2];
+	vid2 = strtoul("0x0915",NULL,0);
+	pid2 = strtoul("0x8000",NULL,0);
+}else{
+	file = argv[3];
+	vid2 = strtoul(argv[1],NULL,0);
+	pid2 = strtoul(argv[2],NULL,0);
 	}
 
 	signal(SIGUSR1,sigusr1);
 
-	if (!eci_load2(file, vid, pid))
+	if (!eci_load2(file, vid2, pid2))
 	{
 		printf("ECI Load 2 : failed!\n");
 		return -1;
