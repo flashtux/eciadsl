@@ -1,10 +1,11 @@
 CFLAGS += -Wall -ansi -pedantic
 LDFLAGS += -lpthread
 
-PREFIX = /usr/local
-BIN_DIR = $(PREFIX)/bin
-CONF_DIR = /etc/eciadsl
-PPP_DIR = /etc/ppp
+PREFIX ?= 
+ETCDIR = $(PREFIX)/etc
+BINDIR = $(PREFIX)/usr/local/bin
+CONFDIR = $(ETCDIR)/eciadsl
+PPPDIR = $(ETCDIR)/ppp
 
 INSTALL_EXEC = install -m 755
 INSTALL_DATA = install -m 644
@@ -31,24 +32,24 @@ check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
 
 install: all modules_conf ppp_peer uninstall_bin_files
-	$(INSTALL_DIR) $(CONF_DIR)
-	$(INSTALL_DATA) adsl $(CONF_DIR)/adsl-skel
-	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif $(CONF_DIR)
-	ln -fs $(CONF_DIR)/firmware00.bin $(CONF_DIR)/firmware.bin
-	ln -fs $(CONF_DIR)/synch01.bin $(CONF_DIR)/synch.bin
-	$(INSTALL_DIR) $(BIN_DIR)
+	$(INSTALL_DIR) $(CONFDIR)
+	$(INSTALL_DATA) adsl $(CONFDIR)/adsl-skel
+	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif $(CONFDIR)
+	ln -fs $(CONFDIR)/firmware00.bin $(CONFDIR)/firmware.bin
+	ln -fs $(CONFDIR)/synch01.bin $(CONFDIR)/synch.bin
+	$(INSTALL_DIR) $(BINDIR)
 	$(INSTALL_EXEC) startmodem eci-load1 eci-load2 pppoeci eci-doctor.sh \
 		check-hdlc check-hdlc-bug eciconf.sh remove_dabusb makeconfig \
-		eciconftxt.sh probe_device.sh $(BIN_DIR)
-	@echo "don't forget to edit $(PPP_DIR)/peers/adsl and $(PPP_DIR)/chap-secrets files"
+		eciconftxt.sh probe_device.sh $(BINDIR)
+	@echo "don't forget to edit $(PPPDIR)/peers/adsl and $(PPPDIR)/chap-secrets files"
 
 clean:
 	$(RM) ${BIN} *.o
 
 modules_conf:
 # for for the ppp_generic, ppp_synctty and n_hdlc aliases in /etc/modules.conf
-	@test -f /etc/modules.conf
-	@FILE=/etc/modules.conf; \
+	@test -f $(ETCDIR)/modules.conf
+	@FILE=$(ETCDIR)/modules.conf; \
 	grep -E "^alias[ \t]+char-major-108[ \t]+" $$FILE > /dev/null; \
 	if [ $$? -ne 0 ]; then \
 		echo "adding ppp_generic alias.."; \
@@ -67,45 +68,45 @@ modules_conf:
 
 ppp_peer:
 # install the /etc/ppp/peers/adsl file
-	@mkdir -p $(PPP_DIR)/peers
-	@if [ -f $(PPP_DIR)/peers/adsl ]; then \
-		echo "modifying existing $(PPP_DIR)/peers/adsl.."; \
-		USER=`grep -E "^user[ \t]+" $(PPP_DIR)/peers/adsl`; \
-		PERSIST=`grep "^persist" $(PPP_DIR)/peers/adsl`; \
-		grep -vE "^user[ \t]+" adsl > $(PPP_DIR)/peers/adsl; \
-		echo -e "$$USER\n$$PERSIST" >> $(PPP_DIR)/peers/adsl; \
+	@mkdir -p $(PPPDIR)/peers
+	@if [ -f $(PPPDIR)/peers/adsl ]; then \
+		echo "modifying existing $(PPPDIR)/peers/adsl.."; \
+		USER=`grep -E "^user[ \t]+" $(PPPDIR)/peers/adsl`; \
+		PERSIST=`grep "^persist" $(PPPDIR)/peers/adsl`; \
+		grep -vE "^user[ \t]+" adsl > $(PPPDIR)/peers/adsl; \
+		echo -e "$$USER\n$$PERSIST" >> $(PPPDIR)/peers/adsl; \
 	else \
-		echo "creating $(PPP_DIR)/peers/adsl.."; \
-		$(INSTALL_DATA) adsl $(PPP_DIR)/peers/adsl; \
+		echo "creating $(PPPDIR)/peers/adsl.."; \
+		$(INSTALL_DATA) adsl $(PPPDIR)/peers/adsl; \
 	fi
 
 uninstall: uninstall_bin_files
-	$(RM) $(BIN_DIR)/startmodem
-	$(RM) $(BIN_DIR)/eci-load1
-	$(RM) $(BIN_DIR)/eci-load2
-	$(RM) $(BIN_DIR)/pppoeci
-	$(RM) $(BIN_DIR)/check-hdlc
-	$(RM) $(BIN_DIR)/check-hdlc-bug
-	$(RM) $(BIN_DIR)/eciconf.sh
-	$(RM) $(BIN_DIR)/eciconftxt.sh
-	$(RM) $(BIN_DIR)/eci-doctor.sh
-	$(RM) $(BIN_DIR)/probe_device.sh
-	$(RM) $(BIN_DIR)/remove_dabusb
-	$(RM) $(BIN_DIR)/makeconfig
-	$(RM) $(CONF_DIR)/adsl-skel
-	$(RM) $(CONF_DIR)/modemeci.gif
-	$(RM) -r $(CONF_DIR)
+	$(RM) $(BINDIR)/startmodem
+	$(RM) $(BINDIR)/eci-load1
+	$(RM) $(BINDIR)/eci-load2
+	$(RM) $(BINDIR)/pppoeci
+	$(RM) $(BINDIR)/check-hdlc
+	$(RM) $(BINDIR)/check-hdlc-bug
+	$(RM) $(BINDIR)/eciconf.sh
+	$(RM) $(BINDIR)/eciconftxt.sh
+	$(RM) $(BINDIR)/eci-doctor.sh
+	$(RM) $(BINDIR)/probe_device.sh
+	$(RM) $(BINDIR)/remove_dabusb
+	$(RM) $(BINDIR)/makeconfig
+	$(RM) $(CONFDIR)/adsl-skel
+	$(RM) $(CONFDIR)/modemeci.gif
+	$(RM) -r $(CONFDIR)
 	@echo "the driver has been uninstalled"
 
 uninstall_bin_files:
-	$(RM) $(CONF_DIR)/firmware.bin
-	$(RM) $(CONF_DIR)/synch.bin
-	$(RM) $(CONF_DIR)/firmware00.bin
-	$(RM) $(CONF_DIR)/synch01.bin
-	$(RM) $(CONF_DIR)/eci_firm_kit_wanadoo.bin
-	$(RM) $(CONF_DIR)/eci_wan.bin
-	$(RM) $(CONF_DIR)/eci_wan3.bin
-	$(RM) $(CONF_DIR)/eci_wan3.dmt.bin
+	$(RM) $(CONFDIR)/firmware.bin
+	$(RM) $(CONFDIR)/synch.bin
+	$(RM) $(CONFDIR)/firmware00.bin
+	$(RM) $(CONFDIR)/synch01.bin
+	$(RM) $(CONFDIR)/eci_firm_kit_wanadoo.bin
+	$(RM) $(CONFDIR)/eci_wan.bin
+	$(RM) $(CONFDIR)/eci_wan3.bin
+	$(RM) $(CONFDIR)/eci_wan3.dmt.bin
 
 debian: all
 	@dpkg-buildpackage -rfakeroot
