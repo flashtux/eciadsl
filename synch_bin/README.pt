@@ -113,33 +113,27 @@ Lista de ficheiros de synch .bin disponíveis:
 	synch15.bin (antigo Blade_sync.bin - Italy/Varese/Telecom Italia)
 	synch16.bin (gerado no Brazil, com provedor GVT, G.DMT)
 	synch17.bin (gerado no Brazil, com provedor GVT, G.Lite)
-	synch18.bin (gerado em França/Strasbourg, provedor Club-Internet)
-	synch19.bin (gerado em França/Antibes)
-	synch20.bin (gerado em Italia/Brescia, provedor Tiscali)
-	synch21.bin (gerado em Italia/Belluno, provedor Telecom Italia)
-	synch22.bin (gerado em França/Arcueil, provedor 9online)
+	synch18.bin (gerado em França/Strasbourg, provedor Club-Internet, tipo de modulação desconhecido)
+	synch19.bin (gerado em França/Antibes, tipo de modulação desconhecido)
+	synch20.bin (gerado em Italia/Brescia, provedor Tiscali, tipo de modulação desconhecido)
+	synch21.bin (gerado em Italia/Belluno, provedor Telecom Italia, tipo de modulação desconhecido)
+	synch22.bin (gerado em França/Arcueil, provedor 9online, tipo de modulação desconhecido)
 	synch23.bin (gerado em Italia/Sardinia/Cagliari, provedor Tiscali, G.DMT)
-	synch24.bin (gerado no Peru, provedor Telefonica del Peru, tipo de modulação
-	             desconhecido)
-	synch25.bin (gerado em França, Saint-Cloud, provedor Wanadoo)
-	synch26.bin (gerado em Italia/Carmagnola/Torino, provedor Telecom (Alice))
-	synch27.bin (gerado em Italia, provedor Alice Telecom Italia "Mantova")
-	synch28.bin (gerado em Inglaterra, provedor Pipex, modulação g.dmt)
-	synch29.bin (gerado em Switzerland/Zurique, provedor Solnet.ch, tipo de
-	             modulação desconhecido)
-	synch30.bin (gerado em Canada/Montreal, provedor Bell Canada, tipo de
-		     	modulação desconhecido)
-	synch31.bin (gerado em Italia/Turin, provedor Infostrada, tipo de
-		     modulação desconhecido)
-	synch32.bin (gerado em Italia/Pisa, provedor Tiscali, G-lite)
+	synch24.bin (gerado no Peru, provedor Telefonica del Peru, tipo de modulação desconhecido)
+	synch25.bin (gerado em França, Saint-Cloud, provedor Wanadoo, tipo de modulação desconhecido)
+	synch26.bin (gerado em Italia/Carmagnola/Torino, provedor Telecom (Alice), tipo de modulação desconhecido)
+	synch27.bin (gerado em Italia, provedor Alice Telecom Italia "Mantova", tipo de modulação desconhecido)
+	synch28.bin (gerado em Inglaterra, provedor Pipex, modulação G.DMT)
+	synch29.bin (gerado em Switzerland/Zurique, provedor Solnet.ch, tipo de modulação desconhecido)
+	synch30.bin (gerado em Canada/Montreal, provedor Bell Canada, tipo de modulação desconhecido)
+	synch31.bin (gerado em Italia/Turin, provedor Infostrada, tipo de modulação desconhecido)
+	synch32.bin (gerado em Italia/Pisa, provedor Tiscali, G-Lite)
 	synch33.bin (gerado em França/Avignon, provedor Club-Internet, G.DMT)
-	synch34.bin (gerado em Switzerland/Lucerne, provedor Sunrise, tipo de
-		     	modulação desconhecido)
+	synch34.bin (gerado em Switzerland/Lucerne, provedor Sunrise, tipo de modulação desconhecido)
 	synch35.bin (gerado em Italia/Turino, provedor Tiscali, G.DMT)
 	synch36.bin (gerado em India/Vishakhapatnam, provedor DishnetDSL, G.Lite)
 	synch37.bin (gerado em India/Bangalore, provedor DishnetDSL, G.Lite)
-	synch38.bin (gerado em Egipto/Cairo, provedor NoorGroup.net, tipo de modulação
-	             desconhecido)
+	synch38.bin (gerado em Egipto/Cairo, provedor Menanet, G.DMT)
 
 Se gerou o seu próprio ficheiro .bin, por favor envie-nos juntamente com alguma
 informação relativa à localização/provedor.
