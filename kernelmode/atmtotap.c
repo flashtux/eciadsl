@@ -1,18 +1,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
 #include <sys/socket.h>
 #include <net/if.h>
 #include <linux/if_tun.h>
-
 #include <asm/fcntl.h>
-
 #include <atm.h>
-
 #include <errno.h>
-
 #include <pthread.h>
+#include <string.h>
 
 struct atmtap_datas
 {
@@ -20,28 +16,31 @@ struct atmtap_datas
 	int fdatm;
 };
 
-
-
-
-
-int tap_open(char *dev)
+int tap_open(char *dev,char *path)
 {
     struct ifreq ifr;
     int fd, err;
-
-    if( (fd = open("/dev/net/tun", O_RDWR | O_SYNC)) < 0 )
+	
+    if( (fd = open(path, O_RDWR | O_SYNC)) < 0 )
+	{
        return -1;
-
-    memset(&ifr, 0, sizeof(ifr));
+	}
+    if(memset(&ifr, 0, sizeof(ifr))==NULL)
+	{
+		fstderr,"memset error in tap_open function\n");
+		exit(-1);
+	}
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
     if( *dev )
+	{
        strncpy(ifr.ifr_name, dev, IFNAMSIZ);
-
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+	}
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 )
+	{
        close(fd);
        return err;
     }
-    //strcpy(dev, ifr.ifr_name);
+    /* strcpy(dev, ifr.ifr_name); */
     return fd;
 }
 
@@ -52,37 +51,46 @@ static int open_atmdevice(char * cp)
 	struct atm_qos qos;
 	struct sockaddr_atmpvc addr;
 
-	memset(&addr, 0, sizeof addr);
-	if (text2atm(cp, (struct sockaddr *) &addr, sizeof(addr),
-	    T2A_PVC | T2A_NAME) < 0)
+	if(memset(&addr, 0, sizeof addr)==NULL)
 	{
-		printf("erreur openning atm socket\n");
+		fprintf(stderr,"memset error in open_atmdevice\n");
+		exit(-1);
+	}
+	if (text2atm(cp,(struct sockaddr *)&addr,sizeof(addr),T2A_PVC | T2A_NAME)<0)
+	{
+		fprintf(stderr,"error openning atm socket\n");
 		return 0;
 	}
 
-//	info("open device pppoatm\n");
+/*	info("open device pppoatm\n"); */
 	
-	fd = socket(AF_ATMPVC, SOCK_DGRAM , 0);
-	if (fd < 0)
-		printf("failed to create socket");
-	memset(&qos, 0, sizeof qos);
+	if((fd = socket(AF_ATMPVC, SOCK_DGRAM , 0))<0)
+	{
+		fprintf(stderr,"failed to create socket");
+		return(0);
+	}
+	if(memset(&qos, 0, sizeof qos)==NULL)
+	{
+		fprintf(stderr,"second memset error in open_atmdevice\n");
+		exit(-1);
+	}
 	qos.txtp.traffic_class = qos.rxtp.traffic_class = ATM_UBR;
 
 /*
 	if (qosstr != NULL)
 		if (text2qos(qosstr, &qos, 0))
-			printf("Can't parse QoS: ");
+			fprintf(stderr,"can't parse QoS: ");
 */
 	qos.txtp.max_sdu = 1534 + 10; 
 	qos.rxtp.max_sdu = 1534 + 10;
 	qos.aal = ATM_AAL5;
 	if (setsockopt(fd, SOL_ATM, SO_ATMQOS, &qos, sizeof(qos)) < 0)
-		printf("setsockopt(SO_ATMQOS): ");
+		fprintf(stderr,"setsockopt(SO_ATMQOS)");
 
 	if (connect(fd, (struct sockaddr *) &addr,
 	    sizeof(struct sockaddr_atmpvc)))
 	{
-		printf("connect error");
+		fprintf(stderr,"socket connection error");
 		return 0;
 	}
 	return fd;
@@ -110,7 +118,11 @@ void *read_on_tap(void *datas)
 			tmpbuf[9]=0x00;
 			r = read(d->fdtap, tmpbuf  + 10, sizeof(tmpbuf) - 10);
  		} while(r < 0 && errno == EINTR);	
-		write(d->fdatm, tmpbuf, r +10);
+		if(write(d->fdatm, tmpbuf, r +10)==-1)
+		{
+			fprintf(stderr,"write error in read_on_tap\n");
+			exit(-1);
+		}
 	}
 }
 
@@ -126,24 +138,130 @@ void *write_on_tap(void *datas)
 		do {
 			r = read(d->fdatm, tmpbuf, sizeof(tmpbuf));
  		} while(r < 0 && errno == EINTR);
-		if(r>10)
-			write(d->fdtap, tmpbuf +10 , r-10);
+	/*	if(r>10) */
+		if(write(d->fdtap, tmpbuf +10 , r-10)==-1)
+		{
+			fprintf(stderr,"write error in write_on_tap\n");
+			exit(-1);
+		}
 	}
 }
 
+
+void version(const int full)
+{
+	fprintf(stdout,"Kernel Mode for Globespan based USB ADSL modems - Version 0.x\n");
+	exit(full);
+}
+
+void usage(const int ret)
+{
+	fprintf(stdout,	"Usage:\n"
+					"       atmtotap [<switch>] [-vpi num -vci num -d device]\n");
+	fprintf(stdout,	"Switches:\n");
+	fprintf(stdout,	"	-h or --help		display this message then exit\n"
+					"   -V or --version     display the version number then exit\n"
+					"\n");
+	fprintf(stdout,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
+					"by provider. For instance: 8.35 for France, 0.38 for UK.\n");
+	fprintf(stdout,	"The device is the path to your tun device\n"
+					"For instance: /dev/net/tun should be ok for most distribution.\n"
+					"\n");
+	exit(ret);
+}
 
 int main(int argc, char **argv)
 {
 	struct atmtap_datas datas;
 	pthread_t th_id;
 	pthread_attr_t attr;
-
-	if(!(datas.fdtap =  tap_open("tap0")))
+	int i;
+	
+	/* parse command line options */
+	unsigned int my_vpi;
+	unsigned int my_vci;
+	char vpi_vci[12];
+	char path_to_dev[20];
+	int arg=0;
+	size_t tmp;
+	
+	for (i = 1; i < argc; i++)
 	{
-		printf("Can't open tap device\n");
+		if ((strcmp(argv[i], "-vpi") == 0) && (i + 1 < argc))
+		{
+			get_unsigned_value(argv[++i], &my_vpi);
+		}
+		else
+		{
+			if ((strcmp(argv[i], "-vci") == 0) && (i + 1 < argc))
+			{
+				tmp=strlen(argv[i+1]);
+				if((tmp>0) && (tmp<20))
+				{
+					strcpy(my_vci,argv[++i]);
+					arg++;
+				}
+				else
+				{
+					fprintf(stderr,"damnit, you have a _really_ long path to device.\
+						shrink it a bit, will you ?\n");
+					exit(-1);
+				}
+			}
+			else
+			{
+				if ((strcmp(argv[i], "-d") == 0) && ( i+1 < argc))
+				{
+					tmp=strlen(argv[i+1]);
+					if((tmp>0) && (tmp<6))
+					{
+						strcpy(path_to_dev,argv[++i]);
+						arg++;
+					}
+					else
+					{
+						fprintf(stderr,"vci value is out of range.\n");
+						exit(-1);
+					}
+				}
+				else
+				{
+					if ((strcmp(argv[i], "--version") == 0) ||
+						(strcmp(argv[i], "-V") == 0))
+					{
+						version(0);
+					}
+					else
+					{
+						if ((strcmp(argv[i], "--help") == 0) ||
+							(strcmp(argv[i], "-h") == 0))
+						{
+							usage(0);
+						}
+						else
+						{
+							usage(-1);
+						}
+					}
+				}
+			}
+		}
+	}
+	if(arg!=7)
+		usage(-1);
+	if(!(datas.fdtap =  tap_open("tap0",path_to_dev)))
+	{
+		fprintf(stderr,"can't open tap device\n");
 		exit(5);
 	}
-	datas.fdatm = open_atmdevice("8.35");
+	strcpy(vpi_vci,my_vpi);
+	strcat(vpi_vci,".");
+	strcat(vpi_vci,my_vci);
+	if((datas.fdatm = open_atmdevice(vpi_vci))==0)
+	{
+		fprintf(stderr,"can't open atm device\n");
+		exit(5);
+	}
 
 	pthread_attr_init(&attr);
 	pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
@@ -153,4 +271,5 @@ int main(int argc, char **argv)
 		fprintf(stderr,"error creating thread\n");
 	}
 	write_on_tap(&datas);
+	return(0);
 }
