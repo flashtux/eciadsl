@@ -146,7 +146,8 @@ if [ -s $nomadsl ]; then
 	TMPFILE="/tmp/${0##*/}.tmp"
 	TMP=$(echo "$3" | sed "s/\//\\\\\//g")
 	echo "s/^pty .\+/pty \\\"$TMP -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2\\\"/" > $TMPFILE
-	echo "s/^user .\+/user \\\"$1\\\"/" >> $TMPFILE
+	TMP=$(echo "$1" | sed "s/\//\\\\\//g")
+	echo "s/^user .\+/user \\\"$TMP\\\"/" >> $TMPFILE
 	sed -f $TMPFILE "$nombak" > "$nomadsl"
 	rm -f $TMPFILE
 	if [ -s "$nomadsl" ]; then
