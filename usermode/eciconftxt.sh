@@ -65,15 +65,15 @@ case "$1" in
 "@bin@")
     fichiers_bin="Select your .bin file for sync|"
     echo
-    ls ${confdir}/*.bin 2>/dev/null | grep "bin" >/dev/null 2>&1
+    find ${confdir} -name "*.bin" 2>/dev/null | grep "bin" >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "WARNING: no .bin file found in ${confdir}"
+        echo "WARNING: no .bin file found in ${confdir} or subdirectories"
         echo "Startmodem will probably not work !"
         echo "Skipping .bin selection..."
         > $tmpbin
         exit 255
     fi
-    for bin in ${confdir}/*.bin; do
+    for bin in $(find ${confdir} -name "*.bin"); do
         if [ -f "$bin" -a ! -L "$bin" ]; then
             echo "$bin" | grep "firm_kit" >/dev/null 2>&1
             if [ $? -ne 0 ]; then
