@@ -1,33 +1,33 @@
 #!/bin/sh
 # ************************************************************************
 # *                                                                      *
-# *      makeconfig v0.8 - ECI Linux driver configuration script         *
+# *   eciadsl-makeconfig - EciAdsl Linux driver configuration script     *
 # *                        by FlashCode and Crevetor (c) 14/04/2002      *
 # *                                                                      *
 # *          For any support, contact one of us :                        *
 # *           - FlashCode: flashcode@flashtux.org                        *
 # *                        http://eciadsl.flashtux.org                   *
-# *           - Crevetor : areversat@caramail.com			 *
+# *           - Crevetor : areversat@caramail.com                        *
 # *                                                                      *
-# *      Parameters for this script :                                    *
-# *        1  = mode                                                     *
-# *        2  = username + domain (username@domain)                      *
-# *        3  = password (given by provider)                             *
-# *        4  = path to pppoeci (eg: /usr/local/bin/pppoeci)             *
-# *        5  = DNS 1 (depends on provider, 0 or "" = skipped)           *
-# *        6  = DNS 2 (depends on provider, 0 or "" = skipped)           *
-# *        7  = VPI (depends on provider)                                *
-# *        8  = VCI (depends on provider)                                *
-# *        9  = VID/PID before synchro (example: 05472131 for ECI modem) *
-# *        10 = VID/PID after synchro  (example: 09158000 for ECI modem) *
-# *        11 = path to a synch .bin                                     *
-# *        12 = path to a firmware .bin                                  *
-# *        13 = static IP                                                *
-# *        14 = gateway IP                                               *
-# *        15 = use static IP (yes/no)                                   *
-# *        16 = use DHCP (yes/no)                                        *
-# *        17 = modem                                                    *
-# *        18 = provider                                                 *
+# *  Parameters for this script :                                        *
+# *    1  = mode                                                         *
+# *    2  = username + domain (username@domain)                          *
+# *    3  = password (given by provider)                                 *
+# *    4  = path to eciadsl-pppoeci (eg: /usr/local/bin/eciadsl-pppoeci) *
+# *    5  = DNS 1 (depends on provider, 0 or "" = skipped)               *
+# *    6  = DNS 2 (depends on provider, 0 or "" = skipped)               *
+# *    7  = VPI (depends on provider)                                    *
+# *    8  = VCI (depends on provider)                                    *
+# *    9  = VID/PID before synchro (example: 05472131 for ECI modem)     *
+# *    10 = VID/PID after synchro  (example: 09158000 for ECI modem)     *
+# *    11 = path to a synch .bin                                         *
+# *    12 = path to a firmware .bin                                      *
+# *    13 = static IP                                                    *
+# *    14 = gateway IP                                                   *
+# *    15 = use static IP (yes/no)                                       *
+# *    16 = use DHCP (yes/no)                                            *
+# *    17 = modem                                                        *
+# *    18 = provider                                                     *
 # *                                                                      *
 # ************************************************************************
 
@@ -130,7 +130,7 @@ fi
 if [ $# -ne 18 ]
 then
     echo -e "\nERROR: invalid number of parameters"
-    echo -e "syntax:\n  makeconfig <mode> <username> <password> </path/to/pppoeci> <dns1> <dns2> <vpi> <vci>  <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin> <staticip> <gateway> <use_staticip> <use_dhcp> <modem> <provider>"
+    echo -e "syntax:\n  eciadsl-makeconfig <mode> <username> <password> </path/to/eciadsl-pppoeci> <dns1> <dns2> <vpi> <vci>  <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin> <staticip> <gateway> <use_staticip> <use_dhcp> <modem> <provider>"
     exit 1
 fi
 
