@@ -53,6 +53,7 @@ $fext='';
 $surb=-1;
 $eurb=-1;
 $forceonefile=0;
+$foundint64len=0;
 $dheader ='';
 $ok=0;
 $chipset='GS7070';
@@ -144,6 +145,7 @@ while (<>) {
 		$vendor = 0;
 		$interrupt = 0;
 		$buf1='';
+		$foundint64len=0;
 
 		if (/coming back/) {
 			$urb_direction = 'in';
@@ -198,8 +200,7 @@ while (<>) {
 		if ($interrupt) {
 # we check if the interrupt packet is 64 bytes long. If so, end the loop.
 			if (hex ($1) == 64) {
-			    $ok=1;
-				last;
+				$foundint64len=1;
 			}
 		}
 				
@@ -236,6 +237,15 @@ while (<>) {
 		
 	#store ep buffer to verify repeated ep int response 
 	if ($interrupt && $buf ne '' && /UsbSnoop - My/i){
+		#verify if epint with lenght 64 is reached and if it's not zero filled end process otherwise continue - kolja 23/11/2004
+		if($foundint64len) {
+			if($buf1 eq "00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000") {
+				next
+			} else {
+				$ok=1;
+				last;
+			}
+		}
 		$epcount=0;
 		$epfound=0;
 		foreach $epstoreddata (@epstoreddata){
