@@ -383,12 +383,10 @@ function configure_env()
 					unset PPPD_VERSION_TMP
 				else
 					display 2 "can't get $_bin_ version"
-					abort
 				fi
 			fi
 		else
 			display 1 "not found"
-			abort
 		fi
 	fi
 
