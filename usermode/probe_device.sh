@@ -145,6 +145,7 @@ function get_manufacturer()
 
 BASE=${0##*/}
 BIN=eci-load1
+FIRMWARE=/etc/eciadsl/eci_firm_kit_wanadoo.bin
 DEVICES=/proc/bus/usb/devices
 VID1="????"
 PID1="????"
@@ -222,7 +223,7 @@ fi
 if [ $TESTONLY -eq 0 ]
 then
 	echo -e "\nprobing, please wait.."
-	$BIN 0x$VID1 0x$PID1 0xDEAD 0xFACE > /dev/null 2>&1
+	$BIN 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
 
 	# list USB devices
 	echo -e "\nyour USB devices now:"
