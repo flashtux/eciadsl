@@ -4,3 +4,5 @@ LDFLAGS += -lpthread
 INSTALL_EXEC = install -c -p -m 755
 INSTALL_DATA = install -c -p -m 644
 INSTALL_DIR = install -c -p -d -m 755
+
+STRIP = strip
