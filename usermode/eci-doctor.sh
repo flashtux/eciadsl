@@ -9,6 +9,8 @@
 # CVS $Id$
 # Tag $Name$
 
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
+
 if [ `whoami` != "root" ]; then
 	echo "You need to be root (type su)" ;
 	exit -1;
@@ -36,13 +38,13 @@ function fatal () {
 
 # check for "usb-uhci.c: iso_find_start: gap in seamless isochronous scheduling" (TODO)
 	grep 'usb-uhci.c: iso_find_start' /tmp/msg.log
-	/bin/rm /tmp/msg.log
+	rm /tmp/msg.log
 	exit -1;
 }
 
 if [ ! -d /proc/bus/usb ]; then
 	echo "Support for USB is missing... trying to load" ;
-	/sbin/modprobe usbcore
+	modprobe usbcore
 	if [ ! -d /proc/bus/usb ]; then
 		echo "Support for USB: failed to load" ;
 		fatal;
@@ -75,8 +77,8 @@ if [ $? -eq 0 ]; then
 	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "UHCI support is missing... trying to load" ;
-		/sbin/modprobe usb-uhci
-		/sbin/modprobe uhci
+		modprobe usb-uhci
+		modprobe uhci
 		sleep 2
 		grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
 		if [ $? -ne 0 ]; then
@@ -99,7 +101,7 @@ if [ $? -eq 0 ]; then
 	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "OHCI support is missing... trying to load" ;
-		/sbin/modprobe usb-ohci
+		modprobe usb-ohci
 		sleep 2
 		grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
 		if [ $? -ne 0 ]; then
@@ -143,7 +145,7 @@ fi
 
 if [ $5 != "108," ]; then
 	echo "/dev/ppp has a bad major number... trying to change" ;
-	/bin/rm /dev/ppp
+	rm /dev/ppp
 	mknod /dev/ppp c 108 0
 	set `ls -la /dev/ppp`
 	if [ $5 != "108," ]; then
@@ -154,7 +156,7 @@ fi
 
 if [ $6 != "0" ]; then
 	echo "/dev/ppp has a bad minor number... trying to change" ;
-	/bin/rm /dev/ppp
+	rm /dev/ppp
 	mknod /dev/ppp c 108 0
 	set `ls -la /dev/ppp`
 	if [ $6 != "0" ]; then
@@ -175,7 +177,7 @@ fi
 ./check-hdlc
 if [ $? -ne 0 ]; then
 	echo "HDLC support is missing... trying to load" ;
-	/sbin/modprobe n_hdlc ;
+	modprobe n_hdlc ;
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: failed to load" ;
@@ -185,7 +187,7 @@ if [ $? -ne 0 ]; then
 		fatal;
 	fi
 # here, HDLC support is OK, but maybe some alias are missing
-	/sbin/rmmod n_hdlc ;
+	rmmod n_hdlc ;
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: alias is missing... trying to add" ;
@@ -286,40 +288,40 @@ if [ $? -ne 0 ]; then
 fi
 
 # check for an existing PPP connection (select the first one if several)
-PPP=`/sbin/ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
+PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
 	echo "No existing PPP connection... trying to make one (please wait)" ;
 	nice --20 pppd call adsl updetach > /tmp/ppp.log
 
 # check if we succeed in making a new PPP connection
-	PPP=`/sbin/ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
+	PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 	if [ "$PPP" = "" ]; then
 		# check for no response from PPP
 		grep 'LCP: timeout sending Config-Requests' /tmp/ppp.log > /dev/null
 		if [ $? -eq 0 ]; then
 			echo "PPP connection failed: check your vci & vpi parameters in /etc/ppp/peers/adsl and check for USB errors in /var/log/messages" ;
-			/bin/rm /tmp/ppp.log
+			rm /tmp/ppp.log
 			fatal;
 		fi
 		# check for invalid password 
 		grep 'CHAP authentication failed' /tmp/ppp.log > /dev/null
 		if [ $? -eq 0 ]; then
 			echo "CHAP authentication failed: check your user in /etc/ppp/peers/adsl and the matching password in /etc/ppp/chap-secrets" ;
-			/bin/rm /tmp/ppp.log
+			rm /tmp/ppp.log
 			fatal;
 		fi
 		# check for "sent [LCP ConfRej id=0xa5 <auth chap MD5>]"
 		grep 'sent \[LCP ConfRej' /tmp/ppp.log | grep '<auth chap MD5>' > /dev/null
 		if [ $? -eq 0 ]; then
 			echo "Password for user $user is missing in /etc/ppp/chap-secrets";
-			/bin/rm /tmp/ppp.log
+			rm /tmp/ppp.log
 			fatal;
 		fi
 		echo "Cannot make a PPP connection: Fatal" ;
-		/bin/rm /tmp/ppp.log
+		rm /tmp/ppp.log
 		fatal;
 	else
-		/bin/rm /tmp/ppp.log
+		rm /tmp/ppp.log
 		echo "PPP connection is OK" ;
     fi
 else
@@ -327,11 +329,11 @@ else
 fi
 
 # check for the default route over pppN
-/sbin/route -n | grep "^0.0.0.0" | grep $PPP > /dev/null
+route -n | grep "^0.0.0.0" | grep $PPP > /dev/null
 if [ $? -ne 0 ]; then
 	echo "No default route over $PPP... trying to add" ;
-	/sbin/route add default dev $PPP
-	/sbin/route -n | grep "^0.0.0.0" | grep $PPP > /dev/null
+	route add default dev $PPP
+	route -n | grep "^0.0.0.0" | grep $PPP > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "No default over $PPP: failed" ;
 		fatal;
@@ -343,16 +345,16 @@ else
 fi
 
 # check for the default route not over ethN
-/sbin/route -n | grep "^0.0.0.0" | grep -v $PPP > /dev/null
+route -n | grep "^0.0.0.0" | grep -v $PPP > /dev/null
 if [ $? -eq 0 ]; then
 	echo "You have default route(s) not over $PPP... trying to delete" ;
-	other=`/sbin/route -n | grep "^0.0.0.0" | grep -v $PPP | awk '{print $8}'`;
+	other=`route -n | grep "^0.0.0.0" | grep -v $PPP | awk '{print $8}'`;
 	for itf in $other;
 	do
 		echo "Deleting default route over $itf" ;
-		/sbin/route del default dev $itf ;
+		route del default dev $itf ;
 	done
-	/sbin/route -n | grep "^0.0.0.0" | grep -v $PPP > /dev/null
+	route -n | grep "^0.0.0.0" | grep -v $PPP > /dev/null
 	if [ $? -eq 0 ]; then
 		echo "Deleting default route not over $PPP: failed" ;
 		fatal;
