@@ -148,8 +148,11 @@ radiobutton .bloc1.fai.ligne5.belgacom -text "Belgacom" -width 12 -variable fai 
 .bloc1.fai.ligne5.belgacom configure -anchor w
 pack .bloc1.fai.ligne5.bluewin .bloc1.fai.ligne5.belgacom -side left
 
-frame .bloc1.fai.ligne6
-radiobutton .bloc1.fai.ligne6.unlisted -text "Not listed" -width 11 -variable fai -value bluewin -command {set dns1 ""; set dns2 ""} -selectcolor blue
+frame  .bloc1.fai.ligne6
+radiobutton .bloc1.fai.ligne6.bezeq -text "Bezeq Intl." -width 11 -variable fai -value bezeq -command {set dns1 "192.115.106.11"; set dns2 "192.115.106.10"} -selectcolor blue
+.bloc1.fai.ligne6.bezeq configure -anchor w
+pack .bloc1.fai.ligne6.bezeq -side left
+radiobutton .bloc1.fai.ligne6.unlisted -text "Not listed" -width 11 -variable fai -value unlisted -command {set dns1 ""; set dns2 ""} -selectcolor blue
 .bloc1.fai.ligne6.unlisted configure -anchor w
 pack .bloc1.fai.ligne6.unlisted -side left
 
@@ -252,8 +255,49 @@ radiobutton .bloc1.modem.ligne6.wisecom -text "Wisecom ad80usg\nor EA100" -width
 bind .bloc1.modem.ligne6.wisecom <Enter> {pushstate "Wisecom ad80usg or EA100 : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
 bind .bloc1.modem.ligne6.wisecom <Leave> {popstate}
 pack .bloc1.modem.ligne6.wisecom -side left
+radiobutton .bloc1.modem.ligne6.aztech -text "Aztech 100U" -width 19 -variable modem -value aztech -command {set vidpid1 "05090801"; set vidpid2 "09150802"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne6.aztech configure -anchor w
+bind .bloc1.modem.ligne6.aztech <Enter> {pushstate "Aztech 100U : VendorID/ProductID = 0x0509 / 0x0801 0x0915 / 0x0802"}
+bind .bloc1.modem.ligne6.aztech <Leave> {popstate}
+pack .bloc1.modem.ligne6.aztech -side left
 
-pack .bloc1.modem.ligne1 .bloc1.modem.ligne2 .bloc1.modem.ligne3 .bloc1.modem.ligne4 .bloc1.modem.ligne5 .bloc1.modem.ligne6 -side top -anchor w
+frame .bloc1.modem.ligne7
+radiobutton .bloc1.modem.ligne7.topcom -text "Topcom Webr@cer 850" -width 19 -variable modem -value topcom -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne7.topcom configure -anchor w
+bind .bloc1.modem.ligne7.topcom <Enter> {pushstate "Topcom Webr@cer 850: VendorID/ProductID = 0x0915 / 0x0001 0x0915 / 0x0002"}
+bind .bloc1.modem.ligne7.topcom <Leave> {popstate}
+pack .bloc1.modem.ligne7.topcom -side left
+radiobutton .bloc1.modem.ligne7.siemens -text "Siemens Santis" -width 19 -variable modem -value siemens -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne7.siemens configure -anchor w
+bind .bloc1.modem.ligne7.siemens <Enter> {pushstate "Siemens Santis : VendorID/ProductID = 0x0915 / 0x0001 0x0915 / 0x0002"}
+bind .bloc1.modem.ligne7.siemens <Leave> {popstate}
+pack .bloc1.modem.ligne7.siemens -side left
+
+frame .bloc1.modem.ligne8
+radiobutton .bloc1.modem.ligne8.gvc -text "GVC BB039" -width 19 -variable modem -value gvc -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne8.gvc configure -anchor w
+bind .bloc1.modem.ligne8.gvc <Enter> {pushstate "GVC BB039 : VendorID/ProductID = 0x0915 / 0x0001 0x0915 / 0x0002"}
+bind .bloc1.modem.ligne8.gvc <Leave> {popstate}
+pack .bloc1.modem.ligne8.gvc -side left
+radiobutton .bloc1.modem.ligne8.digicom -text "Digicom MichelAngelo" -width 19 -variable modem -value digicom -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne8.digicom configure -anchor w
+bind .bloc1.modem.ligne8.digicom <Enter> {pushstate "Digicom MichelAngelo USB : VendorID/ProductID = 0x0547 / 0x2131 0x0915 / 0x8000"}
+bind .bloc1.modem.ligne8.digicom <Leave> {popstate}
+pack .bloc1.modem.ligne8.digicom -side left
+
+frame .bloc1.modem.ligne9
+radiobutton .bloc1.modem.ligne9.askey -text "Askey USB-ADSL" -width 19 -variable modem -value askey -command {set vidpid1 "16900205"; set vidpid2 "09150206"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne9.askey configure -anchor w
+bind .bloc1.modem.ligne9.askey <Enter> {pushstate "Askey USB-ADSL Modem : VendorID/ProductID = 0x1690 / 0x0205 0x0915 / 0x0206"}
+bind .bloc1.modem.ligne9.askey <Leave> {popstate}
+pack .bloc1.modem.ligne9.askey -side left
+radiobutton .bloc1.modem.ligne9.archtek -text "Archtek UGW-8000" -width 19 -variable modem -value archtek -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne9.archtek configure -anchor w
+bind .bloc1.modem.ligne9.archtek <Enter> {pushstate "Archtek UGW-8000 : VendorID/ProductID = 0x0915 / 0x0001 0x0915 / 0x0002"}
+bind .bloc1.modem.ligne9.archtek <Leave> {popstate}
+pack .bloc1.modem.ligne9.archtek -side left
+
+pack .bloc1.modem.ligne1 .bloc1.modem.ligne2 .bloc1.modem.ligne3 .bloc1.modem.ligne4 .bloc1.modem.ligne5 .bloc1.modem.ligne6 .bloc1.modem.ligne7 .bloc1.modem.ligne8 .bloc1.modem.ligne9 -side top -anchor w
 
 set modem "eci"
 set vidpid1 "05472131"
@@ -282,7 +326,7 @@ bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
 set lien_bin_final "$CONF_DIR/synch.bin"
-set nom_bin_actuel [exec ls -l $lien_bin_final | sed s£.*->\ ££ ]
+set nom_bin_actuel [exec ls -l "$lien_bin_final" | sed "s/.*->\ //" ]
 
 label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
 
