@@ -1,0 +1,9 @@
+22/02/2002 Benoit PAPILLAULT <benoit.papillault@free.fr>
+$Id$
+
+This directory is meant to contains sources and tools to compile and
+upload a new firmware to the EZUSB chip, which is part of the ECI ADSL
+modem.
+
+See file INSTALL for installation instructions
+
