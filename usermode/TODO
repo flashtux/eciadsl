@@ -32,10 +32,12 @@ Sorted according to priority (the upper in the list, the prior):
 - see if synch_bin update function (invert_bin) can use invert_fai's scheme (minor).
 * add grep -m check to ./configure, else use egrep (fixed temporarily).
 - synch_bin installation (asks or greps to/into makeconfig or startmodem for CONF_DIR)
-- use section numbers in TROUBLESHOOTING files
+* use section numbers in TROUBLESHOOTING files
 - fix TROUBLESHOOTING file regarding the USB2 warns.
 - skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
   adsl file, is this relevant in Makefile?
+- add PPPoE and IPoATM patches to the tracker. Then merge then to the main sources.
+
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)
@@ -44,13 +46,16 @@ Sorted according to priority (the upper in the list, the prior):
 - code clean up & normalization, string protection in scripts
 - submit driver to GNU/Linux distro managers
 
+
 0.x:
 - PPPoE implementation (patch from flynux/prout.be)
 - 1483b and 1483r implementations? (cannot find RFCs!?)
 
+
 0.y:
 - check and merge bsd 0.5 port
 - submit driver to *BSD distro managers
+
 
 1.0:
 - auto*stuff (autoconf/make)

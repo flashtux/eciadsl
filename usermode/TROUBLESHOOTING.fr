@@ -92,6 +92,14 @@ réponse ne vous aide pas à corriger le problème. Dans ce cas, contactez-nous,
 nous essaierons de vous aider à trouver une solution.
 
 
+1 - Compilation, installation, and configuration du driver
+2 - Initialization du modem
+3 - Synchronization du modem
+4 - Problèmes de connexion
+5 - Divers
+
+
+1.0
 ================================================================================
 Q:	Je ne sais pas si mon modem est supporté.
 
@@ -106,8 +114,61 @@ R:	Vérifiez les pré-requis.
 	avez un doute, contactez-nous !
 
 
+1.1
 ================================================================================
-Q:	startmodem ou eci-doctor.sh signale un modem non supporté !
+Q:	./configure échoue et renvoie des erreurs :-\
+
+--------------------------------------------------------------------------------
+R:	Envoyez-nous SVP la sortie du ./configure.
+	Regardez quelles options pourraient vous aider (voir ./configure --help).
+	Par exemple, vous aurez à utiliser --sdisable-gcc-check si ./configure
+	échoue en cherchant gcc ou en vérifiant sa version alors que gcc est
+	installé et est dans votre $PATH. Cette erreur peut survenir sur certains
+	systèmes qui incluent une version modifiée de gcc (Debian par exemple).
+
+
+1.2
+================================================================================
+Q:	J'obtiens l'erreur suivante lorsque je fais un `make` ou `make install`:
+	Makefile:1: Makefile.config: No such file or directory
+	make: *** No rule to make target `Makefile.config'.  Stop.
+
+--------------------------------------------------------------------------------
+R:	Avez-vous lancé `./configure` ? Vous devriez !
+	(version >=0.6-pre4 seulement)
+
+
+1.3
+================================================================================
+Q:	`eciconf.sh` s'arrête immédiatement en affichant :
+	wish: command not found
+
+--------------------------------------------------------------------------------
+R:	Installez tcl/tk, ou lancez `eciconftxt.sh`. Même si tcl/tk n'est pas
+	obligatoire, vérifiez la liste des pré-requis.
+
+
+1.4
+================================================================================
+Q:	probe_device.sh me montre des VID1/PID1 qui sont les mêmes que les
+	VID2/VID2, est-ce normal ?
+
+--------------------------------------------------------------------------------
+R:	Vous devez débrancher/rebrancher le modem avant de lancer probe_device.sh.
+	SVP, lisez l'avertissement qu'affiche ce script.
+
+	Ceci peut aussi être du à des problèmes plus généraux au niveau de la
+	configuration USB de votre système. Soit hotplug interfère avec le driver,
+	soit les modules USB du noyau posent problème avec votre matériel USB
+	(éventuellement un bug du noyau).
+
+	Vérifiez que le module dabusb n'apparaît pas dans /var/log/messages (dans ce
+	cas consultez les question relatives au module dabusb, ci-dessus).
+
+
+1.5
+================================================================================
+Q:	startmodem, eciconf ou eci-doctor.sh signale un modem non supporté !
 
 --------------------------------------------------------------------------------
 R:	Voir la question précédente.
@@ -126,6 +187,7 @@ R:	Voir la question précédente.
 	pourrez pas utiliser votre modem avec le driver.
 
 
+2.0
 ================================================================================
 Q:	startmodem ou eci-doctor.sh affiche :
 	/proc/bus/usb: No such file or directory
@@ -140,6 +202,7 @@ R:	Vérifiez votre configuration USB. Cela pourrait être lié à l'absence de
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
 
 
+2.1
 ================================================================================
 Q:	eci-doctor.sh m'indique que le module DABUSB est chargé, ou startmodem 
 	dit que avoir trouvé dabusb, mais je ne peux pas l'enlever !
@@ -163,6 +226,7 @@ R:	Vous pouvez supprimer le module dabusb de votre système en utilisant
 	configuration du noyau.
 
 
+2.2
 ================================================================================
 Q:	Pas moyen de supprimer dabusb ! A chaque démarrage, il est de nouveau
 	chargé !
@@ -171,6 +235,7 @@ Q:	Pas moyen de supprimer dabusb ! A chaque démarrage, il est de nouveau
 R:	Voir la question précédente, utilisez la méthode manuelle.
 
 
+2.3
 ================================================================================
 Q:	J'essaie de supprimer le module dabusb, mais j'obtiens toujours :
 	dabusb: Device or resource busy
@@ -179,6 +244,7 @@ Q:	J'essaie de supprimer le module dabusb, mais j'obtiens toujours :
 R:	Voir la question précédente.
 
 
+2.4
 ================================================================================
 Q:	Mon modem semble initialisé au démarrage, les LEDs clignotent ou sont fixes.
 	Cela signifie-t-il que mon modem est supporté et que je n'ai pas besoin
@@ -189,8 +255,9 @@ R:	Non ! Ceci n'est pas bon.
 	Le coupable est le module dabusb. Voir la question précédente.
 
 
+2.5
 ================================================================================
-Q:	eci-doctor.sh affiche :
+Q:	`eci-doctor.sh` affiche :
 	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
 
 --------------------------------------------------------------------------------
@@ -211,6 +278,7 @@ R:	Suivez les pré-requis, lisez la documentation en rapport au problème N_HDLC.
 	et consultez la question sur la configuration du noyau (ci-dessous).
 
 
+2.6
 ================================================================================
 Q:	startmodem affiche : ECI-load1: timeout
 
@@ -219,6 +287,7 @@ R:	Votre modem n'est probablement pas supporté, lisez cette FAQ depuis
 	le début.
 
 
+3.0
 ================================================================================
 Q:	startmodem affiche : ECI-load2: timeout
 
@@ -226,6 +295,15 @@ Q:	startmodem affiche : ECI-load2: timeout
 R:	Voir la question suivante.
 
 
+3.1
+================================================================================
+Q:	startmodem affiche : ECI-load2: failed
+
+--------------------------------------------------------------------------------
+R:	Voir la question suivante.
+
+
+3.2
 ================================================================================
 Q:	startmodem s'arrête au bloc xxx.
 
@@ -238,6 +316,7 @@ R:	Suivez les pré-requis.
 	Essayez d'autres .bin de synchronisation (.bin disponibles sur le site).
 
 
+4.0
 ================================================================================
 Q:	/var/log/messages affiche des erreurs CHAP ou PAP.
 
@@ -248,6 +327,7 @@ R:	Vérifiez votre fichier /etc/ppp/pap-secrets ou /etc/ppp/chap-secrets.
 	Vous pouvez configurer ceci en utilisant eciconf.
 
 
+4.1
 ================================================================================
 Q:	startmodem est OK, mais je ne peux toujours pas surfer sur Internet ?
 
@@ -310,6 +390,7 @@ R:	Voir la question précédente.
 	alors il s'agit d'un problème de firewall.
 
 
+4.2
 ================================================================================
 Q:	Je suis déconnecté au bout d'un moment, l'option persist de pppd semble
 	fonctionner mais je ne peux rien accéder sur Internet.
@@ -321,6 +402,7 @@ R:	Savez-vous que pppd appelle /etc/ppp/ip-down quand il y a une déconnection
 	/etc/resolv.conf ?
 
 
+4.3
 ================================================================================
 Q:	Après quelques minutes d'accès à Internet, plus rien ne semble fonctionner.
 	Plus de ping IP, ni d'accès HTTP ou de nslookup.
@@ -332,11 +414,11 @@ R:	Souvent le cas sur les distributions récentes (MDK9, Slackware 8.1 et RH8).
 	Si c'est le cas, passez à la question précédents.
 
 	Il s'agirait d'un problème de configuration réseau ou de firewall (à
-	vérifier).
+	vérifier). Essayez la commande `network down` si le réseau local est
+	établi alors que vous n'en avez pas l'usage.
 
-	<A FAIRE: ajouter des infos relatives à MDK9/shorewall>
 
-
+4.4
 ================================================================================
 Q:	J'obtiens des lignes LCP timeout dans /var/log/messages puis un modem hangup
 	(et éventuellement un autre problème entre les deux) :
@@ -356,6 +438,7 @@ R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ?
 	Regardez ci-dessous les questions concernant les utilisateurs hors de France.
 
 
+4.5
 ================================================================================
 Q:	Je vois parfois des LCP timeouts dans /var/log/messages, mais ma connection
 	est toujours active ou ça ne me déconnecte pas à chaque fois.
@@ -371,6 +454,7 @@ R:	Essayez de décommenter les deux lignes concernant les LCP dans
 	oubliez-les.
 
 
+4.6
 ================================================================================
 Q:	J'obtiens ces lignes dans /var/log/messages:
 	ioctl(PPPIOCGFLAGS): Inappropriate ioctl for device
@@ -391,6 +475,7 @@ R:	Varifiez votre configuration du noyau (ci-dessous).
 	correctement le driver !
 
 
+4.7
 ================================================================================
 Q:	J'obtiens des lignes "USB timeout" dans /var/log/messages.
 
@@ -400,6 +485,8 @@ R:	Essayez de décommenter la ligne MTU dans le fichier /etc/ppp/peers/adsl.
 
 	Cela peut aussi provenir d'un problème kernel ou matériel.
 
+
+4.8
 ================================================================================
 Q:	La ligne PPP tombe parfois (modem hangup).
 
@@ -416,6 +503,7 @@ R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du
 	sûr vérifiez que votre configuration est OK.
 
 
+4.9
 ================================================================================
 Q:	J'obtiens des modem hangups mais mon problème n'est pas référencé dans les
 	questions précédentes, ou bien mon modem s'éteint !
@@ -432,6 +520,7 @@ R:	Votre chipset USB est-il un VIA ? Certains sont connus pour être buggés et
 	<A FAIRE: ajouter d'autres cas de modem hangup>
 
 
+4.10
 ================================================================================
 Q:	Je vois d'étranges caractères dans le terminal/console après que startmodem
 	soit fini, et je n'obtiens pas de connection PPP :
@@ -448,6 +537,39 @@ R:	Vous n'avez pas bu! pppd ne peut pas communiquer avec pppoeci (composant du
 	est vide).
 
 
+4.11
+================================================================================
+Q:	J'obtiens un kernel panic/oops comme ceci :
+	<A FAIRE: insérer un exemple de kernel panic>
+
+--------------------------------------------------------------------------------
+R:	Attendez la version eciadsl 0.7 (il semblerait que le driver ne purge pas
+	correctement les URBs en cas de déconnexion).
+	
+	<A FAIRE: décrire les autres problèmes : instabilité OHCI, bugs USB du noyau>
+
+
+4.12
+================================================================================
+Q:	J'obtiens ce message dans /var/log/messages:
+	kernel: usb-uhci.c: ENXIO 80000xxx, flags 0, urb c5205d60, burb c2ad1120
+
+--------------------------------------------------------------------------------
+R:	<A FAIRE: décrire les problèmes avec les "endpoints" URB>
+
+
+4.13
+================================================================================
+Q:	eci-doctor.sh affiche :
+	Modem hangup
+	Connection terminated.
+	... usb_control/bulk_msg: timeout
+
+--------------------------------------------------------------------------------
+R:	Il peut y avoir beaucoup de raisons à cela! Prenez contact avec nous.
+
+
+5.0
 ================================================================================
 Q:	Est-il possible de lancer startmodem au démarrage de Linux ?
 
@@ -458,6 +580,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	section "téléchargement" du site officiel eciadsl.
 
 
+5.1
 ================================================================================
 Q:	Je ne peux pas me connecter en console alors que cela fonctionne bien sous
 	X11.
@@ -466,6 +589,7 @@ Q:	Je ne peux pas me connecter en console alors que cela fonctionne bien sous
 R:	<A FAIRE: essayer d'expliquer pourquoi on ne sait pas (encore)>
 
 
+5.2
 ================================================================================
 Q:	Je ne peux pas me connecter sous X11 alors que cela fonctionne bien en
 	console.
@@ -474,6 +598,7 @@ Q:	Je ne peux pas me connecter sous X11 alors que cela fonctionne bien en
 R:	<A FAIRE: essayer d'expliquer pourquoi on ne sait pas (encore)>
 
 
+5.3
 ================================================================================
 Q:	Comment configurer correctement le noyau depuis les sources pour inclure le
 	support USB/PPP/N_HDLC ?
@@ -557,35 +682,7 @@ R:	Tapez les commandes suivantes :
 		touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
-================================================================================
-Q:	J'obtiens un kernel panic/oops comme ceci :
-	<A FAIRE: insérer un exemple de kernel panic>
-
---------------------------------------------------------------------------------
-R:	Attendez la version eciadsl 0.7 (il semblerait que le driver ne purge pas
-	correctement les URBs en cas de déconnexion).
-	
-	<A FAIRE: décrire les autres problèmes : instabilité OHCI, bugs USB du noyau>
-
-
-================================================================================
-Q:	J'obtiens ce message dans /var/log/messages:
-	kernel: usb-uhci.c: ENXIO 80000880, flags 0, urb c5205d60, burb c2ad1120
-
---------------------------------------------------------------------------------
-R:	<A FAIRE: décrire les problèmes avec les "endpoints" URB>
-
-
-================================================================================
-Q:	eci-doctor.sh affiche :
-	Modem hangup
-	Connection terminated.
-	... usb_control/bulk_msg: timeout
-
---------------------------------------------------------------------------------
-R:	<A FAIRE: je ne me rappelle pourquoi eheh>
-
-
+5.4
 ================================================================================
 Q:	Je ne suis pas en France, le driver fonctionnera-t-il avec mon modem et mon
 	fournisseur ?
@@ -604,6 +701,14 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 	pas d'authentification, s'il fournit des services DHCP ou d'adresse IP fixe,
 	ou tout autre fonctionnalité exotique.
 
+	Utilisateurs de IPoATM ou de PPPoE: vous trouverez des patchs pour les
+	sources du CVS (0.6-preX) sur le site technique officiel du driver:
+		http://sourceforge.net/tracker/?group_id=30043&atid=398083
+	Chaque patch inclut les instructions pour son utilisation.
+	Le fichier README explique comment appliquer un patch sur les sources du
+	driver.
+	Ces patchs seront intégrés à la version officielle d'ici peu.
+
 	Les utilisateurs de Belgique ou d'Italie : regardez les sites suivants pour
 	des patchs spécifiques :
 		http://www.prout.be/ECI/
@@ -613,6 +718,7 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 		http://www.thecaretaker.org.uk/drivers/btvoyager/btvoyagerlinux.htm
 
 
+5.5
 ================================================================================
 Q:	Je ne suis pas en France, mon modem est supporté et startmodem est OK, mais
 	j'ai des problèmes avec pppd (par exemple des problèmes LCP).
@@ -639,6 +745,7 @@ R:	Vérifiez que votre modem est supporté et que l'installation et la
 	Regardez aussi la question précédente.
 
 
+5.6
 ================================================================================
 Q:	Puis-je utiliser mon modem USB avec un HUB USB2.0 ?
 
@@ -649,7 +756,11 @@ R:	Nous avons rencontré des problèmes quand le modem ou un autre périphérique
 	startmodem décharge systématiquement le module ehci-hcd si celui-ci est
 	chargé.
 
+	Si les ports USB2.0 sont pris en charge par usb-uhci ou usb-ohci, cela
+	devrait fonctionner. Nous l'avons déjà constaté.
 
+
+5.7
 ================================================================================
 Q:	J'ai plusieurs HUB USB ou plusieurs périphériques USB. Cela pose-t-il un
 	problème ?
@@ -670,23 +781,7 @@ R:	Peut-être. Si vous n'arrivez pas à initialiser votre modem, essayez de
 	regardez la question précédente.
 
 
-================================================================================
-Q:	probe_device.sh me montre des VID1/PID1 qui sont les mêmes que les
-	VID2/VID2, est-ce normal ?
-
---------------------------------------------------------------------------------
-R:	Vous devez débrancher/rebrancher le modem avant de lancer probe_device.sh.
-	SVP, lisez l'avertissement qu'affiche ce script.
-
-	Ceci peut aussi être du à des problèmes plus généraux au niveau de la
-	configuration USB de votre système. Soit hotplug interfère avec le driver,
-	soit les modules USB du noyau posent problème avec votre matériel USB
-	(éventuellement un bug du noyau).
-
-	Vérifiez que le module dabusb n'apparaît pas dans /var/log/messages (dans ce
-	cas consultez les question relatives au module dabusb, ci-dessus).
-
-
+5.8
 ================================================================================
 Q:	En revenant sous Windows après Linux, je ne peux plus utiliser mon modem et
 	je dois réinstaller le driver Windows pour qu'il fonctionne à nouveau.
@@ -707,6 +802,7 @@ R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter
 	<A FAIRE: problèmes non vérifiés avec ericsson et usermode 0.5>
 
 
+5.9
 ================================================================================
 Q:	Puis-je utiliser ce driver sous *BSD?
 
@@ -715,39 +811,10 @@ R:	Un portage de la version 0.5 est disponible en ligne.
 	Pas officiellement supporté !
 
 
+5.10
 ================================================================================
 Q:	Puis-je utiliser ce driver sous GNU/Hurd, Darwin, QNX, BeOS ou d'autres
 	systèmes ?
 
 --------------------------------------------------------------------------------
 R:	Non.
-
-
-================================================================================
-Q:	eciconf.sh s'arrête immédiatement en affichant :
-	wish: command not found
-
---------------------------------------------------------------------------------
-R:	Installez tcl/tk, ou lancez eciconftxt.sh.
-
-
-================================================================================
-Q:	./configure échoue et renvoie des erreurs :-\
-
---------------------------------------------------------------------------------
-R:	Envoyez-nous SVP la sortie du ./configure.
-	Regardez quelles options pourraient vous aider (voir ./configure --help).
-	Par exemple, vous aurez à utiliser --sdisable-gcc-check si ./configure
-	échoue en cherchant gcc ou en vérifiant sa version alors que gcc est
-	installé et est dans votre $PATH. Cette erreur peut survenir sur certains
-	systèmes qui incluent une version modifiée de gcc (Debian par exemple).
-
-
-================================================================================
-Q:	J'obtiens l'erreur suivante lorsque je fais un `make` ou `make install`:
-	Makefile:1: Makefile.config: No such file or directory
-	make: *** No rule to make target `Makefile.config'.  Stop.
-
---------------------------------------------------------------------------------
-R:	Avez-vous lancé `./configure` ? Vous devriez !
-	(version >=0.6-pre4 seulement)
