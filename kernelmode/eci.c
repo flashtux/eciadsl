@@ -63,9 +63,7 @@
 
 #define DBG_OUT(fmt, argz...) \
 	printk( \
-		KERN_DEBUG "D ECI_USB [%s:%d] : " fmt, \
-		__FILE__, \
-		__LINE__, \
+		KERN_DEBUG "D ECI_USB : " fmt, \
 		##argz \
 	)
 
@@ -141,7 +139,7 @@ static void _dumpk(
 
 	/* Print Dump */
 	printk(
-		KERN_DEBUG "D ECI_USB [%s:%d] : %s [%d] %s\n%s",
+		KERN_DEBUG "D ECI_USB [%s:%d] : %s [%d] %s\n%s\n",
 		file,
 		line,
 		txt,
@@ -182,17 +180,13 @@ static void _dumpk(
 
 #define ERR_OUT(fmt, argz...) \
 	printk ( \
-		KERN_ERR "E ECI_USB [%s:%d] : " fmt, \
-		__FILE__, \
-		__LINE__, \
+		KERN_ERR "E ECI_USB : " fmt, \
 		##argz \
 	)
 
 #define WRN_OUT(fmt, argz...) \
 	printk ( \
-		KERN_WARNING "W ECI_USB [%s:%d] : " fmt, \
-		__FILE__, \
-		__LINE__, \
+		KERN_WARNING "W ECI_USB : " fmt, \
 		##argz \
 	)
 
@@ -214,13 +208,15 @@ static const struct usb_device_id eci_usb_deviceids[] =
 	{ } 
 };
 
-/**********************************************************************
-                    ATM stuff
-***********************************************************************/
-
 static void eci_init_vendor_callback(struct urb *urb);
 static void eci_ep_int_callback(struct urb *urb);
 static void eci_iso_callback(struct urb *urb);
+static void _eci_send_init_urb();
+
+
+/**********************************************************************
+                    ATM stuff
+***********************************************************************/
 
 #ifdef __USE_ATM__
 
@@ -342,11 +338,13 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct usb_device 	*usb_wan_dev;
 	struct atm_dev		*atm_dev;
 	int 			minor;
-	wait_queue_head_t 	eci_wait;
-	unsigned char           *setup_packets;
-	struct urb		*interrupt_urb;
-	unsigned char		interrupt_buffer[32];
-	struct urb		*isourbs;
+	wait_queue_head_t 	eci_wait;	/*	no more used	*/
+	unsigned char           *setup_packets; /* 	For init	*/
+	struct urb		*isourbs;	/*	For Iso transfer */
+	struct urb		*vendor_urb;	/*	For init and Answer 
+							to INTi		*/
+	struct urb		*interrupt_urb;	/*	INT pooling	*/
+	unsigned char		interrupt_buffer[32];	
 };
 
 struct eci_instance	*eci_instances= NULL;		/*  Driver list	*/
@@ -398,8 +396,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 {
 	struct eci_instance *out_instance= NULL;
 	struct urb *eciurb, *tmpurb;
-	unsigned char *setuppacket;
-	int size;
 	int dir;
 	int eci_isourbcnt;
 	int i;	/*	loop counter	*/
@@ -425,7 +421,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			eci_instances=out_instance; 
 			out_instance->usb_wan_dev= dev;
 			out_instance->setup_packets = eci_init_setup_packets;
-			init_waitqueue_head(&out_instance->eci_wait);
+			/*init_waitqueue_head(&out_instance->eci_wait);*/
 		}
 		else
 		{
@@ -444,6 +440,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			ERR_OUT("Cant set configuration\n");
 			return 0;
 		}
+		/*
+			send 20 Urbs to the iso EP
+		*/
 		DBG_OUT("Init ISO urbs\n");
 		out_instance->isourbs = 0;
 		for(eci_isourbcnt=0;eci_isourbcnt<20;eci_isourbcnt++)
@@ -521,7 +520,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			Should send vendors URB here after reseting pipe 0x86
 			First allocate the urb struct
 		*/
-		eciurb=usb_alloc_urb(1);
+		eciurb=usb_alloc_urb(0);
 		if(!eciurb)
 		{
 			ERR_OUT("Can't allocate urb\n");
@@ -540,34 +539,14 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		/*
 			Initialise all urb struct
 		*/
-		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
-		memcpy(setuppacket, out_instance->setup_packets,8);
-		size = (out_instance->setup_packets[7] << 8 ) |
-			out_instance->setup_packets[6];
-		DBG_RAW_OUT("Setup Packet", setuppacket, size) ;
-		/*
-			If write URB then read the buffer
-		*/
-		if(!(setuppacket[0] & 0x80))
-		{
-			memcpy(eciurb->transfer_buffer, 
-				out_instance->setup_packets+8,size);
-		}
-
-		FILL_CONTROL_URB(eciurb, dev,usb_rcvctrlpipe(dev,0), 
-				setuppacket, eciurb->transfer_buffer, 
-				size, eci_init_vendor_callback,
-				out_instance);
-		DBG_OUT("Sending URB\n");
-		if(usb_submit_urb(eciurb))
-		{
-			ERR_OUT("error couldn't send init urb\n");
-			return 0;
-		}
-		DBG_OUT("URB Sent \n");
-	}				
+		eciurb->context = out_instance;
+		out_instance->vendor_urb = eciurb;
+		_eci_send_init_urb(eciurb);
+	
+	}	
+	DBG_OUT("Probe: done with usb\n");			
 #ifdef __USE_ATM__
-	DBG_OUT("Probe: done with usb, doing ATM\n");
+	DBG_OUT(" doing ATM\n");
 	out_instance->atm_dev = atm_dev_register(
 			eci_drv_label,
 			&eci_atm_devops,
@@ -598,9 +577,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 void eci_usb_disconnect(struct usb_device *dev, void *p)
 {
 	struct urb *urb;
-
+	
 	DBG_OUT("disconnect in\n");
-	MOD_DEC_USE_COUNT;
 	if(eci_instances)
 	{
 #ifdef __USE_ATM__
@@ -615,7 +593,7 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 		urb=eci_instances->isourbs;
 		while(urb->next!=eci_instances->isourbs) urb=urb->next;
 		urb->next = 0;
-		while((urb = eci_instances->isourbs) != NULL)
+		while(urb = eci_instances->isourbs)
 		{
 			DBG_OUT("Freeing one iso\n");
 			eci_instances->isourbs = urb->next;
@@ -626,6 +604,7 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 		kfree(eci_instances);
 		eci_instances=NULL;
 	}
+	MOD_DEC_USE_COUNT;
 	DBG_OUT("disconnect out\n");
 
 };
@@ -793,6 +772,50 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 
 *******************************************************************************/
 
+static void _eci_send_init_urb(struct urb *eciurb)
+{
+	struct eci_instance *instance;
+	unsigned char *setuppacket;
+	unsigned int pipe;
+	int size;
+
+	
+	instance = eciurb->context;
+	setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
+	memcpy(setuppacket, instance->setup_packets,8);
+	size = (instance->setup_packets[7] << 8 ) |
+			instance->setup_packets[6];
+	DBG_RAW_OUT("Setup Packet", setuppacket, 8) ;
+			/*
+				If write URB then read the buffer and
+				set endpoint else just set enpoint
+			*/
+	if(setuppacket[0] & 0x80)
+	{
+		pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
+	}
+	else
+	{
+		memcpy(eciurb->transfer_buffer, 
+			instance->setup_packets+8,size);
+		DBG_OUT("read urb\n");
+		pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
+	}
+	FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
+		setuppacket, eciurb->transfer_buffer, 
+		size, eci_init_vendor_callback,
+		instance);
+	DBG_OUT("Sending URB\n");
+	if(usb_submit_urb(eciurb))
+	{
+		ERR_OUT("error couldn't send init urb\n");
+		return;
+	}
+	DBG_OUT("URB Sent \n");
+	instance->setup_packets += 
+		(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
+}
+
 /*
 		This one is called to handle the modem sync.
 
@@ -810,11 +833,13 @@ static void eci_init_vendor_callback(struct urb *urb)
 	struct eci_instance *instance;
 	struct usb_device	*dev;
 	int size;
+	int i;
+	unsigned char *buffer;
 
 	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
-	dev = instance->usb_wan_dev;
-	DBG_OUT("dev = %p\n", dev);
+/*	dev = instance->usb_wan_dev;
+	DBG_OUT("dev = %p\n", dev);	unused */
 
 /*
 	If urb status is set warn about it, else do what we gotta do
@@ -837,7 +862,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 			size = ((instance->setup_packets[7]<<8) | 
 					instance->setup_packets[6]);
 			DBG_RAW_OUT(
-					"Setup Packet",
+					"Buffer:",
 					(char *) urb->transfer_buffer,
 					size) ;
 		}
@@ -849,50 +874,8 @@ static void eci_init_vendor_callback(struct urb *urb)
 			/*	
 				sould send next VENDOR URB
 			*/
-
-			instance = urb->context;
-/* 
-			Old buffer size
-*/
-			size = (urb->setup_packet[7] << 8 ) |
-				urb->setup_packet[6]; 
-/*
-	if it was a write control then increment pointer with 
-	setup packet size and buffer size, else just setup packet size
-*/
-			instance->setup_packets += 
-				(urb->setup_packet[0] & 0x80) ? 8 : + size;
-/*
-		New buffer size
-*/
-			size = (instance->setup_packets[7] << 8 ) |
-				instance->setup_packets[6];
-			memcpy(urb->setup_packet, instance->setup_packets,8);
-
-			DBG_RAW_OUT(
-					"Setup Packet",
-					urb->setup_packet,
-					size) ;
-
-			if(!(urb->setup_packet[0] & 0x80))
-			{
-				memcpy(urb->transfer_buffer, 
-					instance->setup_packets+8,size);
-				DBG_RAW_OUT(
-						"Transfer Buffer",
-						urb->transfer_buffer,
-						size) ;
-						
-			}
-			FILL_CONTROL_URB(urb, dev,usb_rcvctrlpipe(dev,0), 
-				urb->setup_packet, urb->transfer_buffer, 
-				size, eci_init_vendor_callback,
-				instance);
-			DBG_OUT("Resending URB\n");
-			if(usb_submit_urb(urb))
-			{
-				ERR_OUT("error couldn't resend init urb\n");
-			}
+			DBG_OUT("Calling _eci_send_init_urb from Vendor \n");
+			_eci_send_init_urb(instance->vendor_urb);
 		}
 #ifdef DEBUG
 		else
@@ -920,7 +903,10 @@ static void eci_init_vendor_callback(struct urb *urb)
 */
 static void eci_ep_int_callback(struct urb *urb)
 {
-	DBG_OUT("Int callBack in\n");
+	struct eci_instance *instance;
+
+	/*	DBG_OUT("Int callBack in\n"); Too much debug info	*/
+	instance = (struct eci_instance *) urb->context;
 	if(urb->actual_length)
 	{
 		if(urb->actual_length!=32)
@@ -929,19 +915,21 @@ static void eci_ep_int_callback(struct urb *urb)
 					and send Next Vendor
 			*/
 			DBG_OUT(
-				"EP int received %d bytes\n",
+				"EP INT received %d bytes\n",
 				urb->actual_length);
+			DBG_OUT("Calling _eci_send_init_urb from Int \n");
+			_eci_send_init_urb(instance->vendor_urb);
 		}
 		else
 		{	/*	Already synchronized just answer	*/
-			DBG_OUT("EP int received 32 bytes\n");
+			DBG_OUT("EP INT received 32 bytes\n");
 		}
 	}
 #ifdef DEBUG
-	else
+/*	else				// Too much debug info
 	{
 		DBG_OUT("Received int with no data\n");
-	}
+	}	*/
 #endif /* DEBUG */
 	DBG_OUT("Int callBack out\n");
 }
@@ -977,11 +965,11 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
-/*	if(usb_submit_urb(urb))
+	if(usb_submit_urb(urb))
 	{
 		printk( KERN_ERR 
 			"error couldn't resend iso urb\n");
-	}*/
+	}
 	/*
 	DBG_OUT("Iso Callback Exit\n");
 	*/
