@@ -3,6 +3,7 @@
 
 base = howto
 pwd = `pwd`
+cvsroot= :pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl
 
 all: dvi html ps pdf ascii keep-useful-files-only
 
@@ -23,9 +24,9 @@ ascii: html
 
 site:	clean site2
 site2:
-	export CVSROOT=:ext:rougier@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl
-	export CVS_RSH=ssh
-	cvs update $(base).tex	
+	cvs -d$(cvsroot) login
+	cvs -d$(cvsroot) update $(base).tex
+	cvs -d$(cvsroot) logout
 	make
 
 keep-useful-files-only:
