@@ -26,6 +26,8 @@ check-hdlc-bug: check-hdlc-bug.o
 pusb.o: pusb.c pusb-linux.c pusb.h
 	if [ `uname -r | cut -d "." -f 1,2` = "2.6" ]; then\
 		cc  -Wall -I . -c -o pusb.o pusb.c;\
+	else\
+		cc $(CFLAGS) -c -o pusb.o pusb.c;\
 	fi
 eci-load1.o: eci-load1.c pusb.h modem.h config.h util.h
 eci-load2.o: eci-load2.c pusb.h modem.h config.h util.h semaphore.h
