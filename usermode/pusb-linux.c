@@ -175,7 +175,7 @@ int usbfs_search(const char* path, int vendorID, int productID)
 			/* check the file size, which must be 18 
 			   = sizeof(struct usb_device_descriptor) */
 
-			if (statbuf.st_size < sizeof(struct usb_device_descriptor))
+			if (statbuf.st_size < (int)sizeof(struct usb_device_descriptor))
 				continue;
 			
 			if ((result=test_file(file, vendorID, productID)) < 0)
