@@ -87,6 +87,7 @@ int eoc_read_next() {
 	} else {
 		mes = EOC_OPCODE_EOD;
 	}
+	return mes;
 }
 
 /*
@@ -153,8 +154,8 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 							case EOC_OPCODE_NEXT:
 								mes = eoc_read_next();
 								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-									eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
-									eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0xff;
+									eoc_out_buf[eoc_out_buffer_pos++] = (mes & 0xff00) >> 8;
+									eoc_out_buf[eoc_out_buffer_pos++] = mes & 0xff;
 								} else {
 									return -EIO;
 								}
