@@ -1,0 +1,47 @@
+22/02/2002 Benoit PAPILLAULT <benoit.papillault@free.fr>
+$Id$
+
+To compile the C code, you need to install sdcc, which is available
+from http://sdcc.sourceforge.net/
+
+Installation:
+-------------
+
+From the firmware directory, execute the 2 commandes and wait for a
+very long term based.
+
+( cd src ; make )
+( cd tools ; make )
+
+Using:
+------
+
+In src, you'll find a test firmware (a replacement firmware is not yet
+operationnal), compile it:
+
+$ cd src
+$ make
+
+Next, you need a tool to load and read the EZUSB memory (external RAM
+from the point of view of the 8051) :
+
+$ cd tools
+$ make
+
+To load the firmware (VID and PID used here are for the originial ECI
+ADSL modem):
+
+# tools/ezusb-mem w 0x0547 0x2131 ihx/firm_test.ihx
+
+To see if the firmware has been correctly executed, you can read the
+whole EZUSB memory with:
+
+# tools/ezusb-meme r 0x0547 0x2131 ihx/mem.ihx
+
+If the execution has been OK, you'll find a line beginning with:
+
+...
+:10100000FADADEDA721C0852BEFFF3BBA2001282CB
+:10101000DADADADADADADADADADADADADADADADA30
+:10102000DADADADADADADADADADADADADADADADA20
+...
