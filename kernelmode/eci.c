@@ -12,7 +12,7 @@
 
 /**********************************************************************
  Project	:	Driver modem ADSL ECI HiFocus
- File		:	$RCSfile
+ File		:	$RCSfile$
  Version	:	$Revision$
  Modified by	:	$Author$ ($Date$)
  **********************************************************************
@@ -44,6 +44,7 @@
 #include <linux/atmdev.h>
 #include <asm/byteorder.h>
 
+#include <linux/spinlock.h>
 
 #define __USE_ATM__
 
@@ -211,7 +212,7 @@ static const struct usb_device_id eci_usb_deviceids[] =
 static void eci_init_vendor_callback(struct urb *urb);
 static void eci_ep_int_callback(struct urb *urb);
 static void eci_iso_callback(struct urb *urb);
-static void _eci_send_init_urb();
+static void _eci_send_init_urb(struct urb *eciurb);
 
 
 /**********************************************************************
@@ -227,36 +228,161 @@ static void _eci_send_init_urb();
  */
 #define GET_PRIV(atmdev) ((struct eci_instance *) ((atmdev)->dev_data))
 
+/*
+ * Free a given skb
+ */
+#define FREE_SKB(vcc, skb) \
+	do { \
+		if ((vcc)->pop)	(vcc)->pop((vcc), (skb)) ; \
+		else 		dev_kfree_skb((skb)) ; \
+	} while (0)
+
 /* -- Constants -- */
 
 /* Number max of UNI cells needed to transport an AAL5 frame */
 #define ATM_MAX_CELLS		(unsigned int)	1366
 
-/* UNI cell header length */
-#define ATM_CELL_HDR		(size_t) 	5
-
-/* UNI cell payload length */
-#define ATM_CELL_PAYLOAD	(size_t) 	48
 
 /* -- Types -- */
 struct eci_instance ; /* forward declaration */
 
-/* Raw UNI cell */
-typedef unsigned char _uni_cell[ATM_CELL_HDR + ATM_CELL_PAYLOAD] ;
 
-/* Redefine bool type for lisibility */
+/*----------------------------------------------------------------------
+		P R I V A T E   D E C L A R A T I O N S
+  ----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------*/
+
+/*--------------------------- G E N E R A L ----------------------------*/
+
+/*-- M A C R O S -------------------------------------------------------*/
+/*-- T Y P E S ---------------------------------------------------------*/
+
+/* Boolean */
 #if defined(true) & defined(false)
-	typedef enum {mytrue = true, myfalse = false } bool ;
+typedef enum {mytrue = true, myfalse = false } bool ;
 #else
-	typedef enum {true = 1, false = 0 } bool ;
+typedef enum {true = 1, false = 0 } bool ;
 #endif /* true & false */
 
-/* -- Globals -- */
+/* Bytes */
+typedef unsigned char byte ;
 
-/*
- * Array of UNI cells (too big to be a local var
- */
-static _uni_cell gv_thecells[ATM_MAX_CELLS] ;
+/*-- C O N S T A N T S -------------------------------------------------*/
+/*-- V A R I A B L E S -------------------------------------------------*/
+/*-- F U N C T I O N S -------------------------------------------------*/
+
+/*----------------------------------------------------------------------*/
+
+/*-------------------------- U N I  C E L L S --------------------------*/
+
+/*-- M A C R O S -------------------------------------------------------*/
+
+#define ATM_CELL_HDR		(size_t)5	/* Cell Header lenght	*/
+#define ATM_CELL_PAYLOAD	(size_t)48	/* Cell Payload length	*/
+
+/*-- T Y P E S ---------------------------------------------------------*/
+
+struct uni_cell ;				/* forward declaration	*/
+typedef struct uni_cell uni_cell_t ;
+
+struct uni_cell {
+	byte 		raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD] ;
+
+	/* -- for queue managements -- */
+	uni_cell_t * 	next ;
+} ;
+
+
+
+/*-- C O N S T A N T S -------------------------------------------------*/
+/*-- V A R I A B L E S -------------------------------------------------*/
+/*-- F U N C T I O N S -------------------------------------------------*/
+
+/* Alloc a new UNI Cell */
+static uni_cell_t * _uni_cell_alloc(void) ;
+
+/* Free an UNI Cell 	*/
+static void _uni_cell_free(uni_cell_t *) ;
+
+/* Format a cell */
+static int _uni_cell_format(
+	int,			/* IN: VPI			*/
+	int,			/* IN: VCI			*/
+	bool,			/* IN: Flag for last cell	*/
+	size_t,			/* IN: Payload size		*/
+	byte *,			/* IN: Payload data		*/
+	uni_cell_t *		/* OUT: Formated UNI cell	*/
+) ;
+
+/* Get VPI from cell */
+static int _uni_cell_getVpi(
+	uni_cell_t *,		/* IN: the cell			*/
+	int *			/* OUT: VPI			*/
+) ;
+
+/* Get VCI from cell */
+static int _uni_cell_getVci(
+	uni_cell_t *,		/* IN: the cell			*/
+	int *			/* OUT: VCI			*/
+) ;
+
+/* check if this is the last cell */
+static int _uni_cell_islast(
+	uni_cell_t *,		/* in: the cell			*/
+	bool *			/* out: last cell flag		*/
+) ;
+
+/* Get The Payload */
+static byte * _uni_cell_getPayload(
+	uni_cell_t *		/* in: the cell			*/
+) ;
+
+/*----------------------------------------------------------------------*/
+
+/*--------------------- U N I  C E L L  Q U E U E ----------------------*/
+
+/*-- M A C R O S -------------------------------------------------------*/
+/*-- T Y P E S ---------------------------------------------------------*/
+
+struct uni_cell_q {
+	unsigned int		nbcells ;	/* Number of cells	*/
+	uni_cell_t *		first ;		/* First list item	*/
+	uni_cell_t *		last ;		/* Last list item	*/
+} ;
+
+typedef struct uni_cell_q uni_cell_q_t ;
+
+/*-- C O N S T A N T S -------------------------------------------------*/
+/*-- V A R I A B L E S -------------------------------------------------*/
+
+static uni_cell_q_t *		gp_unused_q 	= NULL ;
+
+static spinlock_t		gl_uq_lock 	= SPIN_LOCK_UNLOCKED ;
+
+/*-- F U N C T I O N S -------------------------------------------------*/
+
+/* Init a queue */
+static int _uni_cell_qinit(uni_cell_q_t *) ;
+
+/* Alloc a new queue */
+static uni_cell_q_t * _uni_cell_qalloc(void) ;
+
+/* Free a queue */
+static void _uni_cell_qfree(uni_cell_q_t *) ;
+
+/* Check if the queue is empty */
+static bool _uni_cell_qisempty(uni_cell_q_t *) ; 
+
+/* Push new UNI Cell in Queue */
+static int _uni_cell_qpush(
+	uni_cell_t *,		/* IN: Cell to insert	*/
+	uni_cell_q_t *		/* IN: Target queue	*/
+) ;
+
+/* Pop an UNI Cell from Queue */
+static uni_cell_t * _uni_cell_qpop(uni_cell_q_t *) ;
+
 
 /* -- Interface -- */
 static int eci_atm_open(struct atm_vcc *vcc,short vpi, int vci);
@@ -267,29 +393,20 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb);
 /* -- Private Functions -- */
 static u32 _calc_crc(unsigned char *, int, unsigned int) ;
 static int _eci_tx_aal5( 
-		unsigned int, unsigned int, 
+		int, int, 
 		struct eci_instance *, struct sk_buff *
 ) ;
 static void _eci_bulk_callback(struct urb *) ;
-static int _format_split_aal5(
-		unsigned int, unsigned int, size_t,
-		unsigned char *, _uni_cell *, unsigned int *) ;
-static int _format_unicell(
-		unsigned int, unsigned int, bool, size_t,
-		unsigned char *, _uni_cell *) ;
-
 
 static int _eci_usb_tx(
-	struct eci_instance *,	/* IN: ref to mod info	*/
-	unsigned int,		/* IN: NB uni cells 	*/
-	_uni_cell *		/* IN: UNI Cells array	*/
+	struct eci_instance *	/* IN: ref to mod info	*/
 ) ;
 
 /*
  * Send data from USB (single uni cell) to ATM
  */
 static int _eci_usb_rx(
-	_uni_cell *		/* IN: UNI Cell		*/
+	uni_cell_t *		/* IN: UNI Cell		*/
 ) ;
 
 static const struct atmdev_ops eci_atm_devops =
@@ -339,12 +456,19 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct atm_dev		*atm_dev;
 	int 			minor;
 	wait_queue_head_t 	eci_wait;	/*	no more used	*/
-	unsigned char           *setup_packets; /* 	For init	*/
+	const unsigned char	*setup_packets; /* 	For init	*/
 	struct urb		*isourbs;	/*	For Iso transfer */
 	struct urb		*vendor_urb;	/*	For init and Answer 
 							to INTi		*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
 	unsigned char		interrupt_buffer[32];	
+
+	/* -- Transmission Elements -- */
+	spinlock_t		tx_q_lock ;
+	uni_cell_q_t *		ptx_q ;
+
+	spinlock_t		rx_q_lock ;
+	uni_cell_q_t *		prx_q ;
 };
 
 struct eci_instance	*eci_instances= NULL;		/*  Driver list	*/
@@ -373,6 +497,15 @@ static int __init eci_init(void)
 	/*	Must register driver and claim for hardware */
 	DBG_OUT("init module in\n");
 
+	/* Init UNI Cell unused list */
+	spin_lock(&gl_uq_lock) ;
+	gp_unused_q = _uni_cell_qalloc() ;
+	if (!gp_unused_q) {
+		ERR_OUT("Failed to init unused UNI cell list\n") ;
+		return -1 ;
+	}
+	spin_unlock(&gl_uq_lock) ;
+	
 	printk("ECI HiFocus ADSL Modem Driver loading\n");
 	lv_res = usb_register(&eci_usb_driver) ;
 
@@ -387,6 +520,12 @@ static void __exit eci_cleanup(void)
 {
 	DBG_OUT("cleanup in\n");
 	usb_deregister(&eci_usb_driver);
+
+	/* Free Unused UNI Cell List */
+	spin_lock(&gl_uq_lock) ;
+	if (gp_unused_q) _uni_cell_qfree(gp_unused_q) ;
+	spin_unlock(&gl_uq_lock) ;
+
 	DBG_OUT("cleanup out\n");
 	return;
 };
@@ -396,7 +535,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 {
 	struct eci_instance *out_instance= NULL;
 	struct urb *eciurb, *tmpurb;
-	int dir;
+	/* unused : int dir; */
 	int eci_isourbcnt;
 	int i;	/*	loop counter	*/
 
@@ -545,7 +684,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	
 	}	
 	DBG_OUT("Probe: done with usb\n");			
+	
 #ifdef __USE_ATM__
+
 	DBG_OUT(" doing ATM\n");
 	out_instance->atm_dev = atm_dev_register(
 			eci_drv_label,
@@ -593,7 +734,7 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 		urb=eci_instances->isourbs;
 		while(urb->next!=eci_instances->isourbs) urb=urb->next;
 		urb->next = 0;
-		while(urb = eci_instances->isourbs)
+		while((urb = eci_instances->isourbs) != NULL)
 		{
 			DBG_OUT("Freeing one iso\n");
 			eci_instances->isourbs = urb->next;
@@ -652,10 +793,10 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 	}
 	DBG_OUT("params after find : [%hd.%d]\n", vpi, vci) ;
 
+	set_bit(ATM_VF_ADDR,&vcc->flags);
+
 	vcc->vpi = vpi ;
 	vcc->vci = vci ;
-
-	set_bit(ATM_VF_ADDR,&vcc->flags);
 
 	clear_bit(ATM_VF_READY,&vcc->flags); /* just in case ... */
 
@@ -692,6 +833,7 @@ static int eci_atm_ioctl(struct atm_dev *vcc,unsigned int cmd, void *arg)
 static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 {
 	struct eci_instance *	lp_outinst	= NULL ;
+	int			lv_rc		= 0 ;
 	
 	DBG_OUT("eci_atm_send in\n");
 
@@ -712,11 +854,7 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	lp_outinst = GET_PRIV(vcc->dev) ;
 
 	if (!lp_outinst) {
-		if (vcc->pop)
-			vcc->pop(vcc, skb) ;
-		else
-			dev_kfree_skb(skb) ;
-
+		FREE_SKB(vcc, skb) ;
 		atomic_inc(&vcc->stats->tx_err) ;
 		ERR_OUT("no eci data provided\n") ;
 		return -EINVAL;
@@ -726,36 +864,34 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	switch (vcc->qos.aal) {
 	case ATM_AAL5:
 		DBG_OUT("Manage new AAL5 data\n") ;
-		if (_eci_tx_aal5(vcc->vpi, vcc->vci, lp_outinst, skb))
+		lv_rc = _eci_tx_aal5(vcc->vpi, vcc->vci, lp_outinst, skb) ;
+		if (lv_rc) {
 			ERR_OUT("_eci_tx_aal5 failed\n") ;
-
-		/* Free Socket Buffer */
-		if (vcc->pop)
-			vcc->pop(vcc, skb) ;
-		else
-			dev_kfree_skb(skb) ;
-		DBG_OUT("AAL5 sent\n") ;
+			atomic_inc(&vcc->stats->tx_err) ;
+		} else {
+			atomic_inc(&vcc->stats->tx) ;
+			DBG_OUT("AAL5 sent\n") ;
+		}
 		break ;
+
 	case ATM_AAL0:
 		DBG_OUT("MANAGE new AAL0 data\n") ;
 		if (skb->len != ATM_CELL_SIZE-1) {
 			ERR_OUT("Socket buffer invalid size\n") ;
-			/* Free Socket Buffer */
-			if (vcc->pop)
-				vcc->pop(vcc, skb) ;
-			else
-				dev_kfree_skb(skb) ;
-
-			atomic_inc(&vcc->stats->tx_err) ;
-			ERR_OUT("no eci data provided\n") ;
-			return -ENOTSUPP;
+			lv_rc = -EINVAL ;
+		} else {
+			WRN_OUT("AAL0 NOT IMPLEMENTED\n") ;
+			lv_rc = -ENOTSUPP ;
 		}
-		DBG_OUT("NOT IMPLEMENTED\n") ;
+		atomic_inc(&vcc->stats->tx_err) ;
 		break ;
 	}
-				
+
+	/* Free Socket Buffer */
+	FREE_SKB(vcc, skb) ;
+
 	DBG_OUT("eci_atm_send out\n");
-	return 0 ;
+	return lv_rc ;
 };
 
 /*----------------------------------------------------------------------*/
@@ -831,10 +967,10 @@ static void _eci_send_init_urb(struct urb *eciurb)
 static void eci_init_vendor_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
-	struct usb_device	*dev;
+	/* unused: struct usb_device	*dev; */
 	int size;
-	int i;
-	unsigned char *buffer;
+	/* unused: int i; */
+	/* unused: unsigned char *buffer; */
 
 	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
@@ -975,119 +1111,92 @@ static void eci_iso_callback(struct urb *urb)
 	*/
 }
 
-/*----------------------------------------------------------------------
- *
- * Format a UNI cell according to the standard
- * from a slice of an AAL5 frame
- *
- */
-static int _format_unicell(
-		unsigned int	vpi,		/* IN: VPI 		*/
-		unsigned int	vci,		/* IN: VCI 		*/
-		bool		islast,		/* IN: last cell ?	*/
-		size_t		size,		/* IN: payload length	*/
-		unsigned char *	pbuffer,	/* IN: payload		*/
-		_uni_cell *	pthecell	/* IN/OUT: Cell to fill	*/
+static int _eci_tx_enqueue(
+		struct eci_instance * 	pinstance,
+		int			vpi,
+		int			vci,
+		bool			islast,
+		size_t			szdata,
+		byte *			pdata
 ) {
+	uni_cell_t *	lp_cell	= NULL ;
+	int		lv_rc	= 0 ;
 
-	unsigned char *	lp_cell	= (unsigned char*) pthecell ;
+	DBG_OUT("_eci_tx_enqueue in\n") ;
 
 	/* Check Interface */
-	if (!pbuffer || !pthecell || size > ATM_CELL_PAYLOAD) {
+	if (!pinstance || !szdata || !pdata) {
 		ERR_OUT("Interface Error\n") ;
 		return -EINVAL ;
 	}
-	
-	/* 
-	 * Set the cell header
-	 * 
-	 * |--------|--------|
-	 * |  GFC   |  hVPI  |
-	 * |--------|--------|
-	 * |  lVPI  | hhVCI  |
-	 * |--------|--------|
-	 * | hlVCI  | lhVCI  |
-	 * |--------|--------|
-	 * | llVCI  | PTI+CLP|
-	 * |--------|--------|
-	 * |       HEC       |
-	 * |-----------------|
-	 *
-	 * GFC : Generic Flow Control (0x00 = uncontrolled)
-	 * PTI : Payload Type Id (3 bits)
-	 * 	= 0XY : User Data
-	 * 		X = Congestion Bit (1 = congested)
-	 * 		Y = User Signalling Bit (1 = last packet)
-	 * 	= 100 : OAM Data / OAM Link Associated Cell
-	 * 	= 101 : OAM Data / OAM End-to-End Associated Cell
-	 * 	= 110 : OAM Data / Resource Management Cell
-	 * 	= 111 : RESERVED FOR FUTURE USE
-	 * CLP : Cell Loss Priority (1 bit)
-	 * 	= 0 : high priority cell
-	 * 	= 1 : low priority cell
-	 * HEC : Header Error Control 
-	 * 	= header 8 bit CRC polynomial x^8+x^2+x+1
-	 *
-	 */
-	vpi &= 0xff ;
-	vci &= 0xffff ;
-	lp_cell[0] = (unsigned char) (vpi >> 4) ;
-	lp_cell[1] = (unsigned char) ((vpi << 4) | (vci >> 12)) ;
-	lp_cell[2] = (unsigned char) (vci >> 4) ;
-	lp_cell[3] = (unsigned char) (
-			((vci & 0xf) << 4) | 
-			(islast ? 0x02 : 0x00)) ;
-	lp_cell[4] = 0x00 ; /* To be changed but seems to work */
 
-	lp_cell += ATM_CELL_HDR ;
-
-	/* Copy data payload */
-	memcpy(lp_cell, pbuffer, size) ;
-	lp_cell += size ;
-
-	/* Set padding */
-	if (size < ATM_CELL_PAYLOAD)
-		memset(lp_cell, 0, ATM_CELL_PAYLOAD - size) ;
+	/* Alloc new cell */
+	lp_cell = _uni_cell_alloc() ;
+	if (!lp_cell) {
+		ERR_OUT("Not enought memory\n") ;
+		return -ENOMEM ;
+	}
 		
-	DBG_RAW_OUT(
-			"new uni cell", 
-			(unsigned char*)pthecell,
-			ATM_CELL_PAYLOAD + ATM_CELL_HDR) ;
+	/* Format it */
+	lv_rc = _uni_cell_format(
+			vpi,
+			vci,
+			islast,
+			szdata,
+			pdata,
+			lp_cell) ;
+	if (lv_rc) {
+		ERR_OUT("_uni_cell_format failed\n") ;
+		return lv_rc ;
+	}
 
-	return 0 ;
+	/* Add new cell to TX queue */
+	spin_lock(&pinstance->tx_q_lock) ;
+	lv_rc = _uni_cell_qpush(
+			lp_cell,
+			pinstance->ptx_q) ;
+	spin_unlock(&pinstance->tx_q_lock) ;
+
+	if (lv_rc) {
+		ERR_OUT("_uni_cell_qpush failed on TX queue\n") ;
+		return lv_rc ;
+	}
+
+	DBG_OUT("_eci_tx_enqueue out\n") ;
+	return lv_rc ;
+
 }
-
 /*----------------------------------------------------------------------
  *
  * Complete the AAL5 frame received from ATM layer
  * and split it into several UNI cells
  * We need to format the AAL5 trailer
+ * Then enqueue each cells
  *
  */
-static int _format_split_aal5(
-		unsigned int		vpi,	/* IN: VPI		*/
-		unsigned int		vci,	/* IN: VCI		*/
-		size_t			szdata,	/* IN: AAL5 payload lg	*/
-		unsigned char *		pdata,	/* IN: Raw AAL5 payload */
-		_uni_cell *		pcells, /* IN/OUT: UNI cell
-						 *        array to fill	*/
-		unsigned int *		pnbcells	
-						/* IN/OUT :
-						 *	>nb of free cell
-						 *	<nb of filled cell
-						 *			*/
+static int _eci_tx_aal5(
+		int			vpi,	/* IN: VPI		*/
+		int			vci,	/* IN: VCI		*/
+		struct eci_instance *	pinstance,
+		struct sk_buff *	pskb	
 ) {
-	unsigned char	lv_aal5trl[ATM_CELL_PAYLOAD] ;
+	size_t		lv_szdata	= 0 ;
+	byte *		lp_data		= NULL ;
+	byte		lv_aal5trl[ATM_CELL_PAYLOAD] ;
 	u32		lv_crc32	= 0 ;
 	int		lc_1 		= 0 ;
 	int		lv_rc 		= 0 ;
 	
 	/* Check Interface */
-	if (!pdata|| !pcells || !pnbcells) {
+	if (!pinstance || !pskb || !pskb->len || !pskb->data) {
 		ERR_OUT("Interface Error\n") ;
 		return -EINVAL ;
 	}
-	if (szdata > ((2^16) - 1)) {
+
+	lv_szdata 	= pskb->len ;
+	lp_data		= pskb->data ;
+	
+	if (lv_szdata > ((2^16) - 1)) {
 		ERR_OUT("data to long to be hold in aal5 frame\n") ;
 		return -EINVAL ;
 	}
@@ -1108,13 +1217,13 @@ static int _format_split_aal5(
 	memset(lv_aal5trl, 0, ATM_CELL_PAYLOAD - 6) ;
 	
 	/* Set the length (no CPI & no UU) */
-	lv_aal5trl[ATM_CELL_PAYLOAD - 6] = (szdata & 0xffff) >> 8 ;
-	lv_aal5trl[ATM_CELL_PAYLOAD - 5] = (szdata & 0x00ff) ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 6] = (lv_szdata & 0xffff) >> 8 ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 5] = (lv_szdata & 0x00ff) ;
 
 	/* Set the CRC after compute */
 	lv_crc32 = _calc_crc(
-				pdata,
-				szdata,
+				lp_data,
+				lv_szdata,
 				-1) ;
 	lv_crc32 = ~ _calc_crc(
 			lv_aal5trl,
@@ -1128,25 +1237,22 @@ static int _format_split_aal5(
 
 	/* Split AAL5 into UNI Cells */
 	lc_1 = 0 ;
-	while (szdata > ATM_CELL_PAYLOAD && lc_1 < *pnbcells) {
-		lv_rc = _format_unicell(
+	while (lv_szdata > ATM_CELL_PAYLOAD) {
+		
+		/* Enqueue slice */
+		lv_rc = _eci_tx_enqueue(
+				pinstance,
 				vpi,
 				vci,
 				false,
 				ATM_CELL_PAYLOAD,
-				pdata,
-				(_uni_cell *)&pcells[lc_1++]) ;
+				lp_data) ;
 		if (lv_rc) {
-			ERR_OUT("_format_unicell failed\n") ;
+			ERR_OUT("_eci_tx_enqueue failed\n") ;
 			return lv_rc ;
 		}
-		pdata += ATM_CELL_PAYLOAD ;
-		szdata -= ATM_CELL_PAYLOAD ;
-	}
-	/* Check that it remains any free Cells in table */
-	if (!(lc_1 < *pnbcells)) {
-		ERR_OUT("Insufficient number of free cells\n") ;
-		return -ENOMEM ;
+		lp_data += ATM_CELL_PAYLOAD ;
+		lv_szdata -= ATM_CELL_PAYLOAD ;
 	}
 	
 	/* 
@@ -1155,42 +1261,37 @@ static int _format_split_aal5(
 	 * - Enought free room to happend trailer
 	 * - Not enought => need one more cell
 	 */
-	if (szdata > (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER)) {
-		lv_rc = _format_unicell(
+	if (lv_szdata > (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER)) {
+
+		/* Enqueue this before last slice */
+		lv_rc = _eci_tx_enqueue(
+				pinstance,
 				vpi,
 				vci,
 				false,
-				szdata,
-				pdata,
-				&pcells[lc_1++]) ;
+				lv_szdata,
+				lp_data) ;
 		if (lv_rc) {
-			ERR_OUT("_format_unicell failed on last cell\n") ;
+			ERR_OUT("_eci_tx_enqueue failed on last cell\n") ;
 			return lv_rc ;
-		}
-		if (!(lc_1 < *pnbcells)) {
-			ERR_OUT("Insufficient number of free cells\n") ;
-			return -ENOMEM ;
 		}
 	} else {
 		/* copy remaining data in trailer cell */
-		memcpy(lv_aal5trl, pdata, szdata) ;
+		memcpy(lv_aal5trl, lp_data, lv_szdata) ;
 	}
 
 	/* Manage the last cell */
-	lv_rc = _format_unicell(
+	lv_rc = _eci_tx_enqueue(
+			pinstance,
 			vpi,
 			vci,
 			true,
 			ATM_CELL_PAYLOAD,
-			lv_aal5trl,
-			&pcells[lc_1++]) ;
+			lv_aal5trl) ;
 	if (lv_rc) {
-		ERR_OUT("_format_unicell failed on last cell\n") ;
+		ERR_OUT("_eci_tx_enqueue failed on last cell\n") ;
 		return lv_rc ;
 	}
-
-	/* Return the number of filled cells in the global array */
-	*pnbcells = lc_1 ;
 
 	return 0 ;
 }
@@ -1203,28 +1304,24 @@ static int _format_split_aal5(
  *
  */
 static int _eci_usb_tx(
-	struct eci_instance *	pinstance,	/* IN: ref to mod info	*/
-	unsigned int		nbcells,	/* IN: NB uni cells 	*/
-	_uni_cell *		pcells		/* IN: UNI Cells array	*/
+	struct eci_instance *	pinstance	/* IN: ref to mod info	*/
 ) {
 	int		lv_rc		= 0 ;
 	int		lc_1		= 0 ;
 	struct urb *	lp_eciurb 	= NULL ;
 	size_t		lv_szbuffer	= 0 ;
-	const size_t	lc_szcell	= sizeof(_uni_cell) ;
-	unsigned char *	lp_buffer	= NULL ;
-	unsigned char *	lp_cur		= NULL ;
+	const size_t	lc_szcell	= sizeof(uni_cell_t) ;
+	byte *		lp_buffer	= NULL ;
+	byte *		lp_cur		= NULL ;
 
 
 	DBG_OUT("_eci_usb_tx in\n") ;
 	
 	/* Check Interface */
-	if (!pinstance || !pcells) {
+	if (!pinstance) {
 		ERR_OUT("Interface Error\n") ;
 		return -EINVAL ;
 	}
-
-	DBG_OUT("[%d] uni cell to forward\n", nbcells) ;
 
 	/*
 	 * Map the cells into Bulk data buffer
@@ -1236,9 +1333,10 @@ static int _eci_usb_tx(
 	 * 	from device info
 	 *
 	 */
-	lv_szbuffer = 64 * nbcells ;
+	//lv_szbuffer = 64 * nbcells ;
 
 	/* Alloc mem for the buffer to link in URB */
+	/*
 	lp_buffer = (unsigned char*) kmalloc(
 			lv_szbuffer,
 			GFP_KERNEL) ;
@@ -1246,24 +1344,29 @@ static int _eci_usb_tx(
 		ERR_OUT("Not enought Memory for uni cells") ;
 		return -ENOMEM ;
 	}
-	
+	*/
+/*
 	lp_cur = lp_buffer ;
 	for (lc_1 = 0 ; lc_1 < nbcells ; lc_1++) {
 		memcpy(lp_cur, pcells[lc_1], lc_szcell) ;
 		memset(lp_cur + lc_szcell, 0xff, 64 - lc_szcell) ;
 		lp_cur += 64 ;
 	}
+*/
 	DBG_RAW_OUT("URB buffer ready to forward", lp_buffer, lv_szbuffer) ;
 
 	/* Alloc the new URB */
+	/*
 	lp_eciurb = usb_alloc_urb(0) ;
 	if (!lp_eciurb) {
 		ERR_OUT("Not enought Memory for iso urb") ;
 		kfree(lp_buffer) ;
 		return -ENOMEM ;
 	}
+	*/
 
 	/* Init the New URB */
+	/*
 	FILL_BULK_URB(
 			lp_eciurb,
 			pinstance->usb_wan_dev,
@@ -1275,80 +1378,26 @@ static int _eci_usb_tx(
 			_eci_bulk_callback,
 			pinstance
 	) ;
+	*/
 
 	/* Submit the new URB to the USB host */
 
-	lv_rc = usb_submit_urb(lp_eciurb) ;
-	if (lv_rc) {
+//	lv_rc = usb_submit_urb(lp_eciurb) ;
+//	if (lv_rc) {
 		/*
 		 * lv_rc == -6 == -ENXIO
 		 * This error means that this urb is already queued
 		 * It should be ignored ???
 		 */
+	/*
 		ERR_OUT("usb_submit_urb failed [%d]\n", lv_rc) ;
 	       usb_free_urb(lp_eciurb) ;
 	       kfree(lp_buffer) ;
 	       return lv_rc ;
 	}
+	*/
 	
 	DBG_OUT("_eci_usb_tx out\n") ;
-	return 0 ;
-}
-
-/*----------------------------------------------------------------------
- *
- * Send AAL5 frame through BULK URB on EP 0x02
- * The AAL5 fram must be split into UNI CELLs
- * The uni cell array is sent to the USB layer
- * for transport (mapped in URBs)
- *
- */
-static int _eci_tx_aal5(
-	unsigned int		vpi,
-	unsigned int		vci,
-	struct eci_instance *	pout_instance,	/* IN: Device info	*/
-	struct sk_buff *	pskb		/* IN: AAL5 frame	*/
-) {
-
-	unsigned int	lv_nbcells 	= ATM_MAX_CELLS ;
-	int		lv_rc 		= 0 ;
-
-	/* Check Interface */
-	if (!pout_instance || !pskb) {
-		ERR_OUT("Interface Error\n") ;
-		return -EINVAL ;
-	}
-
-	DBG_OUT("_eci_tx_aal5 in (vpi = <%u> vci = <%u>\n", vpi, vci) ;
-	
-	/* Format the raw AAL5 frame and split it */
-	lv_rc = _format_split_aal5(
-			vpi,
-			vci,
-			pskb->len,
-			pskb->data,
-			gv_thecells,
-			&lv_nbcells) ;
-	if (lv_rc) {
-		ERR_OUT("_format_split_aal5 failed [%d]\n", lv_rc) ;
-		return lv_rc ;
-	}
-
-	/*
-	 * Send the array of UNI cell to USB layer
-	 *
-	 */
-	lv_rc = _eci_usb_tx(
-			pout_instance,
-			lv_nbcells,
-			gv_thecells) ;
-	if (lv_rc) {
-		ERR_OUT("_eci_usb_tx failed [%d]\n", lv_rc) ;
-		return lv_rc ;
-	}
-
-	DBG_OUT("_eci_tx_aal5 out\n") ;
-
 	return 0 ;
 }
 
@@ -1358,7 +1407,7 @@ static int _eci_tx_aal5(
  *
  */
 static int _eci_usb_rx(
-	_uni_cell *thecell		/* IN: UNI Cell		*/
+	uni_cell_t *thecell		/* IN: UNI Cell		*/
 ) {
 	int	lv_rc	= 0 ;
 	DBG_OUT("_eci_usb_rx in\n") ;
@@ -1485,4 +1534,426 @@ static u32 _calc_crc(
 		crc = CRC32(*mem, crc);
 
 	return (crc);
+}
+
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------
+ 			UNI CELL ABSTRACTION
+  ----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------*/
+
+/* 
+ * Alloc a new UNI cell : 
+ * 	Check if any availlable in unused list else create it
+ */
+static uni_cell_t * _uni_cell_alloc(void) {
+	
+	uni_cell_t *lp_cell = NULL ;
+	
+	DBG_OUT("_uni_cell_alloc in\n") ;
+
+	/* Try to Retreive one from unused list */
+	spin_lock(&gl_uq_lock) ;
+	lp_cell = _uni_cell_qpop(gp_unused_q) ;
+	spin_unlock(&gl_uq_lock) ;
+
+	if (!lp_cell) {
+
+		/* 
+		 * The list might be empty
+		 * Allocate a new one
+		 */
+		DBG_OUT("No availlable cell create new one\n") ;
+		lp_cell = (uni_cell_t *) kmalloc(
+				sizeof(uni_cell_t),
+				GFP_KERNEL) ;
+		if (!lp_cell) {
+			ERR_OUT("Not enought memory for new cell\n") ;
+			return NULL ;
+		}
+	}
+
+	DBG_OUT("_uni_cell_alloc out\n") ;
+	return lp_cell ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * Free a UNI cell :
+ * 	Insert it in Unused cells list
+ */
+static void _uni_cell_free(
+		uni_cell_t * pcell
+) {
+	int lv_rc = 0 ;
+	
+	DBG_OUT("_uni_cell_free in\n") ;
+	if (pcell) {
+		if (!gp_unused_q) {
+			DBG_OUT("Unused List does not exist\n") ;
+			kfree(pcell) ;
+		} else {
+			spin_lock(&gl_uq_lock) ;
+			lv_rc = _uni_cell_qpush(pcell, gp_unused_q) ;
+			if (lv_rc) {
+				/* Failed to insert it so free memory */
+				ERR_OUT("Failed to keep cell : free it\n") ;
+				kfree(pcell) ;
+			}
+			spin_unlock(&gl_uq_lock) ;
+		} 
+	}
+	DBG_OUT("_uni_cell_free out\n") ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Format a cell */
+static int _uni_cell_format(
+	int			vpi,	/* IN: VPI			*/
+	int			vci,	/* IN: VCI			*/
+	bool			islast,	/* IN: Flag for last cell	*/
+	size_t			size,	/* IN: Payload size		*/
+	byte *	 		pdata,	/* IN: Payload data		*/
+	uni_cell_t *		pcell	/* OUT: Formated UNI cell	*/
+) {
+	int		lv_padd	= 0 ;
+	byte *		lp_cell	= NULL ;
+
+	DBG_OUT("_uni_cell_format in\n") ;
+
+	/* Check Interface */
+	if (!size || !pdata || !pcell || (size > ATM_CELL_PAYLOAD)) {
+		ERR_OUT("Interface Error\n") ;
+		return -EINVAL ;
+	}
+
+	/* Normalize VPI & VCI */
+	vpi &= 0x00ff ;
+	vci &= 0xffff ;
+
+	lp_cell = &(pcell->raw[0]) ;
+
+	/* 
+	 * Set the cell header
+	 * 
+	 * |--------|--------|
+	 * |  GFC   |  hVPI  |
+	 * |--------|--------|
+	 * |  lVPI  | hhVCI  |
+	 * |--------|--------|
+	 * | hlVCI  | lhVCI  |
+	 * |--------|--------|
+	 * | llVCI  | PTI+CLP|
+	 * |--------|--------|
+	 * |       HEC       |
+	 * |-----------------|
+	 *
+	 * GFC : Generic Flow Control (0x00 = uncontrolled)
+	 * PTI : Payload Type Id (3 bits)
+	 * 	= 0XY : User Data
+	 * 		X = Congestion Bit (1 = congested)
+	 * 		Y = User Signalling Bit (1 = last packet)
+	 * 	= 100 : OAM Data / OAM Link Associated Cell
+	 * 	= 101 : OAM Data / OAM End-to-End Associated Cell
+	 * 	= 110 : OAM Data / Resource Management Cell
+	 * 	= 111 : RESERVED FOR FUTURE USE
+	 * CLP : Cell Loss Priority (1 bit)
+	 * 	= 0 : high priority cell
+	 * 	= 1 : low priority cell
+	 * HEC : Header Error Control 
+	 * 	= header 8 bit CRC polynomial x^8+x^2+x+1
+	 *
+	 * N.B : It seems that 0 for HEC works
+	 */
+	lp_cell[0] = (byte) ((0x0000)			| (vpi >> 4)) ;
+	lp_cell[1] = (byte) ((vpi << 4)			| (vci >> 12)) ;
+	lp_cell[2] = (byte) (vci >> 4) ;
+	lp_cell[3] = (byte) (((vci & 0x0f) << 4)	| (islast ? 0x02 : 0x00)) ; 
+	lp_cell[4] = (byte) (0x0000) ;
+
+	/* Fill the Payload */
+	lp_cell += ATM_CELL_HDR ;
+	memcpy(lp_cell, pdata, size) ;
+
+	/* Fill the padding if needed */
+	if ((lv_padd = ATM_CELL_PAYLOAD - size) > 0)
+		memset(lp_cell + size, 0, lv_padd) ;
+
+	DBG_OUT("_uni_cell_format out\n") ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Get VPI from cell */
+static int _uni_cell_getVpi(
+		uni_cell_t *		pcell,	/* IN: the cell		*/
+		int *			pvpi	/* OUT: VPI		*/
+) {
+	byte * lp_raw = NULL ;
+
+	DBG_OUT("_uni_cell_getVpi in\n") ;
+
+	/* Check Interface */
+	if (!pcell || !pvpi) {
+		ERR_OUT("Interface Error\n") ;
+		return -EINVAL ;
+	}
+
+	lp_raw = pcell->raw ;
+
+	*pvpi = ((0x0f & lp_raw[0]) << 4) | (lp_raw[1] >> 4) ;
+
+	DBG_OUT("_uni_cell_getVpi out\n") ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Get VCI from cell */
+static int _uni_cell_getVci(
+		uni_cell_t *		pcell,	/* IN: the cell		*/
+		int *			pvci	/* OUT: VCI		*/
+) {
+	byte *	lp_raw = NULL ;
+	
+	DBG_OUT("_uni_cell_getVci in\n") ;
+
+	/* Check Interface */
+	if (!pcell || !pvci) {
+		ERR_OUT("Interface Error\n") ;
+		return -EINVAL ;
+	}
+
+	lp_raw = pcell->raw ;
+	
+	*pvci = 
+		((((0x0f & lp_raw[1]) << 4) | (lp_raw[2] >> 4)) << 8) |
+	       	( ((0x0f & lp_raw[2]) << 4) | (lp_raw[3] >> 4)) ;
+
+	DBG_OUT("_uni_cell_getVci out\n") ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* check if this is the last cell */
+static int _uni_cell_islast(
+		uni_cell_t *		pcell,	/* IN: the cell		*/
+		bool *			pislast	/* OUT: last cell flag	*/
+) {
+	DBG_OUT("_uni_cell_islast in\n") ;
+
+	/* check interface */
+	if (!pcell || !pislast) {
+		ERR_OUT("interface error\n") ;
+		return -EINVAL ;
+	}
+
+	*pislast = ((pcell->raw[3] & 0x02) == 0x02) ;
+
+	DBG_OUT("_uni_cell_islast out\n") ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Get The Payload */
+static byte * _uni_cell_getPayload(
+		uni_cell_t *		pcell	/* in: the cell		*/
+) {
+	DBG_OUT("_uni_cell_getPayload in\n") ;
+
+	/* check interface */
+	if (!pcell) {
+		ERR_OUT("Interface Error\n") ;
+		return NULL ;
+	}
+
+	DBG_OUT("_uni_cell_getPayload out\n") ;
+	return &(pcell->raw[0]) ;
+}
+
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------
+ 			UNI CELL QUEUE ABSTRACTION
+  ----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------*/
+
+/* Init a queue */
+static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
+	DBG_OUT("_uni_cell_qinit in\n") ;
+
+	/* Check Interface */
+	if (!pcellq) {
+		ERR_OUT("Interface Error\n") ;
+		return -EINVAL ;
+	}
+	
+	pcellq->nbcells		= 0 ;
+	pcellq->first		= NULL ;
+	pcellq->last		= NULL ;
+
+	DBG_OUT("_uni_cell_qinit out\n") ;
+	return 0 ;
+}
+/*----------------------------------------------------------------------*/
+
+/* Alloc a new queue */
+static uni_cell_q_t * _uni_cell_qalloc(void) {
+	
+	uni_cell_q_t * lp_cellq = NULL ;
+
+	DBG_OUT("_uni_cell_qalloc in\n") ;
+	lp_cellq = (uni_cell_q_t *) kmalloc(
+			sizeof(uni_cell_q_t),
+			GFP_KERNEL) ;
+	if (!lp_cellq) {
+		ERR_OUT("Not enought memory for queue\n") ;
+		return NULL ;
+	}
+
+	/* Init fields */
+	if (_uni_cell_qinit(lp_cellq)) {
+		ERR_OUT("Queue init failed\n") ;
+		kfree(lp_cellq) ;
+		return NULL ;
+	}
+	
+	DBG_OUT("_uni_cell_qalloc out\n") ;
+	return lp_cellq ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* 
+ * Free a queue :
+ * 	free also each remaining cells
+ */
+static void _uni_cell_qfree(uni_cell_q_t *pcellq) {
+
+	uni_cell_t *	lp_cell 	= NULL ;
+	uni_cell_t *	lp_cellnxt 	= NULL ;
+	
+	DBG_OUT("_uni_cell_qfree in\n") ;
+
+	/* Check Interface */
+	if (!pcellq) return ;
+
+	/*
+	 * Check If the queue is the Unused Cells List
+	 * 	if it is not : store the Cells in unused List
+	 * 	else free also each Cells
+	 */
+	if (!gp_unused_q || (pcellq == gp_unused_q)) {
+		/* Free each cells */
+		lp_cell = pcellq->first ;
+		while (lp_cell) {
+			lp_cellnxt	= lp_cell->next ;
+			_uni_cell_free(lp_cell) ;
+			lp_cell		= lp_cellnxt ;
+		}
+		pcellq->first 		= NULL ;
+		pcellq->last		= NULL ;
+		pcellq->nbcells		= 0 ;
+	} else {
+		/* Move cells into unused */
+		spin_lock(&gl_uq_lock) ;
+		
+		pcellq->last->next 	= gp_unused_q->first ;
+		gp_unused_q->first 	= pcellq->first ;
+		gp_unused_q->nbcells 	+= pcellq->nbcells ;
+
+		spin_unlock(&gl_uq_lock) ;
+
+		/* Free Queue */
+		kfree(pcellq) ;
+	}
+
+	DBG_OUT("_uni_cell_qfree out\n") ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * Check if the queue is empty
+ */
+static bool _uni_cell_qisempty(
+		uni_cell_q_t * pcellq
+) {
+	return (pcellq->nbcells == 0) ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * Push new UNI Cell in Queue
+ */
+static int _uni_cell_qpush(
+		uni_cell_t *	pcell,	/* IN: Cell to insert	*/
+		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
+) {
+	DBG_OUT("_uni_cell_qpush in\n") ;
+
+	/* Check Interface */
+	if (!pcell || !pcellq) {
+		ERR_OUT("Interface Error\n") ;
+		return -EINVAL ;
+	}
+
+	/* Add the new cell at the end of the list */
+	pcell->next = NULL ;
+
+	if (pcellq->last == NULL) {
+		/* The queue is empty */
+		pcellq->first = pcellq->last = pcell ;
+	} else {
+		pcellq->last->next 	= pcell ;
+		pcellq->last		= pcell ;
+	}
+	pcellq->nbcells++ ;
+
+	DBG_OUT("_uni_cell_qpush out\n") ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * Pop an UNI Cell from Queue :
+ * 	return NULL when empty or invalid queue
+ */
+static uni_cell_t * _uni_cell_qpop(
+		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
+) {
+	uni_cell_t * lp_cell = NULL ;
+	
+	DBG_OUT("_uni_cell_qpop in\n") ;
+
+	/* Check Interface */
+	if (!pcellq) {
+		ERR_OUT("Interface Error\n") ;
+		return NULL ;
+	}
+
+	/* Remove first cell in list */
+	if (pcellq->first) {
+		lp_cell 	= pcellq->first ;
+		pcellq->first 	= lp_cell->next ;
+		lp_cell->next 	= NULL ;
+		pcellq->nbcells-- ;
+	}
+		
+	DBG_OUT("_uni_cell_qpush out\n") ;
+	return lp_cell ;
 }
