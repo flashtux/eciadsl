@@ -1326,7 +1326,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 
 	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
-	spin_lock(&instance->lock);
+	spin_lock_bh(&instance->lock);
 /*	dev = instance->usb_wan_dev;
 	DBG_OUT("dev = %p\n", dev);	unused */
 
@@ -1371,7 +1371,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 			DBG_OUT("Waiting for data on 0x86 endpoint\n");
 #endif /* DEBUG */
 	}
-	spin_unlock(&instance->lock);
+	spin_unlock_bh(&instance->lock);
 	DBG_OUT("Vendor callBack out\n");
 }
 
@@ -1413,7 +1413,7 @@ static void eci_int_callback(struct urb *urb)
 
 	/*	DBG_OUT("Int callBack in\n"); Too much debug info	*/
 	instance = (struct eci_instance *) urb->context;
-	spin_lock(&instance->lock);
+	spin_lock_bh(&instance->lock);
 	if(urb->actual_length)
 	{
 		if(urb->actual_length!=64)
@@ -1481,7 +1481,7 @@ static void eci_int_callback(struct urb *urb)
 			DBG_RAW_OUT("EP INT datas :",in_buf, 64); */
 		}
 	}
-	spin_unlock(&instance->lock);
+	spin_unlock_bh(&instance->lock);
 	/*	DBG_OUT("Int callBack out\n");	*/
 }
 
@@ -1506,7 +1506,7 @@ static void eci_iso_callback(struct urb *urb)
 	int 			received = 0;	/* boolean for cell in frames */
 
 	instance = (struct eci_instance *)urb->context;
-	spin_lock(&instance->lock);
+	spin_lock_bh(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
  		/*if(!(cells = _uni_cell_list_alloc())) {
@@ -1616,7 +1616,7 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
-	spin_unlock(&instance->lock);
+	spin_unlock_bh(&instance->lock);
 	/*
 	DBG_OUT("Iso Callback Exit\n");
 	*/
@@ -1727,10 +1727,10 @@ static void eci_bulk_callback(struct urb *urb)
 	//kfree(urb->transfer_buffer);
 	//usb_free_urb(urb);
 	instance = (struct eci_instance *)urb->context;
-	spin_lock(&instance->lock);
+	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
-	tasklet_schedule(&instance->bh_bulk);
-	spin_unlock(&instance->lock);
+	//tasklet_schedule(&instance->bh_bulk);
+	spin_unlock_bh(&instance->lock);
 }
 /**********************************************************************
 		END USB CODE
