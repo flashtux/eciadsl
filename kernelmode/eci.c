@@ -1145,7 +1145,7 @@ static int eci_atm_open(struct atm_vcc *vcc) {
 		return -EINVAL;
 	}
 #endif /* ATM_VPI_UNSPEC && ATM_VCI_UNSPEC */
-#if 0
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
 	/*
 	 * Check that a context don't exists already
 	 */
@@ -1690,6 +1690,7 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 		}
 	}
 	if(received) {
+		DBG_OUT("scheduling iso bh from iso callback\n");
 		tasklet_schedule (&instance->bh_iso);
 	}
 					
@@ -1891,7 +1892,7 @@ static int eci_atm_receive_cell(
 
 	/* Check if VCC available */
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))
-	if (!(vcc = = pinstance->atm_dev->last)){
+	if (!(vcc = pinstance->atm_dev->last)){
 		ERR_OUT("No opened VC\n") ;
 		return -ENXIO ;
 	}
@@ -1904,7 +1905,9 @@ static int eci_atm_receive_cell(
 		if(vcc->dev->dev_data == pinstance) break;
 	}
 	read_unlock(&vcc_sklist_lock);
+	DBG_OUT("s = %x\n",s);
 	if(!s)	return -ENXIO ;
+	DBG_OUT("Found VCC %d %d\n", vcc->vci, vcc->vpi);
 #else
 	for(i=0; i< VCC_HTABLE_SIZE; i++) {
 		head = &vcc_hash[i];
