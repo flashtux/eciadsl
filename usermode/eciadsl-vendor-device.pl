@@ -33,8 +33,8 @@
 # file.
 
 # 07/02/2002 : added the CVS Id.
-# CVS $Id$
-# Tag $Name$
+# CVS $Id: eciadsl-vendor-device.pl,v 1.10 2003/08/17 12:31:07 flashcode Exp $
+# Tag $Name:  $
 
 # <CONFIG>
 # $BIN_DIR = "/usr/local/bin";
