@@ -32,10 +32,23 @@ PRE-REQUISITES
 - root privileges
 
 
-INSTALLATION (FROM THE SOURCES)
-===============================
+INSTALLATION FROM THE SOURCES
+=============================
 
 Read the INSTALL file.
+
+
+INSTALLATION FROM A PRE-COMPILED PACKAGE
+========================================
+
+Using a .rpm, as root:
+	rpm -i <the file>.rpm
+
+You may have to remove previously installed versions of this
+package (or to use a flag to ignore the previously installed
+one if you are warned to).
+Then: read the INSTALL file, installed in /usr/local/doc/eciadsl by default,
+starting at the CONFIGURATION section.
 
 
 TROUBLESHOOTING

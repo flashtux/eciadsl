@@ -1,3 +1,7 @@
+Si vous avez installé le driver par le biais d'un paquetage pré-compilé,
+passez directement à la section CONFIGURATION.
+
+
 COMPILATION
 ===========
 
@@ -76,3 +80,6 @@ A partir du répertoire des sources:
 	make uninstall
 et éventuellement
 	make distclean
+
+A partir d'un .rpm:
+	rpm -e eciadsl-usermode

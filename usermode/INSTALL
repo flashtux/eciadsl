@@ -1,6 +1,5 @@
-***************************
-* NULL or VCM PPPOA users *
-***************************
+If you have installed the driver using a pre-compiled package, jump to the
+CONFIGURATION section.
 
 
 COMPILATION
@@ -57,8 +56,8 @@ the installed driver and /etc/ppp/chap-secrets if your ISP expects a
 CHAP authentication for instance.
 
 
-USE
-===
+USAGE
+=====
 
 Run startmodem as root, from elsewhere but the sources directory.
 
@@ -75,3 +74,6 @@ From within the source tree:
 	make uninstall
 and optionally
 	make distclean
+
+From a .rpm:
+	rpm -e eciadsl-usermode

@@ -34,10 +34,24 @@ PRÉ-REQUIS
 - droits root
 
 
-INSTALLATION (A PARTIR DES SOURCES)
-===================================
+INSTALLATION À PARTIR DES SOURCES
+=================================
 
 Consultez le fichier INSTALL.fr.
+
+
+INSTALLATION À PARTIR D'UN PAQUETAGE PRÉ-COMPILÉ
+================================================
+
+Pour installer un .rpm, sous root:
+	rpm -i <the file>.rpm
+
+Il sera peut-être nécessaire de désinstaller une version ultérieurement
+installée par .rpm (vous pouvez aussi utiliser une option d'installation
+du paquetage de façon à ce que cette version déjà installée soit ignorée
+si vous en êtes averti à l'installation).
+Ensuite: consultez le fichier INSTALL.fr, installé par défaut dans
+/usr/local/doc/eciadsl, à partir de la section CONFIGURATION.
 
 
 EN CAS DE PROBLÈME
