@@ -761,7 +761,10 @@ R:	Escreva os seguintes comandos:
 		> cd /usr/usr/linux
 		> make -s menuconfig
 
-		USB support --->
+		  --- General setup
+		  [*] System V IPC
+		  ..
+		  USB support --->
 		  <M> Support for USB
 		  [ ]   USB verbose debug messages
 		  --- Miscellaneous USB options

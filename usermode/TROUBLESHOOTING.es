@@ -795,6 +795,9 @@ R:	Digite los siguientes comandos:
 		>cd /usr/src/linux
 		>make -s menuconfig
 
+		  --- General setup
+		  [*] System V IPC
+		  ..
 		  USB support --->
 		  <M> Support for USB
 		  [ ]   USB verbose debug messages
