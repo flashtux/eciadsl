@@ -14,6 +14,16 @@
 # 15/02/2002 Benoit PAPILLAULT
 #   remove "modprobe uhci" since this module never worked with this modem
 
+# 13/06/2002 Sebastien HELLEU <flashcode@free.fr>
+#   new file: /etc/eciadsl/vidpid : contains vid/pid (1 & 2) for your modem
+#             example of content ECI:   0547 2131 0915 8000
+
+# 03/07/2002 Sebastien HELLEU <flashcode@free.fr>
+#   new file: /etc/eciadsl/eci_wan.bin (created by Makefile and eciconf) :
+#             this is a link to your .bin
+#   to change your .bin file, run eciconf or type this command :
+#     rm /etc/eciadsl/eci_wan.bin && ln -s /path/your.bin /etc/eciadsl/eci_wan.bin
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 #
