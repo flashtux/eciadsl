@@ -132,17 +132,9 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 #include <sys/time.h>
 #include <sys/types.h>
 #include <unistd.h>
+
 #include "pusb.h"
-
-/* Vendor/ProdID for "ECI Telecom USB ADSL Loader" */
-#define EZUSB_NAME    "ECI Telecom USB ADSL Loader"
-#define EZUSB_VENDOR  0x0547
-#define EZUSB_PRODUCT 0x2131
-
-/* Vendor/ProdID for "ECI Telecom USB ADSL WAN Modem" */
-#define ECI_NAME      "ECI Telecom USB ADSL WAN Modem"
-#define ECI_VENDOR    0x0915
-#define ECI_PRODUCT   0x8000
+#include "modem.h"
 
 #define TIMEOUT 1000
 
@@ -157,7 +149,7 @@ struct eci_firm_block
 };
 
 /* for ident(1) command */
-static char id[] = "@(#) $Id$";
+static const char id[] = "@(#) $Id$";
 
 /*
   Load a firmware block. content should be either NULL
@@ -240,7 +232,7 @@ int eci_load1(const char * file)
 
 	if (pusb_set_interface(dev,0,1) < 0)
 	{
-		printf("Can't set interface 0 to use alt setting 1\n");
+		perror("Can't set interface 0 to use alt setting 1\n");
 		pusb_close (dev);
 		fclose (fp);
 		return 0;
@@ -307,7 +299,7 @@ void check_modem()
 		fd_set rset;
 		FD_ZERO(&rset);
 
-		dev = pusb_search_open(ECI_VENDOR,ECI_PRODUCT);
+		dev = pusb_search_open(GS_VENDOR,GS_PRODUCT);
 		if (dev != NULL)
 			break;
 
@@ -324,14 +316,14 @@ void check_modem()
 
 	if (dev == NULL)
 	{
-		printf("Can't find your " ECI_NAME "\n");
+		printf("Can't find your " GS_NAME "\n");
 		return ;
 	}
 
 	gettimeofday(&now,NULL);
 	
 	printf(
-		"I found your " ECI_NAME " (in less than %ld ms) : GREAT!\n",
+		"I found your " GS_NAME " (in less than %ld ms) : GREAT!\n",
 		(long) (
 			((now.tv_sec - start.tv_sec) * 1000) 
 			+ ((now.tv_usec - start.tv_usec) / 1000)
