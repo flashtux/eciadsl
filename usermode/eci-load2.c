@@ -49,6 +49,8 @@
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enough */
 #define ECILOAD_TIMEOUT 60
 
+char* exec_filename;
+
 /* the shared semaphore, defined as a global variable */
 
 int shared_sem = -1;
@@ -476,7 +478,8 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 
 void version(const int full)
 {
-	printf(PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n");
+	printf("%s, part of " PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n",
+			exec_filename);
 	if (full)
 		printf("%s\n", id);
 	_exit(0);
@@ -485,7 +488,7 @@ void version(const int full)
 void usage(const int ret)
 {
 	printf(	"usage:\n"
-			"       eci-load2 [<switch>..] [[VID2 PID2] <synch.bin>]\n");
+			"       %s [<switch>..] [[VID2 PID2] <synch.bin>]\n", exec_filename);
 	printf(	"switches:\n"
 			"       -v or --verbose   be verbose\n"
 			"       -h or --help      show this help message then exit\n"
@@ -517,6 +520,9 @@ int main(int argc, char** argv)
 	int i, j;
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
+
+
+	exec_filename=basename(*argv);
 
 	/* parse command line options */
 	for (i = 1, j = 1; i < argc; i++)

@@ -116,6 +116,8 @@
 
 #define PPP_BUF_SIZE 64*1024
 
+char* exec_filename;
+
 extern struct config_t config;
 
 typedef enum
@@ -1344,7 +1346,8 @@ void* fn_handle_ep_data_out(void* ignored)
 
 void version(const int full)
 {
-	printf(PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n");
+	printf("%s, part of " PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n",
+			exec_filename);
 	if (full)
 		printf("%s\n", id);
 	_exit(ERR_NONE);
@@ -1363,7 +1366,7 @@ void usage(const int ret)
 {
 
 	fprintf(stderr,	"usage:\n"
-					"       pppoeci [<switch>..] [-vpi num -vci num -vendor hex -product hex]\n");
+					"       %s [<switch>..] [-vpi num -vci num -vendor hex -product hex]\n", exec_filename);
 	fprintf(stderr,	"switches:\n"
 					"       -alt <num>           force the use of an alternate method to set USB interface\n"
 					"       -dto <num>           set the DATA_TIMEOUT value (default is %d)\n"
@@ -1446,8 +1449,10 @@ int main(int argc, char** argv)
 	const char* logfile = LOG_FILE;
 	int fdin, fdout, log;
 	int i;
-	char dev[20] = "";
+	char dev[20];
 
+	*dev=0;
+	exec_filename=basename(*argv);
 	this_process = getpid();
 	log = 0;
 

@@ -150,6 +150,8 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 #define TIMEOUT 1000
 #define ECILOAD_TIMEOUT 20
 
+char* exec_filename;
+
 /* just for testing without USB */
 /*#define TESTECI*/
 
@@ -356,7 +358,8 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 
 void version(const int full)
 {
-	printf(PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n");
+	printf("%s, part of " PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n",
+			exec_filename);
 	if (full)
 		printf("%s\n", id);
 	_exit(0);
@@ -365,7 +368,7 @@ void version(const int full)
 void usage(const int ret)
 {
 	printf(	"usage:\n"
-			"       eci-load1 [<switch>..] [[VID1 PID1 VID2 PID2] <firmware.bin>]\n");
+			"       %s [<switch>..] [[VID1 PID1 VID2 PID2] <firmware.bin>]\n", exec_filename);
 	printf(	"switches:\n"
 			"       -v or --verbose   be verbose\n"
 			"       -h or --help      show this help message then exit\n"
@@ -405,6 +408,9 @@ int main(int argc, char** argv)
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
 	pid_t child_pid;
+
+
+	exec_filename=basename(*argv);
 
 	/* parse command line options */
 	for (i = 1, j = 1; i < argc; i++)
