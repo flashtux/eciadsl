@@ -8,6 +8,7 @@ SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh \
 			remove_dabusb makeconfig
 
 TMP_DIR = inst
+TMP_FILE = Makefile.tmp
 
 all: ${TARGETS} ${SCRIPTS}
 
@@ -167,4 +168,6 @@ rpm:
 #	SRPMS: /usr/src/RPM/SRPMS/eciadsl-usermode-0.5-2.src.rpm
 
 cfg:
-	@type wish > /dev/null && $(BIN_DIR)/eciconf.sh || $(BIN_DIR)/eciconftxt.sh
+	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
+	sh $(TMP_FILE) && $(BIN_DIR)/eciconf.sh || $(BIN_DIR)/eciconftxt.sh
+	$(RM) $(TMP_FILE)
