@@ -774,6 +774,10 @@ R:	Les principes de configuration et de compilation du noyau sont les mêmes
 	    	<M> Universal TUN/TAP device driver support
 	    	..
 
+		  <M> PPP (point-to-point protocol) support
+		  ..
+		  <M>	PPP over ATM (EXPERIMENTAL)
+
 	puis tapez:
 		mkdir /dev/net
 		mknod /dev/net/tun0 c 10 200

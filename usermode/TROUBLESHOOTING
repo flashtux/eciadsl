@@ -736,6 +736,10 @@ A:	The kernel configuration and compilation principles are still the same
 	    	<M> Universal TUN/TAP device driver support
 	    	..
 
+		  <M> PPP (point-to-point protocol) support
+		  ..
+		  <M>	PPP over ATM (EXPERIMENTAL)
+
 	then type:
 		mkdir /dev/net
 		mknod /dev/net/tun0 c 10 200
