@@ -26,10 +26,18 @@ maxfail 10
 
 usepeerdns
 noauth
-# You may need lcp-echo feature. But that's optionnal.
+
+# If your PPP peer answer to LCP EchoReq (lcp-echo requests), you can
+# use, the lcp-echo-failure to detect disconnected links with
+#
 # lcp-echo-interval 600
 # lcp-echo-failure 10
+#
+# However, if your PPP peer DOES NOT answer to lcp-echo request, you MUST
+# desactivate this feature with the folowwing line
+#
+lcp-echo-interval 0
 
-# You may need the following. But only as a workaround
+# You may need the following, but ONLY as a workaround
 # mtu 1432
 
