@@ -1,14 +1,14 @@
 #! /bin/sh
 # ************************************************************************
 # *                                                                      *
-# *      remove_dabusb v0.1 - dabusb destroyer script                    *
-# *                           by FlashCode and Crevetor (c) 14/04/2002   *
+# *   eciadsl-remove-dabusb v0.1 - dabusb destroyer script               *
+#                           by FlashCode and Crevetor (c) 14/04/2002     *
 # *                                                                      *
 # *          For any support, contact one of us :                        *
-# *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
-# *           - Crevetor : areversat@tuxfamily.org			 *
+# *           - FlashCode: flashcode@flashtux.org                        *
+# *           - Crevetor : areversat@tuxfamily.org                       *
 # *                                                                      *
-# *          License : GPL                                               *
+# *          License : GPL  -  http://eciadsl.flashtux.org               *
 # *                                                                      *
 # ************************************************************************
 
