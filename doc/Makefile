@@ -14,7 +14,8 @@ pwd = `pwd`
 cvsroot= :pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl
 
 all: $(base).dvi $(base).html $(base).ps $(base).txt \
-  keep-useful-files-only
+	kernelmode-design.html technical-reference.html \
+	keep-useful-files-only
 
 %.aux: %.tex
 	latex $<
@@ -28,8 +29,8 @@ all: $(base).dvi $(base).html $(base).ps $(base).txt \
 %.html: %.tex %.aux
 	latex2html -dir $(pwd) -nonavigation -noauto_link -ascii_mode -show_section_numbers -split 0 $<
 # we removed reference to howto.html
-	sed s/howto.html// howto.html > tmp.html
-	mv tmp.html howto.html
+	sed s/$@// $@ > tmp.html
+	mv tmp.html $@
 
 %.ps: %.dvi 
 	dvips -f $< > $@
@@ -44,12 +45,11 @@ all: $(base).dvi $(base).html $(base).ps $(base).txt \
 
 site:	
 	cvs -d$(cvsroot) login
-	cvs -d$(cvsroot) update $(base).tex
-	cvs -d$(cvsroot) update Makefile
+	cvs -d$(cvsroot) update -A -d
 	cvs -d$(cvsroot) logout
 
 keep-useful-files-only:
-	$(RM) internals.pl labels.pl warnings $(base).log $(base).aux $(base).toc $(base).out
+	$(RM) internals.pl labels.pl warnings *.log *.aux *.toc *.out
 
 clean: keep-useful-files-only
-	$(RM) $(base).html $(base).css $(base).dvi $(base).ps $(base).pdf $(base).txt
+	$(RM) *.html *.css *.dvi *.ps *.pdf *.txt
