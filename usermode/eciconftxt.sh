@@ -222,7 +222,7 @@ case "$1" in
         echo
         echo "If your modem was not listed (or if you want to overwrite defaults),"
         echo "you can enter your own VID1/PID1/VID2/PID2 (use probe_device.sh to"
-		echo "get them :"
+		echo "get them) :"
         vid1=""
         choice_ok=0
         while [ $choice_ok -eq 0 ]; do
