@@ -342,6 +342,7 @@ void check_modem()
 
 void usage()
 {
+	printf("eci-load1 version $Name$\n");
 	printf("usage: eci-load1 eci_firmware.bin\n");
 	exit (-1);
 }
