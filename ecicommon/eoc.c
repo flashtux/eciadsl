@@ -51,7 +51,7 @@ void eoc_init() {
  */
 u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
 	printf("OEC.C - eco_decode - START [b1b2 : %02x%02x]\n", b1, b2);
-	printf("OEC.C - eco_decode - END     [b1b2 : %04x]\n", (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0xfe)));
+	printf("OEC.C - eco_decode - END   [eoc  : %04x]\n", (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0x1fc0)));
 	return (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0x1fc0));
 }
 
