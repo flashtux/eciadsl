@@ -222,7 +222,8 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
         {
             if (semaphore_incr(shared_sem, 1) == -1)
             {
-                perror("eci-load2: error incrementing the shared semaphore");
+                printf("ECI load 2: error incrementing the shared semaphore");
+				fflush(stdout);
             }
         }
 
@@ -401,7 +402,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
             /* decrement the shared semaphore, thus waiting for the child */
             if (semaphore_decr(shared_sem, 1) == -1)
             {
-                perror("eci-load2: error decrementing the shared semaphore");
+                printf("ECI load 2: error decrementing the shared semaphore");
             }
 
 			if (option_verbose)
@@ -439,7 +440,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		ep_data = pusb_endpoint_open(dev, 0x2, O_RDONLY);
 		if (ep_data == NULL)
 		{
-			perror("Can't open endpoint 2");
+			perror("can't open endpoint 2");
 			pusb_close(dev);
 			return(0);
 		}
@@ -589,7 +590,8 @@ int main(int argc, char** argv)
     shared_sem = semaphore_init(0);
     if (shared_sem == -1)
     {
-        perror("eci-load2: failed to create shared semaphore");
+        printf("ECI load 2: failed to create shared semaphore");
+		fflush(stdout);
         return(-1);
     }
 
