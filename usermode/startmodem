@@ -226,7 +226,7 @@ echo -e "\nsetting up route table (5/5)..\n"
 COUNTER=10
 FLREADY=0
 echo -n "waiting for ppp0.."
-for (( times = 1; times < $COUNTER; times++ )); do
+for (( times = 1; times < $COUNTER; times++ )) ; do
     ifconfig ppp0 > /dev/null 2>&1
     if [ $? -eq 0 ]; then
         FLREADY=1
@@ -242,7 +242,6 @@ if [ "$FLREADY" -eq 0 ]; then
 fi
 
 for IFACE in 0 1; do
-do
 	route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+eth$IFACE$" > /dev/null
 	if [ $? -eq 0 ]; then
 		echo "removing existing default route (eth$IFACE).."
