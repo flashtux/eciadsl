@@ -12,6 +12,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch10.bin (anciennement eci_ca2.bin)
 	synch11.bin (anciennement eci_foggia.webpower.bin)
     synch12.bin (anciennement eci_bastia.bin)
+    synch13.bin (anciennement eci_wan3.troll.bin - Italie/Naples/Telecom Italia)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
