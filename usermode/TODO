@@ -22,16 +22,19 @@ Sorted according to priority (the upper in the list, the prior):
   -? fix ETC_DIR use (separate installation and syst configuration uses)
   -? updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
   - some more checks in ./configure (see TODO inside)
-  - --with-kernel=<PATH> in ./configure
+  - --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
 + unify websites: eciadsl.sf.net update/move to flashtux
 - update the spec file
-- redesign eciconf.sh UI
+* redesign eciconf.sh UI
+- see if selected modem/provider/synchbin can be still coloured when an item from another
+  listbox is selected.
+- see if synch_bin update function (invert_bin) can use invert_fai's scheme.
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)
 - pppoeci and eci-load* must rehook TERM (if possible) and STOP signal to cleanup thing and exit
 -? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
-- code clean up & normalization
+- code clean up & normalization, string protection in scripts
 - submit driver to GNU/Linux distro managers
 
 0.x:
