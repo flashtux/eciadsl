@@ -25,6 +25,8 @@ Be careful, --etc-prefix can be changed too (defaut is /, so /etc is used),
 but it is used to get system config files like resolv.conf or the pppd config
 files. Use --etc-prefix only if you know what you are doing.
 
+See other options using ./configure --help.
+
 
 INSTALLATION
 ============

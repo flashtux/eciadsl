@@ -23,6 +23,9 @@ est utilisée pour accéder aux fichiers de configuration de pppd et à resolv.conf
 notamment! N'utiliser donc --etc-prefix qu'en sachant exactement ce que cela
 implique.
 
+D'autres options sont disponibles, ./configure --help vous renseignera sur ce
+point.
+
 
 INSTALLATION
 ============

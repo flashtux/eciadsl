@@ -91,7 +91,7 @@ R:	Vous devez débrancher/rebrancher le modem avant de lancer probe_device.sh.
 Q:	startmodem, eciconf ou eci-doctor.sh signale un modem non supporté !
 
 --------------------------------------------------------------------------------
-R:	Voir la question précédente.
+R:	Voir la question 1.4.
 
 	Si votre modem branché n'est pas visible dans /proc/bus/usb/devices,
 	regardez dans /var/log/messages. Si vous voyez ces lignes apparaître durant
@@ -104,8 +104,8 @@ R:	Voir la question précédente.
 	configuration du noyau, ou encore: désactivez/activez le support USB Legacy
 	dans le BIOS.
 
-	Voir aussi la question sur le module dabusb. Si dabusb est chargé, vous ne
-	pourrez pas utiliser votre modem avec le driver.
+	Voir aussi la question sur le module dabusb. Tant que dabusb sera chargé
+	automatiquement, vous ne pourrez pas utiliser votre modem avec le driver.
 
 
 2.0
@@ -155,7 +155,7 @@ Q:	Pas moyen de supprimer dabusb ! A chaque démarrage, il est de nouveau
 	chargé !
 
 --------------------------------------------------------------------------------
-R:	Voir la question précédente, utilisez la méthode manuelle.
+R:	Voir la question 2.1, et utilisez la méthode manuelle.
 
 
 2.3
@@ -164,7 +164,7 @@ Q:	J'essaie de supprimer le module dabusb, mais j'obtiens toujours :
 	dabusb: Device or resource busy
 
 --------------------------------------------------------------------------------
-R:	Voir la question précédente.
+R:	Voir la question 2.2.
 
 
 2.4
@@ -175,7 +175,7 @@ Q:	Mon modem semble initialisé au démarrage, les LEDs clignotent ou sont fixes.
 
 --------------------------------------------------------------------------------
 R:	Non ! Ceci n'est pas bon.
-	Le coupable est le module dabusb. Voir la question précédente.
+	Le coupable est le module dabusb. Voir la question 2.3.
 
 
 2.5
@@ -198,7 +198,7 @@ R:	Suivez les pré-requis, lisez la documentation en rapport au problème N_HDLC.
 	S'il n'y a pas de message d'erreur à la suite de la commande précédente,
 	tapez la commande suivante pour appliquer le patch sur les sources :
 		patch -p1 < /chemin/vers/n_hdlc.c.diff
-	et consultez la question sur la configuration du noyau (ci-dessous).
+	et consultez la question sur la configuration du noyau (5.3).
 
 
 2.6
@@ -218,12 +218,35 @@ Q:	startmodem affiche : ECI-load2: timeout
 R:	Voir la question suivante.
 
 
+2.7
+================================================================================
+Q:	startmodem/probe_device.sh/eci-doctor.sh ne trouvent pas mon modem.
+
+--------------------------------------------------------------------------------
+A:	Votre modem n'est peut-être pas supporté. Il se peut que votre HUB USB ne
+	le soit pas, ou encore que le module du noyau relatif à ce HUB pose
+	problème.
+
+
+3.0
+================================================================================
+Q:	startmodem affiche : ECI-load2: timeout
+
+--------------------------------------------------------------------------------
+R:	Voir la question 3.1.
+
+
 3.1
 ================================================================================
 Q:	startmodem affiche : ECI-load2: failed
 
 --------------------------------------------------------------------------------
-R:	Voir la question suivante.
+R:	Voir la question 3.2.
+
+	Problème connu: il est possible que sous GNOME ou KDE, eci-load2 ne puisse
+	obtenir la synchro. Installez la dernière version ou contactez-nous.
+	Cela peut arriver si vous lancez startmodem alors que votre CPU est
+	fortement occupé.
 
 
 3.2
@@ -234,9 +257,9 @@ Q:	startmodem s'arrête au bloc xxx.
 R:	Suivez les pré-requis.
 
 	Téléchargez une version plus récente du driver (utilisateurs de la 0.5 :
-	prenez la dernière CVS).
+	prenez la version 0.6 ou la dernière CVS).
 
-	Essayez d'autres .bin de synchronisation (.bin disponibles sur le site).
+	Essayez d'autres .bin de synchronisation (disponibles sur le site).
 
 
 4.0
@@ -249,13 +272,17 @@ R:	Vérifiez votre fichier /etc/ppp/pap-secrets ou /etc/ppp/chap-secrets.
 		"utilisateur" * "motdepasse" *
 	Vous pouvez configurer ceci en utilisant eciconf.
 
+	Selon la version de pppd, la syntaxe des fichiers pap-secrets ou
+	chap-secrets peut différer légèrement. Il est dans ce cas nécessaire de les
+	modifier manuellement, ou de nous contacter.
+
 
 4.1
 ================================================================================
 Q:	startmodem est OK, mais je ne peux toujours pas surfer sur Internet ?
 
 --------------------------------------------------------------------------------
-R:	Voir la question précédente.
+R:	Voir la question 4.0.
 
 	Si vous pouvez pinger une IP mais pas un nom de domaine, vérifiez votre
 	fichier /etc/resolv.conf, il doit inclure les IP des DNS de votre
@@ -307,8 +334,8 @@ R:	Voir la question précédente.
 
 	Cela peut etre un problème de firewall. Essayez de désactiver le firewall,
 	si ça marche ensuite, vous devez juste changer les paramètres du firewall.
-	Utilisateurs Mandrake 9 : si vous voyez des lignes comme celle-ci dans votre
-	fichier /var/log/messages:
+	Utilisateurs de la Mandrake 9 : si vous voyez des lignes comme celle-ci dans
+	votre fichier /var/log/messages:
 		Shorewall:INPUT:REJECT:IN=ppp0 ....
 	alors il s'agit d'un problème de firewall.
 
@@ -355,7 +382,7 @@ R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ?
 
 	Vérifiez votre version de pppd.
 
-	Regardez aussi la question suivante, car les problèmes d'authentification
+	Regardez aussi la question 4.5, car les problèmes d'authentification
 	CHAP/PAP ne sont pas toujours affichés clairement par pppd.
 
 	Regardez ci-dessous les questions concernant les utilisateurs hors de France.
@@ -398,6 +425,18 @@ R:	Vérifiez votre configuration du noyau (ci-dessous).
 	correcte est "-vendor 0x0915". Utilisez eciconf.sh pour configurer
 	correctement le driver !
 
+	De façon plus générale, cela peut provenir d'une configuration incorrecte du
+	driver. Par exemple, le mode PPP utilisé n'est peut-être pas celui que
+	votre provider supporte ?
+
+	Activez pppoeci en mode verbeux (-v 2), si vous voyez les lignes suivantes
+	dans la log de pppoeci :
+		hi! I'm the parent process, I handle the endpoint 0x07
+		file descriptors: fdin=3, fdout=4
+		error loading N_HDLC
+	alors vous pouvez être sûr que le support N_HDLC dans le noyau n'est pas
+	présent (c'est un prérequis !). Voir la question correspondante (5.3).
+
 
 4.7
 ================================================================================
@@ -424,11 +463,11 @@ R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du
 	concernant la configuration du noyau ci-dessous). Vérifiez que cette option
 	est présente (c'est le cas par défaut).
 
-	Vous pouvez aussi utiliser un script de reconnection automatique, et bien
-	sûr vérifiez que votre configuration est OK.
-
 	Vous pouvez aussi essayer en mettant le MTU à 1000 ou même 512 dans le
 	fichier /etc/ppp/peers/adsl.
+
+	Vous pouvez aussi utiliser un script de reconnection automatique, et bien
+	sûr vérifiez que votre configuration est OK.
 
 
 4.9
@@ -437,15 +476,17 @@ Q:	J'obtiens des modem hangups mais mon problème n'est pas référencé dans les
 	questions précédentes, ou bien mon modem s'éteint !
 
 --------------------------------------------------------------------------------
-R:	Votre chipset USB est-il un VIA ? Certains sont connus pour être buggés et
-	causent des problèmes pour l'alimentation USB. Si votre modem s'éteint, vous
-	êtes peut-être dans ce cas.
+R:	Votre chipset USB est-il un VIA ou un SiS 700x? Certains sont connus pour
+	être buggés et causent des problèmes pour l'alimentation USB ou alors le
+	module noyau pose problème. Si votre modem s'éteint, vous êtes peut-être
+	dans ce cas (VIA).
 
 	Sur certains systèmes (chipset USB buggé ou vieux processeur), ceci peut
 	arriver lorsque vous utilisez plusieurs périphériques USB qui consomment
 	beaucoup d'énergie (périphériques vidéo, disque dur).
 
-	<A FAIRE: ajouter d'autres cas de modem hangup>
+	Cela peut arriver en cas de surcharge du CPU (gravure, etc.) ou de
+	surcharge de bus USB (webcam, etc.).
 
 
 4.10
@@ -467,14 +508,18 @@ R:	Vous n'avez pas bu! pppd ne peut pas communiquer avec pppoeci (composant du
 
 4.11
 ================================================================================
-Q:	J'obtiens un kernel panic/oops comme ceci :
-	<A FAIRE: insérer un exemple de kernel panic>
+Q:	J'obtiens un kernel panic/oops.
 
 --------------------------------------------------------------------------------
 R:	Attendez la version eciadsl 0.7 (il semblerait que le driver ne purge pas
 	correctement les URBs en cas de déconnexion).
-	
-	<A FAIRE: décrire les autres problèmes : instabilité OHCI, bugs USB du noyau>
+
+	This may come from a kernel module bug (OHCI?), badly supported hardware,
+	heavily loaded CPU or USB bus, or any kind of global system problem (even a
+	bug in the driver of course).
+	Cela pourrait aussi provenir d'un bug dans un module noyau (OHCI?), d'un
+	matériel incorrectement supporté, ou d'un problème de configuration système
+	en général (et bien sûr d'un bug du driver lui-même).
 
 
 4.12
@@ -484,6 +529,9 @@ Q:	J'obtiens ce message dans /var/log/messages:
 
 --------------------------------------------------------------------------------
 R:	<A FAIRE: décrire les problèmes avec les "endpoints" URB>
+
+	Désactivez les autres périphériques USB pour être sûr que ce problème est
+	lié à l'utilisation du modem.	
 
 
 4.13
@@ -495,6 +543,7 @@ Q:	eci-doctor.sh affiche :
 
 --------------------------------------------------------------------------------
 R:	Il peut y avoir beaucoup de raisons à cela! Prenez contact avec nous.
+	Voir la question 1.5.
 
 
 4.14
@@ -507,6 +556,8 @@ R:	Essayez un autre .bin de synchro.
 
 	C'est notamment le cas de certains utilisateurs en Belgique, qui sont passés
 	récemment au 3.3Mbit/sec de bande passante.
+
+	Jouer avec la valeur du MTU peut être une solution.
 
 
 5.0
@@ -566,9 +617,9 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	Par exemple:
 		ls /etc/rc.d/rc5.d
 	affiche
-		S01foo
-		S15bar
-		S99dummy
+		S01dupond
+		S15dupont
+		S99bidon
 		K10schtroumpf
 		K80barbatruc
 	(ce n'est qu'un exemple).
@@ -622,7 +673,7 @@ Q:	Je ne peux pas me connecter sous X11 alors que cela fonctionne bien en
 	console.
 
 --------------------------------------------------------------------------------
-R:	<A FAIRE: essayer d'expliquer pourquoi on ne sait pas (encore)>
+R:	Voir la question 3.1.
 
 
 5.3
@@ -741,7 +792,7 @@ R:	Les principes de configuration et de compilation du noyau sont les mêmes
 		mknod /dev/net/tun c 10 200
 
 
-5.4 (MISE A JOUR NÉCESSAIRE)
+5.4
 ================================================================================
 Q:	Je ne suis pas en France, le driver fonctionnera-t-il avec mon modem et mon
 	fournisseur ?
@@ -751,33 +802,21 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 	des modems supportés et qu'il n'est PAS dans la liste des NON supportés,
 	consultez-nous pour plus d'aide.
 
-	Regardez quel protocole est utilisé dans votre driver Windows. S'il s'agit
-	de PPPoE ou d'un autre protocole/couche, il se peut que la version actuelle
-	du driver ne le supporte pas encore. Attendez une future version officielle
-	(suivez de près la version CVS).
+	Trouvez quel protocol/encapsulation PPP est utilisé sous Windows par votre
+	provider. Déterminez aussi s'il utilise DHCP ou une IP statique.
+	Utilisez alors eciconf.sh ou eciconftxt.sh pour configurer le driver en ce
+	sens, et si le driver ne supporte pas ces modes ou si vous avez un problème
+	ou un doute, récupérez la dernière version ou contactez-nous.
 
-	Vous pouvez aussi rencontrer des problèmes si votre fournisseur ne nécessite
-	pas d'authentification, s'il fournit des services DHCP ou d'adresse IP fixe,
-	ou tout autre fonctionnalité exotique.
-
-	Utilisateurs de IPoATM ou de PPPoE: vous trouverez des patchs pour les
-	sources du CVS (0.6-preX) sur le site technique officiel du driver:
-		http://sourceforge.net/tracker/?group_id=30043&atid=398083
-	Chaque patch inclut les instructions pour son utilisation.
-	Le fichier README explique comment appliquer un patch sur les sources du
-	driver.
-	Ces patchs seront intégrés à la version officielle dès que possible.
-
-	Les utilisateurs de Belgique ou d'Italie : regardez les sites suivants pour
-	des patchs spécifiques :
-		http://www.prout.be/ECI/
-		http://www.hctechnews.org/
-
-	Utilisateurs de BT voyager (Royaume-Uni notamment):
-		http://www.thecaretaker.org.uk/drivers/btvoyager/btvoyagerlinux.htm
+	Pour info:
+		RFC1483 VC-MUX (ou null) PPPoA == RFC2364 VC-MUX
+		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		SNAP est une couche d'encapsulation supplémentaire, entre ethernet et LLC
+		our entre IP et LLC.
+	<A FAIRE: compléter la liste des modes PPP actuellement supportés>
 
 
-5.5 (MISE A JOUR NÉCESSAIRE)
+5.5
 ================================================================================
 Q:	Je ne suis pas en France, mon modem est supporté et startmodem est OK, mais
 	j'ai des problèmes avec pppd (par exemple des problèmes LCP).
@@ -791,24 +830,7 @@ R:	Vérifiez que votre modem est supporté et que l'installation et la
 
 	Essayez d'autres .bin de synchronisation.
 
-	Regardez les questions précédentes.
-	
-	Vous pouvez aussi utiliser ces options pour l'appel de pppoeci dans le
-	fichier /etc/ppp/peers/adsl:
-		-mode VCM_RFC2364 (par défaut)
-	ou	-mode LLC_RFC2364
-	ou	-mode LLC_SNAP_RFC1483
-
-	Pour info:
-		RFC1483 VC-MUX (ou null) PPPoA == RFC2364 VC-MUX
-		RFC1483 LLC PPPoA == RFC2364 LLC Routed
-		SNAP est une couche d'encapsulation supplémentaire, entre ethernet et LLC
-		our entre IP et LLC.
-
-	Vous pouvez aussi essayer l'option -alt 4 (ou d'autres valeurs, qui
-	dépendent de votre matériel).
-
-	Regardez aussi la question précédente.
+	Regardez aussi la question 5.4.
 
 
 5.6
@@ -844,7 +866,7 @@ R:	Peut-être. Si vous n'arrivez pas à initialiser votre modem, essayez de
 	USB.
 
 	Si vous avez des à la fois des HUBs USB 1.1 et 2.0 sur votre machine,
-	regardez la question précédente.
+	regardez la question 5.6.
 
 
 5.8
@@ -865,7 +887,9 @@ R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter
 	modem, attendre quelques secondes qu'il se réinitialise, et le rebrancher.
 	Vous pouvez alors l'utiliser sous Windows.
 
-	<A FAIRE: problèmes non vérifiés avec ericsson et usermode 0.5>
+	Si le problème persiste, contactez-nous.
+
+	<A FAIRE: problèmes non vérifiés avec Ericsson et usermode 0.5>
 
 
 5.9
@@ -873,7 +897,7 @@ R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter
 Q:	Puis-je utiliser ce driver sous *BSD?
 
 --------------------------------------------------------------------------------
-R:	Un portage de la version 0.5 est disponible en ligne.
+R:	Un portage de la version 0.5 est en développement.
 	Pas officiellement supporté !
 
 

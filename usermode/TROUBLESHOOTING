@@ -54,7 +54,7 @@ Q:	I get the following error when I run `make` or `make install`:
 	make: *** No rule to make target `Makefile.config'.  Stop.
 
 --------------------------------------------------------------------------------
-A:	Did you run `./configure`? you should have!
+A:	Did you run `./configure`? You should have!
 	(>=0.6-pre4 only)
 
 
@@ -91,7 +91,7 @@ A:	You must reset your modem (unplug/wait/replug) before launching
 Q:	startmodem, eciconf or eci-doctor.sh report me an unsupported modem!
 
 --------------------------------------------------------------------------------
-A:	Jump to the previous question.
+A:	See 1.4.
 
 	If your plugged modem isn't showed in /proc/bus/usb/devices, look at
 	/var/log/messages. If you see such lines appearing during the last boot:
@@ -103,7 +103,8 @@ A:	Jump to the previous question.
 	issue, or also to disable/enable USB legacy support in BIOS.
 
 	Also check the question that deals with the dabusb module, if dabusb is
-	loaded, you won't be able to use your modem with this driver.
+	loaded, you won't be able to use your modem with this driver until you
+	disable the loading of dabusb.
 
 
 2.0
@@ -152,7 +153,7 @@ A:	You can remove the dabusb module from your system using eciconf.
 Q:	No way to remove dabusb! At each boot, it is loaded again!
 
 --------------------------------------------------------------------------------
-A:	Jump to the previous question, but use the manual method.
+A:	See 2.1, but use the manual method.
 
 
 2.3
@@ -161,7 +162,7 @@ Q:	I try to remove the dabusb module, but always get:
 	dabusb: Device or resource busy
 
 --------------------------------------------------------------------------------
-A:	Jump to the previous question.
+A:	See 2.2.
 
 
 2.4
@@ -172,7 +173,7 @@ Q:	My modem seems initialized at boot, the LEDs are flashing or fixed. Does this
 
 --------------------------------------------------------------------------------
 A:	No! This is not friendly at all.
-	That's a dabusb module issue. See the previous question.
+	That's a dabusb module issue. See 2.3.
 
 
 2.5
@@ -195,7 +196,7 @@ A:	Follow the pre-requisites, read the documentation about the N_HDLC problem.
 	If no error message is returned by the previous command, type the following
 	line to make the source's patch:
 		patch -p1 < /path/to/n_hdlc.c.diff
-	then jump to the kernel configuration question (below).
+	then jump to the kernel configuration question (5.3).
 
 
 2.6
@@ -207,12 +208,21 @@ A:	Your modem is probably not supported, start to read this FAQ from the
 	beginning.
 
 
+2.7
+================================================================================
+Q:	startmodem/probe_device.sh/eci-doctor.sh cannot find my modem.
+
+--------------------------------------------------------------------------------
+A:	Your modem is probably not supported or there's a problem with your USB HUB
+	hardware, it might also be a bug in the kernel modules.
+
+
 3.0
 ================================================================================
 Q:	startmodem says: ECI-load2: timeout
 
 --------------------------------------------------------------------------------
-A:	See the next question.
+A:	See 3.1.
 
 
 3.1
@@ -220,7 +230,12 @@ A:	See the next question.
 Q:	startmodem says: ECI-load2: failed
 
 --------------------------------------------------------------------------------
-A:	See the next question.
+A:	See 3.2.
+
+	Known problem: under GNOME or KDE, eci-load2 may not get the synch. Try the
+	latest version, or contact us.
+	This may also happen if you run startmodem while your CPU is under heavy
+	load.
 
 
 3.2
@@ -230,7 +245,8 @@ Q:	startmodem is stalled at block xxx.
 --------------------------------------------------------------------------------
 A:	Follow the pre-requisites.
 
-	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
+	Upgrade your eciadsl driver version (0.5 owners: get version 0.6 or the
+	latest CVS).
 
 	Try the other synch .bin's (available online).
 
@@ -245,7 +261,8 @@ A:	Check your /etc/ppp/pap-secrets or /etc/ppp/chap-secrets files. Entries must
 		"username" * "userpassword" *
 	You can configure this using eciconf.
 
-	<TODO: add alternate pppd syntax for this>
+	Following the pppd version, the syntax of pap-secrets and chap-secrets may
+	differ. If so, try to modify them by hand or contact us.
 
 
 4.1
@@ -253,7 +270,7 @@ A:	Check your /etc/ppp/pap-secrets or /etc/ppp/chap-secrets files. Entries must
 Q:	startmodem went OK, but I still cannot use Internet access?
 
 --------------------------------------------------------------------------------
-A:	Jump to the previous question.
+A:	See 4.0.
 
 	If you can ping an IP but cannot ping a hostname, check at your
 	/etc/resolv.conf file, it must include your provider's DNS IP.
@@ -346,8 +363,8 @@ A:	If your kernel really OK? N_HDLC support is OK? Check above!
 
 	Check your pppd version.
 
-	Jump to the next question also, because CHAP/PAP authentication problems
-	are not always verbosely reported by pppd.
+	See 4.5 also, because CHAP/PAP authentication problems are not always
+	verbosely reported by pppd.
 
 	See also below questions related to international users.
 
@@ -386,13 +403,16 @@ A:	Check your kernel config (below).
 	For instance, the use of "-vendor 0915" is wrong. The exact syntax is
 	"-vendor 0x0915". Use eciconf.sh to properly configure the driver!
 
+	More generally, this may also come from a bad configuration, for instance
+	if the PPP mode is not the one you need.
+
 	Enable verbose logging to pppoeci (-v 2), and if you see in pppoeci's log
 	file these lines:
 		hi! I'm the parent process, I handle the endpoint 0x07
 		file descriptors: fdin=3, fdout=4
 		error loading N_HDLC
 	you must ensure that your kernel has n_hdlc module (pre-requisite) see the
-	relevant question!
+	relevant question (5.3)!
 
 
 4.7
@@ -418,10 +438,10 @@ A:	This may be due to high traffic on the line or to any provider problem/daily
 	N_HDLC support in the kernel, see the kernel configuration related question
 	below). Verify that this persist option is set (by default it is).
 
+	Decreasing the MTU in /etc/ppp/peers/adsl to 1000 or even to 512 may help.
+
 	You may also try using a third-party autoconnect script, and of course check
 	if your configuration has been properly set.
-
-	Decreasing the MTU in /etc/ppp/peers/adsl to 1000 or even to 512 may help.
 
 
 4.9
@@ -430,15 +450,16 @@ Q:	I get modem hangups but my problem doesn't match the previous questions
 	or my modem goes OFF!
 
 --------------------------------------------------------------------------------
-A:	Is your USB chipset an old VIA one? Some are known to be buggy and to have
-	problems regarding to the USB power supply. If you modem goes OFF (no
-	power),	this might be your case.
+A:	Is your USB chipset an old VIA one or a SiS 700x? Some are known to be buggy
+	and to have problems regarding to the USB power supply or a buggy kernel
+	module. If you modem goes OFF (no power), this might be your case (VIA).
 
 	On some systems (bugged USB chipset or old processors), this may happen
 	when you use multiple USB device that sucks a lot of power (video devices,
 	hdd).
 
-	<TODO: add other possibilities for a modem hangup>
+	This may also happen if you CPU is heavily loaded (burning CD or so) or when
+	the USB bus is heavily loaded too (webcam use, etc.).
 
 
 4.10
@@ -459,14 +480,15 @@ A:	You are not drunk, pppd cannot communicate with pppoeci (part of the driver)
 
 4.11
 ================================================================================
-Q:	I get kernel panic/oops like:
-	<TODO: put kernel panic sample text>
+Q:	I get kernel panic/oops.
 
 --------------------------------------------------------------------------------
 A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd
 	disconnects).
-	
-	<TODO: describe other problems, OHCI unstability, kernel USB bugs>
+
+	This may come from a kernel module bug (OHCI?), badly supported hardware,
+	heavily loaded CPU or USB bus, or any kind of global system problem (even a
+	bug in the driver of course).
 
 
 4.12
@@ -476,6 +498,9 @@ Q:	I get this message in /var/log/messages:
 
 --------------------------------------------------------------------------------
 A:	<TODO: describe problems with URB endpoints>
+
+	Try to disable all other USB devices to get sure that this problem is
+	related to the use of the modem.
 
 
 4.13
@@ -487,6 +512,7 @@ Q:	eci-doctor.sh says:
 
 --------------------------------------------------------------------------------
 A:	Too many possible reasons! Please contact us.
+	See 1.5 too.
 
 
 4.14
@@ -499,6 +525,8 @@ A:	Try with another synch .bin.
 
 	Recently, some users from Belgium have had such problems, since their
 	provider now deliver 3.3Mbit/sec bandwidth.
+
+	You can also play with the MTU value.
 
 
 5.0
@@ -560,8 +588,8 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 		S01foo
 		S15bar
 		S99dummy
-		K10schtroumpf
-		K80barbatruc
+		K10makemyday
+		K80whatthefuck
 	(take care, it's only an example).
 	So when init level 5 in entered, it will call S01foo, S15bar then S99dummy.
 
@@ -609,7 +637,7 @@ A:	This may be a framebuffer issue. Try to boot your Linux without framebuffer
 Q:	I cannot connect under X11 whereas it works fine in console mode.
 
 --------------------------------------------------------------------------------
-A:	<TODO: try to explain that we dunno why (yet)>
+A:	See 3.1.
 
 
 5.3
@@ -726,7 +754,7 @@ A:	The kernel configuration and compilation principles are still the same
 		mknod /dev/net/tun c 10 200
 
 
-5.4 (OUTDATED)
+5.4
 ================================================================================
 Q:	I'm not from France, will the driver work with my modem and provider?
 
@@ -735,30 +763,21 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 	the supported modem and is NOT in the list of UN-supported modem, ask
 	us for further help.
 
-	Think about checking which protocol your Windows driver uses. If it's PPPoE
-	or other protocol/layers, it may be a problem since current driver version
-	may not support them until a further official release (check the CVS
-	anyway).
+	Check which PPP protocol/encapsulation is used under Windows by your
+	provider. Also check if DHCP is used by your provider or if you use a
+	static IP.
+	Use eciconf.sh or eciconftxt.sh to properly use it. If it's	not supported
+	by the driver or if you are uncertain, get the latest version of the driver
+	or contact us.
 
-	You may also have problems if your provider doesn't need authentication,
-	provides DHCP services or fixed IP, or any other exotic stuff.
+	FYI:
+		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX
+		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		SNAP is an encapsulation layer more, between ethernet and LLC or
+		between IP and LLC.
+	<TODO: complete the list of currently supported PPP modes>
 
-	IPoATM or PPPoE users: you can find patches against last CVS (0.6-preX) in
-	the official patch tracker, usage instructions are shipped with each
-	patch. See: http://sourceforge.net/tracker/?group_id=30043&atid=398083
-	and look at the README file to know how to apply a patch to the driver
-	sources. These patches will be merged to the main sources ASAP.
-
-	Users from Belgium or Italy: get further info or specific patched
-	version from here:
-		http://www.prout.be/ECI/
-		http://www.hctechnews.org/
-
-	BT voyager users (from UK for instance):
-		http://www.thecaretaker.org.uk/drivers/btvoyager/btvoyagerlinux.htm
-
-
-5.5 (OUTDATED)
+5.5
 ================================================================================
 Q:	I'm not from France, my modem is supported and startmodem went OK, but I
 	get problems with pppd (LCP problems maybe).
@@ -767,28 +786,12 @@ Q:	I'm not from France, my modem is supported and startmodem went OK, but I
 A:	Verify that you modem is supported and that the installation and
 	configuration went OK.
 
-	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
+	Upgrade your eciadsl driver version (0.5 owners: get the 0.6 version or the
+	latest CVS).
 
 	Try other synch .bin.
 
-	Check above questions.
-	
-	If you live outside from France, you may also try to set these options to
-	the pppoeci invocation in /etc/ppp/peers/adsl:
-		-mode VCM_RFC2364 (this is default setting)
-	or	-mode LLC_RFC2364
-	or	-mode LLC_SNAP_RFC1483
-
-	FYI:
-		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX
-		RFC1483 LLC PPPoA == RFC2364 LLC Routed
-		SNAP is an encapsulation layer more, between ethernet and LLC or
-		between IP and LLC.
-
-	It may worth trying the -alt 4 option too (or other values, depending on
-	your hardware).
-
-	Also jump to the previous question.
+	See 5.4.
 
 
 5.6
@@ -820,8 +823,7 @@ A:	Might be. If you don't succeed in initializing your modem, try to disable
 	problem too (to be verified). Also try your modem with all other USB devices
 	unplugged.
 
-	If you have USB 1.1 and 2.0 HUBs together in your machine, jump to the
-	previous question.
+	If you have USB 1.1 and 2.0 HUBs together in your machine, see 5.6.
 
 
 5.8
@@ -839,6 +841,8 @@ A:	Unload all USB modules related to you modem when leaving Linux. This could
 	few seconds so that it's resetted, and replug it. Then, you can use it under
 	Windows.
 
+	If the problem still persist, contact us.
+
 	<TODO: unverified problems with Ericsson modems and usermode 0.5>
 
 
@@ -847,7 +851,7 @@ A:	Unload all USB modules related to you modem when leaving Linux. This could
 Q:	Can I use this driver under *BSD?
 
 --------------------------------------------------------------------------------
-A:	A BSD port of the version 0.5 is available online.
+A:	A BSD port of the version 0.5 is under development.
 	Still not officially supported!
 
 

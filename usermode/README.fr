@@ -30,8 +30,8 @@ PRÉ-REQUIS
 - droits root
 
 
-INSTALLATION
-============
+INSTALLATION (A PARTIR DES SOURCES)
+===================================
 
 Consultez le fichier INSTALL.fr.
 
@@ -61,8 +61,9 @@ Infos à nous communiquer :
 	- version de pppd (tapez : `pppd --version`)
 	- version de modutils (tapez : `lsmod --version`)
 	- modèle du controleur USB (HUB) (tapez : `lspci | grep USB`)
-	- version du driver eciadsl (regardez le fichier VERSION s'il existe pour
-	  version >0.5, sinon le nom du package ou la date du CVS) et :
+	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des sources
+	  s'il existe pour les versions >0.5, ou pppoeci --version, sinon le nom du package/la
+	  date du CVS) et :
 		- les informations sur votre driver Windows si vous l'utilisez
 	      (at aussi le type de modulation que votre fournisseur supporte)
 		- les .bin de synchronisation que vous avez essayés
