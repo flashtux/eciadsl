@@ -165,10 +165,10 @@ P:	O output do startmodem, eciconf ou eci-doctor mostra:
 -------------------------------------------------------------------------------
 R:	Verifique a configuração USB do seu sistema. Se o kernel tem suporte
 	para tal, tente montá-lo usando:
-		mount -t usbdevfs none /proc/bus/usb
+		> mount -t usbdevfs none /proc/bus/usb
 	Isto pode ser incluido no seu /etc/fstab. Para que este processo seja
 	automatizado durante o arranque, inclua a seguinte linha:
-		> usbdevfs /proc/bus/usb usbdevfs defaults 0 0
+		usbdevfs /proc/bus/usb usbdevfs defaults 0 0
 
 	Nota: não haverá nada em /proc/bus/usb até que um modulo controlador
 	anfitrião seja carregado.
@@ -364,12 +364,12 @@ R:	Veja 4.0.
 
 	> ifconfig ppp0
 
-	  ppp0  Link encap:Point-to-Point Protocol
-		  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
-		  UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
-		  RX packets:80951 errors:0 dropped:0 overruns:0 frame:0
-		  TX packets:85395 errors:0 dropped:0 overruns:0 carrier:0
-		  collisions:0 txqueuelen:3
+	  ppp0 Link encap:Point-to-Point Protocol
+		   inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
+		   UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+		   RX packets:80951 errors:0 dropped:0 overruns:0 frame:0
+		   TX packets:85395 errors:0 dropped:0 overruns:0 carrier:0
+		   collisions:0 txqueuelen:3
 
 	  O IP e outros valores serão diferentes dos apresentados acima.
 
@@ -431,16 +431,18 @@ P:	Recebo linhas de LCP timeout em /var/log/messages e o modem desliga (e
 		Connection terminated.
 
 -------------------------------------------------------------------------------
-R:	Estará o seu kernel OK? Estará o suporte N_HDLC OK? Verifique acima!
+R:	Estará o seu kernel OK? Estará o suporte N_HDLC OK? Verifique os pré-
+	-requesitos (ver ficheiro README.pt).
 
-	Verifique a versão do pppd.
+	Isto pode ser problema do synch. Tente outros synch .bin disponíveis
+	na página oficial de downloads.
 
 	Veja tambêm 4.5, porque problemas com autenticação CHAP/PAP nem sempre
 	são anunciados verbosamente.
 	As questões 4.6 a 4.9 tambêm poderão ajudar.
 
 	Veja tambêm as questões abaixo relacionadas com utilizadores de outros
-	países (5.4, 5.5).
+	países (5.4).
 
 
 4.5
@@ -455,8 +457,8 @@ R:	Experimente des-comentar as duas linhas do /etc/ppp/peers/adsl que
 	Isto tambêm pode dever-se ao seu provedor; espera alguns minutos/horas
 	se mesmo assim não conseguir.
 
-	Se estes LCP timeouts não afectarem a sua ligação, simplesmente
-	esqueça-os.
+	Se estes LCP timeouts não afectarem a sua ligação PPP, simplesmente
+	esqueça-os ou tente outro synch .bin.
 
 
 4.6
@@ -628,6 +630,17 @@ R:	Verifique a tabela de roteamento: ao escrever `route -n` como root.
 	Suécia e alguns países da Ásia.
 
 
+4.16
+===============================================================================
+P:	O startmodem diz:
+	eci-load2: failed to create shared semaphore: No space left on device
+
+-------------------------------------------------------------------------------
+R:	Isso é um bug introduzido na versão 0.6. Deve estar reparado em versões
+	superiores à 0.7. Por favor actualize para a cvs ou qualquer outra
+	versão > 0.7.
+
+
 5.0
 ===============================================================================
 P:	É possível lançar o startmodem durante o arranque do sistema?
@@ -644,7 +657,8 @@ R:	Sim, isando o init.d por exemplo, ou o /etc/ppp/ppp_on_boot para
 	   http://eciadsl.flashtux.org/download.php?lang=en
 
 
-	Copiar o ficheiro rc.adsl para /etc/init.d: cp rc.dsl /etc/init.d
+	Copiar o ficheiro rc.adsl para /etc/init.d:
+		> cp rc.dsl /etc/init.d
 	( o ficheiro rc.adsl é fornecido nas versões >= 0.7 (ou CVS))
 
 	No Debian, escreva como root: update-rc.d rc.adsl default 15
@@ -742,8 +756,8 @@ P:	Como é que configuro o kernel convenientemente a partir do código fonte
 
 -------------------------------------------------------------------------------
 R:	Escreva os seguintes comandos:
-		cd /usr/usr/linux
-		make -s menuconfig
+		> cd /usr/usr/linux
+		> make -s menuconfig
 
 		USB support --->
 		  <M> Support for USB
@@ -752,7 +766,7 @@ R:	Escreva os seguintes comandos:
 		  [*]   Preliminary USB device filesystem
 		  [ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)
 		  [ ]   Long timeout for slow-responding devices (some MGE
-		        Ellipse UPSes)
+		Ellipse UPSes)
 		  --- USB Host Controller Drivers
 		  < >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)
 		  <M>   UHCI (Intel PIIX4, VIA, ...) support
@@ -802,7 +816,7 @@ R:	Escreva os seguintes comandos:
 	Actualize o seu pacote modutils.
 
 	Agora deverá ver os seguintes modulos disponíveis quando executar o
-	comando modprobe -l:
+	comando `modprobe -l`:
 		usbcore
 	e
 		usb-uhci ou usb-ohci ou uhci
@@ -839,24 +853,24 @@ P:	Como é que configuro o kernel convenientemente a partir do código fonte
 -------------------------------------------------------------------------------
 R:	Os prícipios de configuração e compilação do kernel são os mesmos
 	(veja 5.3), mas vai necessitar do seguinte:
-		  Network device support --->
-		  ..
-		  [*] Network device support
+		Network device support --->
+		..
+		[*] Network device support
 	    	..
 	    	<M> Universal TUN/TAP device driver support
 	    	..
-		  <M> PPP (point-to-point protocol) support
-		  ..
-		  <M> PPP over ATM (EXPERIMENTAL)
+
+		<M> PPP (point-to-point protocol) support
+		..
+		<M> PPP over ATM (EXPERIMENTAL)
 
 	depois execute:
 		> mkdir /dev/net
 		> mknod /dev/net/tun0 c 10 200
-		>l n -s /dev/net/tun0 /dev/net/tun
+		> ln -s /dev/net/tun0 /dev/net/tun
 
 	Utilizadores do PPPoE: leiam o ficheiro INSTALL, há mais software que
 	é necessário instalar e configurar.
-
 
 5.4
 ===============================================================================
@@ -905,23 +919,6 @@ R:	Verifique se o seu modem é suportado. Se o seu modem não está na lista
 
 		Tambêm poderá ler o RFC1483 e o RFC2364 que descrevem todos
 		estes modos em detalhe.
-
-
-5.5
-===============================================================================
-P:	Não sou de França, o meu modem é suportado e o startmodem deu OK, mas
-	tenho problemas com o pppd (problemas de LCP talvêz).
-
--------------------------------------------------------------------------------
-R:	Verifique se realmente o seu modem é suportado e se a instalação e
-	a configuração foram efectuadas com sucesso.
-
-	Actualize o seu driver eciadsl (quem tiver a versão 0.5 deverá obter a
-	versão 0.6 ou até a mais recente CVS).
-
-	Tente outro synch .bin.
-
-	Veja 5.4.
 
 
 5.6
@@ -994,7 +991,7 @@ R:	Tem de desligar o modem manualmente, esperar uns segundos para ele
 P:	É possível usar este driver em *BSD?
 
 -------------------------------------------------------------------------------
-R:	Um porte para BSD da versão 0.5 do driver está em desenvolvimento.
+R:	Um porte para BSD do driver está em desenvolvimento.
 	Mas ainda não é oficialmente suportado!
 
 
@@ -1004,7 +1001,9 @@ P:	É possível usar este driver em GNU/Hurd, Darwin, QNX ou BeOS ou
 	outros sistemas?
 
 -------------------------------------------------------------------------------
-R:	Não.
+R:	Sabe-se que o driver já trabalha em muitos sistemas GNU/Linux, mas
+	tambêm em *BSD (trabalho em progresso) outros sistemas não baseados no
+	kernel Linux não são suportados.
 
 
 5.11
@@ -1012,7 +1011,7 @@ R:	Não.
 P:	Como é que eu para o ligação PPP?
 
 -------------------------------------------------------------------------------
-R:	`killall pppd` o `ifconfig ppp0 down`.
+R:	`killall pppd` ou `ifconfig ppp0 down`.
 	Isto vai deixar o modem ainda inicializado.
 
 	Utilizadores do Routed IP (tun0): `killall pppoeci`.

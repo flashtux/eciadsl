@@ -100,8 +100,10 @@ configuração ou startmodem), as contidas em /var/log/messages e em
 /var/log/log se existir, a informação fornecida por `dmesg`, `lsmod`
 e `cat /proc/bus/usb/devices`.
 
-Se ao nos contactar estiver a utilizar o MS Windows, se a partição do Linux
-estiver na mesma máquina e o sistema de ficheiros for ext2 ou ext3, use o
-programa explore2fs para obter os ficheiros directamente da partição Linux
-sem necessitar de reiniciar de cada vez que precisa de outro ficheiro!
-explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
+Se ao nos contactar estiver a utilizar o MS Windows e se a partição do Linux
+estiver na mesma máquina, use uma das seguintes aplicações para obter os 
+ficheiros directamente da partição Linux sem necessitar de reiniciar de cada
+vez que precisa de outro ficheiro!
+explore2fs (ext2, ext3): http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
+waxfs (xfs): http://sourceforge.net/projects/waxfs/
+p-nand-q (reiserfs): http://p-nand-q.com/e/reiserfs.html
