@@ -116,8 +116,10 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	
 	for(;i<bufflen;i+=2) {		
 		if(buffer[i] !=0xc0) {
-			/* TODO: check for eoc valicode*/
+			/* check for eoc valicode*/
 			eoccode = eoc_decode(buffer[i], buffer[i+1]);
+			if((eoccode & 0x0F01) != 0x0301) continue;
+			printf("OEC.C - parse_eoc_buffer - GOOD EOC CODE [%04x]\n", eoccode);
 			if(EOC_ADDRESS(eoccode) != EOC_ADDRESS_ATU_R) {
 				continue; /* creapy message or not for us */
 			}
