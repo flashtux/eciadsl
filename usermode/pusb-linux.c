@@ -2,6 +2,12 @@
   Author   : Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation : 29/05/2001
 
+*********************************************************************
+ File		: 	$RCSfile$
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************
+
   Portable USB user library -- Linux implementation
 */
 
@@ -367,8 +373,18 @@ int pusb_endpoint_write(pusb_endpoint_t ep,
 			const unsigned char *buf, int size, int timeout)
 {
 	if (timeout == 0)
-		return pusb_endpoint_rw_no_timeout(ep->fd,ep->ep|USB_DIR_OUT,buf,size);
-	return pusb_endpoint_rw(ep->fd,ep->ep|USB_DIR_OUT,buf,size,timeout);
+		return pusb_endpoint_rw_no_timeout(
+				ep->fd,
+				ep->ep | USB_DIR_OUT,
+				(unsigned char*) buf,	// Not supposed to be filled
+				size);
+	
+	return pusb_endpoint_rw(
+			ep->fd,
+			ep->ep | USB_DIR_OUT,
+			(unsigned char*)buf,	// Not supposed to be filled
+			size,
+			timeout);
 }
 
 int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char * buf,

@@ -1,3 +1,9 @@
+/*********************************************************************
+ File		: 	$RCSfile$
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************/
+
 /* Simple portable USB interface */
 
 #if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)

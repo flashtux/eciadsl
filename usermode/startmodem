@@ -1,6 +1,62 @@
 #!/bin/sh
-eci-load1 eci_firm_kit_wanadoo.bin
-eci-load2 eci_wan3.bin
+
+echo "Init modem ..." ;
+
+echo "	Load Firmware ..." ;
+./eci-load1 eci_firm_kit_wanadoo.bin
+if [ $? -ne 0 ] ; then
+	echo "Failed to load firmware" ;
+	exit -1 ;
+fi ;
+echo "	... Load Firmware OK"
+
+echo "	Setup modem ..." ;
+./eci-load2 eci_wan3.bin
+if [ $? -ne 0 ] ; then
+	echo "Failed to setup the modem" ;
+	exit -1 ;
+fi ;
+echo "	... Setup Modem OK" ;
+
+echo "... modem init OK" ;
+
+echo "Connect Modem ..." ;
 pppd call adsl
+if [ $? -ne 0 ] ; then
+	echo "Connexion failed" ;
+	exit -1 ;
+fi ;
+echo "... Connect Modem OK" ;
 
+# Wait until ppp0 get available
+COUNTER=20
+FLREADY="no"
+echo "Add Default route ..." ;
+echo -n "	wait for ppp0 : " ;
+for (( times = 1; times < $COUNTER; times++ )); do
+	FOUND=`ifconfig | grep ppp0` ;
+	if [ ! -z "$FOUND" ] ; then
+		FLREADY="yes" ;
+		break ;
+	fi ;
+	sleep 1 ;
+	echo -n "." ;
+done
 
+echo "" ;
+unset COUNTER ;
+unset FOUND ;
+
+if [ "$FLREADY" = "yes" ] ; then
+	echo "	ppp0 now available" ;
+	route add default dev ppp0 ;
+	echo "Default route added" ;
+else
+	echo "No device found" ;
+	unset FLREADY ;
+	exit -1 ;
+fi ;
+
+unset FLREADY ;
+
+exit 0 ;

@@ -9,6 +9,12 @@
   23/11/2001 : Added some delay before testing for the existence of
   the WAN USB interface (ECI_xxx).
 
+*********************************************************************
+ File		: 	$RCSfile$
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************
+
   Tested with :
   eci_firm_1.bin                     : file is corrupted or in wrong format
   eci_firm_bourrin.bin               : works

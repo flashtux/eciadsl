@@ -2,6 +2,12 @@
   Author : Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation : 20/07/2001
 
+*********************************************************************
+ File		: 	$RCSfile$
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************
+
   Used to initalized the secondary USB device (created by eci-load1).
   This should synchronize the ADSL link (fixed led).
 
@@ -13,6 +19,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -338,8 +345,13 @@ int eci_load2(const char * file)
 
 			pause();
 			gettimeofday(&tv2,NULL);
-			printf("waited %d ms\n",(tv2.tv_sec-tv1.tv_sec)*1000
-				   + (tv2.tv_usec-tv1.tv_usec) / 1000);
+			printf(
+				"waited %ld ms\n",
+				(long) (
+					((tv2.tv_sec - tv1.tv_sec) * 1000)
+					+ ((tv2.tv_usec - tv1.tv_usec) / 1000)
+				)
+			);
 		}
 
 		fflush(stdout);
@@ -398,8 +410,10 @@ int eci_load2(const char * file)
 
 	if (ftell(fp) != size)
 	{
-		printf("file size = %d <=> bytes read = %d\n",
-			   size,ftell(fp));
+		printf(
+			"file size = %ld <=> bytes read = %ld\n",
+			size,
+			ftell(fp));
 	}
 
 	fclose (fp);

@@ -2,6 +2,12 @@
   Author : Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation : 29/11/2001
 
+*********************************************************************
+ File		: 	$RCSfile$
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************
+
   Design of a new way to handle endpoint for the ECI USB ADSL modem
   and replace pppoa2.c
 
@@ -265,6 +271,7 @@ dump(unsigned char *buf, int len)
 			print_char(buf[j]);
 
 		printf("\n");
+		fflush(NULL) ;
 
 	}
 }
