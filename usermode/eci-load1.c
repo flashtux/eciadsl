@@ -347,7 +347,7 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 	gettimeofday(&now, NULL);
 	
 	printf(
-		GS_NAME " compatible modem found (in %ldms): GREAT!\n",
+		GS_NAME " compatible modem found (in %ldms)\n",
 		(long) (( (now.tv_sec - start.tv_sec) * 1000) 
 				+ ((now.tv_usec - start.tv_usec) / 1000) ));
 	pusb_close(dev);
