@@ -26,6 +26,7 @@ if [ "$1" == "--version" -o "$1" == "-v" ]; then
 fi
 
 tmpbin=/tmp/binfile.tmp
+previous="Previous setting"
 
 if [ $UID -ne 0 ]; then
     echo -e "This script must be run as root.\nEnter the root password, please."
@@ -33,11 +34,30 @@ if [ $UID -ne 0 ]; then
     exit 1
 fi
 
+if [ -s "$CONF_DIR/eciadsl.conf" ]; then
+	prev_vpi=`grep -E "^[ \t]*VPI[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_vci=`grep -E "^[ \t]*VCI[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_mode=`grep -E "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_firmware=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_modem=`grep -E "^[ \t]*MODEM[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_provider=`grep -E "^[ \t]*PROVIDER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_pppd_user=`grep -E "^[ \t]*PPPD_USER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+fi
+
 case "$1" in
 "@menu@")
     choice_ok=0
-    echo $2 | grep ".*|.*|" >/dev/null 2>&1
+    echo $2 | grep -E "^[^|]+(\|[^|]+)*\|[^|]+$" > /dev/null 2>&1
     if [ $? -ne 0 ]; then
+		echo -e "*** internal error: invalid menu\n$2"
         exit 255
     fi
     while [ $choice_ok -eq 0 ]; do
@@ -57,38 +77,44 @@ case "$1" in
             fi
         done
         i=$(expr $i - 1)
-        echo -e -n "\nEnter your choice (1-$i, default is 1): "
+        echo -en "\nEnter your choice (1-$i, default is 1): "
         read choice_menu
         if [ -z "$choice_menu" ]; then
             choice_menu=1
         fi
-        echo $possible | grep "$choice_menu" >/dev/null 2>&1
+        echo $possible | grep "$choice_menu" > /dev/null 2>&1
         if [ $? -eq 0 ]; then
             choice_ok=1
         else
-            echo -e "ERROR: incorrect choice\n"
+            echo -e "Incorrect choice, try again\n"
         fi
     done
     exit $choice_menu
 	;;
 
 "@bin@")
-    fichiers_bin="Select your .bin file for synch|"
     echo
-    find $CONF_DIR -type f -o -type l -name "*.bin" 2>/dev/null | grep "bin" >/dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        echo "WARNING: no .bin file found in $CONF_DIR or subdirectories"
-        echo "Please check your driver installation!"
-        echo "Skipping .bin selection.."
-        :> $tmpbin
-        exit 255
-    fi
-    for bin in $(find $CONF_DIR -type f -name "*.bin"); do
-		case "$bin" in
-		*firmware*)	;;
-		*)			fichiers_bin="$fichiers_bin$bin|";;
-		esac
+	fichiers_bin=""
+    for bin in $(find "$CONF_DIR" -type f -name "*.bin" | grep -v "firmware"); do
+		fichiers_bin="$fichiers_bin|$bin"
     done
+    if [ -z "$fichiers_bin" ]; then
+        echo "WARNING: no synch .bin file found in $CONF_DIR or subdirectories"
+        echo "Please check your driver installation!"
+		if [ -n "$prev_synch" ]; then
+	        echo "Previous selection kept"
+			echo "$prev_synch" > $tmpbin
+			exit 0
+		else
+	        echo "Skipping synch .bin selection.."
+	        :> $tmpbin
+	        exit 255
+		fi
+    fi
+	if [ -n "$prev_synch" ]; then
+	    fichiers_bin="|$previous ($prev_synch)$fichiers_bin"
+	fi
+    fichiers_bin="Select your .bin file for synch$fichiers_bin"
     $0 @menu@ "$fichiers_bin"
 	ret=$?
 	test $ret -eq 255 && exit 255
@@ -98,20 +124,25 @@ case "$1" in
 	;;
 
 "")
-    menu1="==== What do you want to do|Configure all settings|Remove dabusb module|Change synch .bin file"
+    menu1="Your choice|Configure all settings|Remove dabusb module|Change synch .bin file"
 
     if [ ! -d $CONF_DIR ]; then
         echo -e "Config directory not found!\n"
         exit 1
     fi
 
+	OLDIFS="$IFS"
+	IFS="
+"
 	providers_db="$CONF_DIR/providers.db"
     providers="Select your provider"
     servers_dns1="*"
     servers_dns2="*"
-	OLDIFS="$IFS"
-	IFS="
-"
+	if [ -n "$prev_provider" ]; then
+		providers="$providers|$previous ($prev_provider)"
+		servers_dns1="$servers_dns1|$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 2)"
+		servers_dns2="$servers_dns2|$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 3)"
+	fi
 	for LINE in $(grep -v -E "^[ \t]*#" "$providers_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
 		providers="$providers|$LINE"
 	done
@@ -122,13 +153,18 @@ case "$1" in
 		servers_dns2="$servers_dns2|$LINE"
 	done
     providers="$providers|Other"
-    servers_dns1="$servers_dns1|0.0.0.0"
-    servers_dns2="$servers_dns2|0.0.0.0"
+    servers_dns1="$servers_dns1|?"
+    servers_dns2="$servers_dns2|?"
 
 	modems_db="$CONF_DIR/modems.db"
     modems="Select your modem"
     vid1pid1="*"
     vid2pid2="*"
+	if [ -n "$prev_modem" -a -n "$prev_vid1" -a -n "$prev_pid1" -a -n "$prev_vid2" -a -n "$prev_pid2" ]; then
+		modems="$modems|$previous ($prev_modem)"
+		vid1pid1="$vid1pid1|$prev_vid1$prev_pid1"
+		vid2pid2="$vid2pid2|$prev_vid2$prev_pid2"
+	fi
 	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 1); do
 		modems="$modems|$LINE"
 	done
@@ -155,13 +191,25 @@ case "$1" in
     ### Global Eci Adsl configuration ###
 
     if [ $config -eq 1 ]; then
-        echo -e "\n===> Global Eci Adsl configuration <===\n"
+        echo -e "\n===> Eci Adsl driver setup <===\n"
 
         user=""
         while [ -z "$user" ]; do
-            echo -n "Type in your user name (given by your provider): "
+			if [ -n "$prev_pppd_user" ]; then
+				echo "Current user name is: $prev_pppd_user"
+				TMP=", press ENTER to keep the previous one"
+			else
+				TMP=""
+			fi
+            echo -n "Type in your user name (given by your provider$TMP): "
             read user
+			if [ -z "$user" -a -n "$prev_pppd_user" ]; then
+				user="$prev_pppd_user"
+				echo "User name unchanged"
+			fi
         done
+
+		echo
         pwdmatch=0
         while [ $pwdmatch -eq 0 ]; do
             stty -echo
@@ -181,7 +229,7 @@ case "$1" in
             if [ "$password" == "$password2" ]; then
                 pwdmatch=1
             else
-                echo -e "\nERROR: passwords don't match!"
+                echo -e "Passwords don't match, try again\n"
             fi
         done
 
@@ -190,73 +238,132 @@ case "$1" in
 		ret=$?
 		test $ret -eq 255 && exit 1
         provider=$(expr $ret + 1)
+        dns1="$(echo $servers_dns1 | cut -f $provider -d '|')"
+        dns2="$(echo $servers_dns2 | cut -f $provider -d '|')"
 
         echo
-        echo "If your provider was not listed (or if you want to overwrite defaults),"
-        echo "you can type in your own DNS servers:"
-        dns1=""
-        choice_ok=0
-        while [ $choice_ok -eq 0 ]; do
-            echo -n "DNS server 1 (press ENTER to skip): "
-            read dns1
-            if [ -z "$dns1" ]; then
-                choice_ok=1
+        echo "If your provider was not listed (or if you want to overwrite"
+        echo "defaults), you can type in your own DNS servers:"
+		echo
+
+		echo -n "DNS1 currently "
+		if [ "$dns1" == "?" ]; then
+			echo "unset"
+			TMP="skip"
+		else
+			echo "set to $dns1"
+			TMP="keep current value"
+		fi
+        i_dns1=""
+        while [ -z "$i_dns1" ]; do
+            echo -n "Type in an IP for DNS1 (press ENTER to $TMP): "
+            read i_dns1
+            if [ -z "$i_dns1" ]; then
+				if [ "$dns1" == "?" ]; then
+	                dns1=""
+				else
+					echo "DNS1 unchanged"
+				fi
+				break
             else
-                echo $dns1 | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" >/dev/null 2>&1
-                if [ $? -eq 0 ]; then
-                    choice_ok=1
+                echo $i_dns1 | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1
+                if [ $? -ne 0 ]; then
+					i_dns1=""
+                    echo -e "Invalid IP for DNS1, please retry\n"
                 else
-                    echo "Invalid DNS 1, please enter it again"
-                fi
-            fi
-        done
-        dns2=""
-        choice_ok=0
-        while [ $choice_ok -eq 0 ]; do
-            echo -n "DNS server 2 (press ENTER to skip): "
-            read dns2
-            if [ -z "$dns2" ]; then
-                choice_ok=1
-            else
-                echo $dns2 | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" >/dev/null 2>&1
-                if [ $? -eq 0 ]; then
-                    choice_ok=1
-                else
-                    echo "Invalid DNS 2, please enter it again"
+					if [ "$i_dns1" != "$dns1" ]; then
+						provider="Other"
+						dns1="$i_dns1"
+					fi
                 fi
             fi
         done
 
-        if [ -z "$dns1" ]; then
-            dns1=$(echo $servers_dns1 | cut -f $provider -d '|')
-        fi
-        if [ -z "$dns2" ]; then
-            dns2=$(echo $servers_dns2 | cut -f $provider -d '|')
-        fi
+		echo
+        i_dns2=""
+		echo -n "DNS2 currently "
+		if [ "$dns2" == "?" ]; then
+			echo "unset"
+			TMP="skip"
+		else
+			echo "set to $dns2"
+			TMP="keep current value"
+		fi
+        while [ -z "$i_dns2" ]; do
+            echo -n "Type in an IP for DNS2 (press ENTER to $TMP): "
+            read i_dns2
+            if [ -z "$i_dns2" ]; then
+				if [ "$dns2" == "?" ]; then
+	                dns2=""
+				else
+					echo "DNS2 unchanged"
+				fi
+				break
+            else
+                echo $i_dns2 | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1
+                if [ $? -ne 0 ]; then
+					i_dns2=""
+                    echo -e "Invalid IP for DNS2, please retry\n"
+                else
+					if [ "$i_dns2" != "$dns2" ]; then
+						provider="Other"
+						dns2="$i_dns2"
+					fi
+                fi
+            fi
+        done
 
         echo
         echo "Enter now your VPI/VCI (depending on your provider/country)"
         echo "Example for France: 8 35  (VPI=8, VCI=35)"
         echo "These values correspond to the number dialed under Windows."
+		echo
+		echo -n "VPI currently "
+		if [ -z "$prev_vpi" ]; then
+			echo "unset"
+			TMP=""
+		else
+			echo "set to $prev_vpi"
+			TMP=", press ENTER to keep the previous one"
+		fi
         vpi=""
         while [ -z "$vpi" ]; do
-	        echo -n "Type in your VPI (given by your provider, for instance: 8): "
+	        echo -n "Type in your VPI (given by your provider$TMP): "
             read vpi
-            echo $vpi | grep -E "^[0-9]+$" >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                vpi=""
-                echo "Invalid VCI, please enter it again"
-            fi
+			if [ -n "$prev_vpi" -a -z "$vpi" ]; then
+				vpi="$prev_vpi"
+				echo "VPI unchanged"
+			else
+            	echo $vpi | grep -E "^[0-9]+$" > /dev/null 2>&1
+            	if [ $? -ne 0 ]; then
+                	vpi=""
+                	echo -e"Invalid VPI, please enter it again\n"
+            	fi
+			fi
         done
+		echo
+		echo -n "VCI currently "
+		if [ -z "$prev_vci" ]; then
+			echo "unset"
+			TMP=""
+		else
+			echo "set to $prev_vci"
+			TMP=", press ENTER to keep the previous one"
+		fi
         vci=""
         while [ -z "$vci" ]; do
-	        echo -n "Type in your VPI (given by your provider, for instance: 35): "
+	        echo -n "Type in your VPI (given by your provider$TMP): "
             read vci
-            echo $vci | grep -E "^[0-9]+$" >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                vci=""
-                echo "Invalid VCI, please enter it again"
-            fi
+			if [ -n "$prev_vci" -a -z "$vci" ]; then
+				vci="$prev_vci"
+				echo "VCI unchanged"
+			else
+	            echo $vci | grep -E "^[0-9]+$" > /dev/null 2>&1
+            	if [ $? -ne 0 ]; then
+                	vci=""
+                	echo -e "Invalid VCI, please enter it again\n"
+            	fi
+			fi
         done
 
         echo
@@ -264,95 +371,108 @@ case "$1" in
 		ret=$?
 		test $ret -eq 255 && exit 1
         modem=$(expr $ret + 1)
+		vid1="$(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 1-4)"
+		pid1="$(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 5-8)"
+		vid2="$(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 1-4)"
+		pid2="$(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 5-8)"
 
-        echo
+		echo
         echo "If your modem was not listed (or if you want to overwrite defaults),"
         echo "you can enter your own VID1/PID1/VID2/PID2 (use probe_device.sh to"
 		echo "get them):"
-        vid1=""
-        choice_ok=0
-        while [ $choice_ok -eq 0 ]; do
-            echo -n "VID1 (4-digit hexadecimal, press ENTER to skip): "
-            read vid1
-            if [ -z "$vid1" ]; then
-                choice_ok=1
+
+		echo
+		echo "VID1 currently set to $vid1"
+        i_vid1=""
+        while [ -z "$i_vid1" ]; do
+            echo -n "Type in a VID1 (4-digit hexadecimal, press ENTER to keep current value): "
+            read i_vid1
+            if [ -z "$i_vid1" ]; then
+				echo "VID1 unchanged"
+                break
             else
-                echo $vid1 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                echo $i_vid1 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
-                    choice_ok=1
+					vid1="$i_vid1"
                 else
-                    echo "Invalid VID1, please enter it again"
+					i_vid1=""
+                    echo -e "Invalid VID1, please enter it again\n"
                 fi
             fi
         done
-		pid1=""
-		if [ -n "$vid1" ]; then
-        	choice_ok=0
-        	while [ $choice_ok -eq 0 ]; do
-            	echo -n "PID1 (4-digit hexadecimal, press ENTER to skip): "
-            	read pid1
-            	if [ -z "$pid1" ]; then
-                	choice_ok=1
-            	else
-                	echo $pid1 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
-                	if [ $? -eq 0 ]; then
-                    	choice_ok=1
-                	else
-                    	echo "Invalid PID1, please enter it again"
-                	fi
-            	fi
-        	done
-		fi
-        vid2=""
-        choice_ok=0
-        while [ $choice_ok -eq 0 ]; do
-            echo -n "VID2 (4-digit hexadecimal): "
-            read vid2
-            if [ -z "$vid2" ]; then
-                choice_ok=1
+
+		echo
+		echo "PID1 currently set to $pid1"
+		i_pid1=""
+        while [ -z "$i_vid1" ]; do
+            echo -n "Type in a PID1 (4-digit hexadecimal, press ENTER to keep current value): "
+            read i_pid1
+            if [ -z "$i_pid1" ]; then
+				echo "PID1 unchanged"
+                break
             else
-                echo $vid2 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                echo $i_pid1 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
-                    choice_ok=1
+					pid1="$i_pid1"
                 else
-                    echo "Invalid VID2, please enter it again"
+					i_pid1=""
+                    echo -e "Invalid PID1, please enter it again\n"
                 fi
             fi
         done
-        pid2=""
-		if [ -n "$vid2" ]; then
-        	choice_ok=0
-        	while [ $choice_ok -eq 0 ]; do
-            	echo -n "PID2 (4-digit hexadecimal): "
-            	read pid2
-            	if [ -z "$pid2" ]; then
-                	choice_ok=1
-            	else
-                	echo $pid2 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
-                	if [ $? -eq 0 ]; then
-                    	choice_ok=1
-                	else
-                    	echo "Invalid PID2, please enter it again"
-                	fi
-            	fi
-        	done
-		fi
-        if [ -n "$vid1" -a -n "$pid1" ]; then
-			vid1pid1="$vid1$pid1"
-		fi
-        if [ -n "$vid2" -a -n "$pid2" ]; then
-			vid2pid2="$vid2$pid2"
-		fi
+
+		echo
+		echo "VID2 currently set to $vid2"
+        i_vid2=""
+        while [ -z "$i_vid2" ]; do
+            echo -n "Type in a VID2 (4-digit hexadecimal, press ENTER to skip): "
+            read i_vid2
+            if [ -z "$i_vid2" ]; then
+				echo "VID2 unchanged"
+				break
+            else
+                echo $i_vid2 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
+                if [ $? -eq 0 ]; then
+					vid2="$i_vid2"
+                else
+					i_vid2=""
+                    echo -e "Invalid VID2, please enter it again\n"
+                fi
+            fi
+        done
+
+		echo
+		echo "PID2 currently set to $pid2"
+        i_pid2=""
+        while [ -z "$i_pid2" ]; do
+            echo -n "Type in a PID2 (4-digit hexadecimal, press ENTER to skip): "
+            read i_pid2
+            if [ -z "$i_pid2" ]; then
+				echo "PID2 unchanged"
+                break
+            else
+                echo $i_pid2 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
+                if [ $? -eq 0 ]; then
+					pid2="$i_pid2"
+                else
+					i_pid2=""
+                    echo -e "Invalid PID2, please enter it again\n"
+                fi
+            fi
+        done
 
         $0 @bin@
 		ret=$?
         binfile=$(cat $tmpbin)
-        rm -rf $tmpbin >/dev/null
+        rm -rf $tmpbin > /dev/null
 
 		OLDIFS="$IFS"
 		IFS="
 "
 		modes="Select your PPP mode (use the DEFAULT one if you don't know what this means)"
+		if [ -n "$prev_mode" ]; then
+			modes="$modes|$previous ($prev_mode)"
+		fi
 		for LINE in $($BIN_DIR/pppoeci --modes 2>&1 | cut -d ' ' -f 1); do
 			modes="$modes|$LINE"
 		done
@@ -364,10 +484,21 @@ case "$1" in
         mode=$(expr $ret + 1)
 
         echo
-        echo -n "Is DHCP used by your provider (MOST users should say NO)? "
+		if [ -n "$prev_use_dhcp" ]; then
+			echo -n "In current config, DHCP is "
+			if [ "$prev_use_dhcp" == "yes" ]; then
+				echo "enabled"
+			else
+				echo "disabled"
+			fi
+			TMP=" or press ENTER to keep current value"
+		else
+			TMP=""
+		fi
+        echo "Is DHCP used by your provider (MOST users should say NO)? "
         use_dhcp=""
         while [ -z "$use_dhcp" ]; do
-            echo -n "(y/n) "
+            echo -n "(y/n$TMP) "
             read use_dhcp
 			case "$use_dhcp" in
 			y*|Y*)	use_dhcp="yes"
@@ -376,74 +507,99 @@ case "$1" in
 			n*|N*)	use_dhcp="no"
 					break
 					;;
+			"")		if [ -n "$prev_use_dhcp" ]; then
+						use_dhcp="$prev_use_dhcp"
+						echo "DHCP usage unchanged"
+						break
+					fi
+					;;
 			*)		use_dhcp=""
 					;;
 			esac
-           	echo "Invalid answer, try again"
+           	echo -e "Invalid answer, try again\n"
         done
+		staticip="$prev_staticip"
+		gateway="$prev_gateway"
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
-        	echo -n "Did you get a static IP from your provider (MOST users should say NO)? "
+			if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
+				echo -n "In current config, static IP is used"
+			fi
+        	echo "Did you get a static IP from your provider (MOST users should say NO)? "
 			foo=""
         	while [ -z "$foo" ]; do
-	   	        echo -n "(y/n) "
+	   	        echo -n "(y/n or press ENTER to keep current setting) "
             	read foo
 				case "$foo" in
 				y*|Y*)	foo="yes"
-						break
 						;;
 				n*|N*)	foo="no"
-						break
+						;;
+				"")		if [ "$prev_staticip" -a -n "$prev_gateway" ]; then
+							foo="yes"
+						else
+							foo="no"
+						fi
+						echo "Static IP usage unchanged"
 						;;
 				*)		foo=""
+		            	echo -e "Invalid answer, try again\n"
 						;;
 				esac
-            	echo "Invalid answer, try again"
         	done
 			if [ "$foo" == "yes" ]; then
+				TMP="(press ENTER to use $prev_staticip)"
         		echo
-        		echo -n "Type in your static IP (press ENTER to cancel): "
+        		echo -n "Type in your static IP $TMP: "
 				staticip=""
         		while [ -z "$staticip" ]; do
             		read staticip
 					case "$staticip" in
-					"")		break
+					"")		staticip="$prev_staticip"
+							echo "Static IP unchanged"
 							;;
-					*)		echo "$staticip" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" \
-								> /dev/null 2>&1 && break
-							staticip=""
+					*)		echo "$staticip" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1 
+			                if [ $? -ne 0 ]; then
+								staticip=""
+							fi
 							;;
 					esac
-        			echo -n "Invalid static IP, try again: "
+        			echo -n "Invalid static IP, try again $TMP: "
         		done
-				if [ -n "$staticip" ]; then
-        			echo
-        			echo "Type in your provider's gateway (press ENTER to cancel): "
-					gateway=""
-        			while [ -z "$gateway" ]; do
-            			read gateway
-						case "$gateway" in
-						"")		break
-								;;
-						*)		echo "$gateway" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" \
-									 > /dev/null 2>&1 && break
+				TMP="(press ENTER to use $prev_gateway)"
+        		echo
+        		echo "Type in your provider's gateway IP $TMP: "
+				gateway=""
+        		while [ -z "$gateway" ]; do
+            		read gateway
+					case "$gateway" in
+					"")		gateway="$prev_gateway"
+							echo "Gateway unchanged"
+							;;
+					*)		echo "$gateway" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1 
+				            if [ $? -ne 0 ]; then
 								gateway=""
-								;;
-						esac
-        				echo -n "Invalid gateway IP, try again: "
-        			done
-				fi
-				if [ -z "$staticip" -o -z "$gateway" ]; then
-					staticip=""
-					gateway=""
-       				echo "Static IP settings cancelled"
-				fi
+							fi
+							;;
+					esac
+        			echo -n "Invalid gateway IP, try again $TMP: "
+        		done
 			fi
 		fi
 
+		# extract values from lists
 		mode="$(echo $modes | cut -f $mode -d '|')"
 		modem="$(echo $modems | cut -f $modem -d '|')"
 		provider="$(echo $providers | cut -f $provider -d '|')"
+		# remove "previous ()" is necessary
+		echo "$provider" | grep -E "^$previous \(.+\)$" > /dev/null 2>&1 && \
+			provider=$(echo "$provider" | cut -d '(' -f 2 | cut -d ')' -f 1)
+		echo "$modem" | grep -E "^$previous \(.+\)$" > /dev/null 2>&1 && \
+			modem=$(echo "$modem" | cut -d '(' -f 2 | cut -d ')' -f 1)
+		echo "$binfile" | grep -E "^$previous \(.+\)$" > /dev/null 2>&1 && \
+			binfile=$(echo "$binfile" | cut -d '(' -f 2 | cut -d ')' -f 1)
+		echo "$mode" | grep -E "^$previous \(.+\)$" > /dev/null 2>&1 && \
+			mode=$(echo "$mode" | cut -d '(' -f 2 | cut -d ')' -f 1)
         echo
         echo "==== Configuration will be created with these values :"
         echo
@@ -454,8 +610,8 @@ case "$1" in
         echo "      DNS 2     : $dns2"
         echo "  + VPI/VCI     : $vpi/$vci"
         echo "  + Modem       : $modem"
-        echo "      VID1/PID1 : $(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 1-4)/$(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 5-8)"
-        echo "      VID2/PID2 : $(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 1-4)/$(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 5-8)"
+        echo "      VID1/PID1 : $vid1/$pid1"
+        echo "      VID2/PID2 : $vid2/$pid2"
         echo "  + .bin file   : $binfile"
 		echo "  + PPP mode    : $mode"
 		echo "  + use DHCP    : $use_dhcp"
@@ -464,13 +620,12 @@ case "$1" in
 			echo "      gateway   : $gateway"
 		fi
         echo
-        echo "Press Enter to create config files or Ctrl+C now to exit now without saving."
+        echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
 
-        $BIN_DIR/makeconfig "$mode" "$user" "$password" $BIN_DIR/pppoeci $dns1 $dns2 $vpi $vci \
-			$(echo $vid1pid1 | cut -f $modem -d '|') $(echo $vid2pid2 | cut -f $modem -d '|') "$binfile" \
-			"$firmware" "$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
-
+        $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" $dns1 $dns2 $vpi $vci \
+			"$vid1$vid2" "$vid2pid2" "$binfile" "$firmware" "$staticip" "$gateway" "$use_dhcp" \
+			"$modem" "$provider"
         if [ $? -eq 0 ]; then
             echo
             echo "==== eciconftxt.sh: Configuration updated with success !"
@@ -489,7 +644,7 @@ case "$1" in
         $0 @bin@
 		ret=$?
         binfile=$(cat $tmpbin)
-        rm -rf $tmpbin >/dev/null
+        rm -rf $tmpbin > /dev/null
 		test $ret -eq 255 && exit 1
         echo
         $0 $binfile
