@@ -218,7 +218,7 @@ static const struct usb_device_id eci_usb_deviceids[] =
 {
 	{ USB_DEVICE ( 0x915 , 0x8000 ) } , /* ECI HI FOCUS */
 					    /* ECI B FOCUS  */
-	{ USB_DEVICE ( 0x0915,0xac82 ) } ,  /* EICON DIVA USB */
+	{ USB_DEVICE ( 0x0915 , 0xac82 ) } ,  /* EICON DIVA USB */
 	{}
 };
 
@@ -450,7 +450,7 @@ typedef const uni_cell_t * uni_cell_list_crs_t ;
 static inline int _uni_cell_list_init(uni_cell_list_t *) ;
 
 /* Reset a list */
-static inline void inline _uni_cell_list_reset(uni_cell_list_t *) ;
+static inline void _uni_cell_list_reset(uni_cell_list_t *) ;
 
 /* Alloc a new list */
 static inline uni_cell_list_t * _uni_cell_list_alloc(void) ;
@@ -623,13 +623,13 @@ MODULE_DEVICE_TABLE ( usb , eci_usb_deviceids ) ;
 
 /*	prototypes	*/
 static int __init eci_init(void);
-static void __exit eci_cleanup(void);
+static void __exit eci_exit(void);
 
 MODULE_AUTHOR( "Eric Bardes, Jean-Sebastien Valette" );
 MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION( "ECI HiFocus ADSL Modem Driver");
 module_init (eci_init);
-module_exit (eci_cleanup);
+module_exit (eci_exit);
 
 
 #endif
@@ -727,8 +727,66 @@ static int __init eci_init(void)
 
 }
 
+/*
+		free all allocated ressource for this instance
+*/
+static int eci_cleanup(struct eci_instance *i)
+{
+	int cnt;
 
-static void __exit eci_cleanup(void)
+	if(i->atm_dev)
+	{
+		atm_dev_deregister(i->atm_dev);
+		i->atm_dev = 0;
+	}
+
+	if(i->setup_packets)
+	{
+	}
+	for(cnt = 0 ; cnt< ECI_NB_ISO_PACKET;cnt ++)
+		if(i->isourbs[cnt])
+		{
+		}
+	if(i->vendor_urb)
+	{
+	}
+	if(i->interrupt_urb)
+	{
+		usb_unlink_urb(i->interrupt_urb);
+		usb_free_urb(i->interrupt_urb);
+		i->interrupt_urb = 0;
+	}
+	if(i->bulk_urb)
+	{
+		usb_unlink_urb(i->bulk_urb);
+		usb_free_urb(i->bulk_urb);
+		i->bulk_urb = 0;
+	}
+	if(i->interrupt_buffer)
+	{
+		kfree(i->interrupt_buffer);
+		i->interrupt_buffer = 0;
+	}
+	if(i->pooling_buffer)
+	{
+		kfree(i->pooling_buffer);
+		i->pooling_buffer = 0;
+	}
+	_uni_cell_list_free(&i->iso_cells);
+	_uni_cell_list_free(&i->bulk_cells);
+	//skb_free(i->txq);
+	if(i->pcurvcc)
+	{
+	}
+	if(i->pbklogaal5)
+	{
+		_aal5_free(i->pbklogaal5);
+		i->pbklogaal5 = 0;
+	}
+	return 0;
+}
+
+static void __exit eci_exit(void)
 {
 	usb_deregister(&eci_usb_driver);
 
@@ -785,51 +843,47 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		if(out_instance)
 		{
 			MOD_INC_USE_COUNT;
+			memset(out_instance, 0, sizeof(struct eci_instance));
 			eci_instances=out_instance; 
 			spin_lock_init(&out_instance->lock);
 			out_instance->usb_wan_dev= dev;
 			out_instance->setup_packets = eci_init_setup_packets;
 			out_instance->iso_celbuf_pos = 0 ;
-			memset(&out_instance->bh_iso, 0, 
-					sizeof(out_instance->bh_iso)) ;
 			out_instance->bh_iso.func = eci_bh_iso ;
 			out_instance->bh_iso.data = (unsigned long) 
 							out_instance ;
 		 	if(_uni_cell_list_init(&out_instance->iso_cells))
 			{
 				ERR_OUT("Cant init Bulk list\n");
-				return 0;
+				goto erreure;
 			}
-			memset(&out_instance->bh_bulk, 0, 
-					sizeof(out_instance->bh_bulk)) ;
 			out_instance->bh_bulk.func = eci_bh_bulk;
 			out_instance->bh_bulk.data = (unsigned long) 
 							out_instance ;
 		 	if(_uni_cell_list_init(&out_instance->bulk_cells))
 			{
 				ERR_OUT("Cant init Bulk list\n");
-				return 0;
+				goto erreure;
 			}
 		}
 		else
 		{
 			ERR_OUT("out of memory\n");
-			return 0;
+			goto erreure;
 		}
 		if(usb_set_configuration(dev,1)<0)
 		{
 			ERR_OUT("Can't set interface\n");
-			return 0;
+			goto erreure;
 		}
 		if(usb_set_interface(dev,0,4)<0)
 		{
 			ERR_OUT("Cant set configuration\n");
-			return 0;
+			goto erreure;
 		}
 		/*
 			send 20 Urbs to the iso EP
 		*/
-		//out_instance->isourbs = 0;
 		for(eci_isourbcnt=0;
 			eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++)
 		{
@@ -838,7 +892,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 				ERR_OUT(
 					"not enought memory for iso urb %d\n",
  					eci_isourbcnt);
-				return 0;
+				goto erreure;
 			}
 			if(!(eciurb->transfer_buffer=kmalloc(
 					ECI_ISO_BUFFER_SIZE, GFP_KERNEL)))
@@ -846,9 +900,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 				ERR_OUT(
 					"not enought memory for iso buffer %d\n",
  					eci_isourbcnt);
-				return 0;
+				goto erreure;
 			}
-			//eciurb->next = out_instance->isourbs;
 			out_instance->isourbs[eci_isourbcnt] = eciurb;
 			eciurb->dev = dev;
 			eciurb->context = out_instance;
@@ -868,25 +921,25 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			if(usb_submit_urb(eciurb))
 			{
 				ERR_OUT("error couldn't send iso urbs\n");
-				return 0;
+				goto erreure;
 			}
 		}
 		if(!(eciurb=usb_alloc_urb(0)))
 		{
 			ERR_OUT("Can't allocate int urb !\n");
-			return 0;
+			goto erreure;
 		}
 	/*	interval tacken from cat /proc/bus/usb/devices values	*/
 		out_instance->interrupt_urb = eciurb;
 		if(!(out_instance->interrupt_buffer=kmalloc(64,GFP_KERNEL)))
 		{
 			ERR_OUT("Can't allocate int buffer\n");
-			return 0;
+			goto erreure;
 		}
 		if(!(out_instance->pooling_buffer = kmalloc(34+8, GFP_KERNEL)))
 		{
 			ERR_OUT("Can't alloc buffer for interrupt polling\n");
-			return 0;
+			goto erreure;
 		}
 		eciurb->setup_packet = eciurb->transfer_buffer  +34;	
 		DBG_OUT("interrupt buffer = %p\n", out_instance->interrupt_buffer);
@@ -896,7 +949,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		if(usb_submit_urb(eciurb))
 		{
 			ERR_OUT("error couldn't send interrupt urb\n");
-			return 0;
+			goto erreure;
 		}
 		/*
 			Allocate bulk urb	
@@ -904,7 +957,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		if(!(out_instance->bulk_urb = usb_alloc_urb(0)))
 		{
 			ERR_OUT("Can't alloacate bulk URB\n");
-			return 0;
+			goto erreure;
 		}
 		/*
 			Allocate bulk urb transfert buffer
@@ -913,7 +966,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 				ECI_ISO_BUFFER_SIZE, GFP_KERNEL)))
 		{
 			ERR_OUT("not enought memory for bulk buffer\n");
-			return 0;
+			goto erreure;
 		}
 		/*	
 			Now bulk URB AVAILABLE
@@ -929,7 +982,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		if(!eciurb)
 		{
 			ERR_OUT("Can't allocate urb\n");
-			return 0;
+			goto erreure;
 		};
 		memset(eciurb, 0, sizeof(struct urb));
 		/*
@@ -939,7 +992,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		if(!(eciurb->transfer_buffer = kmalloc((64*1024), GFP_KERNEL)))
 		{
 			ERR_OUT(" out of memory\n");
-			return 0;
+			goto erreure;
 		};
 		/*
 			Initialise all urb struct
@@ -956,12 +1009,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			vid,pid ,
 	   		dev->descriptor.idVendor, 
 	   		dev->descriptor.idProduct);
-		return 0;
+		goto erreure;
 	}
 	
 #ifdef __USE_ATM__
 
-	memset(&out_instance->bh_atm, 0, sizeof(out_instance->bh_atm)) ;
 	out_instance->bh_atm.func	= eci_bh_atm ;
 	out_instance->bh_atm.data	= (unsigned long) out_instance ;
 	skb_queue_head_init (&out_instance->txq) ;
@@ -986,12 +1038,20 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	else
 	{
 		ERR_OUT("Can't init ATM device\n");
+		goto erreure;
 	}
 #endif /* __USE_ATM__ */
 	
 	DBG_OUT("out_instance : %p\n", out_instance);
 	
 	return out_instance;
+erreure:
+	if(out_instance)
+	{
+		eci_cleanup(out_instance);
+		kfree(out_instance);
+	}
+	return 0;
 };
 
 void eci_usb_disconnect(struct usb_device *dev, void *p)
@@ -1008,15 +1068,6 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 
 		usb_unlink_urb(eci_instances->interrupt_urb);
 		usb_free_urb(eci_instances->interrupt_urb);
-		//urb=eci_instances->isourbs;
-		//while(urb->next!=eci_instances->isourbs) urb=urb->next;
-		//urb->next = 0;
-		/*while((urb = eci_instances->isourbs) != NULL)
-		{
-			//eci_instances->isourbs = urb->next;
-			usb_unlink_urb(urb);
-			usb_free_urb(urb);
-		}*/
 		DBG_OUT("disconnect : freeing instance %p\n", eci_instances);
 		kfree(eci_instances);
 		eci_instances=NULL;
