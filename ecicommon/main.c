@@ -3,6 +3,7 @@
 unsigned char buffer[] = { 
 	0x0c, 0x0c, 0xF3, 0x43 ,
 	0x0c, 0x0c, 0xF3, 0x43 ,
+	0x0c, 0x0c, 0xF3, 0x43 ,
 	0x0c, 0x0c, 0xF3, 0x43 
 };
 unsigned char buffer01[] = { 
@@ -20,6 +21,6 @@ unsigned char buffer02[] = {
 
 int main()
 {
-	parse_eoc_buffer(buffer, 12);
+	parse_eoc_buffer(buffer, 16);
 }
 
