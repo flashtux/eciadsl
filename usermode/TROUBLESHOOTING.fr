@@ -388,8 +388,10 @@ R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ?
 
 	Regardez aussi la question 4.5, car les problèmes d'authentification
 	CHAP/PAP ne sont pas toujours affichés clairement par pppd.
+	Les questions 4.6 à 4.9 pourraient aussi éclairer votre lanterne.
 
-	Regardez ci-dessous les questions concernant les utilisateurs hors de France.
+	Regardez aussi les questions concernant les utilisateurs hors de France
+	(5.3 et 5.4).
 
 
 4.5
@@ -450,7 +452,8 @@ Q:	J'obtiens des lignes "USB timeout" dans /var/log/messages.
 R:	Essayez de décommenter la ligne MTU dans le fichier /etc/ppp/peers/adsl.
 	Modifiez éventuellement la valeur du MTU (man pppd).
 
-	Cela peut aussi provenir d'un problème kernel ou matériel.
+	Cela peut aussi provenir d'un problème kernel ou matériel (voir les
+	questions suivantes).
 
 
 4.8

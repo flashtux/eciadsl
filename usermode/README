@@ -72,7 +72,9 @@ Provide use these info:
 	- Linux distribution
 	- pppd version (see: `pppd --version`)
 	- modutils version (see: `lsmod --version`)
-	- USB Controller (HUB) model (see: `lspci | grep USB`)
+	- USB Controller (HUB) model (see: `lspci | grep USB`), and the list of all
+	  the USB HUBs you have (if they are PCI cards or external HUBs)
+	- your other USB peripherals
 	- eciadsl driver version (see the VERSION file in the sources tarball if it
 	  exists for version >0.5, or try pppoeci --version, or the package name/CVS
 	  date) and :

@@ -77,7 +77,10 @@ Infos à nous communiquer :
 	- distribution Linux
 	- version de pppd (tapez : `pppd --version`)
 	- version de modutils (tapez : `lsmod --version`)
-	- modèle du controleur USB (HUB) (tapez : `lspci | grep USB`)
+	- modèle du controleur USB (HUB) (tapez : `lspci | grep USB`), la liste des
+	  HUB USB que vous avez, notamment s'il s'agit de cartes PCI ou de HUB
+	  externes
+	- la liste des autres périphériques USB que vous utilisez
 	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des
 	  sources s'il existe pour les versions >0.5, ou pppoeci --version, sinon le
 	  nom du package/la date du CVS) et :
@@ -85,11 +88,11 @@ Infos à nous communiquer :
 	      (at aussi le type de modulation que votre fournisseur supporte)
 		- les .bin de synchronisation que vous avez essayés
 	- votremodem (les références exactes: fabricant/modèle)
-	- votre position géographique (pays/département/ville)
+	- votre situation géographique (pays/département/ville)
 	- votre fournisseur d'accès et les protocoles de communication PPP ainsi
 	  que d'authentification utilisés
-	- votre niveau d'expérience (par exemple : débutant, quelques notions,
-	  confirmé, expérimenté, gourou)
+	- votre niveau d'expérience (par exemple : débutant, notions, confirmé
+	  expérimenté, gourou)
 	- votre fichier /etc/eciadsl/eciadsl.conf
 	- éventuellement votre fichier /var/log/messages, en vous assurant qu'il
 	  contient les traces d'activité à partir du dernier démarrage de Linux

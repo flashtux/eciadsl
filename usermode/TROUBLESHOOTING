@@ -103,6 +103,15 @@ A:	See 1.4.
 	conflicts between hardware devices, or some other kernel configuration
 	issue, or also to disable/enable USB legacy support in BIOS.
 
+	Such problems are common issues with some USB chipsets like old VIA and
+	SiS 700x. If you don't know which chipset you have or if you want to get
+	confirmation that your problem is a hardware/kernel driver issue, please
+	contact us. If confirmed, a possible solution would be to buy a USB HUB
+	to plug into a free PCI slot (don't try to plug an external USB HUB in a
+	USB port from your embedded USB HUB, this will not work, of course since
+	the problem comes from the on-board chipset). Don't buy such PCI card if
+	you cannot test it before!
+
 	Also check the question that deals with the dabusb module, if dabusb is
 	loaded, you won't be able to use your modem with this driver until you
 	disable the loading of dabusb.
@@ -369,8 +378,9 @@ A:	If your kernel really OK? N_HDLC support is OK? Check above!
 
 	See 4.5 also, because CHAP/PAP authentication problems are not always
 	verbosely reported by pppd.
+	Questions 4.6 to 4.9 may help too.
 
-	See also below questions related to international users.
+	See also below questions related to international users (5.4, 5.5).
 
 
 4.5
@@ -427,7 +437,7 @@ Q:	I get some "USB timeout" lines in /var/log/messages.
 A:	Try to uncomment the MTU line in /etc/ppp/peers/adsl.
 	Eventually modify this MTU value (see `man pppd`).
 
-	This may also an kernel/hardware issue.
+	This may also an kernel/hardware issue (see the following questions).
 
 
 4.8

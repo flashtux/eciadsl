@@ -90,6 +90,7 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 %doc /usr/local/doc/eciadsl/TROUBLESHOOTING.fr
 %doc /usr/local/doc/eciadsl/BUGS
 %doc /usr/local/doc/eciadsl/TODO
+%doc /usr/local/doc/eciadsl/rc.adsl
 
 %clean
 # in this section, we clean up temporary files generated during the build
