@@ -3,7 +3,8 @@
      README Eciconf - Configuration graphique pour le driver Linux ECI ADSL
 
               Ecrit le 05/05/2002 par FlashCode (Sebastien Helleu)
-             Correspond a la version 0.1 d'Eciconf / v0.5 du driver
+              Derniere modification le 13/06/2002 par FlashCode
+             Correspond a la version 0.6 d'Eciconf / driver v0.6
 
 ===============================================================================
 
@@ -114,7 +115,17 @@ Explication des differents champs / options a renseigner :
     VCI communique par votre fournisseur d'acces a Internet.
     (35 pour la France)
 
-8) Bouton Creation de la config ("Create config !") :
+8) Choix du modem :
+
+    Choisissez votre modem (ceci affecte le VendorID/ProductID) utilisés dans
+    les différents scripts du driver.
+
+9) Changement de .bin :
+
+    Choisissez un autre .bin si vous obtenez un blocage du driver à un bloc
+    particulier.
+
+10) Bouton Creation de la config ("Create config !") :
 
     Un clic sur ce bouton cree les fichiers de configuration conformement
     aux champs et parametres renseignes (cf options 1 a 5).
@@ -130,7 +141,7 @@ Explication des differents champs / options a renseigner :
     elle a echouee (message sur fond rouge).
 
 
-9) Bouton Annuler ("Cancel") :
+11) Bouton Annuler ("Cancel") :
 
     Un clic sur ce bouton permet de quitter immediatement Eciconf, sans
     effectuer la moindre modification dans vos fichiers.
@@ -156,6 +167,9 @@ Les fichiers suivants sont modifies par Eciconf :
     Il contient toutes les options de connection et notamment votre nom
     d'utilisateur ADSL et le chemin vers "pppoeci".
 
+4)  /etc/eciadsl/vidpid
+    Ce fichier contient les VendorID/ProductID du modem selectionne.
+
 ==> Sauvegarde des anciens fichiers :
 Les fichiers modifies sont renommes en {nom}.bak (ou .bak1, .bak2, etc... si
 le .bak existe deja).
@@ -174,14 +188,7 @@ Voir neanmoins le chapitre suivant pour ce qu'il reste a faire.
 [7] Ce qu'il reste a faire
 --------------------------
 
-1) Modifier les fichiers chap-secrets et pap-secrets au lieu d'en creer de
-   nouveaux.
-   En effet, ces fichiers peuvent deja contenir des mots de passe qui sont
-   utilises pour d'autres fournisseurs (exemple: pour votre ancien modem 56K).
-
-2) Modifier le script adsl au lieu d'en creer un nouveau :
-   ceci permettra de conserver vos options et d'utiliser la derniere version
-   du script, livree et installee avec le driver.
+Rien à ce jour.
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 

@@ -4,7 +4,8 @@
 
               Written on 2002/05/05 by FlashCode (Sebastien Helleu)
               Translated on 2002/05/05 by Michel Stempin
-              Corresponds to Eciconf version 0.1 / driver v0.5
+              Last update on 2002/06/13 by FlashCode
+              Corresponds to Eciconf version 0.6 / driver v0.6
 
 ===============================================================================
 
@@ -114,7 +115,16 @@ Explanation of the different fields / options to fill in:
     This is the VCI that has been given to you by your Internet service
     provider (35 for France).
 
-8) Create config button:
+8) Modem selection :
+
+    Choose your modem (this is for VendorID/ProductID) used in
+    many driver scripts.
+
+9) Selection of .bin :
+
+    Choose another .bin if driver hangs up at a given block.
+
+10) Create config button:
 
     A click on this button creates the configuration files according to the
     given parameters (cf. options 1 to 5).
@@ -129,7 +139,7 @@ Explanation of the different fields / options to fill in:
     red background).
 
 
-9) Cancel button:
+11) Cancel button:
 
     A click on this button allows you to leave immediately Eciconf, without
     doing any modification into your files.
@@ -155,6 +165,9 @@ The following files are modified by Eciconf:
     It contains all the connection options and among other things, your ADSL
     user name and the path to "pppoeci".
 
+4)  /etc/eciadsl/vidpid
+    This file contains VendorID/ProductID for your modem.
+
 ==> Original files backups:
 The modified files are renamed in {name}.bak (or .bak1, .bak2, etc. if the
 .bak already exists).
@@ -173,13 +186,7 @@ Nevertheless, check next chapter to see what remains to do.
 [7] TODO
 --------
 
-1) Modify the chap-secrets and pap-secrets files instead of creating new ones,
-   as these files may already contain passwords that are used for other
-   Internet service providers (example: for your old 56K modem).
-
-2) Modify the adsl script instead of creating a new one:
-   This will allow us to keep the options and use the script's last version,
-   provided and installed with the driver.
+Nothing today.
 
 =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=
 
