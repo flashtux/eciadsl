@@ -241,27 +241,28 @@ while {$i<$len} {
 }
 # previously defined provider set?
 if {"$provider"!=""} {
-		set selected_provider [expr [lsearch $providers $provider]/3]
-		if {$selected_provider!=-1} {
-			set dns1_ [lindex $providers [expr $index*3+1]]
-			set dns2_ [lindex $providers [expr $index*3+2]]
-			# if dns don't match the provider name
-			if {"$dn1"!="$dns1_" || "$dns2"!="$dns2_"} {
-				set selected_provider -1
-			} else {
-				set dns1 "$dns1_"
-				set dns2 "$dns2_"
-				.bloc1.fai.liste.contenu selection set $selected_provider
-				.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
-			}
+	set selected_provider [expr [lsearch $providers $provider]/3]
+	if {$selected_provider!=-1} {
+		set dns1_other [lindex $providers [expr $selected_provider*3+1]]
+		set dns2_other [lindex $providers [expr $selected_provider*3+2]]
+		# if dns don't match the provider name
+		if {"$dns1"!="$dns1_other" || "$dns2"!="$dns2_other"} {
+			set selected_provider -1
+		} else {
+			.bloc1.fai.liste.contenu selection set $selected_provider
+			.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
 		}
+	}
 } else {
 	set selected_provider -1
 }
+set dns1_other ""
+set dns2_other ""
 # no previous provider or bad one
 if {"$provider"=="" || $selected_provider==-1} {
 	# set Other provider if at least one DNS has been set
 	if {"$dns1"!="" || "$dns2"!=""} {
+		set provider "Other"
 		.bloc1.fai.liste.contenu selection set [expr $len/3-1]
 		.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
 	}
@@ -359,20 +360,35 @@ while {$i<$len} {
 if {"$modem"!=""} {
 	set selected_modem [expr [lsearch $modems $modem]/5]
 	if {$selected_modem!=-1} {
-		.bloc1.modem.liste.contenu selection set $selected_modem
-		.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
+		set vid1_other [lindex $modems [expr $selected_modem*5+1]]
+		set pid1_other [lindex $modems [expr $selected_modem*5+2]]
+		set vid2_other [lindex $modems [expr $selected_modem*5+3]]
+		set pid2_other [lindex $modems [expr $selected_modem*5+4]]
+		# if vidpid don't match the modem name
+		if {"$vid1"!="$vid1_other" || "$pid1"!="$pid1_other" || "$vid2"!="$vid2_other" || "$pid2"!="$pid2_other"} {
+			set selected_modem -1
+		} else {
+			.bloc1.modem.liste.contenu selection set $selected_modem
+			.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
+		}
 	}
 } else {
 	set selected_modem -1
 }
+set vid1_other ""
+set pid1_other ""
+set vid2_other ""
+set pid2_other ""
 # no previous modem or bad one
 if {"$modem"=="" || $selected_modem==-1} {
 	# set Other provider if at least one VID/PID has been set
 	if {"$vid1"!="" || "$pid1"!="" || "$vid2"!="" || "$pid2"!=""} {
+		set modem "Other"
 		.bloc1.modem.liste.contenu selection set [expr $len/5-1]
 		.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
 	}
 }
+puts "$modem $vid1 $pid1 $vid2 $pid2"
 
 scrollbar .bloc1.modem.liste.scroll -command ".bloc1.modem.liste.contenu yview"
 
@@ -745,10 +761,7 @@ proc run_makeconfig {} {
     if {[string compare $majbin "oui"] == 0} {
         set synch [.bloc2.listebin.liste.contenu get [.bloc2.listebin.liste.contenu curselection]]
     }
-	if {"$use_staticip"=="no"} {
-		set staticip ""
-		set gateway ""
-	}
+
     set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" "$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"} sortie]
     if {$returncode != 0} {
         conf_report "non" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
@@ -882,16 +895,40 @@ proc invert_bin {} {
 }
 
 proc select_modem {} {
-	global .bloc1.modem.liste.contenu
+	global .bloc1.modem.liste.contenu vid1_other pid1_other vid2_other pid2_other
 	global modems vid1 pid1 vid2 pid2 modem
 
+	# save VID/PID for Other if it was the previous selection
+	if {"$modem"=="Other"} {
+		set vid1_other "$vid1"
+		set pid1_other "$pid1"
+		set vid2_other "$vid2"
+		set pid2_other "$pid2"
+	}
 	set index [.bloc1.modem.liste.contenu curselection]
 	if {"$index"!=""} {
+		# update variables from the selection
+		set modem [.bloc1.modem.liste.contenu get $index]
 		set vid1 [lindex $modems [expr $index*5+1]]
 		set pid1 [lindex $modems [expr $index*5+2]]
 		set vid2 [lindex $modems [expr $index*5+3]]
 		set pid2 [lindex $modems [expr $index*5+4]]
-		set modem [.bloc1.modem.liste.contenu get $index]
+		# if Other has been selected, restore VID/PID if exist:
+		# got from stored .conf at startup or if previously selected
+		if {"$modem"=="Other"} {
+		 	if {"$vid1_other"!=""} {
+				set vid1 "$vid1_other"
+			}
+		 	if {"$pid1_other"!=""} {
+				set pid1 "$pid1_other"
+			}
+		 	if {"$vid2_other"!=""} {
+				set vid2 "$vid2_other"
+			}
+		 	if {"$pid2_other"!=""} {
+				set pid2 "$pid2_other"
+			}
+		}
 		enable_vid_pid
 		enable_create_button
 		focus .bloc1.modem.vidpid1.entryvid
@@ -900,13 +937,30 @@ proc select_modem {} {
 
 proc select_provider {} {
 	global .bloc1.fai.liste.contenu .bloc1.fai.dns1.entry
-	global providers dns1 dns2 majfai provider
+	global providers dns1 dns2 majfai provider dns1_other dns2_other
 
+	# save DNS for Other if it was the previous selection
+	if {"$provider"=="Other"} {
+		set dns1_other "$dns1"
+		set dns2_other "$dns2"
+	}
+	# if selection is valid (should be)
 	set index [.bloc1.fai.liste.contenu curselection]
 	if {"$index"!=""} {
+		# update variables from the selection
+	    set provider [.bloc1.fai.liste.contenu get $index]
 		set dns1 [lindex $providers [expr $index*3+1]]
 		set dns2 [lindex $providers [expr $index*3+2]]
-	    set provider [.bloc1.fai.liste.contenu get $index]
+		# if Other has been selected, restore DNS if exist:
+		# got from stored .conf at startup or if previously selected
+		if {"$provider"=="Other"} {
+		 	if {"$dns1_other"!=""} {
+				set dns1 "$dns1_other"
+			}
+		 	if {"$dns2_other"!=""} {
+				set dns2 "$dns2_other"
+			}
+		}
 		if {"$majfai"=="oui"} {
 			.bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
 			.bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
