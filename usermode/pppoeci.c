@@ -120,7 +120,9 @@ extern struct config_t config;
 
 typedef enum
 {
-	VCM_RFC2364 = 0, /* must be the first element since (frame_type==0) must mean no encapsulation */
+	/* must be the first element since (frame_type==0)
+	   must mean no encapsulation */
+	VCM_RFC2364 = 0,
 	LLC_RFC2364,
 	LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS,
 	VCM_RFC_1483_BRIDGED_ETH,
@@ -129,7 +131,9 @@ typedef enum
 	modes_count
 } encapsulation_mode;
 
-int frame_type=VCM_RFC2364; /* defaults to VC Multiplexed PPP (no encapsulation) */
+/* defaults to no mode selected, we'll set the mode later
+   based on config file or commandline */
+int frame_type=-1;
 
 const char* mode_name[] =
 {
@@ -1418,6 +1422,20 @@ int tap_open(char* dev, int tun)
 	return(fd);
 }
 
+int set_mode(const char* mode)
+{
+	int j;
+
+	j = -1;
+	while (++j < modes_count)
+		if (!strcasecmp(mode, mode_name[j]))
+		{
+			frame_type = j;
+			return(1);
+		}
+	return(0);
+}
+
 int main(int argc, char** argv)
 {
 	const char* logfile = LOG_FILE;
@@ -1428,12 +1446,7 @@ int main(int argc, char** argv)
 	this_process = getpid();
 	log = 0;
 
-	/* read the configuration file */
-
-	read_config_file();
-
 	/* parse command line options */
-
 	for (i = 1; i < argc; i++)
 	{
 		if (((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbosity") == 0) )
@@ -1483,25 +1496,15 @@ int main(int argc, char** argv)
 		else
 			if ((strcmp(argv[i], "-mode") == 0) && (i + 1 < argc))
 			{
-				int j;
-				char* mode;
-
-				mode = argv[++i];
-				j = -1;
-				while (++j < modes_count)
-				{
-					if (!strcasecmp(mode, mode_name[j]))
-					{
-						frame_type = j;
-						break;
-					}
-				}
-				if (frame_type != j)
+				if (!set_mode(argv[++i]))
 					usage(-1);
 			}
 			else
 				usage(-1);
 	}
+
+	/* read the configuration file */
+	read_config_file();
 
 	/* try to assume default values from the config file */
 	if ((my_vci == 0xffff) && (config.vci))
@@ -1519,6 +1522,20 @@ int main(int argc, char** argv)
 		printf("no default parameters found in config file, couldn't assume default values\n");
 		usage(-1);
 	}	
+	/* now set the mode from conffile if not specified on commandline else we default to VCM_RFC2364 */
+	if (frame_type == -1) 
+	{
+		if (config.mode)
+		{
+			if (!set_mode(config.mode))
+			{
+				printf("bad mode parameter found in config file, couldn't assume default values\n");
+				usage(-1);
+			}
+		}
+		else
+			frame_type = VCM_RFC2364;
+	}
 
 	if (pusb_set_interface_alt < 0
 		|| data_timeout < 0
