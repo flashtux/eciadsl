@@ -88,153 +88,142 @@ pack .ligne_vide1
 # ===== Internet provider DNS =====
 #
 
-frame .fai
+frame .bloc1
 
-frame .fai.fai1
+frame .bloc1.fai
 
-frame .fai.fai1.majdns
-frame .fai.fai1.majdns.espace -width 25
-checkbutton .fai.fai1.majdns.checkbox -text { Update internet provider DNS :} -command {invert_majdns} -relief groove -background "#ffcc99" -width 32 -variable majdns -offvalue "non" -onvalue "oui" -selectcolor blue
-bind .fai.fai1.majdns.checkbox <Enter> {pushstate "Check this box if you want to update your DNS (/etc/resolv.conf)"}
-bind .fai.fai1.majdns.checkbox <Leave> {popstate}
-pack .fai.fai1.majdns.espace .fai.fai1.majdns.checkbox -side left
+frame .bloc1.fai.majdns
+frame .bloc1.fai.majdns.espace -width 30
+checkbutton .bloc1.fai.majdns.checkbox -text { Update internet provider DNS :} -command {invert_majdns} -relief groove -background "#ffcc99" -width 34 -variable majdns -offvalue "non" -onvalue "oui" -selectcolor blue
+bind .bloc1.fai.majdns.checkbox <Enter> {pushstate "Check this box if you want to update your DNS (/etc/resolv.conf)"}
+bind .bloc1.fai.majdns.checkbox <Leave> {popstate}
+pack .bloc1.fai.majdns.espace .bloc1.fai.majdns.checkbox -side left
 set majdns "oui"
 
-frame .fai.fai1.ligne1
-frame .fai.fai1.ligne1.espace -width 25
-radiobutton .fai.fai1.ligne1.wanadoo -text "Wanadoo" -width 11 -variable fai -value wanadoo -command {set dns1 "193.252.19.3"; set dns2 "193.252.19.4"} -padx 10 -selectcolor blue
-.fai.fai1.ligne1.wanadoo configure -anchor w
-radiobutton .fai.fai1.ligne1.clubinternet -text "Club Internet" -width 11 -variable fai -value clubinternet -command {set dns1 "194.117.200.15"; set dns2 "194.117.200.10"} -padx 10 -selectcolor blue
-.fai.fai1.ligne1.clubinternet configure -anchor w
-pack .fai.fai1.ligne1.espace .fai.fai1.ligne1.wanadoo .fai.fai1.ligne1.clubinternet -side left
+frame .bloc1.fai.ligne1
+frame .bloc1.fai.ligne1.espace -width 30
+radiobutton .bloc1.fai.ligne1.wanadoo -text "Wanadoo" -width 12 -variable fai -value wanadoo -command {set dns1 "193.252.19.3"; set dns2 "193.252.19.4"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne1.wanadoo configure -anchor w
+radiobutton .bloc1.fai.ligne1.clubinternet -text "Club Internet" -width 12 -variable fai -value clubinternet -command {set dns1 "194.117.200.15"; set dns2 "194.117.200.10"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne1.clubinternet configure -anchor w
+pack .bloc1.fai.ligne1.espace .bloc1.fai.ligne1.wanadoo .bloc1.fai.ligne1.clubinternet -side left
 
-frame .fai.fai1.ligne2
-frame .fai.fai1.ligne2.espace -width 25
-radiobutton .fai.fai1.ligne2.neuftelecom -text "9 Telecom" -width 11 -variable fai -value 9telecom -command {set dns1 "212.30.96.108"; set dns2 "213.203.124.146"} -padx 10 -selectcolor blue
-.fai.fai1.ligne2.neuftelecom configure -anchor w
-radiobutton .fai.fai1.ligne2.cegetel -text "Cegetel" -width 11 -variable fai -value cegetel -command {set dns1 "194.6.128.3"; set dns2 "194.6.128.4"} -padx 10 -selectcolor blue
-.fai.fai1.ligne2.cegetel configure -anchor w
-pack .fai.fai1.ligne2.espace .fai.fai1.ligne2.neuftelecom .fai.fai1.ligne2.cegetel -side left
+frame .bloc1.fai.ligne2
+frame .bloc1.fai.ligne2.espace -width 30
+radiobutton .bloc1.fai.ligne2.neuftelecom -text "9 Telecom" -width 12 -variable fai -value 9telecom -command {set dns1 "212.30.96.108"; set dns2 "213.203.124.146"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne2.neuftelecom configure -anchor w
+radiobutton .bloc1.fai.ligne2.cegetel -text "Cegetel" -width 12 -variable fai -value cegetel -command {set dns1 "194.6.128.3"; set dns2 "194.6.128.4"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne2.cegetel configure -anchor w
+pack .bloc1.fai.ligne2.espace .bloc1.fai.ligne2.neuftelecom .bloc1.fai.ligne2.cegetel -side left
 
-frame .fai.fai1.ligne3
-frame .fai.fai1.ligne3.espace -width 25
-radiobutton .fai.fai1.ligne3.worldonline -text "World Online" -width 11 -variable fai -value worldonline -command {set dns1 "212.83.128.3"; set dns2 "212.83.128.4"} -padx 10 -selectcolor blue
-.fai.fai1.ligne3.worldonline configure -anchor w
-radiobutton .fai.fai1.ligne3.telecomitalia -text "Telecom Italia" -width 11 -variable fai -value telecomitalia -command {set dns1 "212.216.112.112"; set dns2 "212.216.172.62"} -padx 10 -selectcolor blue
-.fai.fai1.ligne3.telecomitalia configure -anchor w
-pack .fai.fai1.ligne3.espace .fai.fai1.ligne3.worldonline .fai.fai1.ligne3.telecomitalia -side left
+frame .bloc1.fai.ligne3
+frame .bloc1.fai.ligne3.espace -width 30
+radiobutton .bloc1.fai.ligne3.worldonline -text "World Online" -width 12 -variable fai -value worldonline -command {set dns1 "212.83.128.3"; set dns2 "212.83.128.4"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne3.worldonline configure -anchor w
+radiobutton .bloc1.fai.ligne3.telecomitalia -text "Telecom Italia" -width 12 -variable fai -value telecomitalia -command {set dns1 "212.216.112.112"; set dns2 "212.216.172.62"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne3.telecomitalia configure -anchor w
+pack .bloc1.fai.ligne3.espace .bloc1.fai.ligne3.worldonline .bloc1.fai.ligne3.telecomitalia -side left
 
-frame .fai.fai1.ligne4
-frame .fai.fai1.ligne4.espace -width 25
-radiobutton .fai.fai1.ligne4.tiscali -text "Tiscali Italia" -width 11 -variable fai -value tiscali -command {set dns1 "195.130.224.18"; set dns2 "195.130.225.129"} -padx 10 -selectcolor blue
-.fai.fai1.ligne4.tiscali configure -anchor w
-pack .fai.fai1.ligne4.espace .fai.fai1.ligne4.tiscali -side left
+frame .bloc1.fai.ligne4
+frame .bloc1.fai.ligne4.espace -width 30
+radiobutton .bloc1.fai.ligne4.tiscali -text "Tiscali Italia" -width 12 -variable fai -value tiscali -command {set dns1 "195.130.224.18"; set dns2 "195.130.225.129"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne4.tiscali configure -anchor w
+radiobutton .bloc1.fai.ligne4.pipexuk -text "Pipex UK" -width 12 -variable fai -value pipexuk -command {set dns1 "158.43.240.4"; set dns2 "158.43.240.3"} -padx 5 -selectcolor blue
+.bloc1.fai.ligne4.pipexuk configure -anchor w
+pack .bloc1.fai.ligne4.espace .bloc1.fai.ligne4.tiscali .bloc1.fai.ligne4.pipexuk -side left
 
-pack .fai.fai1.majdns .fai.fai1.ligne1 .fai.fai1.ligne2 .fai.fai1.ligne3 .fai.fai1.ligne4 -side top -anchor w
+pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 -side top -anchor w
 
 set fai wanadoo
 
-foreach dns {1 2} {
-    frame .fai.fai1.framedns${dns}
-    frame .fai.fai1.framedns${dns}.espace${dns} -width 70
-    set texte${dns} "DNS${dns} :"
-    label .fai.fai1.framedns${dns}.label_dns${dns} -textvariable texte${dns} -width 6
-    set dns${dns} ""
-    entry .fai.fai1.framedns${dns}.dns${dns} -textvariable dns${dns} -background lightblue -width 14
-    pack .fai.fai1.framedns${dns}.espace${dns} .fai.fai1.framedns${dns}.label_dns${dns} .fai.fai1.framedns${dns}.dns${dns} -side left
-    pack .fai.fai1.framedns${dns} -anchor w
-}
-pack configure .fai.fai1.framedns1 -pady 2
-bind .fai.fai1.framedns1.dns1 <Enter> {pushstate "\[OPTIONAL\] Enter your own primay DNS (given by your provider)"}
-bind .fai.fai1.framedns1.dns1 <Leave> {popstate}
-bind .fai.fai1.framedns2.dns2 <Enter> {pushstate "\[OPTIONAL\] Enter your own secondary DNS (given by your provider)"}
-bind .fai.fai1.framedns2.dns2 <Leave> {popstate}
+frame .bloc1.fai.espacedns -width 30
+label .bloc1.fai.labeldns -text "DNS : " -width 6
+entry .bloc1.fai.dns1 -textvariable dns1 -background lightblue -width 14
+entry .bloc1.fai.dns2 -textvariable dns2 -background lightblue -width 14
+pack .bloc1.fai.espacedns .bloc1.fai.labeldns .bloc1.fai.dns1 .bloc1.fai.dns2 -side left -anchor e
+bind .bloc1.fai.dns1 <Enter> {pushstate "\[OPTIONAL\] Enter your own primay DNS (given by your provider)"}
+bind .bloc1.fai.dns1 <Leave> {popstate}
+bind .bloc1.fai.dns2 <Enter> {pushstate "\[OPTIONAL\] Enter your own secondary DNS (given by your provider)"}
+bind .bloc1.fai.dns2 <Leave> {popstate}
 
 set dns1 "193.252.19.3"
 set dns2 "193.252.19.4"
 
-frame .fai.espace -width 40
+frame .bloc1.espace1 -width 30
 
 #
-# ===== VPI/VCI =====
+# ===== Modem selection =====
 #
 
-frame .fai.fai2
+frame .bloc1.modem
 
-label .fai.fai2.libelle -text "Your VPI/VCI :" -relief groove -background "#ffcc99" -width 15
+label .bloc1.modem.libelle -text "Your modem :" -relief groove -background "#ffcc99" -width 25
+pack .bloc1.modem.libelle
 
-frame .fai.fai2.vpi_espace -height 5
-frame .fai.fai2.vpi
-label .fai.fai2.vpi.label -text "VPI :"
-set vpi "8"
-entry .fai.fai2.vpi.entry -textvariable vpi -background lightblue -width 4
-bind .fai.fai2.vpi.entry <Enter> {pushstate "VPI given by your provider (8 for France)"}
-bind .fai.fai2.vpi.entry <Leave> {popstate}
+radiobutton .bloc1.modem.eci -text "ECI HiFocus/B-Focus" -width 18 -variable modem -value eci -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
+.bloc1.modem.eci configure -anchor w
+pack .bloc1.modem.eci
 
-frame .fai.fai2.vci_espace -height 10
-frame .fai.fai2.vci
-label .fai.fai2.vci.label -text "VCI :"
-set vci "35"
-entry .fai.fai2.vci.entry -textvariable vci -background lightblue -width 4
-bind .fai.fai2.vci.entry <Enter> {pushstate "VCI given by your provider (35 for France)"}
-bind .fai.fai2.vci.entry <Leave> {popstate}
+radiobutton .bloc1.modem.eicon -text "Eicon Diva" -width 18 -variable modem -value eicon -command {set vidpid1 "071dac81"; set vidpid2 "0915ac82"} -padx 10 -selectcolor blue
+.bloc1.modem.eicon configure -anchor w
+pack .bloc1.modem.eicon
 
-pack .fai.fai2.libelle -side top
-pack .fai.fai2.vpi.label .fai.fai2.vpi.entry -side left -padx 5
-pack .fai.fai2.vci.label .fai.fai2.vci.entry -side left -padx 5
+radiobutton .bloc1.modem.ericsson -text "Ericsson hm120dp" -width 18 -variable modem -value ericsson -command {set vidpid1 "08ea00c9"; set vidpid2 "091500ca"} -padx 10 -selectcolor blue
+.bloc1.modem.ericsson configure -anchor w
+pack .bloc1.modem.ericsson
 
-#
-# ===== Modem image =====
-#
+radiobutton .bloc1.modem.aztech -text "Aztech 100U" -width 18 -variable modem -value aztech -command {set vidpid1 "05090801"; set vidpid2 "09150802"} -padx 10 -selectcolor blue
+.bloc1.modem.aztech configure -anchor w
+pack .bloc1.modem.aztech
 
-frame .fai.fai2.espace -height 3
-image create photo modem_eci -file /etc/eciadsl/modemeci.gif
-label .fai.fai2.image -image modem_eci
-bind .fai.fai2.image <Enter> {pushstate "ECI HiFocus USB ADSL modem"}
-bind .fai.fai2.image <Leave> {popstate}
+radiobutton .bloc1.modem.fujitsu -text "Fujitsu FDX310" -width 18 -variable modem -value fujitsu -command {set vidpid1 "0e600101"; set vidpid2 "09150102"} -padx 10 -selectcolor blue
+.bloc1.modem.fujitsu configure -anchor w
+pack .bloc1.modem.fujitsu
 
-pack .fai.fai2.libelle .fai.fai2.vpi_espace .fai.fai2.vpi .fai.fai2.vci .fai.fai2.espace .fai.fai2.image -side top
+set modem "eci"
+set vidpid1 "05472131"
+set vidpid2 "09158000"
 
-pack .fai.fai1 .fai.espace .fai.fai2 -side left -anchor n
+frame .bloc1.espace2 -width 20
 
-pack .fai -anchor w
+pack .bloc1.fai .bloc1.espace1 .bloc1.modem .bloc1.espace2 -side left -anchor n
 
-frame .ligne_vide2 -height 5
+pack .bloc1
+
+frame .ligne_vide2 -height 20
 pack .ligne_vide2
 
 #
 # ===== List of .bin =====
 #
 
-frame .listebin
+frame .bloc2
 
-checkbutton .listebin.checkbox -text { Change .bin file (only if driver hangs up) :} -command {invert_bin} -relief groove -background "#ffcc99" -width 51 -variable majbin -offvalue "non" -onvalue "oui" -selectcolor blue
-bind .listebin.checkbox <Enter> {pushstate "Check this box if you want to change your .bin file"}
-bind .listebin.checkbox <Leave> {popstate}
+frame .bloc2.listebin
+
+checkbutton .bloc2.listebin.checkbox -text { Change .bin file (only if driver hangs up) :} -command {invert_bin} -relief groove -background "#ffcc99" -width 45 -variable majbin -offvalue "non" -onvalue "oui" -selectcolor blue
+bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to change your .bin file"}
+bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
-set bin_actuel [exec grep "\$ECILOAD2 /" /usr/local/bin/startmodem]
+set bin_actuel [exec grep "\$ECILOAD2 0x\$vid2 0x\$pid2 /" /usr/local/bin/startmodem]
 set fin ".*"
-set bin_actuel [regexp "ECILOAD2 ($fin);" $bin_actuel ligne nom_bin_actuel]
+set bin_actuel [regexp "pid2 ($fin);" $bin_actuel ligne nom_bin_actuel]
 
-label .listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 54 -anchor w
+label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
 
-frame .listebin.liste
-listbox .listebin.liste.contenu -yscrollcommand ".listebin.liste.scroll set" -width 51 -height 4 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
+frame .bloc2.listebin.liste
+listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scroll set" -width 45 -height 5 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
 
 proc add_bins {chemin} {
-global .listebin nom_bin_actuel
+global .bloc2.listebin nom_bin_actuel
     set returncode [catch {exec find $chemin -name "*.bin" } bin_trouves]
     if {$returncode != 0} {
     } else {
         foreach bin $bin_trouves {
-            if {![regexp "_firm_" $bin] && [lsearch -glob [.listebin.liste.contenu get 0 end] $bin] == -1} {
-                if {[string compare $bin $nom_bin_actuel] == 0} {
-                    #set bin2 "$bin  \[CURRENT\]"
-                    #.listebin.liste.contenu insert end $bin2
-                    #.listebin.liste.contenu selection set end
-                } else {
-                    .listebin.liste.contenu insert end $bin
+            if {![regexp "_firm_" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
+                if {[string compare $bin $nom_bin_actuel] != 0} {
+                    .bloc2.listebin.liste.contenu insert end $bin
                 }
             }
         }
@@ -243,20 +232,20 @@ global .listebin nom_bin_actuel
 
 add_bins "/etc/eciadsl"
 
-.listebin.liste.contenu selection set 0
-set bin_choisi [.listebin.liste.contenu curselection]
+.bloc2.listebin.liste.contenu selection set 0
+set bin_choisi [.bloc2.listebin.liste.contenu curselection]
 set bin_initial $bin_choisi
-bind .listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eci-load2 !)"}
-bind .listebin.liste.contenu <Leave> {popstate}
-scrollbar .listebin.liste.scroll -command ".listebin.liste.contenu yview"
-pack .listebin.liste.contenu .listebin.liste.scroll -side left -fill y
+bind .bloc2.listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eci-load2 !)"}
+bind .bloc2.listebin.liste.contenu <Leave> {popstate}
+scrollbar .bloc2.listebin.liste.scroll -command ".bloc2.listebin.liste.contenu yview"
+pack .bloc2.listebin.liste.contenu .bloc2.listebin.liste.scroll -side left -fill y
 
-frame .listebin.recherche
-label .listebin.recherche.texte -text {Search .bin here :} -width 15
+frame .bloc2.listebin.recherche
+label .bloc2.listebin.recherche.texte -text {Search .bin here :} -width 15
 set chemin_bin /usr/local
-entry .listebin.recherche.chemin -textvariable chemin_bin -background "#CCEEEE" -width 33
-bind .listebin.recherche.chemin <Enter> {pushstate "Enter path for searching .bin files"}
-bind .listebin.recherche.chemin <Leave> {popstate}
+entry .bloc2.listebin.recherche.chemin -textvariable chemin_bin -background "#CCEEEE" -width 27
+bind .bloc2.listebin.recherche.chemin <Enter> {pushstate "Enter path for searching .bin files"}
+bind .bloc2.listebin.recherche.chemin <Leave> {popstate}
 image create bitmap bitmaptest -data "\
 #define loupe_width 25 \
 #define loupe_height 15 \
@@ -266,16 +255,64 @@ static unsigned char loupe_bits[] = { \
    0x00, 0x04, 0x08, 0x00, 0x00, 0x08, 0x04, 0x00, 0x00, 0x1c, 0x02, 0x00, \
    0x00, 0xee, 0x01, 0x00, 0x00, 0x07, 0x00, 0x00, 0x80, 0x03, 0x00, 0x00, \
    0xc0, 0x01, 0x00, 0x00, 0xe0, 0x00, 0x00, 0x00, 0x40, 0x00, 0x00, 0x00 };"
-button .listebin.recherche.search -image bitmaptest -background "#99CCCC" -command {add_bins $chemin_bin}
-bind .listebin.recherche.search <Enter> {pushstate "Click to search .bin files (warning: can take a moment!)"}
-bind .listebin.recherche.search <Leave> {popstate}
-pack .listebin.recherche.texte .listebin.recherche.chemin .listebin.recherche.search -side left
+button .bloc2.listebin.recherche.search -image bitmaptest -background "#99CCCC" -command {add_bins $chemin_bin}
+bind .bloc2.listebin.recherche.search <Enter> {pushstate "Click to search .bin files (warning: can take a moment!)"}
+bind .bloc2.listebin.recherche.search <Leave> {popstate}
+pack .bloc2.listebin.recherche.texte .bloc2.listebin.recherche.chemin .bloc2.listebin.recherche.search -side left
 
-pack .listebin.checkbox
-pack .listebin.actuel
-pack .listebin.liste
-pack .listebin.recherche
-pack .listebin -padx 15 -pady 6
+pack .bloc2.listebin.checkbox
+pack .bloc2.listebin.actuel
+pack .bloc2.listebin.liste
+pack .bloc2.listebin.recherche
+pack .bloc2.listebin -padx 15
+
+frame .bloc2.espace1 -width 15
+
+#
+# ===== VPI/VCI =====
+#
+
+frame .bloc2.vpci
+
+label .bloc2.vpci.libelle -text "Your VPI/VCI :" -relief groove -background "#ffcc99" -width 15
+
+frame .bloc2.vpci.vpi_espace -height 5
+frame .bloc2.vpci.vpi
+label .bloc2.vpci.vpi.label -text "VPI :"
+set vpi "8"
+entry .bloc2.vpci.vpi.entry -textvariable vpi -background lightblue -width 4
+bind .bloc2.vpci.vpi.entry <Enter> {pushstate "VPI given by your provider (8 for France)"}
+bind .bloc2.vpci.vpi.entry <Leave> {popstate}
+
+frame .bloc2.vpci.vci_espace -height 10
+frame .bloc2.vpci.vci
+label .bloc2.vpci.vci.label -text "VCI :"
+set vci "35"
+entry .bloc2.vpci.vci.entry -textvariable vci -background lightblue -width 4
+bind .bloc2.vpci.vci.entry <Enter> {pushstate "VCI given by your provider (35 for France)"}
+bind .bloc2.vpci.vci.entry <Leave> {popstate}
+
+pack .bloc2.vpci.libelle -side top
+pack .bloc2.vpci.vpi.label .bloc2.vpci.vpi.entry -side left -padx 5
+pack .bloc2.vpci.vci.label .bloc2.vpci.vci.entry -side left -padx 5
+
+# Modem image :
+
+frame .bloc2.vpci.espace -height 3
+image create photo modem_eci -file /etc/eciadsl/modemeci.gif
+label .bloc2.vpci.image -image modem_eci
+bind .bloc2.vpci.image <Enter> {pushstate "ECI HiFocus USB ADSL modem"}
+bind .bloc2.vpci.image <Leave> {popstate}
+
+pack .bloc2.vpci.libelle .bloc2.vpci.vpi_espace .bloc2.vpci.vpi .bloc2.vpci.vci .bloc2.vpci.espace .bloc2.vpci.image -side top
+
+#frame .bloc2.vpci -width 25
+
+frame .bloc2.espace2 -width 20
+
+pack .bloc2.listebin .bloc2.espace1 .bloc2.vpci .bloc2.espace2 -side left -anchor n
+
+pack .bloc2 -anchor w
 
 frame .ligne_vide3 -height 15
 pack .ligne_vide3
@@ -285,7 +322,7 @@ pack .ligne_vide3
 #
 
 frame .boutons
-button .boutons.create -text {Create config !} -background lightgreen -width 15 -height 2 -command {run_makeconfig $username $password $path_pppoeci $dns1 $dns2 $vpi $vci}
+button .boutons.create -text {Create config !} -background lightgreen -width 15 -height 2 -command {run_makeconfig $username $password $path_pppoeci $dns1 $dns2 $vpi $vci $vidpid1 $vidpid2}
 bind .boutons.create <Enter> {pushstate "Save modifications : write configuration to files (backup all files before)"}
 bind .boutons.create <Leave> {popstate}
 frame .boutons.espace -width 50
@@ -306,7 +343,7 @@ set statetext "Ready."
 # ===== call to makeconfig =====
 #
 
-proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci} {
+proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci vidpid1 vidpid2} {
 global titre_fenetre majdns majbin
     if {[string compare $majdns "oui"] == 0} {
         set srvdns1 $dns1
@@ -315,12 +352,12 @@ global titre_fenetre majdns majbin
         set srvdns1 0
         set srvdns2 0
     }
-    set numero_bin_choix [.listebin.liste.contenu curselection]
-    set nom_bin_choix [.listebin.liste.contenu get $numero_bin_choix]
+    set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
+    set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
     if {[string compare $majbin "oui"] == 0} {
-        set returncode [catch {exec makeconfig $username $password $path_pppoeci $srvdns1 $srvdns2 $vpi $vci $nom_bin_choix} sortie]
+        set returncode [catch {exec makeconfig $username $password $path_pppoeci $srvdns1 $srvdns2 $vpi $vci $vidpid1 $vidpid2 $nom_bin_choix} sortie]
     } else {
-        set returncode [catch {exec makeconfig $username $password $path_pppoeci $srvdns1 $srvdns2 $vpi $vci} sortie]
+        set returncode [catch {exec makeconfig $username $password $path_pppoeci $srvdns1 $srvdns2 $vpi $vci $vidpid1 $vidpid2} sortie]
     }
     toplevel .confok
     wm title .confok $titre_fenetre
@@ -401,29 +438,29 @@ global statetext statepile topstatepile
 proc invert_majdns {} {
 global majdns
     if {[string compare $majdns "oui"] == 0} {
-        .fai.fai1.ligne1.wanadoo configure -state normal -selectcolor blue
-        .fai.fai1.ligne1.clubinternet configure -state normal -selectcolor blue
-        .fai.fai1.ligne2.neuftelecom configure -state normal -selectcolor blue
-        .fai.fai1.ligne2.cegetel configure -state normal -selectcolor blue
-        .fai.fai1.ligne3.worldonline configure -state normal -selectcolor blue
-        .fai.fai1.ligne3.telecomitalia configure -state normal -selectcolor blue
-        .fai.fai1.ligne4.tiscali configure -state normal -selectcolor blue
-        .fai.fai1.framedns1.dns1 configure -state normal -foreground black -background lightblue
-        .fai.fai1.framedns2.dns2 configure -state normal -foreground black -background lightblue
-        .fai.fai1.framedns1.label_dns1 configure -foreground black
-        .fai.fai1.framedns2.label_dns2 configure -foreground black
+        .bloc1.fai.ligne1.wanadoo configure -state normal -selectcolor blue
+        .bloc1.fai.ligne1.clubinternet configure -state normal -selectcolor blue
+        .bloc1.fai.ligne2.neuftelecom configure -state normal -selectcolor blue
+        .bloc1.fai.ligne2.cegetel configure -state normal -selectcolor blue
+        .bloc1.fai.ligne3.worldonline configure -state normal -selectcolor blue
+        .bloc1.fai.ligne3.telecomitalia configure -state normal -selectcolor blue
+        .bloc1.fai.ligne4.tiscali configure -state normal -selectcolor blue
+        .bloc1.fai.ligne4.pipexuk configure -state normal -selectcolor blue
+        .bloc1.fai.dns1 configure -state normal -foreground black -background lightblue
+        .bloc1.fai.dns2 configure -state normal -foreground black -background lightblue
+        .bloc1.fai.labeldns configure -foreground black
     } else {
-        .fai.fai1.ligne1.wanadoo configure -state disabled -selectcolor darkgray
-        .fai.fai1.ligne1.clubinternet configure -state disabled -selectcolor darkgray
-        .fai.fai1.ligne2.neuftelecom configure -state disabled -selectcolor darkgray
-        .fai.fai1.ligne2.cegetel configure -state disabled -selectcolor darkgray
-        .fai.fai1.ligne3.worldonline configure -state disabled -selectcolor darkgray
-        .fai.fai1.ligne3.telecomitalia configure -state disabled -selectcolor darkgray
-        .fai.fai1.ligne4.tiscali configure -state disabled -selectcolor darkgray
-        .fai.fai1.framedns1.dns1 configure -state disabled -foreground darkgray -background lightgray
-        .fai.fai1.framedns2.dns2 configure -state disabled -foreground darkgray -background lightgray
-        .fai.fai1.framedns1.label_dns1 configure -foreground darkgray
-        .fai.fai1.framedns2.label_dns2 configure -foreground darkgray
+        .bloc1.fai.ligne1.wanadoo configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne1.clubinternet configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne2.neuftelecom configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne2.cegetel configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne3.worldonline configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne3.telecomitalia configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne4.tiscali configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne4.pipexuk configure -state disabled -selectcolor darkgray
+        .bloc1.fai.dns1 configure -state disabled -foreground darkgray -background lightgray
+        .bloc1.fai.dns2 configure -state disabled -foreground darkgray -background lightgray
+        .bloc1.fai.labeldns configure -foreground darkgray
     }
 }
 
@@ -434,17 +471,17 @@ global majdns
 proc invert_bin {} {
 global majbin bin_choisi bin_initial
     if {[string compare $majbin "oui"] == 0} {
-        if {[.listebin.liste.contenu size] > 0} {
-            .listebin.liste.contenu configure -foreground black -selectbackground "#00ccff" -selectforeground black
-            .listebin.liste.contenu selection clear 0 end
-            .listebin.liste.contenu selection set $bin_choisi
-            .listebin.liste.contenu see $bin_choisi
+        if {[.bloc2.listebin.liste.contenu size] > 0} {
+            .bloc2.listebin.liste.contenu configure -foreground black -selectbackground "#00ccff" -selectforeground black
+            .bloc2.listebin.liste.contenu selection clear 0 end
+            .bloc2.listebin.liste.contenu selection set $bin_choisi
+            .bloc2.listebin.liste.contenu see $bin_choisi
         } else {
             set majbin "non"
         }
     } else {
-        .listebin.liste.contenu configure -foreground darkgray -selectbackground lightgray -selectforeground darkgray
-        set bin_choisi [.listebin.liste.contenu curselection]
+        .bloc2.listebin.liste.contenu configure -foreground darkgray -selectbackground lightgray -selectforeground darkgray
+        set bin_choisi [.bloc2.listebin.liste.contenu curselection]
         if {[string compare $bin_choisi ""] == 0} {
             set bin_choisi $bin_initial
         }
