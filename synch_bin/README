@@ -124,6 +124,7 @@ Available Synch .bin files list:
 	synch26.bin (generated in Italy/Carmagnola/Torino, provider Telecom (Alice))
 	synch27.bin (generated in Italy, provider Alice Telecom Italia "Mantova")
 	synch28.bin (generated in England/Manchester, provider pipex, modulation g.dmt)
+	synch29.bin (generated in Switzerland/Zurich, provider Solnet.ch, unknown modulation type)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
