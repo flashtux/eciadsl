@@ -197,7 +197,7 @@ case "$1" in
         dns1=""
         choice_ok=0
         while [ $choice_ok -eq 0 ]; do
-            echo -n "DNS server 1 (in case of doubt simply press ENTER): "
+            echo -n "DNS server 1 (press ENTER to skip): "
             read dns1
             if [ -z "$dns1" ]; then
                 choice_ok=1
@@ -213,7 +213,7 @@ case "$1" in
         dns2=""
         choice_ok=0
         while [ $choice_ok -eq 0 ]; do
-            echo -n "DNS server 2 (in case of doubt simply press ENTER): "
+            echo -n "DNS server 2 (press ENTER to skip): "
             read dns2
             if [ -z "$dns2" ]; then
                 choice_ok=1
@@ -268,11 +268,11 @@ case "$1" in
         echo
         echo "If your modem was not listed (or if you want to overwrite defaults),"
         echo "you can enter your own VID1/PID1/VID2/PID2 (use probe_device.sh to"
-		echo "get them) :"
+		echo "get them):"
         vid1=""
         choice_ok=0
         while [ $choice_ok -eq 0 ]; do
-            echo -n "VID1 (4-digit hexadecimal): "
+            echo -n "VID1 (4-digit hexadecimal, press ENTER to skip): "
             read vid1
             if [ -z "$vid1" ]; then
                 choice_ok=1
@@ -289,7 +289,7 @@ case "$1" in
 		if [ -n "$vid1" ]; then
         	choice_ok=0
         	while [ $choice_ok -eq 0 ]; do
-            	echo -n "PID1 (4-digit hexadecimal): "
+            	echo -n "PID1 (4-digit hexadecimal, press ENTER to skip): "
             	read pid1
             	if [ -z "$pid1" ]; then
                 	choice_ok=1
@@ -442,16 +442,18 @@ case "$1" in
 		fi
 
 		mode="$(echo $modes | cut -f $mode -d '|')"
+		modem="$(echo $modems | cut -f $modem -d '|')"
+		provider="$(echo $providers | cut -f $provider -d '|')"
         echo
         echo "==== Configuration will be created with these values :"
         echo
         echo "  + User        : $user"
         echo "  + Password    : (hidden)"
-        echo "  + Provider    : $(echo $providers | cut -f $provider -d '|')"
+        echo "  + Provider    : $provider"
         echo "      DNS 1     : $dns1"
         echo "      DNS 2     : $dns2"
         echo "  + VPI/VCI     : $vpi/$vci"
-        echo "  + Modem       : $(echo $modems | cut -f $modem -d '|')"
+        echo "  + Modem       : $modem"
         echo "      VID1/PID1 : $(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 1-4)/$(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 5-8)"
         echo "      VID2/PID2 : $(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 1-4)/$(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 5-8)"
         echo "  + .bin file   : $binfile"
@@ -467,7 +469,7 @@ case "$1" in
 
         $BIN_DIR/makeconfig "$mode" "$user" "$password" $BIN_DIR/pppoeci $dns1 $dns2 $vpi $vci \
 			$(echo $vid1pid1 | cut -f $modem -d '|') $(echo $vid2pid2 | cut -f $modem -d '|') "$binfile" \
-			"$firmware" "$staticip" "$gateway" "$use_dhcp"
+			"$firmware" "$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
 
         if [ $? -eq 0 ]; then
             echo
