@@ -49,20 +49,20 @@ if [ $# -eq 4 ]; then
 	pid1="$2"
 	vid2="$3"
 	pid2="$4"
-	echo -n "got vid/pid from command line"
+	echo -e "\ngot vid/pid from command line"
 else
 	if [ -f "$CONF_DIR/vidpid" ]; then
 		vid1=`cat "$CONF_DIR/vidpid" | cut -f 1 -d ' '`
 		pid1=`cat "$CONF_DIR/vidpid" | cut -f 2 -d ' '`
 		vid2=`cat "$CONF_DIR/vidpid" | cut -f 3 -d ' '`
 		pid2=`cat "$CONF_DIR/vidpid" | cut -f 4 -d ' '`
-		echo -n "got vid/pid from $CONF_DIR/vidpid"
+		echo -e "\ngot vid/pid from $CONF_DIR/vidpid"
 	else
 	    vid1="0547"
 	    pid1="2131"
 	    vid2="0915"
 	    pid2="8000"
-		echo -n "default vid/pid assumed"
+		echo -e "\ndefault vid/pid assumed"
 	fi
 fi
 echo ": $vid1/$pid1 $vid2/$pid2"
