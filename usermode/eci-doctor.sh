@@ -262,8 +262,17 @@ fi
 # check for the dabusb module
 lsmod | grep "^dabusb" > /dev/null
 if [ $? -eq 0 ]; then
-	echo "dabusb module is loaded: Remove it!" ;
-	fatal;
+	echo "dabusb module is loaded: trying to unload!" ;
+	rmmod dabusb
+	lsmod | grep "^dabusb" > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "dabusb module cannot be unloaded, verify if it is busy";
+		fatal;
+	else
+		echo "dabusb module unloaded: OK";
+	fi
+else
+	echo "dabusb module is not loaded: OK";
 fi
 
 # check for the EZUSB chip
