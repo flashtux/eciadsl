@@ -1,5 +1,5 @@
 First:
-	setup tap0 device and ATM support in kernel config.
+	setup tap0 device and PPP's IP over ATM support in kernel config.
 Second:
 	setup pppd tu use pppoe over tap0 device
 Third:
