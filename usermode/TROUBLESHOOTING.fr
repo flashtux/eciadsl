@@ -482,7 +482,7 @@ Q:	J'obtiens quelque chose comme cela:
 		pppd[1954]: Connection terminated.
 		pppd[1954]: Exit.
 --------------------------------------------------------------------------------
-A:	Vérifiez vos fichiers PAP et/ou CHAP (/etc/ppp/pap-secrets et
+R:	Vérifiez vos fichiers PAP et/ou CHAP (/etc/ppp/pap-secrets et
 	/etc/ppp/chap-secrets). Cela peut provenir d'une erreur d'identification
 	pppd même si rien n'apparait dans /var/log/message.
 
