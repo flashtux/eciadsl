@@ -212,6 +212,7 @@ CNT=1
 RET=$CNT
 while [ $CNT -le $SYNCH_ATTEMPTS ]; do
 	"$BIN_DIR/eci-load2" 0x$vid2 0x$pid2 "$CONF_DIR/synch.bin"
+	sleep 1
 	RET=$?
 	CNT=$(expr $CNT + 1)
 done
