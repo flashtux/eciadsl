@@ -970,7 +970,38 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 	return(0);
 }
 
-void replace_b1_b2(unsigned char *b1, unsigned char *b2)
+void replace_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount){
+	/* we should return :
+	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x01 0x01 0x01 0x01
+	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x53 0x53 0x53 0x53
+	   The last line is repeated infinitely
+	*/
+
+	static int count = 0;
+	
+	static unsigned char replace_b1[] =
+	{
+		0x73, 0x73, 0x63, 0x63, 0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63, 0x63
+	};
+
+	static unsigned char replace_b2[] =
+	{
+		0x11, 0x11, 0x01, 0x01,0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
+	};
+	if(resetcount>=2){
+		count=0;
+	}
+	*b1 = replace_b1[count];
+	*b2 = replace_b2[count];
+
+	count = (count + 1) % 12;
+
+//if (count == 0)
+//		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
+}
+
+
+void replace53_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount)
 {
 	/* we should return :
 	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x01 0x01 0x01 0x01
@@ -979,90 +1010,32 @@ void replace_b1_b2(unsigned char *b1, unsigned char *b2)
 	*/
 
 	static int count = 0;
-
 	static unsigned char replace_b1[] =
 	{
-		0x73, 0x73, 0x63, 0x63, 0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63, 0x63
+		0x53, 0x53, 0x43, 0x43, 0x43, 0x43, 0x53, 0x53, 0x43, 0x43, 0x43, 0x43
 	};
 
 	static unsigned char replace_b2[] =
 	{
-		0x11, 0x11, 0x13, 0x13, 0x13, 0x13, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
+		0x11, 0x11, 0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
 	};
-
+if(resetcount>=2){
+	count=0;
+}
 	*b1 = replace_b1[count];
 	*b2 = replace_b2[count];
 
 	count = (count + 1) % 12;
 
-	if (count == 0)
-		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
+//	if (count == 0)
+//replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
 }
 
 
 
-void replace73_b1_b2(unsigned char *b1, unsigned char *b2)
-{
-    /* we should return :
-    0x11 0x11 0x01 0x01 0x01 0x01 0x11 0x11 0x01 0x01 0x01 0x01
-    0x11 0x11 0x01 0x01 0x01 0x01 0x11 0x11 0x53 0x53 0x53 0x53
-    The last line is repeated infinitely
-    */
-
-    static int count = 0;
-
-    static unsigned char replace_b1[] =
-	{
-	0x73, 0x73, 0x63, 0x63, 0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63, 0x63
-	};
-
-    static unsigned char replace_b2[] =
-	{
-	0x11, 0x11, 0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
-	};
-
-    *b1 = replace_b1[count];
-    *b2 = replace_b2[count];
-    count = (count + 1) % 12;
-
-    if (count == 0)
-	replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
-}
 
 
-void replace53_b1_b2(unsigned char *b1, unsigned char *b2)
-{
-    /* we should return :
-    0x11 0x11 0x01 0x01 0x01 0x01 0x11 0x11 0x01 0x01 0x01 0x01
-    0x11 0x11 0x01 0x01 0x01 0x01 0x11 0x11 0x53 0x53 0x53 0x53
 
-    The last line is repeated infinitely
-    */
-
-    static int count = 0;
-
-    static unsigned char replace_b1[] =
-	{
-	0x53, 0x53, 0x43, 0x43, 0x43, 0x43, 0x53, 0x53, 0x43, 0x43, 0x43, 0x43
-	};
-
-    static unsigned char replace_b2[] =
-	{
-	0x11, 0x11, 0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
-	};
-
-    *b1 = replace_b1[count];
-    *b2 = replace_b2[count];
-    count = (count + 1) % 12;
-
-    if (count == 0)
-	replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
-}
-
-
-/*
-changes have been made to handle_ep_int for words containg 53 11 and f343
-*/
 
 void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 {
@@ -1077,7 +1050,8 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 
 	int i, outi = 0;
 	static int lost_synchro = 0;
-
+int replace73reset=0;
+int replace53reset=0;
 	if (verbose > 1)
 	{
 		snprintf(errText, ERR_BUFSIZE,
@@ -1086,20 +1060,34 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 		dump(buf, size);
 	}
 
-	if (!lost_synchro)
+if (!lost_synchro || 1)
 	{
+	        replace73reset=0;
+		replace53reset=0;
 		for (i = 3; i < 18; i++)
 		{
 			unsigned short w = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
 
-	
-				/*added checks for F343 and 5311*/
-	
-	                       if (w != 0x0c0c &&
-	                               w != 0x734d && w != 0x7311 && w != 0xf301 &&
-	                               w != 0xf34f && w!= 0xf343 && w!= 0x5311)
-	
+if(w==0x7311){
+	replace73reset++;
+}else{
+	replace73reset=0;
+}
+if(w==0x5311){
+	replace53reset++;
+}else{
+	replace53reset=0;
+}
+			
+//responses are as follows
+//73 11 -> 63 13 && 63 01 && 73 11
+//53 11 -> 53 11 && 43 01
+//everything else -> it's self
+
+if (w != 0x0c0c &&
+				w != 0x734d && w != 0x7311 && w != 0xf301 && w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w!=0xf313 && w!=0x7341) //also 73 41 
 			{
+
 				snprintf(errText, ERR_BUFSIZE,
 						"synchro loss! w=%04x", w);
 				message(errText);
@@ -1123,17 +1111,18 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 			   0x6313, 0x6301, 0x6313, 0x6353 ...
 			*/
 
-			if (b1 == 0x73 && b2 == 0x11)
-				replace_b1_b2(&b1, &b2);
-
-		    /*added replace for words containg 0x53 11*/
+			if (b1 == 0x73 && b2 == 0x11){
+				replace_b1_b2(&b1, &b2,replace73reset);
+				replace73reset=0;
+			}
 		    /* however 0x5311 need to be replace by
-			0x4301
-		    */
+			  0x4301
+			*/
 
-			if (b1 == 0x53 && b2 == 0x11)
-				replace53_b1_b2(&b1, &b2);
-
+			if (b1 == 0x53 && b2 == 0x11){
+				replace53_b1_b2(&b1, &b2,replace53reset);
+				replace53reset=0;
+			}
 
 			/* we check that we are not writing outside our buffer.
 			   From what is found in our log, this never happen.
@@ -1709,3 +1698,4 @@ int main(int argc, char *argv[])
 
 	return(0);
 }
+
