@@ -412,49 +412,49 @@ struct uni_cell_list {
 	uni_cell_t *		last ;		/* Last list item	*/
 } ;
 
-typedef struct uni_cell_list cell_list_t ;
+typedef struct uni_cell_list uni_cell_list_t ;
 
-typedef const uni_cell_t * cell_list_crs_t ;
+typedef const uni_cell_t * uni_cell_list_crs_t ;
 
 /*-- C O N S T A N T S -------------------------------------------------*/
 /*-- V A R I A B L E S -------------------------------------------------*/
 /*-- F U N C T I O N S -------------------------------------------------*/
 
 /* Init a list */
-static int _uni_cell_list_init(cell_list_t *) ;
+static int _uni_cell_list_init(uni_cell_list_t *) ;
 
 /* Reset a list */
-static void _uni_cell_list_reset(cell_list_t *) ;
+static void _uni_cell_list_reset(uni_cell_list_t *) ;
 
 /* Alloc a new list */
-static cell_list_t * _uni_cell_list_alloc(void) ;
+static uni_cell_list_t * _uni_cell_list_alloc(void) ;
 
 /* Free a list (free each cells) */
-static void _uni_cell_list_free(cell_list_t *) ;
+static void _uni_cell_list_free(uni_cell_list_t *) ;
 
 /* Get number of Cells in list (<0 : error)*/
-static inline int _uni_cell_list_nbcells(cell_list_t *) ;
+static inline int _uni_cell_list_nbcells(uni_cell_list_t *) ;
 
 /* Get First cell of list */
-static inline const uni_cell_t * _uni_cell_list_first(cell_list_t *) ;
+static inline const uni_cell_t * _uni_cell_list_first(uni_cell_list_t *) ;
 
 /* Get Last cell of list */
-static inline const uni_cell_t * _uni_cell_list_last(cell_list_t *) ;
+static inline const uni_cell_t * _uni_cell_list_last(uni_cell_list_t *) ;
 
 /* Extract First cell of list */
-static uni_cell_t * _uni_cell_list_extract(cell_list_t *) ;
+static uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *) ;
 
 /* Insert a new cell at the beginning of the list */
-static int _uni_cell_list_insert(cell_list_t *, uni_cell_t *) ;
+static int _uni_cell_list_insert(uni_cell_list_t *, uni_cell_t *) ;
 
 /* Add a new cell at the end of the list */
-static int _uni_cell_list_append(cell_list_t *, uni_cell_t *) ;
+static int _uni_cell_list_append(uni_cell_list_t *, uni_cell_t *) ;
 
 /* Concatenate 2 lists (reset second list) */
-static int _uni_cell_list_cat(cell_list_t*, cell_list_t*) ;
+static int _uni_cell_list_cat(uni_cell_list_t*, uni_cell_list_t*) ;
 
 /* Move cursor forward */
-static inline int _uni_cell_list_crs_next(cell_list_crs_t *) ;
+static inline int _uni_cell_list_crs_next(uni_cell_list_crs_t *) ;
 
 /*
  *
@@ -467,7 +467,7 @@ static int _aal5_to_cells(
 		int,				/* IN: VCI		*/
 		size_t,				/* IN: AAL5 size	*/
 		byte*,				/* IN: AAL5 raw data	*/
-		cell_list_t*			/* IN/OUT: filled cells */
+		uni_cell_list_t*			/* IN/OUT: filled cells */
 ) ;
 
 /*----------------------------------------------------------------------*/
@@ -568,7 +568,7 @@ static int _eci_usb_rx(
 ) ;
 static int eci_atm_receive_cell(
 		struct eci_instance *,
-		cell_list_t *
+		uni_cell_list_t *
 ) ;
 
 static const struct atmdev_ops eci_atm_devops =
@@ -1320,7 +1320,7 @@ static void eci_iso_callback(struct urb *urb)
 	struct eci_instance 	*instance;	/* Driver private structre */
 	int 			i;		/* Frame Counter	*/
  	int 			pos;		/* Buffer curent pos counter */
- 	struct uni_cell_q	*cells;		/* New computed queue of cell */
+ 	struct uni_cell_list	*cells;		/* New computed queue of cell */
 	struct uni_cell 	*cell;		/* Working cell		*/
 	unsigned char 		*buf;		/* Working buffer pointer */
 
@@ -1513,7 +1513,7 @@ static int _eci_tx_aal5(
 ) {
 	int		lv_rc 		= 0 ;
 	int		lv_nbsent ;
-	cell_list_t 	lv_list ;
+	uni_cell_list_t 	lv_list ;
 	
 	/* Check Interface */
 	if (!pinstance || !pskb) {
@@ -1574,7 +1574,7 @@ static int _eci_usb_rx(
  */
 static int eci_atm_receive_cell(
 		struct eci_instance * pinstance,
-		cell_list_t *		plist
+		uni_cell_list_t *		plist
 ) {
 	uni_cell_t *		lp_cellfirst	= NULL ;
 	uni_cell_t *		lp_cellprv	= NULL ;
@@ -2374,9 +2374,9 @@ static uni_cell_t * _uni_cell_qhead(
 /*----------------------------------------------------------------------*/
 
 /* Init a list */
-static int _uni_cell_list_init(cell_list_t *plist) {
+static int _uni_cell_list_init(uni_cell_list_t *plist) {
 	if (!plist) return -EINVAL ;
-	memset(plist, 0x00, sizeof(cell_list_t)) ;
+	memset(plist, 0x00, sizeof(uni_cell_list_t)) ;
 	return 0 ;
 }
 
@@ -2384,7 +2384,7 @@ static int _uni_cell_list_init(cell_list_t *plist) {
 
 /* Reset a list (free each cells) */
 
-static void _uni_cell_list_reset(cell_list_t *plist) {
+static void _uni_cell_list_reset(uni_cell_list_t *plist) {
 	uni_cell_t *	lp_cell = NULL ;
 
 	if (!plist) return ;
@@ -2405,10 +2405,10 @@ static void _uni_cell_list_reset(cell_list_t *plist) {
 
 /* Alloc a new list */
 
-static cell_list_t * _uni_cell_list_alloc(void) {
-	cell_list_t * lp_list = NULL ;
+static uni_cell_list_t * _uni_cell_list_alloc(void) {
+	uni_cell_list_t * lp_list = NULL ;
 
-	lp_list = kmalloc(sizeof(cell_list_t), GFP_KERNEL) ;
+	lp_list = kmalloc(sizeof(uni_cell_list_t), GFP_KERNEL) ;
 	if (!lp_list) return NULL ;
 
 	if (_uni_cell_list_init(lp_list)) {
@@ -2422,7 +2422,7 @@ static cell_list_t * _uni_cell_list_alloc(void) {
 
 /* Free a list (free each cells) */
 
-static void _uni_cell_list_free(cell_list_t *plist) {
+static void _uni_cell_list_free(uni_cell_list_t *plist) {
 
 	if (!plist) return ;
 
@@ -2436,7 +2436,7 @@ static void _uni_cell_list_free(cell_list_t *plist) {
 
 /* Get number of Cells in list (<0 : error)*/
 
-static inline int _uni_cell_list_nbcells(cell_list_t *plist) {
+static inline int _uni_cell_list_nbcells(uni_cell_list_t *plist) {
 	return (plist 
 			? plist->nbcells 
 			: -EINVAL) ;
@@ -2445,7 +2445,7 @@ static inline int _uni_cell_list_nbcells(cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Get First cell of list */
-static inline const uni_cell_t * _uni_cell_list_first(cell_list_t *plist) {
+static inline const uni_cell_t * _uni_cell_list_first(uni_cell_list_t *plist) {
 	return (plist
 			? (const uni_cell_t*) plist->first
 			: NULL) ;
@@ -2454,7 +2454,7 @@ static inline const uni_cell_t * _uni_cell_list_first(cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Get Last cell of list */
-static inline const uni_cell_t * _uni_cell_list_last(cell_list_t *plist) {
+static inline const uni_cell_t * _uni_cell_list_last(uni_cell_list_t *plist) {
 	return (plist
 			? (const uni_cell_t*) plist->last
 			: NULL) ;
@@ -2463,7 +2463,7 @@ static inline const uni_cell_t * _uni_cell_list_last(cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Extract First cell of list */
-static uni_cell_t * _uni_cell_list_extract(cell_list_t *plist) {
+static uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *plist) {
 	uni_cell_t * lp_cell = NULL ;
 
 	if (!plist || !plist->first) return NULL ;
@@ -2483,7 +2483,7 @@ static uni_cell_t * _uni_cell_list_extract(cell_list_t *plist) {
 
 /* Insert a new cell at the beginning of the list */
 
-static int _uni_cell_list_insert(cell_list_t *plist, uni_cell_t *pcell) {
+static int _uni_cell_list_insert(uni_cell_list_t *plist, uni_cell_t *pcell) {
 	if (!plist || !pcell) return -EINVAL ;
 
 	/* Manage empty list case */
@@ -2504,7 +2504,7 @@ static int _uni_cell_list_insert(cell_list_t *plist, uni_cell_t *pcell) {
 
 /* Add a new cell at the end of the list */
 
-static int _uni_cell_list_append(cell_list_t *plist, uni_cell_t *pcell) {
+static int _uni_cell_list_append(uni_cell_list_t *plist, uni_cell_t *pcell) {
 	if (!plist || !pcell) return -EINVAL ;
 
 	pcell->next = NULL ;
@@ -2525,8 +2525,8 @@ static int _uni_cell_list_append(cell_list_t *plist, uni_cell_t *pcell) {
 
 /* Concatanate 2 lists */
 static int _uni_cell_list_cat(
-		cell_list_t *phead,
-		cell_list_t *ptail) {
+		uni_cell_list_t *phead,
+		uni_cell_list_t *ptail) {
 	if (!phead || !ptail) return -EINVAL ;
 	if (!ptail->nbcells) return 0 ;
 
@@ -2551,9 +2551,9 @@ static int _uni_cell_list_cat(
 
 /* Move cursor forward */
 
-static inline int _uni_cell_list_crs_next(cell_list_crs_t *pcursor) {
+static inline int _uni_cell_list_crs_next(uni_cell_list_crs_t *pcursor) {
 	if (!pcursor || !*pcursor) return -EINVAL ;
-	*pcursor = (cell_list_crs_t) ((uni_cell_t*)*pcursor)->next ;
+	*pcursor = (uni_cell_list_crs_t) ((uni_cell_t*)*pcursor)->next ;
 	return 0 ;
 }
 
@@ -2568,7 +2568,7 @@ static int _aal5_to_cells(
 		int			vci,	/* IN: VCI		*/
 		size_t			szaal5,	/* IN: AAL5 size	*/
 		byte *			aal5,	/* IN: AAL5 raw data	*/
-		cell_list_t *		plist	/* IN/OUT: filled cells */
+		uni_cell_list_t *		plist	/* IN/OUT: filled cells */
 ) {
 	size_t		lv_szdata	= szaal5 ;
 	byte *		lp_data		= aal5 ;
@@ -2577,7 +2577,7 @@ static int _aal5_to_cells(
 	u32		lv_crc32	= -1 ;
 	int		lv_rc 		= 0 ;
 	uni_cell_t *	lp_cell		= NULL ;
-	cell_list_t	lv_tmplist ;
+	uni_cell_list_t	lv_tmplist ;
 	
 	/* Check Interface */
 	if (!aal5 || !plist) {
