@@ -6,7 +6,7 @@
 
 @c Documentation EciAdsl (version française)
 @c
-@c Copyright (c) 2003 par FlashCode <flashcode@flashtux.org>
+@c Copyright (c) 2004 par FlashCode <flashcode@flashtux.org>
 @c
 @c Permission is granted to copy, distribute and/or modify this document
 @c under the terms of the GNU Free Documentation License, Version 1.2
@@ -27,7 +27,7 @@
 @titlepage
 @title Driver EciAdsl - Guide d'installation
 @subtitle Driver Linux libre pour modems ADSL USB bas@'es sur chipset Globespan
-@subtitle Doc pour EciAdsl v0.8 - 23 octobre 2003
+@subtitle Doc pour EciAdsl v0.8 - 25 janvier 2004
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -39,7 +39,7 @@ Ce manuel fait partie du driver EciAdsl.@*
 La derni@`ere version de ce document est t@'el@'echargeable ici :@*
 @uref{http://eciadsl.flashtux.org/doc.php}@*
 @*
-Copyright @copyright{} 2003 FlashCode
+Copyright @copyright{} 2004 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 @*
 Ce document peut @^etre utilis@'e sous les termes de la GNU General Public License
@@ -253,6 +253,7 @@ Si vous avez install@'e un package sp@'ecifique @`a votre distribution
 Tapez ceci dans une console ou un terminal :@*
 @kbd{./configure}@*
 @kbd{make}@*
+En "root": @kbd{make install}@*
 
 Tapez ./configure --help pour voir la liste des options disponibles. Si le
 driver doit @^etre install@'e dans un autre r@'epertoire de base que celui par
@@ -567,9 +568,6 @@ Crevetor
 @item
 Laurent Wandrebeck (low)
 <@email{wandre.l@@free.fr, wandre.l AT free.fr}>
-@item
-Boris Huisgen
-<@email{bhuisgen@@wanadoo.fr, bhuisgen AT wanadoo.fr}>
 
 @end itemize
 
@@ -613,7 +611,7 @@ Ce manuel documente le driver EciAdsl, un driver Linux libre pour modems
 ADSL USB bas@'es sur chipset Globespan.@*
 Ce manuel fait partie du driver EciAdsl.@*
 
-Copyright @copyright{} 2003 FlashCode
+Copyright @copyright{} 2004 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 @*
 Ce document peut @^etre utilis@'e sous les termes de la GNU General Public License

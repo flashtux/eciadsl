@@ -6,7 +6,7 @@
 
 @c Documentación EciAdsl (versión en español)
 @c
-@c Derechos Reservados (c) 2003 por FlashCode <flashcode@flashtux.org>
+@c Derechos Reservados (c) 2004 por FlashCode <flashcode@flashtux.org>
 @c Traducido al español por Eduardo Gonzalez P. <dudu@interactiva.cl>
 @c
 @c Permission is granted to copy, distribute and/or modify this document
@@ -25,7 +25,7 @@
 @titlepage
 @title Driver EciAdsl - Gu@'ia de Instalaci@'on
 @subtitle Driver Linux gratuito para modems ADSL USB basados en el chipset Globespan
-@subtitle Doc para EciAdsl v0.8 - Octubre, 23 2003
+@subtitle Doc para EciAdsl v0.8 - Enero, 25 2004
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -35,7 +35,7 @@ modems basados en el conjunto de chips Globespan.@*
 
 Este manual es parte del driver EciAdsl.@*
 
-Copyright @copyright{} 2003 FlashCode
+Copyright @copyright{} 2004 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 @*
 Este documento puede ser utilizado bajo los t@'erminos de la Licencia P@'ublica General 
@@ -241,6 +241,7 @@ Si usted instal@'o un paquete espec@'ifico a su distribuci@'on (Redhat/Mandrake,
 Todo lo que debe hacer es ejecutar en una consola o terminal:@*
 @kbd{./configure}@*
 @kbd{make}@*
+Como "root": @kbd{make install}@*
 
 Verifique con el comando ./configure --help para ver la lista de los par@'ametros opcionales. Si usted desea instalar el software en un lugar (directorio) diferente al predeterminado (/usr/local),
 utilise la opci@'on --prefix, por ejemplo --prefix=/opt.@*
@@ -537,9 +538,6 @@ Crevetor
 @item
 Laurent Wandrebeck (low)
 <@email{wandre.l@@free.fr, wandre.l AT free.fr}>
-@item
-Boris Huisgen
-<@email{bhuisgen@@wanadoo.fr, bhuisgen AT wanadoo.fr}>
 
 @end itemize
 
@@ -582,7 +580,7 @@ Este manual documenta el driver EciAdsl, un driver linux gratuito para los
 modems basados en el conjunto de chips Globespan.@*
 Este manual es parte integrante del driver EciAdsl.@*
 
-Copyright @copyright{} 2003 FlashCode
+Copyright @copyright{} 2004 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 @*
 Este documento puede ser utilizado bajo los t@'erminos de la Licencia P@'ublica General de la GNU version 2 o superior.

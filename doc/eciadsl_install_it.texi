@@ -6,7 +6,7 @@
 
 @c Documentazione EciAdsl (versiona italiana)
 @c
-@c Copyright (c) 2003 di FlashCode <flashcode@flashtux.org>
+@c Copyright (c) 2004 di FlashCode <flashcode@flashtux.org>
 @c Versione italiana di ComputerX <computerx@@tin.it>
 @c
 @c è permesso copiare, distribuire e/o modificare questo documento
@@ -28,7 +28,7 @@
 @titlepage
 @title Driver EciAdsl - Guida di installazione
 @subtitle Driver liberi ADSL USB Linux per modem basati su chipset Globespan
-@subtitle Documentazione per EciAdsl v0.8 - 23 Ottobre 2003
+@subtitle Documentazione per EciAdsl v0.8 - 25 Gennaio 2004
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -40,7 +40,7 @@ Questo manuale fa parte dei driver EciAdsl.@*
 L'ultima versione di questo documento @`e l@`a:@*
 @uref{http://eciadsl.flashtux.org/doc.php?lang=en}@*
 @*
-Copyright @copyright{} 2003 FlashCode
+Copyright @copyright{} 2004 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 Versione italiana di ComputerX <@email{computerx@@tin.it, computerx AT tin.it}>@*
 @*
@@ -252,6 +252,8 @@ Se hai installato un pacchetto specifico per la tua distribuzione
 Tutto ciò che bisogna fare è eseguire dal terminale o da una console:@*
 @kbd{./configure}@*
 @kbd{make}@*
+Come "root": @kbd{make install}@*
+
 Esegui './configure --help' per avere una lista dei settaggi opzionali.
 Potresti voler installare il software in una directory diversa da quella di
 default (/usr/local), usando ad esempio --prefix=/opt.@*
@@ -558,9 +560,6 @@ Crevetor
 @item
 Laurent Wandrebeck (low)
 <@email{wandre.l@@free.fr, wandre.l AT free.fr}>
-@item
-Boris Huisgen
-<@email{bhuisgen@@wanadoo.fr, bhuisgen AT wanadoo.fr}>
 
 @end itemize
 
@@ -605,7 +604,7 @@ Questo manuale documenta i driver EciAdsl, un driver ADSL USB Linux libero per
 modem basati su chipset Globespan.@*
 Questo manuale fa parte dei driver EciAdsl.@*
 
-Copyright @copyright{} 2003 FlashCode
+Copyright @copyright{} 2004 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 Versione italiana di ComputerX <@email{computerx@@tin.it, computerx AT tin.it}>@*
 @*
