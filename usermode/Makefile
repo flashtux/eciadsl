@@ -53,7 +53,8 @@ install: all check-char-major-108 check-tty-ldisc-14 check-tty-ldisc-13 \
 	install adsl $(ETCDIR)/eciadsl/adsl-skel
 	install eci_firm_kit_wanadoo.bin eci_wan3.bin eci_wan3.dmt.bin \
 		modemeci.gif $(ETCDIR)/eciadsl
-	ln -s /etc/eciadsl/eci_wan3.dmt.bin /etc/eciadsl/eci_wan.bin
+	rm -f /etc/eciadsl/eci_wan.bin ; \
+		ln -s /etc/eciadsl/eci_wan3.dmt.bin /etc/eciadsl/eci_wan.bin
 	@echo "don't forget to edit  $(ETCDIR)/ppp/peers/adsl and  $(ETCDIR)/ppp/chap-secrets files"
 
 clean:

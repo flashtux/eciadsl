@@ -16,6 +16,10 @@
 
   23/11/2001 : Major changes. We use the Wanadoo kit to generate the log.
   On a first time, we will only read/write vendor device.
+
+  31/07/2002, Benoit PAPILLAULT
+  Added a verbose mode. By default, few lines are output. This removes
+  a bug when eci-load2 is launch by initlog (like in boot script).
 */
 
 #include <stdio.h>
@@ -123,7 +127,7 @@ void dump(unsigned char *buf,int len)
 	
 }
 
-void read_endpoint(pusb_device_t dev, int epnum)
+void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 {
 	pid_t child_pid;
 	pusb_endpoint_t ep;
@@ -178,11 +182,14 @@ void read_endpoint(pusb_device_t dev, int epnum)
 			break;
 		}
 		
-		printf("endpoint %02x, packet len = %d\n",epnum,ret);
-		dump(lbuf,ret);
-
-		fflush(stdout);
-		fflush(stderr);
+		if (option_verbose)
+		{
+			printf("endpoint %02x, packet len = %d\n",epnum,ret);
+			dump(lbuf,ret);
+			
+			fflush(stdout);
+			fflush(stderr);
+		}
 
 		/* try to stop the sleep() function in our father, seems to work */
 		if (epnum == 0x86 && ret != 64)
@@ -207,7 +214,8 @@ void read_endpoint(pusb_device_t dev, int epnum)
 	_exit (0);
 }
 
-int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
+int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
+			  int option_verbose)
 {
 	FILE * fp ;
 	struct usb_block block;
@@ -271,7 +279,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 		return 0;
 	}
 
-	read_endpoint(dev,0x86);
+	read_endpoint(dev,0x86,option_verbose);
 	/*read_endpoint(dev,0x88);*/
 
 #endif
@@ -292,9 +300,12 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 			return 0;
 		}
 
-		printf ("Block %3d : request_type=%02x request=%02x value=%04x index=%04x size=%04x : ",
-				n,block.request_type,block.request,block.value,block.index,
-				block.size);
+		if (option_verbose)
+		{
+			printf ("Block %3d : request_type=%02x request=%02x value=%04x index=%04x size=%04x : ",
+					n,block.request_type,block.request,block.value,block.index,
+					block.size);
+		}
 
 #ifndef TESTECI
 
@@ -302,7 +313,11 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 							 block.value,block.index,block.buf,
 							 block.size,TIMEOUT)) != block.size)
 		{
-			printf("Failed r=%d\n",r);
+			if (option_verbose)
+			{
+				printf("Failed r=%d\n",r);
+			}
+
 			pusb_close (dev);
 			fclose (fp);
 			return 0;
@@ -314,13 +329,16 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 		r = block.size;
 #endif
 
-		printf("Ok\n");
-
-		if ((block.request_type & 0x80))
+		if (option_verbose)
 		{
-			for (i=0;i<r;i++)
-				printf("%02x ",block.buf[i]);
-			printf("\n");
+			printf("Ok\n");
+
+			if ((block.request_type & 0x80))
+			{
+				for (i=0;i<r;i++)
+					printf("%02x ",block.buf[i]);
+				printf("\n");
+			}
 		}
 
 #ifndef TESTECI
@@ -329,12 +347,15 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 		{
 			struct timeval tv1, tv2;
 
-			printf("waiting ... ");
+			if (option_verbose)
+			{
+				printf("waiting ... ");
+				
+				fflush(stdout);
+				fflush(stderr);
 
-			fflush(stdout);
-			fflush(stderr);
-
-			gettimeofday(&tv1,NULL);
+				gettimeofday(&tv1,NULL);
+			}
 
 			/*
 			  25/11/2001
@@ -343,14 +364,14 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 			*/
 
 			pause();
-			gettimeofday(&tv2,NULL);
-			printf(
-				"waited %ld ms\n",
-				(long) (
-					((tv2.tv_sec - tv1.tv_sec) * 1000)
-					+ ((tv2.tv_usec - tv1.tv_usec) / 1000)
-				)
-			);
+
+			if (option_verbose)
+			{
+				gettimeofday(&tv2,NULL);
+				printf("waited %ld ms\n",
+					   (long)(tv2.tv_sec - tv1.tv_sec) * 1000
+					   + (long)(tv2.tv_usec - tv1.tv_usec) / 1000);
+			}
 		}
 
 		fflush(stdout);
@@ -398,9 +419,10 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 */
 	/*
 	  25/11/2001 . Benoit PAPILLAULT.
-	  We never release the interface, since it is still in use by our son.
-	  If we do, we can the following message in syslog (with our son's pid):
-	  "usbdevfs: process 1133 (eci-load2) did not claim interface 0 before use"
+	  We never release the interface, since it is still in use by our
+	  son. If we do, we can the following message in syslog (with our
+	  son's pid): "usbdevfs: process 1133 (eci-load2) did not claim
+	  interface 0 before use"
 	*/
 
 	/*pusb_release_interface(dev,0);*/
@@ -423,14 +445,15 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2)
 void usage()
 {
 	printf("eci-load2 version $Name$\n");
-	printf("usage: eci-load2 eci_sequence.bin\n");
-	printf("or eci-load2 2ndVID 2ndPID eci_sequence.bin\n");
+	printf("usage: eci-load2 [-v] eci_sequence.bin\n");
+	printf("or eci-load2 [-v] 2ndVID 2ndPID eci_sequence.bin\n");
+	printf("  -v : verbose mode\n");
 	exit (-1);
 }
 
 void sigusr1()
 {
-	printf("get SIGUSR1\n");
+	/*printf("get SIGUSR1\n");*/
 }
 
 int main(int argc, char *argv[])
@@ -438,6 +461,22 @@ int main(int argc, char *argv[])
 	const char * file;
 	int r, status;
 	unsigned short vid2, pid2;
+	int i, j;
+	int option_verbose = 0;
+
+	for (i=1,j=1;i<argc;i++)
+	{
+		if (strcmp(argv[i],"-v")==0)
+		{
+			option_verbose = 1;
+		}
+		else
+		{
+			argv[j++] = argv[i];
+		}
+	}
+
+	argc = j;
 	
 	if (argc != 4 && argc != 2)
 		usage();
@@ -454,7 +493,7 @@ int main(int argc, char *argv[])
 
 	signal(SIGUSR1,sigusr1);
 
-	if (!eci_load2(file, vid2, pid2))
+	if (!eci_load2(file, vid2, pid2, option_verbose))
 	{
 		printf("ECI Load 2 : failed!\n");
 		return -1;

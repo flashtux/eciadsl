@@ -126,6 +126,10 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
       endpoint 0x88 [Isoc] 96 bytes 1 ms
       endpoint 0x02 [Bulk] 64 bytes 0 ms
       endpoint 0x86 [Intr] 64 bytes 3 ms
+
+  31/07/2002, Benoit PAPILLAULT
+  Added a verbose mode. By default, few lines are output. This removes
+  a bug when eci-load1 is launch by initlog (like in boot script).
 */
 
 #include <stdio.h>
@@ -188,7 +192,8 @@ int eci_firm_block_read(FILE *fp, struct eci_firm_block *p)
 	return 1;
 }
 
-int eci_load1(const char * file, unsigned short vid1, unsigned short pid1)
+int eci_load1(const char * file, unsigned short vid1, unsigned short pid1,
+			  int option_verbose)
 {
 	FILE * fp ;
 	struct eci_firm_block block;
@@ -255,19 +260,31 @@ int eci_load1(const char * file, unsigned short vid1, unsigned short pid1)
 			return 0;
 		}
 
-		printf("Block %3d : Addr 0x%04x - Length %2u : ",
-			   n,block.addr, block.len);
+		if (option_verbose)
+		{
+			printf("Block %3d : Addr 0x%04x - Length %2u : ",
+				   n,block.addr, block.len);
+		}
+
 #ifndef TESTECI
 		if (pusb_control_msg(dev,0x40,0xa0,block.addr,0,
 							 block.content,block.len,TIMEOUT) < 0)
 		{
-			printf("Failed\n");
+			if (option_verbose)
+			{
+				printf("Failed\n");
+			}
+
 			pusb_close (dev);
 			fclose (fp);
 			return 0;
 		}
 #endif
-		printf("Ok\n");
+
+		if (option_verbose)
+		{
+			printf("Ok\n");
+		}
 	}
 #ifndef TESTECI
 	pusb_close(dev);
@@ -336,15 +353,34 @@ void check_modem(unsigned short vid2, unsigned short pid2)
 void usage()
 {
 	printf("eci-load1 version $Name$\n");
-	printf("usage: eci-load1 1stVID 1stPID 2ndVID 2ndPID eci_firmware.bin\n");
+	printf("usage: eci-load1 [-v] [1stVID 1stPID 2ndVID 2ndPID] eci_firmware.bin\n");
+	printf("  -v : verbose mode\n");
 	exit (-1);
 }
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
 	const char * file;
 	unsigned short vid1, vid2;
 	unsigned short pid1, pid2;
+	int i,j;
+	int option_verbose = 0;
 
+	/* parse command line options */
+
+	for (i=1,j=1;i<argc;i++)
+	{
+		if (strcmp(argv[i],"-v")==0)
+			option_verbose = 1;
+		else
+		{
+			argv[j++] = argv[i];
+		}
+	}
+
+	argc = j;
+
+	/* parse remaining command line arguments */
 	if (argc != 6 && argc != 2)
 		usage();
 
@@ -362,7 +398,7 @@ int main(int argc, char *argv[]){
 	pid2 = strtoul(argv[4],NULL,0);
 	}
 
-	if (!eci_load1(file, vid1, pid1))
+	if (!eci_load1(file, vid1, pid1, option_verbose))
 	{
 		printf("ECI Load 1 : failed!\n");
 		return -1;
