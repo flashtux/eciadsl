@@ -12,6 +12,9 @@
 # 16/02/2002 Benoit PAPILLAULT
 #   Check for an existing pppd and display its version
 
+# 26/02/2002 Benoit PAPILLAULT
+#   Added the 'nopersist' flag for diagnostic purpose.
+
 # cd to the directory where the 'doctor' is.
 cd `dirname $0`
 
@@ -145,7 +148,6 @@ else
 	echo "OHCI support is OK" ;
 	ohci=1;
 fi
-		
 
 if [ $uhci -eq 0 -a $ohci -eq 0 ]; then
 	echo "I found no USB controller" ;
@@ -349,7 +351,7 @@ if [ "$x" = "" ]; then
 fi
 
 # check the pppd version
-ppp_version=`pppd -V 2>&1 | grep version | cut -d" " -f 3` ;
+ppp_version=`pppd --version | cut -d" " -f 3` ;
 msg="";
 if [ "$ppp_version" != "2.4.0" -a "$ppp_version" != "2.4.1" ]; then
 	msg=" (untested)" ;
@@ -373,7 +375,7 @@ fi
 PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
 	echo "No existing PPP connection... trying to make one (please wait)" ;
-	nice --20 pppd call adsl updetach | tee /tmp/ppp.log
+	nice --20 pppd call adsl updetach nopersist | tee /tmp/ppp.log
 
 # check if we succeed in making a new PPP connection
 	PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
@@ -460,6 +462,10 @@ fi
 
 # check for /var/log or /tmp partitions full (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
+# check for /etc/resolv.conf validity (TODO)
+# check for an already running pppd & pppoeci, while no ppp0 (TODO)
+# check for /etc/ppp/pap-secrets too (TODO)
+# check for either pap-secrets or chap-secrets, how? (TODO)
 
 echo "Everything is OK" ;
 
