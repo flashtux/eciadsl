@@ -912,6 +912,16 @@ R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter
 	<A FAIRE: problèmes non vérifiés avec Ericsson et usermode 0.5>
 
 
+5.8.1
+================================================================================
+Q:	En revenant sous Linux après MS Windows, startmodem dit que le firmware
+	est déjà chargé et s'arrête.
+
+--------------------------------------------------------------------------------
+R:	Vous devez débrancher manuellement le modem, attendre quelques secondes
+	qu'il se réinitialise, et le rebrancher.
+
+
 5.9
 ================================================================================
 Q:	Puis-je utiliser ce driver sous *BSD?
@@ -963,3 +973,30 @@ R:	Assurez-vous que sudo est installé sur votre système.
 	Vous pouvez faire de me pour plusieurs utilisateurs ou scripts différents.
 	L'utilisateur peut dorénavant lancer startmodem ainsi:
 		sudo startmodem
+
+	Passez à la question 5.13 maintenant.
+
+
+5.13
+================================================================================
+Q:	Quand je lance sudo startmodem, j'ai cette erreur:
+	nice: pppd: Aucun fichier ou répertoire de ce type
+
+--------------------------------------------------------------------------------
+A:	Dans la console ou dans un terminal, sous root, tapez:
+		PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+
+	Si cela fonctionne, ajoutez la ligne suivante au ~/.bashrc ou au ~/.profile
+	de votre utilisateur favori (*):
+		export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+
+	La prochaine fois que vous ouvrirez un terminal (si vous avez modifié
+	~/.bashrc) ou que vous vous loguerez en console (si vous avez modifié
+	~/.profile), sudo startmodem devrait fonctionner.
+
+	Vous pouvez aussi créer un petit script qui contiendrait la première
+	commande, vous n'auriez alors qu'à exécuter ce script. N'oubliez pas de
+	faire un chmod 777 sur le script afin de le rendre exécutable!
+
+	(*) attention: selon les distributions Linux, ces fichiers peuvent ne pas
+	être présents ou d'autres les remplacer.

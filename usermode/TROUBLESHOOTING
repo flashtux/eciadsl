@@ -865,6 +865,16 @@ A:	Unload all USB modules related to you modem when leaving Linux. This could
 	<TODO: unverified problems with Ericsson modems and usermode 0.5>
 
 
+5.8.1
+================================================================================
+Q:	Switching from MS Windows to Linux, startmodem says that the firmware is
+	already loaded and fails.
+
+--------------------------------------------------------------------------------
+A:	You have to manually unplug you modem, wait for a few seconds so that it's
+	resetted, and replug it. Then you can retry startmodem.
+
+
 5.9
 ================================================================================
 Q:	Can I use this driver under *BSD?
@@ -914,3 +924,30 @@ A:	Simply ensure that sudo is installed on your system.
 	with a relevant username and script path/name.
 	Granted users can now run startmodem, typing:
 		sudo startmodem
+
+	See 5.13 now.
+
+
+5.13
+================================================================================
+Q:	When I run sudo startmodem, I get this error:
+	nice: pppd: no such file or directory
+
+--------------------------------------------------------------------------------
+A:	In the console or terminal as root, type:
+		PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+
+	If this works, add the following line to your normal user's ~/.bashrc or
+	~/.profile (*):
+		export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+
+	Next time you will open a terminal (if you've modified ~/.bashrc) or next
+	time you login in console or graphical environment (if you've modified
+	~/.profile), running sudo startmodem should work.
+
+	You can also create a small script containing the first command, then you
+	will only have to run this script. Don't forget to chmod 777 this script
+	so that it becomes executable.
+
+	(*) caution: following the Linux distro you use, these files may not exist
+	or some other ones be used instead.
