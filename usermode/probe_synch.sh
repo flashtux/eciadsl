@@ -31,11 +31,8 @@ VERSION=""
 # </CONFIG>
 
 BASE=${0##*/}
-BIN1="$BIN_DIR/eci-load1"
-BIN2="$BIN_DIR/eci-load2"
-FIRMWARE="$CONF_DIR/firmware.bin"
 DIR=""
-declare -i INTERACTIVE=1 ALL=0
+declare -i ALL=0 INTERACTIVE=1
 
 while [ -n "$1" ]
 do
@@ -55,15 +52,34 @@ then
 	exit 1
 fi
 
-test -z "$DIR" && DIR=$CONF_DIR
 
 echo -e "\nWARNING: if no $CONF_DIR/eciadsl.conf file exists,"
 echo "default vid/pid will be assumed. This eciadsl.conf file is generated using"
 echo "eciconf.sh or eciconftxt.sh"
-echo "this script requires your modem to be supported by the driver,"
+echo -e "\nthis script requires your modem to be supported by the driver,"
 echo "and that you've installed some extra synch .bin (the official"
 echo "synch_bin package for instance)"
 
+ECILOAD1_OPTIONS=""
+ECILOAD2_OPTIONS=""
+if [ -f "$CONF_DIR/eciadsl.conf" ]; then
+	VID1=`grep -iE "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	PID1=`grep -iE "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	VID2=`grep -iE "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	PID2=`grep -iE "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	FIRMWARE=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	ECILOAD1_OPTIONS=`grep -iE "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s " \t" " "`
+	ECILOAD2_OPTIONS=`grep -iE "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s " \t" " "`
+	echo -e "\nconfig read from $CONF_DIR/eciadsl.conf"
+else
+	echo -e "\ndefault config assumed"
+fi
+test -z "$VID1" && VID1="0547"
+test -z "$PID1" && PID1="2131"
+test -z "$VID2" && VID2="0915"
+test -z "$PID2" && PID2="8000"
+test -z "$FIRMWARE" && FIRMWARE="$CONF_DIR/firmware00.bin"
+test -z "$DIR" && DIR=$CONF_DIR
 
 if [ $INTERACTIVE -eq 1 ]
 then
@@ -111,24 +127,9 @@ then
 	esac
 fi
 
-if [ -f "$CONF_DIR/eciadsl.conf" ]; then
-	VID1=`grep -iE "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
-	PID1=`grep -iE "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
-	VID2=`grep -iE "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
-	PID2=`grep -iE "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
-	echo -e "\ngot vid/pid from $CONF_DIR/eciadsl.conf"
-else
-	echo -e "\ndefault vid/pid assumed"
-fi
-test -z "$VID1" && VID1="0547"
-test -z "$PID1" && PID1="2131"
-test -z "$VID2" && VID2="0915"
-test -z "$PID2" && PID2="8000"
 
 echo -e "loading firmware.."
-echo $BIN1 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" 
-
-$BIN1 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" > /dev/null 2>&1
+$BIN_DIR/eci-load1 $ECILOAD1_OPTIONS 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" > /dev/null 2>&1
 if [ $? -eq 0 ]
 then
 	echo "firmware loaded"
@@ -143,7 +144,7 @@ IFS="
 for FILE in $(echo -e "$LIST")
 do
 	echo -e "\ntesting synch with $DIR/$FILE.."
-	$BIN2 0x$VID2 0x$PID2 "$DIR/$FILE"
+	$BIN_DIR/eci-load2 $ECILOAD2_OPTIONS 0x$VID2 0x$PID2 "$DIR/$FILE"
 	if [ $? -eq 0 ]
 	then
 		test -n "$LISTOK" && LISTOK="$LISTOK\n$FILE" || LISTOK="$FILE"

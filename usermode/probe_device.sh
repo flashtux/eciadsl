@@ -17,8 +17,8 @@ function commandlinehelp()
 	echo "          --dry-run              test mode (only perform neutral operations)"
 	echo "          --version or -v        show version number then exit"
 	echo "          --help or -h           show this help then exit"
-	echo "          --smart                use smart mode: only show uninitialized devices"
-	echo "          --auto                 device auto selection"
+#	echo "          --smart                use smart mode: only show uninitialized devices"
+##	echo "          --auto                 device auto selection"
 	exit $1
 }
 
@@ -152,9 +152,6 @@ VERSION=""
 # </CONFIG>
 
 BASE=${0##*/}
-BIN=$BIN_DIR/eci-load1
-FIRMWARE=$CONF_DIR/firmware.bin
-DEVICES=/proc/bus/usb/devices
 VID1_TABLE=""
 VID2_TABLE=""
 PID1_TABLE=""
@@ -163,15 +160,18 @@ VID1="????"
 PID1="????"
 VID2="????"
 PID2="????"
+
+DEVICES=/proc/bus/usb/devices
 SEP=":"
-declare -i TESTONLY=0 RET=0 CNT SMART=0 AUTO=0
+declare -i TESTONLY=0 RET=0 CNT
+#declare -i SMART=0 AUTO=0
 
 while [ -n "$1" ]
 do
 	case "$1" in
 		"--dry-run")		let TESTONLY=1;;
-		"--smart")			let SMART=1;;
-		"--auto")			let AUTO=1;;
+#		"--smart")			let SMART=1;;
+#		"--auto")			let AUTO=1;;
 		"--version"|"-v")	version;;
 		"--help"|"-h")		commandlinehelp 0;;
 		*)					echo "unrecognized switch $1"
@@ -192,6 +192,16 @@ echo -e "\nWARNING: before probing, please ensure that your USB devices are plug
 echo "and that your system's USB support is properly configured"
 echo -e "\nUSB modem to probe must be UNinitialized, it will surely appear as an unknown"
 echo "device (because it is not initialized yet), for instance: ? (0547:2131)"
+
+ECILOAD1_OPTIONS=""
+if [ -f "$CONF_DIR/eciadsl.conf" ]; then
+	FIRMWARE=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	ECILOAD1_OPTIONS=`grep -iE "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s " \t" " "`
+	echo -e "\nconfig read from $CONF_DIR/eciadsl.conf"
+else
+	echo -e "\ndefault config assumed"
+fi
+test -z "$FIRMWARE" && FIRMWARE=$CONF_DIR/firmware00.bin
 
 if [ ! -f "$DEVICES" ]
 then
@@ -228,10 +238,10 @@ else
 	exit 1
 fi
 
-type $BIN > /dev/null 2>&1
+type $BIN_DIR/eci-load1 > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	echo -e "\ncannot find $BIN in \$PATH, test mode assumed"
+	echo -e "\ncannot find $BIN_DIR/eci-load1 in \$PATH, test mode assumed"
 	let RET+=1
 #	let TESTONLY=1
 fi
@@ -239,7 +249,7 @@ fi
 if [ $TESTONLY -eq 0 ]
 then
 	echo -e "\nprobing, please wait.."
-	$BIN 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
+	$BIN_DIR/eci-load1 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
 
 	# list USB devices
 	echo -e "\nyour USB devices now:"
