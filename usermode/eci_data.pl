@@ -294,5 +294,46 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 				print_buffer ($buf);
 			}
 		}
+	} elsif ($type eq "GET_DESCRIPTOR_FROM_DEVICE") {
+
+		$buf = $urb_list{$k}{'buf'};
+		$size = hex($urb_list{$k}{'length'});
+		$index   = hex($urb_list{$k}{'index'});
+
+		if ($size != length ($buf)) {
+			print "Fatal error: URB $k has wrong buffer length\n";
+			exit;
+		}
+
+		$descriptor_type = ord (substr $buf, 1);
+
+		if ($descriptor_type eq 1) { # DEVICE Descriptor
+
+			$idVendor = ord(substr $buf, 8,1) + ord(substr $buf, 9,1) * 256;
+			$idProduct = ord(substr $buf,10,1) + ord(substr $buf,11,1) * 256;
+			$bcdDevice = ord(substr $buf,12,1) . "." . ord(substr $buf,13,1);
+
+			print "DEVICE DESCRIPTOR: Vendor/Product ID="
+				. sprintf("%04X/%04X", $idVendor, $idProduct)
+					. " rev=$bcdDevice\n";
+
+		} elsif ($descriptor_type eq 2) { # CONFIGURATION Descriptor
+		} elsif ($descriptor_type eq 3) { # STRING Descriptor
+
+			if ($index != 0) {
+
+				$l = ord(substr $buf, 0, 1);
+				
+				$s = "";
+				for ($i=2; $i<length($buf) && $i<$l ;$i+=2) {
+					$s .= substr $buf, $i, 1;
+				}
+					
+				print "STRING DESCRIPTOR $index: $s\n";
+			}
+
+		} elsif ($descriptor_type eq 4) { # INTERFACE Descriptor
+		} elsif ($descriptor_type eq 5) { # ENDPOINT Descriptor
+		}
 	}
 }
