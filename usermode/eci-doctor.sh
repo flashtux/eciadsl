@@ -232,6 +232,13 @@ else
 	echo "HDLC support is OK (no bug)" ;
 fi
 
+# check for the dabusb module
+lsmod | grep "^dabusb" > /dev/null
+if [ $? -eq 0 ]; then
+	echo "dabusb module is loaded: Remove it!" ;
+	fatal;
+fi
+
 # check for the EZUSB chip
 ezusb=0
 grep "^P:  Vendor=0547 ProdID=2131" /proc/bus/usb/devices > /dev/null
@@ -415,7 +422,6 @@ fi
 
 # check for /var/log or /tmp partitions full (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
-# check for the dabusb module (TODO)
 
 echo "Everything is OK" ;
 
