@@ -94,11 +94,11 @@ static char id[] =
 #include "modem.h"
 
 /* max size of data endpoint (originally : 448). */
-#define MAX_EP_SIZE 448
+#define MAX_EP_SIZE 53
 /* number of simultaneous URB submitted to data endpoint */
 #define NB_PKT_EP_DATA_IN 100
 /* number of ISO packet per URB */
-#define PKT_NB 10
+#define PKT_NB 83
 
 /* ATM level : adapt according your ADSL provider settings */
 int my_vpi = -1;
@@ -636,7 +636,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 		dump(buf, len);
 	}
 
-	if (len == MAX_EP_SIZE )
+	/*if (len == MAX_EP_SIZE )
 	{
 		printf("%d bytes? eh eh ... I'm waiting for a packet with a multiple of 53 bytes, sir!\n", MAX_EP_SIZE);
 		waiting_for_53 = 1;
@@ -655,7 +655,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 			printf("ok... back to normal :-)\n");
 			waiting_for_53 = 0;
 		}
-	}
+	}*/
 
 	if ((len % 53) == 0)
 	{
@@ -968,7 +968,7 @@ void sig_rtmin(int sig)
 		   Anyway, its a quick fix.
 		*/
 
-		free (urb);
+		free(urb);
 	}
 }
 
