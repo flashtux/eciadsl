@@ -1,4 +1,7 @@
-Usermode TODO list (pending tasks):
+EciAdsl - Driver for USB ADSL modems with Globespan chipset
+===========================================================
+
+TOTO list - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
 
 Sorted according to priority (the upper in the list, the prior):
 
@@ -7,79 +10,68 @@ Sorted according to priority (the upper in the list, the prior):
 - pending
 ? is this really necessary?
 
-0.6:
-* merging of pending patches (LCP timeouts, LLC/LLC_SNAP, eci-load* timeout detection, oliverthered*)
-* fix: problems with USB 2.0 HUBs (ehci-hdc)
-* synch_bin in repository
-* ANSIC89 compliance
-* eciconftxt.sh
-* probe_device.sh
-* synch bin auto selection (config time only)
-* packaging:
-  * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
-    modify scripts
-  * fix makeconfig: adsl file seems to be empty sometimes (bug)
-  * fix ETC_DIR use (separate installation and syst configuration uses)
-  * updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
-  * some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
-    other util stuff..)
-  * --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
-* unify websites: eciadsl.sf.net update/move to flashtux
-* redesign eciconf.sh UI
-* see if selected modem/provider/synchbin can be still coloured when an item from another
-  listbox is selected.
-* add grep -m check to ./configure, else use egrep (fixed temporarily).
-+? add auto modes to probe_device.sh
-+ redesign probe_synch.sh to reset the modem between each synch .bin test
-- update the spec file
-- synch_bin installation (asks or greps to/into makeconfig or startmodem for CONF_DIR)
--? see if synch_bin update function (invert_bin in eciconf.sh) can use invert_fai's scheme (minor).
-* use section numbers in TROUBLESHOOTING files
-* fix TROUBLESHOOTING file regarding the USB2 warns.
-* fix EICON problems with 0.6-preX
-* add doc about connecting using startmodem at boot
-* removed: skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
-  adsl file, is this relevant in Makefile?
-* keep previous settings when installing/configuring (eciconf.sh)
-* keep previous settings when installing/configuring (eciconftxt.sh)
-* merge oliverthered's pending patches (stability, gs7070), update doc if necessary
-* merge flynux's pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
-* remove synch and firm link, all scripts and exec must use eciadsl.conf (startmodem for instance)
-* eciload* and pppoeci should read the .conf file by default (see pending patch or merge wwp's previous implementation)
-* fix a hole in makeconfig: updated a pre-existing eciadsl.conf does not re-add missing fields
-* complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
-+ add better documentation in the TROUBLESHOOTING/INSTALL files about DHCP/static IP and the PPP mode.
-- reimplement the .bak system in makeconfig (yak!)
-- eciconf*: allow/disallow username/passwd DHCP or STATICIP following the PPP MODE selected:
-  if (VCM_RFC2364 || LLC_RFC2364) -> !DHCP, !staticip, user/pass
-  if RFC1483_ETH for both -> (dhcp && if !dhcp -> static ip), !user/pass
-  if ROUTED_IP -> !dhcp, !user/pass
-  also allow/disallow username+passwd input (routed_ip or dhcp, no need for such info)
-* get back password from previous config
-* get back DNS IPs from current config if Other is set (and even if Other is not set)
-* get back USE_STATICIP from current config
+
+v 0.10:
+
+  + rename all scripts/binaries with "eciadsl-" prefix
+  - improve synch .bin detection (eciadsl-probe-synch script)
+  - detect if 2.6 USB patch is needed or not
+  + hotplug support
+  - eciadsl-pppoeci, eciadsl-firmware and eciadsl-synch must rehook TERM
+    (if possible) and STOP signal to cleanup thing and exit
+  - code clean up & normalization, string protection in scripts
+  - submit driver to GNU/Linux distro managers
+  - better distro/services(init.d?) integration
+  ? use standard ./configure script (autoconf/make tools)
+  ? URB cleaning on decnx (prevents kernel oops)
+  ? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
 
 
-0.x:
-- URB cleaning on decnx (prevents kernel oops)
-- pppoeci and eci-load* must rehook TERM (if possible) and STOP signal to cleanup thing and exit
--? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
-- code clean up & normalization, string protection in scripts
-- submit driver to GNU/Linux distro managers
-- better distro/services(init.d?) integration using adsl-start/stop instead of startmodem (use a
-  lock file too).
-- redesign Makefile to use more Makefile-friendly rules.
-- reimplement .conf reading from shell scripts (simplify that).
-- make configure (and so Makefile) sensible to $CC, $CFLAGS and $LDFLAGS.
-- mirror extra and more verbose config checks from pppoeci.c to eci-load[12].c.
+Future versions:
 
-0.y:
-- check and merge bsd 0.6 port
-- submit driver to *BSD distro managers
+  - submit driver to *BSD distro managers
+  ? new USB implementation (benoit)
 
+v 0.6:
 
-1.0:
-- auto*stuff (autoconf/make)
-- new USB implementation (benoit)
-- hotplug/usbmgr integration?
-- ?
+  * merging of pending patches (LCP timeouts, LLC/LLC_SNAP, eci-load* timeout detection, oliverthered*)
+  * fix: problems with USB 2.0 HUBs (ehci-hdc)
+  * synch_bin in repository
+  * ANSIC89 compliance
+  * eciconftxt.sh
+  * probe_device.sh
+  * synch bin auto selection (config time only)
+  * packaging:
+    * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
+      modify scripts
+    * fix makeconfig: adsl file seems to be empty sometimes (bug)
+    * fix ETC_DIR use (separate installation and syst configuration uses)
+    * updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
+    * some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
+      other util stuff..)
+    * --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
+  * unify websites: eciadsl.sf.net update/move to flashtux
+  * redesign eciconf.sh UI
+  * see if selected modem/provider/synchbin can be still coloured when an item from another
+    listbox is selected.
+  * add grep -m check to ./configure, else use egrep (fixed temporarily).
+  * redesign probe_synch.sh to reset the modem between each synch .bin test
+  * update the spec file
+  * use section numbers in TROUBLESHOOTING files
+  * fix TROUBLESHOOTING file regarding the USB2 warns.
+  * fix EICON problems with 0.6-preX
+  * add doc about connecting using startmodem at boot
+  * removed: skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
+    adsl file, is this relevant in Makefile?
+  * keep previous settings when installing/configuring (eciconf.sh)
+  * keep previous settings when installing/configuring (eciconftxt.sh)
+  * merge oliverthered's pending patches (stability, gs7070), update doc if necessary
+  * merge flynux's pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
+  * remove synch and firm link, all scripts and exec must use eciadsl.conf (startmodem for instance)
+  * eciload* and pppoeci should read the .conf file by default (see pending patch or merge wwp's previous implementation)
+  * fix a hole in makeconfig: updated a pre-existing eciadsl.conf does not re-add missing fields
+  * complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
+  * add better documentation in the TROUBLESHOOTING/INSTALL files about DHCP/static IP and the PPP mode.
+  * get back password from previous config
+  * get back DNS IPs from current config if Other is set (and even if Other is not set)
+  * get back USE_STATICIP from current config
