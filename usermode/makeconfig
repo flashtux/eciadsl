@@ -9,18 +9,79 @@
 # *           - Crevetor : ziva@caramail.com                             *
 # *                                                                      *
 # *      Parameters for this script :                                    *
-# *        1  = username + domain (username@domain)                      *
-# *        2  = password (given by provider)                             *
-# *        3  = path to pppoeci (eg: /usr/local/bin/pppoeci)             *
-# *        4  = DNS 1 (depends on provider, 0 or "" = skipped)           *
-# *        5  = DNS 2 (depends on provider, 0 or "" = skipped)           *
-# *        6  = VPI (depends on provider)                                *
-# *        7  = VCI (depends on provider)                                *
-# *        8  = VID/PID before synchro (example: 05472131 for ECI modem) *
-# *        9  = VID/PID after synchro  (example: 09158000 for ECI modem) *
-# *        10 = path to .bin (optional)                                  *
+# *        1  = mode                                                     *
+# *        2  = username + domain (username@domain)                      *
+# *        3  = password (given by provider)                             *
+# *        4  = path to pppoeci (eg: /usr/local/bin/pppoeci)             *
+# *        5  = DNS 1 (depends on provider, 0 or "" = skipped)           *
+# *        6  = DNS 2 (depends on provider, 0 or "" = skipped)           *
+# *        7  = VPI (depends on provider)                                *
+# *        8  = VCI (depends on provider)                                *
+# *        9  = VID/PID before synchro (example: 05472131 for ECI modem) *
+# *        10 = VID/PID after synchro  (example: 09158000 for ECI modem) *
+# *        11 = path to a synch .bin                                     *
+# *        12 = path to a firmware .bin                                  *
+# *        13 = static IP                                                *
+# *        14 = gateway IP                                               *
+# *        15 = use DHCP (yes/no)                                        *
 # *                                                                      *
 # ************************************************************************
+
+function backup()
+{
+	if [ -f "$1" ]
+	then
+	    backupfile="$1.bak"
+	    num=0
+	    while [ -s "$backupfile" ]
+	    do
+	        num=`expr $num + 1`
+	        backupfile="$1.bak$num"
+	    done
+        echo -n "backing up $1 to $backupfile.. "
+        cp -f "$1" "$backupfile"
+		test $? -ne 0 && exit 255
+        echo "OK"
+	fi
+}
+
+function set_synch()
+{
+	if [ -z "$1" ]
+	then
+		echo "ERROR: missing synch .bin file (use --synch /path/filename)"
+		exit 1
+	fi
+	if [ "${1:0:1}" != "/" ]
+	then
+		echo "ERROR: illegal synch .bin path/name"
+    	echo "you must use an absolute path name (for instance: /etc/eciadsl/synchXX.bin)"
+    	exit 1
+	fi
+	if [ ! -s "$1" -o -L "$1" ]
+	then
+    	echo "ERROR: $1 is not a valid synch .bin (must be a regular file)"
+    	exit 1
+	fi
+	if [ ! -f "$conffile" ]
+	then
+		echo "ERROR: couldn't find config file $conffile"
+		exit 1
+	fi
+	backup "$conffile"
+	tmpconffile="/tmp/eciadsl.conf.tmp"
+	TMP=$(echo "$1" | sed "s/\//\\\\\//g")
+	sed "s/^[ \t]*SYNCH[ \t]*=.*/SYNCH=$TMP/g" "$conffile" >> "$tmpconffile"
+	if [ -s "$tmpconffile" ]
+	then
+		mv -f "$tmpconffile" "$conffile"
+	else
+		rm -f "$tmpconffile"
+		echo "SYNCH=$2" >> "$conffile"
+	fi
+	echo "OK"
+}
+
 
 # <CONFIG>
 BIN_DIR="/usr/local/bin"
@@ -30,29 +91,58 @@ PPPD_DIR="/etc/ppp"
 VERSION=""
 # </CONFIG>
 
-if [ "$1" == "--version" -o "$1" == "-v" ]; then
-	echo "$VERSION"
-	exit 0
-fi
+TMPFILE="/tmp/${0##*/}.tmp"
+conffile="$CONF_DIR/eciadsl.conf"
+case "$1" in
+"--version"|"-v")	echo "$VERSION"
+					exit 0
+					;;
+"--synch")			set_synch "$2"
+					exit 0
+					;;
+esac
 
 #
 # check parameters
 #
 
-if [ $UID -ne 0 ]; then
-    echo -e "\nerror: you must be root in order to run this script."
+if [ $UID -ne 0 ]
+then
+    echo -e "\nERROR: you must be root in order to run this script"
     exit 255
 fi
 
-if [ $# -ne 9 -a $# -ne 10 ]; then
-    echo -e "\nerror: invalid number of parameters."
-    echo -e "syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> [<path_bin>]"
+if [ $# -ne 15 ]
+then
+    echo -e "\nERROR: invalid number of parameters"
+    echo -e "syntax:\n  makeconfig <mode> <username> <password> </path/to/pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin>"
     exit 1
 fi
 
-pppoeci="$3"
-if [ ! -f "${pppoeci}" -o ! -x "${pppoeci}" ]; then
-    echo "error: ${pppoeci} is not a valid executable"
+mode="$1"
+username="$2"
+password="$3"
+pppoeci="$4"
+dns1="$5"
+dns2="$6"
+vpi="$7"
+vci="$8"
+vid1=`echo $9 | cut -c 1-4`
+pid1=`echo $9 | cut -c 5-8`
+vid2=`echo ${10} | cut -c 1-4`
+pid2=`echo ${10} | cut -c 5-8`
+synch="${11}"
+firmware="${12}"
+staticip=${13}
+gateway=${14}
+use_dhcp=${15}
+test -z "$mode" && mode="$($pppoeci --modes 2>&1 | grep default |cut -d ' ' -f 1)"
+test -z "$synch" && synch="$CONF_DIR/synch01.bin"
+test -z "$firmware" && firmware="$CONF_DIR/firmware00.bin"
+
+if [ ! -f "$pppoeci" -o ! -x "$pppoeci" ]
+then
+    echo "ERROR: $pppoeci is not a valid executable"
     exit 1
 fi
 
@@ -62,104 +152,75 @@ RET=0
 # backup and create resolv.conf
 #
 
-if [ "$4" != "0" -o "$5" != "0" ]; then
-	if [ -n "$4$5" ]; then
-    	nomresolv="${ETC_DIR}/resolv.conf"
-    	if [ -s" $nomresolv" ]; then
-        	nombak="${nomresolv}.bak"
-        	numero=0
-        	while [ -s "$nombak" ]
-        	do
-            	numero=`expr $numero + 1`
-            	nombak="${nomresolv}.bak$numero"
-        	done
-        	echo -n "backing up $nomresolv (to $nombak).. "
-        	cp -f "$nomresolv" "$nombak"
-        	echo "OK"
-    	fi
-    	echo -n "creating $nomresolv.."
-		:> "$nomresolv"
-		if [ "$5" != "0" -a -n "$5" ]; then
-	    	echo "nameserver $4" >> "$nomresolv"
-		fi
-		if [ "$5" != "0" -a -n "$5" ]; then
-	    	echo "nameserver $5" >> "$nomresolv"
-		fi
-    	echo "OK"
+resolvconf="$ETC_DIR/resolv.conf"
+if [ -n "$dns1$dns2" -a "$dns1$dns2" != "00" ]
+then
+	backup "$resolvconf"
+
+    echo -n "creating $resolvconf.."
+	:> "$resolvconf"
+	if [ "$dns1" != "0" -a -n "$dns1" ]
+	then
+	    echo "nameserver $dns1" >> "$resolvconf"
 	fi
+	if [ "$dns2" != "0" -a -n "$dns2" ]
+	then
+	    echo "nameserver $dns2" >> "$resolvconf"
+	fi
+    echo "OK"
 fi
 
 #
 # create or backup/modify "chap-secrets" and "pap-secrets"
 #
 
-for auth in "chap" "pap"; do
-    nomsecret="${ETC_DIR}/ppp/${auth}-secrets"
-    if [ -s $nomsecret ]; then
-        nombak="${nomsecret}.bak"
-        numero=0
-        while [ -s "$nombak" ]
-        do
-            numero=`expr $numero + 1`
-            nombak="${nomsecret}.bak$numero"
-        done
-        echo -n "backing up $nomsecret (to $nombak).. "
-        cp -f "$nomsecret" "$nombak"
-        echo "OK"
-        echo -n "modifying $nomsecret.. "
-		TMPFILE="/tmp/${0##*/}.tmp"
-		TMP=$(echo "$1" | sed "s/\\\/\\\\\\\\\\\/g")
-		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*" $nombak > "$nomsecret"
-        echo -e "\"$1\"\t*\t\"$2\"\t*" >>"$nomsecret"
-		rm -f $TMPFILE
-        echo "OK"
+for auth in "chap" "pap"
+do
+    secretfile="$PPPD_DIR/$auth-secrets"
+    if [ -s $secretfile ]
+	then
+		backup "$secretfile"
+
+        echo -n "modifying $secretfile.. "
+		TMP=$(echo "$username" | sed "s/\\\/\\\\\\\\\\\/g")
+		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*" $backupfile > "$secretfile"
     else
-        echo -n "creating $nomsecret.. "
-        echo "# Secrets for authentication using $auth" > "$nomsecret"
-        echo -e "\"$1\"\t*\t\"$2\"\t*" >> "$nomsecret"
-        echo "OK"
+        echo -n "creating $secretfile.. "
+        echo "# Secrets for authentication using $auth" > "$secretfile"
     fi
+    echo -e "\"$username\"\t*\t\"$password\"\t*" >> "$secretfile"
+    echo "OK"
 done
 
 #
 # create or backup/modify "adsl" script
 #
 
-vid1=`echo $8 | cut -c 1-4`
-pid1=`echo $8 | cut -c 5-8`
+pppdconffile="$PPPD_DIR/peers/adsl"
+tmppppdconffile="/tmp/adsl.tmp"
+if [ -s $pppdconffile ]
+then
+	backup "$pppdconffile"
 
-vid2=`echo $9 | cut -c 1-4`
-pid2=`echo $9 | cut -c 5-8`
-
-nomadsl="${PPPD_DIR}/peers/adsl"
-if [ -s $nomadsl ]; then
-    nombak="${nomadsl}.bak"
-    numero=0
-    while [ -s "$nombak" ]; do
-        numero=`expr $numero + 1`
-        nombak="${nomadsl}.bak$numero"
-    done
-    echo -n "backing up $nomadsl (to $nombak).. "
-    cp -f "$nomadsl" "$nombak"
-    echo "ok"
-    echo -n "modifying $nomadsl.. "
-	TMPFILE="/tmp/${0##*/}.tmp"
-	TMP=$(echo "$3" | sed "s/\//\\\\\//g")
-	echo "s/^pty .\+/pty \\\"$TMP -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2\\\"/" > $TMPFILE
-	TMP=$(echo "$1" | sed "s/\//\\\\\//g")
+    echo -n "modifying $pppdconffile.. "
+	TMP=$(echo "$pppoeci" | sed "s/\//\\\\\//g")
+	echo "s/^pty .\+/pty \\\"$TMP -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode\\\"/" > $TMPFILE
+	TMP=$(echo "$username" | sed "s/\//\\\\\//g")
 	echo "s/^user .\+/user \\\"$TMP\\\"/" >> $TMPFILE
-	sed -f $TMPFILE "$nombak" > "$nomadsl"
-	rm -f $TMPFILE
-	if [ -s "$nomadsl" ]; then
+	sed -f $TMPFILE "$backupfile" > "$tmppppdconffile"
+
+	if [ -s "$tmppppdconffile" ]
+	then
 	    echo "OK"
+		mv -f "$tmppppdconffile" "$pppdconffile"
 	else
-		echo -e "\nfailed to set up $nomadsl"
-		echo -e "this is a bug, please report this to us, and join your $nombak file\n"
+		rm -f "$tmppppdconffile"
+		echo -e "\nERROR: failed to set up $pppdconffile"
 		RET=1
 	fi
 else
-    echo -n "creating $nomadsl.. "
-    cat <<EOF > "$nomadsl"
+    echo -n "creating $pppdconffile.. "
+    cat << EOFADSL > "$pppdconffile"
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
 # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
 # 07/02/2002 Replace "maxfail 0" by "maxfail 10"
@@ -173,9 +234,9 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "$3 -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2"
+pty "$pppoeci -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode"
 sync
-user "$1"
+user "$username"
 noaccomp
 nopcomp
 noccp
@@ -207,26 +268,68 @@ lcp-echo-interval 0
 
 # You may need the following, but ONLY as a workaround
 # mtu 1432
-EOF
+
+persist
+EOFADSL
     echo "OK"
 fi
 
 #
-# create vidpid file
+# create eciadsl.conf file
 #
 
-echo -n "creating ${ETC_DIR}/eciadsl/vidpid.."
-echo "$vid1 $pid1 $vid2 $pid2" > "${ETC_DIR}/eciadsl/vidpid"
-echo "OK"
+tmpconffile="/tmp/eciadsl.conf.tmp"
+if [ -s "$conffile" ]
+then
 
-#
-# change .bin file
-#
+	backup "$conffile"
 
-if [ $# -eq 10 ]; then
-    echo -n "modifying .bin link (${ETC_DIR}/eciadsl/synch.bin -> ${10}).."
-    rm -f "${ETC_DIR}/eciadsl/synch.bin" >/dev/null
-    ln -sf ${10} "${ETC_DIR}/eciadsl/synch.bin"
-    echo "OK"
+	echo -n "updating $conffile.."
+	echo "s/^[ \t]*VID1[ \t]*=.*/VID1=$vid1/g" > "$TMPFILE"
+	echo "s/^[ \t]*PID1[ \t]*=.*/PID1=$pid1/g" >> "$TMPFILE"
+	echo "s/^[ \t]*VID2[ \t]*=.*/VID2=$vid2/g" >> "$TMPFILE"
+	echo "s/^[ \t]*PID2[ \t]*=.*/PID2=$pid2/g" >> "$TMPFILE"
+	echo "s/^[ \t]*MODE[ \t]*=.*/MODE=$mode/g" >> "$TMPFILE"
+	echo "s/^[ \t]*VCI[ \t]*=.*/VCI=$vci/g" >> "$TMPFILE"
+	echo "s/^[ \t]*VPI[ \t]*=.*/VPI=$vpi/g" >> "$TMPFILE"
+	TMP=$(echo "$firmware" | sed "s/\//\\\\\//g")
+	echo "s/^[ \t]*FIRMWARE[ \t]*=.*/FIRMWARE=$TMP/g" >> "$TMPFILE"
+	TMP=$(echo "$synch" | sed "s/\//\\\\\//g")
+	echo "s/^[ \t]*SYNCH[ \t]*=.*/SYNCH=$TMP/g" >> "$TMPFILE"
+	TMP=$(echo "$username" | sed "s/\//\\\\\//g")
+	echo "s/^[ \t]*PPPD_USER[ \t]*=.*/PPPD_USER=$TMP/g" >> "$TMPFILE"
+	echo "s/^[ \t]*STATICIP[ \t]*=.*/VID1=$staticip/g" >> "$TMPFILE"
+	echo "s/^[ \t]*GATEWAY[ \t]*=.*/VID1=$gateway/g" >> "$TMPFILE"
+	echo "s/^[ \t]*USE_DHCP[ \t]*=.*/VID1=$use_dhcp/g" >> "$TMPFILE"
+	sed -f "$TMPFILE" "$backupfile" > "$tmpconffile"
+	if [ -s "$tmpconffile" ]
+	then
+		mv -f "$tmpconffile" "$conffile"
+	    echo "OK"
+	else
+		rm -f "$tmpconffile"
+		echo -e "\nERROR: failed to set up $conffile"
+		RET=1
+	fi
+else
+	echo -n "updating $conffile.."
+	cat << EOFCONF > "$conffile"
+VID1=$vid1
+PID1=$pid1
+VID2=$vid2
+PID2=$pid2
+MODE=$mode
+VCI=$vci
+VPI=$vpi
+FIRMWARE=$firmware
+SYNCH=$synch
+PPPD_USER=$username
+STATICIP=$staticip
+GATEWAY=$gateway
+USE_DHCP=$use_dhcp
+EOFCONF
+	echo "OK"
 fi
+
+rm -f "$TMPFILE"
 exit $RET

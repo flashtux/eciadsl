@@ -1341,10 +1341,17 @@ void version(const int full)
 	_exit(ERR_NONE);
 }
 
+
+void display_modes(void)
+{
+	int i;
+	for (i = 0; i < modes_count; i++)
+		fprintf(stderr, "%s%s\n", mode_name[i], (i == frame_type)?" (default)":"");
+}
+
 void usage(const int ret)
 /* if 'error' is 0, usage() hasn't to quit with an <0 error code */
 {
-	int i;
 
 	fprintf(stderr,	"usage:\n"
 					"       pppoeci [<switch>..] -vpi num -vci num -vendor hex -product hex\n");
@@ -1356,6 +1363,7 @@ void usage(const int ret)
 					"       -f or --logfile      define the log filename to use (default " LOG_FILE ")\n"
 					"       -h or --help         display this message then exit\n"
 					"       -V or --version      display the version number then exit\n"
+					"       --modes              display a list of the supported modes (to use with -mode)\n"
 					"\n");
 	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
 					"by provider. For instance: 8.35 for France, 0.38 for UK.\n"
@@ -1368,9 +1376,7 @@ void usage(const int ret)
 					"If you experience LCP requests timeout or IOCTL errors at connect time, try\n"
 					"another one (e.g.: LLC_RFC2364 for Switzerland).\n");
 	fprintf(stderr, "Possible values:\n");
-	for (i = 0; i < modes_count; i++)
-		fprintf(stderr, "    %s%s\n", mode_name[i], (i == frame_type)?" (default)":"");
-					
+	display_modes();
 	_exit(ret);
 }
 
@@ -1472,6 +1478,12 @@ int main(int argc, char** argv)
 		else
 		if ((strcmp(argv[i], "--version") == 0) || (strcmp(argv[i], "-V") == 0))
 			version(0);
+		else
+		if (strcmp(argv[i], "--modes") == 0)
+		{
+			display_modes();
+			_exit(0);
+		}
 		else
 		if (strcmp(argv[i], "--full-version") == 0)
 			version(1);

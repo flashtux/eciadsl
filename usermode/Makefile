@@ -4,7 +4,7 @@ PPPD_DIR = $(ETC_DIR)/ppp
 
 # Final targets
 TARGETS = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
-SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh \
+SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh probe_synch.sh\
 			remove_dabusb makeconfig eci_vendor_device.pl eci_data.pl eci_uc.pl
 
 TMP_DIR = inst
@@ -39,8 +39,7 @@ install-strip: install
 		fi; \
 	done
 
-install_no_system_fixes: all install_dirs install_scripts uninstall_old_bin_files ppp_peer
-	$(INSTALL_DATA) adsl $(CONF_DIR)/adsl-skel
+install_no_system_fixes: all install_dirs install_scripts uninstall_old_bin_files
 	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif providers.db modems.db $(CONF_DIR)
 	ln -fs $(CONF_DIR)/firmware00.bin $(CONF_DIR)/firmware.bin
 	ln -fs $(CONF_DIR)/synch01.bin $(CONF_DIR)/synch.bin
@@ -92,6 +91,7 @@ install_dirs:
 	$(INSTALL_DIR) $(BIN_DIR)
 	$(INSTALL_DIR) $(CONF_DIR)
 	$(INSTALL_DIR) $(PPPD_DIR)
+	$(INSTALL_DIR) $(PPPD_DIR)/peers
 
 clean:
 	$(RM) ${TARGETS} *.o
@@ -128,21 +128,7 @@ modules_conf:
 		fi; \
 	fi
 
-ppp_peer:
-# install the /etc/ppp/peers/adsl file
-	@mkdir -p $(PPPD_DIR)/peers
-	@if [ -f $(PPPD_DIR)/peers/adsl ]; then \
-		echo "modifying existing $(PPPD_DIR)/peers/adsl.."; \
-		USER=`grep -E "^user[ \t]+" $(PPPD_DIR)/peers/adsl`; \
-		grep -v -E "^user[ \t]+" adsl > $(PPPD_DIR)/peers/adsl; \
-		echo -e "$$USER" >> $(PPPD_DIR)/peers/adsl; \
-	else \
-		echo "creating $(PPPD_DIR)/peers/adsl.."; \
-		$(INSTALL_DATA) adsl $(PPPD_DIR)/peers/adsl; \
-	fi
-
 uninstall: uninstall_old_bin_files uninstall_dirs uninstall_bin uninstall_scripts
-	$(RM) $(CONF_DIR)/adsl-skel
 	$(RM) $(CONF_DIR)/modemeci.gif
 	@echo "the driver has been uninstalled"
 
@@ -165,6 +151,8 @@ uninstall_old_bin_files:
 	$(RM) $(CONF_DIR)/eci_wan.bin
 	$(RM) $(CONF_DIR)/eci_wan3.bin
 	$(RM) $(CONF_DIR)/eci_wan3.dmt.bin
+	$(RM) $(CONF_DIR)/vidpid
+	$(RM) $(CONF_DIR)/adsl-skel
 
 uninstall_dirs:
 	$(RM) -r $(CONF_DIR)

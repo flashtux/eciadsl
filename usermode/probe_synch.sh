@@ -57,9 +57,9 @@ fi
 
 test -z "$DIR" && DIR=$CONF_DIR
 
-echo -e "\nWARNING: if no $CONF_DIR/vidpid file exists, default vid/pid"
-echo "will be assumed. This vidpid file is generated using eciconf.sh"
-echo "or eciconftxt.sh."
+echo -e "\nWARNING: if no $CONF_DIR/eciadsl.conf file exists,"
+echo "default vid/pid will be assumed. This eciadsl.conf file is generated using"
+echo "eciconf.sh or eciconftxt.sh"
 echo "this script requires your modem to be supported by the driver,"
 echo "and that you've installed some extra synch .bin (the official"
 echo "synch_bin package for instance)"
@@ -67,7 +67,7 @@ echo "synch_bin package for instance)"
 
 if [ $INTERACTIVE -eq 1 ]
 then
-	echo -e "\nenter directory where to find the synch .bin"
+	echo -e "\ntype in a directory where to find the synch .bin"
 	echo -en "[default is $DIR]: "
 	read USERDIR
 	test -n "$USERDIR" && DIR="$USERDIR"
@@ -111,19 +111,20 @@ then
 	esac
 fi
 
-if [ -f "$CONF_DIR/vidpid" ]; then
-	VID1=`cat "$CONF_DIR/vidpid" | cut -f 1 -d ' '`
-	PID1=`cat "$CONF_DIR/vidpid" | cut -f 2 -d ' '`
-	VID2=`cat "$CONF_DIR/vidpid" | cut -f 3 -d ' '`
-	PID2=`cat "$CONF_DIR/vidpid" | cut -f 4 -d ' '`
-	echo -e "\ngot vid/pid from $CONF_DIR/vidpid"
+if [ -f "$CONF_DIR/eciadsl.conf" ]; then
+	VID1=`grep -iE "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	PID1=`grep -iE "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	VID2=`grep -iE "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	PID2=`grep -iE "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t" `
+	echo -e "\ngot vid/pid from $CONF_DIR/eciadsl.conf"
 else
-	VID1="0547"
-	PID1="2131"
-	VID2="0915"
-	PID2="8000"
 	echo -e "\ndefault vid/pid assumed"
 fi
+test -z "$VID1" && VID1="0547"
+test -z "$PID1" && PID1="2131"
+test -z "$VID2" && VID2="0915"
+test -z "$PID2" && PID2="8000"
+
 echo -e "loading firmware.."
 echo $BIN1 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" 
 

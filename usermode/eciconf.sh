@@ -33,7 +33,7 @@ set PPPD_DIR "/etc/ppp"
 set VERSION ""
 # </CONFIG>
 
-set titre_fenetre "ECI Linux driver configuration v0.6-pre5"
+set titre_fenetre "ECI Linux driver configuration v0.6-pre6"
 
 wm title . $titre_fenetre
 
@@ -53,47 +53,86 @@ if {[string compare $current_user "root"] != 0} {
     exit
 }
 
+set username "username@domain"
+set password ""
+set vpi "8"
+set vci "35"
+set dns1 ""
+set dns2 ""
+set vid1 ""
+set pid1 ""
+set vid2 ""
+set pid2 ""
+set use_dhcp "no"
+set use_staticip "no"
+set staticip ""
+set gateway ""
+set mode ""
+
 #
-# ===== Remove dabusb section =====
+# ===== modem logo =====
 #
 
-frame .dabusb
-message .dabusb.texte -text "If your modem is running when you start Linux,\nclick here after unplugging your modem:" -aspect 600 -anchor w
-button .dabusb.remove -text {Remove Dabusb} -background "#ffccff" -command {run_dabusb} -padx 10
-frame .dabusb.espace -width 6
-bind .dabusb.remove <Enter> {pushstate "Unplug your modem first and then click on this button to remove dabusb"}
-bind .dabusb.remove <Leave> {popstate}
-pack .dabusb.texte .dabusb.remove .dabusb.espace -side left
+frame .bloc0
 
-pack .dabusb -padx 10 -pady 15 -side top
+frame .bloc0.logo
+
+image create photo modem_eci -file "$CONF_DIR/modemeci.gif"
+label .bloc0.logo.picture -image modem_eci
+bind .bloc0.logo.picture <Enter> {pushstate "ECI HiFocus USB ADSL modem"}
+bind .bloc0.logo.picture <Leave> {popstate}
+pack .bloc0.logo.picture
 
 #
 # ===== user and password =====
 #
 
-frame .frame1
-label .frame1.label_user -text {User:} -anchor e
-set username "username@domain"
-entry .frame1.user -textvariable username -background lightblue -width 17
-bind .frame1.user <Enter> {pushstate "Enter your username and domain (given by your provider)"}
-bind .frame1.user <Leave> {popstate}
-pack .frame1.label_user .frame1.user -side left
-pack configure .frame1.user -padx 10
+frame .bloc0.ident
 
-label .frame1.label_password -text { Password:} -anchor e
-set password ""
-entry .frame1.password -show * -textvariable password -background lightblue -width 13
-bind .frame1.password <Enter> {pushstate "Enter your password (given by your provider)"}
-bind .frame1.password <Leave> {popstate}
-pack .frame1.label_password .frame1.password -side left
-pack configure .frame1.password -padx 10
-pack .frame1 -padx 15 -pady 6
+frame .bloc0.ident.user
+label .bloc0.ident.user.label -text {User:} -width 15 -anchor e
+entry .bloc0.ident.user.edit -textvariable username -background lightblue -width 17
+bind .bloc0.ident.user.edit <Enter> {pushstate "Enter your username and domain (given by your provider)"}
+bind .bloc0.ident.user.edit <Leave> {popstate}
+pack .bloc0.ident.user.label .bloc0.ident.user.edit -side left
 
-frame .ligne_vide1 -height 15
-pack .ligne_vide1
+frame .bloc0.ident.password
+label .bloc0.ident.password.label -text {Password:} -width 15 -anchor e
+entry .bloc0.ident.password.edit -show * -textvariable password -background lightblue -width 17
+bind .bloc0.ident.password.edit <Enter> {pushstate "Enter your password (given by your provider)"}
+bind .bloc0.ident.password.edit <Leave> {popstate}
+pack .bloc0.ident.password.label .bloc0.ident.password.edit -side left
+
+pack .bloc0.ident.user .bloc0.ident.password
 
 #
-# ===== Internet provider DNS =====
+# ===== VPI/VCI =====
+#
+
+frame .bloc0.call
+
+frame .bloc0.call.vpi
+label .bloc0.call.vpi.label -text {VPI:} -width 10 -anchor e
+entry .bloc0.call.vpi.edit -textvariable vpi -background lightblue -width 4
+bind .bloc0.call.vpi.edit <Enter> {pushstate "VPI given by your provider (8 for France)"}
+bind .bloc0.call.vpi.edit <Leave> {popstate}
+pack .bloc0.call.vpi.label .bloc0.call.vpi.edit -side left
+
+frame .bloc0.call.vci
+label .bloc0.call.vci.label -text {VCI:} -width 10 -anchor e
+entry .bloc0.call.vci.edit -textvariable vci -background lightblue -width 4
+bind .bloc0.call.vci.edit <Enter> {pushstate "VCI given by your provider (35 for France)"}
+bind .bloc0.call.vci.edit <Leave> {popstate}
+pack .bloc0.call.vci.label .bloc0.call.vci.edit -side left
+
+pack .bloc0.call.vpi .bloc0.call.vci
+
+pack .bloc0 .bloc0.logo .bloc0.ident .bloc0.call -side left
+
+pack .bloc0 -side top
+
+#
+# ===== provider DNS selection =====
 #
 
 frame .bloc1
@@ -180,13 +219,11 @@ bind .bloc1.fai.dns1 <Leave> {popstate}
 bind .bloc1.fai.dns2 <Enter> {pushstate "\[OPTIONAL\] Enter your own secondary DNS (given by your provider)"}
 bind .bloc1.fai.dns2 <Leave> {popstate}
 
-set dns1 ""
-set dns2 ""
 
 frame .bloc1.espace2 -width 15
 
 #
-# ===== Modem selection =====
+# ===== modem selection =====
 #
 
 frame .bloc1.modem
@@ -288,7 +325,7 @@ frame .ligne_vide2 -height 20
 pack .ligne_vide2
 
 #
-# ===== List of .bin =====
+# ===== synch .bin selection =====
 #
 
 frame .bloc2
@@ -361,72 +398,154 @@ pack .bloc2.listebin.liste
 pack .bloc2.listebin.recherche
 pack .bloc2.listebin -padx 15
 
-frame .bloc2.espace1 -width 15
+frame .bloc2.espace1 -width 5
 
 #
-# ===== VPI/VCI =====
+# ===== PPP mode selection and advanced settings =====
 #
 
-frame .bloc2.vpci
+frame .bloc2.modes
 
-label .bloc2.vpci.libelle -text "Your VPI/VCI:" -relief groove -background "#ffcc99" -width 15
+label .bloc2.modes.libelle -text "Select a PPP mode:" -relief groove -background "#ffcc99" -width 43
+pack .bloc2.modes.libelle
 
-frame .bloc2.vpci.vpi_espace -height 5
-frame .bloc2.vpci.vpi
-label .bloc2.vpci.vpi.label -text "VPI:"
-set vpi "8"
-entry .bloc2.vpci.vpi.entry -textvariable vpi -background lightblue -width 4
-bind .bloc2.vpci.vpi.entry <Enter> {pushstate "VPI given by your provider (8 for France)"}
-bind .bloc2.vpci.vpi.entry <Leave> {popstate}
+list modes
+set tmpfile "/tmp/eciconf.sh.tmp"
+catch {exec $BIN_DIR/pppoeci --modes >& "$tmpfile"}
+set file [open "$tmpfile" r]
+fconfigure $file -buffering line
+while {[eof $file]!=1} {
+	set line [string trim [gets $file]]
+	if {"$line"!=""} {
+		set pos1 0
+		set pos2 [string first " " "$line" [expr $pos1+1]]
+		if {$pos2!=-1} {
+			# skip trailing blanks
+			set pos2 [expr $pos2-1]
+		} else {
+			set pos2 end
+		}
+		lappend modes [string trim [string range "$line" $pos1 $pos2]]
+	}
+}
+close $file
+catch {exec rm -f "$tmpfile"}
 
-frame .bloc2.vpci.vci_espace -height 10
-frame .bloc2.vpci.vci
-label .bloc2.vpci.vci.label -text "VCI:"
-set vci "35"
-entry .bloc2.vpci.vci.entry -textvariable vci -background lightblue -width 4
-bind .bloc2.vpci.vci.entry <Enter> {pushstate "VCI given by your provider (35 for France)"}
-bind .bloc2.vpci.vci.entry <Leave> {popstate}
+frame .bloc2.modes.liste
+listbox .bloc2.modes.liste.contenu -yscrollcommand {.bloc2.modes.liste.scroll set} -width 40 -height 4 -foreground black -selectbackground "#00ccff" -selectforeground black
+.bloc2.modes.liste.contenu configure -exportselection 0
 
-pack .bloc2.vpci.libelle -side top
-pack .bloc2.vpci.vpi.label .bloc2.vpci.vpi.entry -side left -padx 5
-pack .bloc2.vpci.vci.label .bloc2.vpci.vci.entry -side left -padx 5
+set i 0
+set len [llength $modes]
+while {$i<$len} {
+	.bloc2.modes.liste.contenu insert end [lindex $modes $i]
+	incr i
+}
+.bloc2.modes.liste.contenu selection set 0
 
-# Modem image :
 
-frame .bloc2.vpci.espace -height 3
-image create photo modem_eci -file "$CONF_DIR/modemeci.gif"
-label .bloc2.vpci.image -image modem_eci
-bind .bloc2.vpci.image <Enter> {pushstate "ECI HiFocus USB ADSL modem"}
-bind .bloc2.vpci.image <Leave> {popstate}
+scrollbar .bloc2.modes.liste.scroll -command ".bloc2.modes.liste.contenu yview"
 
-pack .bloc2.vpci.libelle .bloc2.vpci.vpi_espace .bloc2.vpci.vpi .bloc2.vpci.vci .bloc2.vpci.espace .bloc2.vpci.image -side top
+pack .bloc2.modes.liste.contenu .bloc2.modes.liste.scroll -side left -fill y
 
-frame .bloc2.espace2 -width 20
+frame .bloc2.modes.espacevertic -height 5
+pack .bloc2.modes.espacevertic
 
-pack .bloc2.listebin .bloc2.espace1 .bloc2.vpci .bloc2.espace2 -side left -anchor n
+frame .bloc2.modes.advanced
+checkbutton .bloc2.modes.advanced.use_dhcp -text {Use DHCP} -command {onclick_use_dhcp} -variable use_dhcp -offvalue "no" -onvalue "yes"
+checkbutton .bloc2.modes.advanced.use_staticip -text {Use static IP} -command {onclick_use_staticip} -variable use_staticip -offvalue "no" -onvalue "yes"
+pack .bloc2.modes.advanced.use_dhcp .bloc2.modes.advanced.use_staticip -side left
 
+frame .bloc2.modes.staticip
+label .bloc2.modes.staticip.label -text "IP: " -width 10
+entry .bloc2.modes.staticip.edit -textvariable staticip -background lightblue -width 15
+pack .bloc2.modes.staticip.label .bloc2.modes.staticip.edit -side left
+
+frame .bloc2.modes.gateway
+label .bloc2.modes.gateway.label -text "Gateway: " -width 10
+entry .bloc2.modes.gateway.edit -textvariable gateway -background lightblue -width 15
+pack  .bloc2.modes.gateway.label .bloc2.modes.gateway.edit -side left
+
+proc onclick_use_staticip {} {
+	global .bloc2.modes.staticip.edit .bloc2.modes.gateway.edit
+	global .bloc2.modes.staticip.label .bloc2.modes.gateway.label
+	global use_staticip use_dhcp
+
+	if {"$use_staticip"=="yes"} {
+		set use_dhcp "no"
+		.bloc2.modes.staticip.edit configure -state normal -foreground black -background lightblue
+		.bloc2.modes.gateway.edit configure -state normal -foreground black -background lightblue
+		.bloc2.modes.staticip.label configure -foreground black
+		.bloc2.modes.gateway.label configure -foreground black
+	} else {
+		.bloc2.modes.staticip.edit configure -state disabled -background lightgray
+		.bloc2.modes.gateway.edit configure -state disabled -background lightgray
+		.bloc2.modes.staticip.label configure -foreground darkgray
+		.bloc2.modes.gateway.label configure -foreground darkgray
+	}
+}
+
+proc onclick_use_dhcp {} {
+	global use_staticip use_dhcp
+	
+	if {"$use_dhcp"=="yes"} {
+		set use_staticip "no"
+		onclick_use_staticip
+	}
+}
+
+onclick_use_dhcp
+onclick_use_staticip
+
+bind .bloc2.modes.liste.contenu <ButtonRelease> {select_mode}
+bind .bloc2.modes.liste.contenu <Enter> {pushstate "Select a PPP mode/encapsulation"}
+bind .bloc2.modes.liste.contenu <Leave> {popstate}
+bind .bloc2.modes.advanced.use_dhcp <Enter> {pushstate "Click here if you use DHCP to get an IP from your provider"}
+bind .bloc2.modes.advanced.use_dhcp <Leave> {popstate}
+bind .bloc2.modes.advanced.use_staticip <Enter> {pushstate "Click here if you get a static IP from your provider (then fill in the fields below)"}
+bind .bloc2.modes.advanced.use_staticip <Leave> {popstate}
+bind .bloc2.modes.staticip.edit <Enter> {pushstate "Your static IP (given by your provider)"}
+bind .bloc2.modes.staticip.edit <Leave> {popstate}
+bind .bloc2.modes.gateway.edit <Enter> {pushstate "Your provider's gateway IP (given by your provider)"}
+bind .bloc2.modes.gateway.edit <Leave> {popstate}
+
+pack .bloc2.modes.liste
+pack .bloc2.modes.advanced .bloc2.modes.staticip .bloc2.modes.gateway
+
+frame .bloc2.espace2 -width 15
+
+pack .bloc2.listebin .bloc2.espace1 .bloc2.modes .bloc2.espace2 -side left -anchor n
 pack .bloc2
 
 frame .ligne_vide3 -height 15
 pack .ligne_vide3
 
+
 #
-# ===== OK and Cancel buttons =====
+# ===== buttons =====
 #
 
 frame .boutons
-button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig "$username" "$password" "$dns1" "$dns2" $vpi $vci $vid1 $pid1 $vid2 $pid2} -state disabled -background lightgray
+button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig} -state disabled -background lightgray
 bind .boutons.create <Enter> {pushstate "Save modifications then quit: select a modem first"}
 bind .boutons.create <Leave> {popstate}
+
 frame .boutons.espace -width 20
-button .boutons.set_bin -text {Change synch .bin} -width 15 -height 1 -command {run_eciconftxt} -state disabled -background lightgray
+button .boutons.dabusb -text {Remove Dabusb} -background "#ffccff" -command {run_dabusb} -padx 10
+bind .boutons.dabusb <Enter> {pushstate "Unplug your modem first and then click on this button to remove dabusb"}
+bind .boutons.dabusb <Leave> {popstate}
+
+frame .boutons.espace1 -width 20
+button .boutons.set_bin -text {Change synch .bin} -width 15 -height 1 -command {run_makeconfig_synch} -state disabled -background lightgray
 bind .boutons.set_bin <Enter> {pushstate "Only change current synch .bin: enable it above and select a .bin"}
 bind .boutons.set_bin <Leave> {popstate}
+
 frame .boutons.espace2 -width 20
 button .boutons.cancel -text {Cancel} -background "#ffbbbb" -width 15 -height 1 -command {exit}
 bind .boutons.cancel <Enter> {pushstate "Quit without saving"}
 bind .boutons.cancel <Leave> {popstate}
-pack .boutons.create .boutons.espace .boutons.set_bin .boutons.espace2 .boutons.cancel -side left
+
+pack .boutons.create .boutons.espace .boutons.dabusb .boutons.espace1 .boutons.set_bin .boutons.espace2 .boutons.cancel -side left
 pack .boutons
 
 frame .ligne_vide4 -height 15
@@ -436,9 +555,6 @@ label .state -textvariable statetext -borderwidth 2 -relief sunken -anchor w
 pack .state -fill x
 set statetext "Ready."
 
-#
-# ===== call to makeconfig =====
-#
 
 proc conf_report {exit msg color sortie} {
 	global titre_fenetre
@@ -468,23 +584,29 @@ proc conf_report {exit msg color sortie} {
     tkwait window .confok
 }
 
-proc run_eciconftxt {} {
+#
+# ===== calls to makeconfig =====
+#
+
+proc run_makeconfig_synch {} {
 	global BIN_DIR majbin
 
     if {[string compare $majbin "oui"] == 0} {
         set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
-        set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
-	    set returncode [catch {exec $BIN_DIR/eciconftxt.sh "$nom_bin_choix"} sortie]
-	    if {$returncode != 0} {
-	        conf_report "non" "Synch .bin has NOT been set.\n\nThis is the error:" "#ffbbbb" $sortie
-	    } else {
+        set synch [.bloc2.listebin.liste.contenu get $numero_bin_choix]
+	    set returncode [catch {exec $BIN_DIR/makeconfig --synch "$synch"} sortie]
+    	if {$returncode != 0} {
+	        conf_report "non" "Synch .bin has NOT been set.\n\nThis is the error from makeconfig:" "#ffbbbb" $sortie
+    	} else {
 	        conf_report "non" "Synch .bin has been changed and will\nbe used the next time you run startmodem." lightgreen ""
-	    }
+    	}
 	}
 }
 
-proc run_makeconfig {username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2} {
-	global majfai majbin BIN_DIR
+proc run_makeconfig {} {
+	global majfai majbin BIN_DIR nom_bin_actuel
+	global mode use_staticip use_dhcp staticip gateway
+	global username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2
 
     if {[string compare $majfai "oui"] == 0} {
         set srvdns1 $dns1
@@ -495,13 +617,18 @@ proc run_makeconfig {username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2} {
     }
     if {[string compare $majbin "oui"] == 0} {
         set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
-        set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
-        set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$BIN_DIR/pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2 "$nom_bin_choix"} sortie]
+        set synch [.bloc2.listebin.liste.contenu get $numero_bin_choix]
     } else {
-        set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$BIN_DIR/pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2} sortie]
+		set synch "$nom_bin_actuel"
     }
+	set firm ""
+	if {"$use_staticip"=="no"} {
+		set staticip ""
+		set gateway ""
+	}
+    set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$srvdns1" "$srvdns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" $staticip $gateway $use_dhcp} sortie]
     if {$returncode != 0} {
-        conf_report "oui" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
+        conf_report "non" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
     } else {
         conf_report "oui" "Configuration files updated with success!\n\nThis is makeconfig output:" lightgreen $sortie
     }
@@ -652,7 +779,7 @@ proc select_modem {} {
 		.bloc1.modem.vidpid2.labelvid configure -foreground black
 		.bloc1.modem.vidpid2.labelpid configure -foreground black
 		.boutons.create configure -state normal -background lightgreen
-		bind .boutons.create <Enter> {pushstate "Save modifications: write configuration to files and set synch .bin if enabled, then quit"}
+		bind .boutons.create <Enter> {pushstate "Save settings: write configuration files and set synch .bin if enabled, then quit"}
 		bind .boutons.create <Leave> {popstate}
 	}
 }
@@ -671,5 +798,14 @@ proc select_provider {} {
 			.bloc1.fai.dns1.label configure -foreground black
 			.bloc1.fai.dns2.label configure -foreground black
 		}
+	}
+}
+
+proc select_mode {} {
+	global .bloc2.modes.liste.contenu modes
+
+	set index [.bloc2.modes.liste.contenu curselection]
+	if {"$index"!=""} {
+		set mode [lindex $modes $index]
 	}
 }
