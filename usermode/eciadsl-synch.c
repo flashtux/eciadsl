@@ -728,8 +728,8 @@ void usage(const int ret)
 			"       -t <num> or --timeout <num>   override the default timeout value (in sec)\n");
 	printf(	"       -wt <num> or --waiting_timeout <num>   override the default timeout value used for waiting ep response time (in sec)\n"
 			"       -r <num> or --retries <num>   number of retries for an invalid ep response (0 = infinite)\n"
-			"       -alt <num> or --alt_interface <string>   override the default modem chipset value (could be GS7070[default] or GS7470)\n"			
-			"       -mc <num> or --modem_chipset <string>   override the default altInterface value\n"
+			"       -alt <num> or --alt_interface <num>   override the default altInterface value\n"			
+			"       -mc <string> or --modem_chipset <string>   override the default modem chipset value (could be GS7070[default] or GS7470)\n"
 			"\n");
 	printf(	"If ALL other parameters are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
 			"are assumed.\n"
