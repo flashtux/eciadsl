@@ -2,7 +2,7 @@ FREQUENTLY ASKED QUESTIONS AND SOME COMMON TROUBLES
 ===================================================
 
 Intended audience:
-ECI ADSL USB modem driver (up to version 0.7) users.
+ECI ADSL USB modem driver (up to version 0.8) users.
 
 Before reading the following:
 the following Q/A list is *not* exhaustive.
@@ -545,10 +545,7 @@ A:	You are not drunk, pppd cannot communicate with pppoeci (part of the driver)
 Q:	I get kernel panic/oops.
 
 --------------------------------------------------------------------------------
-A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd
-	disconnects).
-
-	This may come from a kernel module bug (OHCI?), badly supported hardware,
+A:	This may come from a kernel module bug (OHCI?), badly supported hardware,
 	heavily loaded CPU or USB bus, or any kind of global system problem (even a
 	bug in the driver of course).
 
