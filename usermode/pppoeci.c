@@ -778,7 +778,7 @@ int init_ep_int(pusb_endpoint_t ep_int)
 	  we would receive 100 bytes instead... 
 	*/
 
-#define NB_PKT_EP_INT 10
+#define NB_PKT_EP_INT 64
 	static unsigned char buf[NB_PKT_EP_INT][0x40];
 	int i,ret;
    
