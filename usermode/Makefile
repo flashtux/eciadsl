@@ -131,9 +131,9 @@ ppp_peer:
 	@if [ -f $(PPPD_DIR)/peers/adsl ]; then \
 		echo "modifying existing $(PPPD_DIR)/peers/adsl.."; \
 		USER=`grep -E "^user[ \t]+" $(PPPD_DIR)/peers/adsl`; \
-		PERSIST=`grep "^persist" $(PPPD_DIR)/peers/adsl`; \
 		grep -v -E "^user[ \t]+" adsl > $(PPPD_DIR)/peers/adsl; \
 		echo -e "$$USER\n$$PERSIST" >> $(PPPD_DIR)/peers/adsl; \
+		grep "^persist" $(PPPD_DIR)/peers/adsl || echo -e "persist\n" >> $(PPPD_DIR)/peers/adsl; \
 	else \
 		echo "creating $(PPPD_DIR)/peers/adsl.."; \
 		$(INSTALL_DATA) adsl $(PPPD_DIR)/peers/adsl; \
