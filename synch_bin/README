@@ -18,6 +18,7 @@ Available Synch .bin files list:
 	synch16.bin (generated in Brazil, with provider GVT, G.DMT)
 	synch17.bin (generated in Brazil, with provider GVT, G.Lite)
 	synch18.bin (generated in France/Strasbourg, provider Club-Internet)
+	synch19.bin (generated in France/Antibes)
 
 WARNING:
 the former names are DEPRECATED, because they are not friendly since they do NOT

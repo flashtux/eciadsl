@@ -18,6 +18,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch16.bin (généré au Brésil, provider GVT, G.DMT)
 	synch17.bin (généré au Brésil, provider GVT, G.Lite)
 	synch18.bin (généré en France/Strasbourg, provider Club-Internet)
+	synch19.bin (généré en France/Antibes)
 
 ATTENTION:
 Les anciens noms sont OBSOLETES, ils n'indiquaient aucune certitude quant aux lieux
