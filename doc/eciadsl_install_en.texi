@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename eciadsl_install_en.info
-@settitle EciAdsl - Free Adsl Usb Linux driver
+@settitle EciAdsl - Free ADSL USB Linux driver
 @c %**end of header
 
 @c EciAdsl documentation (english version)
@@ -26,13 +26,13 @@
 
 @titlepage
 @title EciAdsl driver - Installation guide
-@subtitle Free Adsl Usb linux driver for Globespan based modems
-@subtitle Doc for EciAdsl v0.8 - October, 23 2003
+@subtitle Free ADSL USB linux driver for Globespan based modems
+@subtitle Doc for EciAdsl v0.8 - December, 14 2003
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
 
-This manual documents EciAdsl driver, a free Adsl Usb linux driver for modems
+This manual documents EciAdsl driver, a free ADSL USB linux driver for modems
 with Globespan chipsets.@*
 This manual is part of EciAdsl driver.@*
 @*
@@ -76,7 +76,7 @@ version 2 or higher.
 @section Description
 
 EciAdsl is a free Linux driver for connecting your computer to the internet,
-if you have a Globespan based ADSL Usb modem.@*
+if you have a Globespan based ADSL USB modem.@*
 Other operating systems like *BSD are under development (please contact authors
 for more information - @xref{Authors / Support}.)@*
 @*
@@ -257,7 +257,7 @@ install the software in a different place than the default one (/usr/local),
 using @kbd{--prefix=/opt} for instance.@*
 Driver's config files can also be installed in a directory you may prefer
 (default is in /etc/eciadsl), using the --conf-prefix (default is /) AND
---conf-fir (default is eci/adsl) parameters. For instance:@*
+--conf-fir (default is etc/eciadsl) parameters. For instance:@*
 @kbd{--conf-prefix=/opt --conf-dir=etc/eciadsl}@*
 or @kbd{--conf-prefix=/opt/eciadsl --conf-dir=etc}@*
 
@@ -382,7 +382,7 @@ Unpack the package into /etc/eciadsl (as root):@*
 Run eciconf.sh or eciconftxt.sh and choose another .bin file
 @item
 Shut down the modem: either with @kbd{modprobe -r usb-uhci} (or usb-ohci), either
-unplugging/replugging the modem (usb cable).
+unplugging/replugging the modem (USB cable).
 @item
 Run startmodem again.@*
 If you still have synch problems, then try another synch .bin file.@*
@@ -398,7 +398,7 @@ For other problems with startmodem, please look at the FAQ:@*
 @subsection PPPoE users
 
 If you're using PPPoE, you have to configure and use a standard PPPoE client
-as rp-pppoe (http://www.roaringpenguin.com/pppoe) to connect to your adsl modem
+as rp-pppoe (http://www.roaringpenguin.com/pppoe) to connect to your ADSL modem
 through tap0.
 
 @node Other scripts, , Startmodem, Connection
@@ -425,8 +425,9 @@ Use this script to test automatically all .bin files, if you have synch problems
 @chapter Synch .bin creation
 
 @menu
-* Pre-requisites for sniffing::
-* Sniff usb packets under Windows::
+* Eci Windows driver::
+* USB Sniffer::
+* Snif USB packets under Windows::
 * Convert log to .bin under Linux::
 @end menu
 
@@ -435,23 +436,63 @@ then you have to create your own .bin file under Windows.
 
 Otherwise, you can skip this chapter.
 
-@node Pre-requisites for sniffing, Sniff usb packets under Windows, Synch .bin creation, Synch .bin creation
-@section Pre-requisites for sniffing
+@node Eci Windows driver, USB Sniffer, Synch .bin creation, Synch .bin creation
+@section Eci Windows driver
 
-Download and install Eci windows driver version 1.06 (otherwise .bin will not
+@subsection Download
+
+Download Eci windows driver version 1.06 (otherwise your .bin file will not
 work under linux):@*
 @uref{http://eciadsl.flashtux.org/download/eci_drv_106_win.zip}@*
 
-Download and install latest usb sniffer package there:@*
+@subsection Driver modification
+
+If your modem has not one of these VID/PID, you've to modify two files
+in Eci Windows:@*
+- VID1/PID1: 0547/2131, VID2/PID2: 0915/8000@*
+- VID1/PID1: 0915/0001, VID2/PID2: 0915/0002@*
+To check your VID/PID, please look at:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}.@*
+
+Modifications you've to do:@*
+@*
+- file @strong{gafwload.inf}, line 24 :@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0547}&PID_@strong{2131}}@*
+replace 0547 by your VID1 and 2131 by your PID1@*
+@*
+- file @strong{gafwload.inf}, line 30 :@*
+@cite{%GSILOAD.DeviceDescAnchor% = GSIUSBLDRANCHOR, USB\VID_@strong{0547}&PID_@strong{2131}}@*
+replace 0547 by your VID1 and 2131 by your PID1@*
+@*
+- file @strong{gwausb.inf}, line 34 :@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0915}&PID_@strong{8000}}@*
+replace 0915 by your VID2 and 8000 by your PID2@*
+@*
+- file @strong{gwausb.inf}, line 42 :@*
+@cite{%ADSLUSB.DeviceDesc%  = ADSLUSB.gspnDefault,    USB\VID_@strong{0915}&PID_@strong{8000}}@*
+replace 0915 by your VID2 and 8000 by your PID2@*
+@*
+- file @strong{gwausb.inf}, line 58 :@*
+@cite{HKR, Ndi, DeviceID, 0, "USB\VID_@strong{0915}&PID_@strong{8000}"}@*
+replace 0915 by your VID2 and 8000 by your PID2@*
+
+@subsection Installation
+
+Launch setup.exe and follow instructions.@*
+
+@node USB Sniffer, Snif USB packets under Windows, Eci Windows driver, Synch .bin creation
+@section USB Sniffer
+
+Download and install latest USB sniffer package there:@*
 @uref{http://benoit.papillault.free.fr/usbsnoop/index.en.php}@*
 
-Documentation for Snoopy (usb sniffer) is available there:@*
+Documentation for Snoopy (USB sniffer) is available there:@*
 @uref{http://benoit.papillault.free.fr/usbsnoop/doc.en.php}@*
 
-@node Sniff usb packets under Windows, Convert log to .bin under Linux, Pre-requisites for sniffing, Synch .bin creation
-@section Sniff usb packets under Windows
+@node Snif USB packets under Windows, Convert log to .bin under Linux, USB Sniffer, Synch .bin creation
+@section Sniff USB packets under Windows
 
-Disable auto-connection to the internet and unplug all usb devices
+Disable auto-connection to the internet and unplug all USB devices
 (except the modem).@*
 @*
 Start the sniffer and install the filter on the ``Wan modem'', then unplug and
@@ -460,7 +501,7 @@ As soon as both red and green leds are fixed, uninstall filters.@*
 The sniffed packets should be in the file @file{C:\WINxxx\usbsnoop.log}@*
 Reboot under Linux.
 
-@node Convert log to .bin under Linux, , Sniff usb packets under Windows, Synch .bin creation
+@node Convert log to .bin under Linux, , Snif USB packets under Windows, Synch .bin creation
 @section Convert log to .bin under Linux
 
 Mount windows partition containing the usbsnoop log file so as to copy
@@ -560,7 +601,7 @@ Look for EciAdsl support page for detail:@*
 @node Copyright, , Get support, Authors / Support
 @section Copyright
 
-This manual documents EciAdsl driver, a free Adsl Usb linux driver for modems
+This manual documents EciAdsl driver, a free ADSL USB linux driver for modems
 with Globespan chipsets.@*
 This manual is part of EciAdsl driver.@*
 

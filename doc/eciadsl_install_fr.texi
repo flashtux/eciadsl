@@ -1,7 +1,7 @@
 \input texinfo  @c -*-texinfo-*-
 @c %**start of header
 @setfilename eciadsl_install_fr.info
-@settitle EciAdsl - Driver Linux libre pour modems Adsl Usb
+@settitle EciAdsl - Driver Linux libre pour modems ADSL USB
 @c %**end of header
 
 @c Documentation EciAdsl (version française)
@@ -26,14 +26,14 @@
 
 @titlepage
 @title Driver EciAdsl - Guide d'installation
-@subtitle Driver Linux libre pour modems Adsl Usb bas@'es sur chipset Globespan
+@subtitle Driver Linux libre pour modems ADSL USB bas@'es sur chipset Globespan
 @subtitle Doc pour EciAdsl v0.8 - 23 octobre 2003
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
 
 Ce manuel documente le driver EciAdsl, un driver Linux libre pour modems
-Adsl Usb bas@'es sur chipset Globespan.@*
+ADSL USB bas@'es sur chipset Globespan.@*
 Ce manuel fait partie du driver EciAdsl.@*
 @*
 La derni@`ere version de ce document est t@'el@'echargeable ici :@*
@@ -76,7 +76,7 @@ version 2 ou plus.
 @section Description
 
 EciAdsl est un driver Linux libre pour connecter votre ordinateur @`a internet,
-si vous avez un modem ADSL Usb bas@'e sur un chipset Globespan.@*
+si vous avez un modem ADSL USB bas@'e sur un chipset Globespan.@*
 D'autres syst@`emes d'exploitation comme *BSD sont en d@'eveloppement (contactez
 les auteurs pour plus d'information, @xref{Auteurs / Support}.)@*
 @*
@@ -387,7 +387,7 @@ D@'ecompressez le dans /etc/eciadsl (en root) :@*
 Lancez eciconf.sh ou eciconftxt.sh et choisissez un autre fichier .bin
 @item
 Eteignez le modem : soit avec @kbd{modprobe -r usb-uhci} (or usb-ohci), soit
-en d@'ebranchant/rebranchant le modem (cable usb).
+en d@'ebranchant/rebranchant le modem (cable USB).
 @item
 Lancez startmodem @`a nouveau.@*
 Si vous avez toujours des probl@`emes de synchronisation, alors essayez un autre
@@ -405,7 +405,7 @@ Pour les autres probl@`emes avec startmodem, veuillez consulter la FAQ :@*
 
 Si vous utilisez PPPoE, vous devez configurer et utiliser un client PPPoE
 standard comme rp-pppoe (http://www.roaringpenguin.com/pppoe) pour connecter
-votre modem adsl via tap0.
+votre modem ADSL via tap0.
 
 @node Autres scripts, , Startmodem, Connexion
 @section Autres scripts
@@ -433,8 +433,9 @@ tous les fichiers .bin, si vous avez des probl@`emes de synchronisation.
 @chapter Cr@'eation du fichier .bin de synchro
 
 @menu
-* Pre-requis pour sniffer::
-* Sniff des paquets usb sous Windows::
+* Driver Eci Windows::
+* Sniffeur USB::
+* Sniff des paquets USB sous Windows::
 * Conversion du log vers le .bin sous Linux::
 @end menu
 
@@ -444,24 +445,64 @@ les fichiers .bin sans succ@`es, alors vous devez cr@'eer votre propre fichier
 
 Sinon, vous pouvez sauter ce chapitre.
 
-@node Pre-requis pour sniffer, Sniff des paquets usb sous Windows, Creation du fichier .bin de synchro, Creation du fichier .bin de synchro
-@section Pr@'e-requis pour sniffer
+@node Driver Eci Windows, Sniffeur USB, Creation du fichier .bin de synchro, Creation du fichier .bin de synchro
+@section Driver Eci Windows
 
-T@'el@'echargez et installez le driver Windows Eci version 1.06 (sinon le .bin
+@subsection T@'el@'echargement
+
+T@'el@'echargez le driver Windows Eci version 1.06 (sinon le .bin
 ne fonctionnera pas sous Linux) :@*
 @uref{http://eciadsl.flashtux.org/download/eci_drv_106_win.zip}@*
 
-T@'el@'echargez et installez la derni@`ere version du sniffeur usb ici :@*
+@subsection Modification du driver
+
+Si votre modem n'a pas les m@^emes VID/PID que ceux-ci, vous devez modifier deux fichiers
+dans le driver Eci Windows :@*
+- VID1/PID1: 0547/2131, VID2/PID2: 0915/8000@*
+- VID1/PID1: 0915/0001, VID2/PID2: 0915/0002@*
+Pour v@'erifier vos VID/PID, consultez cette page :@*
+@uref{http://eciadsl.flashtux.org/modems.php}.@*
+
+Les modifications @`a faire :@*
+@*
+- fichier @strong{gafwload.inf}, ligne 24 :@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0547}&PID_@strong{2131}}@*
+remplacez 0547 par votre VID1 et 2131 par votre PID1@*
+@*
+- fichier @strong{gafwload.inf}, ligne 30 :@*
+@cite{%GSILOAD.DeviceDescAnchor% = GSIUSBLDRANCHOR, USB\VID_@strong{0547}&PID_@strong{2131}}@*
+remplacez 0547 par votre VID1 et 2131 par votre PID1@*
+@*
+- fichier @strong{gwausb.inf}, ligne 34 :@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0915}&PID_@strong{8000}}@*
+remplacez 0915 par votre VID2 et 8000 par votre PID2@*
+@*
+- fichier @strong{gwausb.inf}, ligne 42 :@*
+@cite{%ADSLUSB.DeviceDesc%  = ADSLUSB.gspnDefault,    USB\VID_@strong{0915}&PID_@strong{8000}}@*
+remplacez 0915 par votre VID2 et 8000 par votre PID2@*
+@*
+- fichier @strong{gwausb.inf}, ligne 58 :@*
+@cite{HKR, Ndi, DeviceID, 0, "USB\VID_@strong{0915}&PID_@strong{8000}"}@*
+remplacez 0915 par votre VID2 et 8000 par votre PID2@*
+
+@subsection Installation
+
+Lancez setup.exe et suivez les instructions.@*
+
+@node Sniffeur USB, Sniff des paquets USB sous Windows, Driver Eci Windows, Creation du fichier .bin de synchro
+@section Sniffeur USB
+
+T@'el@'echargez et installez la derni@`ere version du sniffeur USB ici :@*
 @uref{http://benoit.papillault.free.fr/usbsnoop/index.fr.php}@*
 
-La documentation de Snoopy (le sniffeur usb) est disponible ici :@*
+La documentation de Snoopy (le sniffeur USB) est disponible ici :@*
 @uref{http://benoit.papillault.free.fr/usbsnoop/doc.fr.php}@*
 
-@node Sniff des paquets usb sous Windows, Conversion du log vers le .bin sous Linux, Pre-requis pour sniffer, Creation du fichier .bin de synchro
-@section Sniff des paquets usb sous Windows
+@node Sniff des paquets USB sous Windows, Conversion du log vers le .bin sous Linux, Sniffeur USB, Creation du fichier .bin de synchro
+@section Sniff des paquets USB sous Windows
 
 D@'esactivez la connexion automatique @`a internet et d@'ebranchez tous les
-p@'eriph@'eriques usb (sauf le modem).@*
+p@'eriph@'eriques USB (sauf le modem).@*
 @*
 D@'emarrez le sniffeur et installez le filtre sur le ``Wan modem'' ; d@'ebranchez
 et rebranchez le modem.@*
@@ -469,7 +510,7 @@ D@`es que les lumi@`eres rouges et vertes sont fixes, d@'esinstallez le filtre.@
 Les paquets sniff@'es devraient se trouver dans le fichier @file{C:\WINxxx\usbsnoop.log}@*
 Red@'emarrez sous Linux.
 
-@node Conversion du log vers le .bin sous Linux, , Sniff des paquets usb sous Windows, Creation du fichier .bin de synchro
+@node Conversion du log vers le .bin sous Linux, , Sniff des paquets USB sous Windows, Creation du fichier .bin de synchro
 @section Conversion du log vers le .bin sous Linux
 
 Montez la partition Windows contenant le log usbsnoop pour le copier o@`u vous
@@ -569,7 +610,7 @@ Page de support EciAdsl :@*
 @section Copyright
 
 Ce manuel documente le driver EciAdsl, un driver Linux libre pour modems
-Adsl Usb bas@'es sur chipset Globespan.@*
+ADSL USB bas@'es sur chipset Globespan.@*
 Ce manuel fait partie du driver EciAdsl.@*
 
 Copyright @copyright{} 2003 FlashCode
