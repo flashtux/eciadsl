@@ -399,3 +399,15 @@ A:	Verify that you modem is supported and that the installation and
 	It may worth trying the -alt 4 option too.
 
 	See also the previous question.
+
+Q:	I have several hardware USB HUBs or several USB devices. Is this a problem?
+
+A:	Might be. If you dont't succeed in initializing your modem, try to disable
+	all additional hardware USB HUBs. We only have partial experience about
+	this.
+	
+	Many users have webcam, mice or other USB devices and an USB modem, both
+	working at the same time. This doesn't exclude problems with some USB
+	devices. Sometimes the order of the devices in the USB ports may be a
+	problem too (to be verified).
+
