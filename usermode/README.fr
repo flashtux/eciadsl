@@ -85,9 +85,9 @@ Infos à nous communiquer :
 	  sources s'il existe pour les versions >0.5, ou pppoeci --version, sinon le
 	  nom du package/la date du CVS) et :
 		- les informations sur votre driver MS Windows si vous l'utilisez
-	      (at aussi le type de modulation que votre fournisseur supporte)
+	      (et aussi le type de modulation que votre fournisseur supporte)
 		- les .bin de synchronisation que vous avez essayés
-	- votremodem (les références exactes: fabricant/modèle)
+	- votre modem (les références exactes: fabricant/modèle)
 	- votre situation géographique (pays/département/ville)
 	- votre fournisseur d'accès et les protocoles de communication PPP ainsi
 	  que d'authentification utilisés
