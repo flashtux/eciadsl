@@ -415,6 +415,10 @@ Q:	After a few minutes of Internet access, nothing seems to work anymore. No
 
 --------------------------------------------------------------------------------
 A:	Often seen on some recent distros (MDK9, Slackware 8.1 and RH8).
+
+	Check the USB driver you're using with lsmod command. If you're using uhci,
+	unload it (modprobe -r uhci) and load usb-uhci (modprobe usb-uhci).
+
 	Did you see a disconnection (and a reconnection maybe)? In /var/log/messages
 	or /var/log/ppp? If so, jump to the previous question.
 

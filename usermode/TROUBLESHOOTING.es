@@ -432,6 +432,11 @@ P:	Después de unos minutos de acceso de Internet, nada parece funcionar.
 --------------------------------------------------------------------------------
 R:	A menudo se ha visto en algunas distribuciones recientes (MDK9, Slackware
 	8.1 y RH8).
+
+	Compruebe el conductor del USB que usted está utilizando con comando del lsmod.
+	Si usted está utilizando uhci, descargúelo (modprobe -r uhci) y cargue usb-uhci
+	(modprobe usb-uhci).
+
 	Usted ha visto una desconexion (y quizas una reconexion)?  En
 	/var/log/messages o en /var/log/ppp? en ese caso, salte a la pregunta
 	anterior.

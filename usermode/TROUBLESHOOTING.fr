@@ -433,6 +433,10 @@ Q:	Après quelques minutes d'accès à Internet, plus rien ne semble fonctionner.
 --------------------------------------------------------------------------------
 R:	Souvent le cas sur les distributions récentes (MDK9, Slackware 8.1 et RH8).
 
+	Vérifiez le driver USB que vous utilisez avec la commande lsmod. Si vous
+	utilisez uhci, déchargez-le (modprobe -r uhci) et chargez usb-uhci
+	(modprobe usb-uhci).
+
 	Y-a-til des déconnexions apparentes dans /var/log/messages ou /var/log/ppp ?
 	Si c'est le cas, passez à la question précédents.
 

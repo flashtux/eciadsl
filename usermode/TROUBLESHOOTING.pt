@@ -413,6 +413,11 @@ P:	Depois de algum tempo de acesso à Internet, nada parece funcionar. Não
 
 -------------------------------------------------------------------------------
 R:	Visto frequentemente em distros recentes (MDK9, Slackware 8.1 e RH8).
+
+	Verifique o excitador que do USB você se está usando com comando do lsmod.
+	Se você estiver usando o uhci, descarregue-o (modprobe -r uhci) e carregue-o
+	usb-uhci (modprobe usb-uhci).
+
 	Viu a mensagem de desligar (e religar talvez)? Em /var/log/messages ou
 	/var/log/ppp? Se sim, salte para a pergunta anterior.
 
