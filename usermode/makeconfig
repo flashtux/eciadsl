@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 # ************************************************************************
 # *                                                                      *
 # *      makeconfig v0.1 - ECI Linux driver configuration script         *
