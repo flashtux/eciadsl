@@ -249,15 +249,8 @@ if [ $6 != "0" ]; then
 fi
 echo "/dev/ppp is OK" ;
 
-# check if the 'check-hdlc' file is present and executable
-# this is important since sometime downloading a file loose the
-# executable bit (via DCC for instance)
-if [ -f check-hdlc -a ! -x check-hdlc ]; then
-	chmod a+x check-hdlc ;
-fi
-
 # check for the HDLC support
-./check-hdlc
+"$BIN_DIR/check-hdlc"
 if [ $? -ne 0 ]; then
 	echo "HDLC support is missing... trying to load" ;
 	modprobe n_hdlc ;
@@ -291,15 +284,8 @@ else
 	echo "HDLC support is OK" ;
 fi
 
-# check if the 'check-hdlc-bug' is present and executable
-# this is important since sometime downloading a file loose the
-# executable bit (via DCC for instance)
-if [ -f check-hdlc-bug -a ! -x check-hdlc-bug ]; then
-	chmod a+x check-hdlc-bug
-fi
-
 # check for the HDLC bug
-./check-hdlc-bug > /dev/null 2>&1
+"$BIN_DIR/check-hdlc-bug" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo "HDLC support is buggy, you should apply the HDLC patch to your \
 kernel source. See the howto in the doc directory or on \
@@ -525,5 +511,4 @@ fi
 # check for $PPPD_DIR/pap-secrets too (TODO)
 # check for either pap-secrets or chap-secrets, how? (TODO)
 
-echo "Everything is OK" ;
-
+echo "Everything is OK"
