@@ -1591,7 +1591,7 @@ int main(int argc, char** argv)
 	if (pusb_set_interface_alt < 0)
 	{
 		/* set dafault interface - kolja*/ 
-		pusb_set_interface_alt = config.alt_interface_synch;
+		pusb_set_interface_alt = config.alt_interface_ppp;
 	}
 	if (data_timeout < 0)
 	{
