@@ -22,7 +22,7 @@ PRE-REQUISITES
 			- USB preliminary fs
 			- your HUB USB controller AS MODULE
 		- PPP support (including usermode ppp package >=2.4.0)
-	- standard development packages (linux sources in /usr/src/linux,
+	- standard development packages (Linux sources in /usr/src/linux,
 	  gcc >=2.91.66, GNU make, etc.)
 	- single hardware HUB?
 	- USB/ethernet modem (Globe Span chipset *only*)
@@ -51,7 +51,7 @@ PROVIDE US THESE INFO
 	- USB Controller (HUB) model (see: lspci|grep USB)
 	- eciadsl driver version (VERSION file if it exist for > 0.5,
 	  else the package name or CVS date) and:
-		- you windows driver info if you use it (and also the modulation
+		- you Windows driver info if you use it (and also the modulation
 		  type that your provider supports)
 		- the synch .bin you've tried
 	- USB/ethernet modem model
@@ -64,23 +64,29 @@ FREQUENTLY ASKED QUESTIONS AND SOME COMMON TROUBLES
 ===================================================
 
 
-Q:	I don't know if my modem is supported:
+================================================================================
+Q:	I don't know if my modem is supported.
 
-A:	See the pre-requisites.
+--------------------------------------------------------------------------------
+A:	Check the pre-requisites.
 
-	Check here: http://eciadsl.flashtux.org/modems.php.
+	Check at http://eciadsl.flashtux.org/modems.php.
 	
 	Launch eciconf or eci-doctor, if they report errors, try to launch
 	probe_device.sh	to check your modem compatibility.
 
 
+================================================================================
 Q:	startmodem, or eciconf report me an unsupported modem!
 
-A:	See the previous question.
+--------------------------------------------------------------------------------
+A:	Jump to the previous question.
 
 
+================================================================================
 Q:	startmodem or eciconf output shows: /proc/bus/usb: No such file or directory
 
+--------------------------------------------------------------------------------
 A:	Check your system's USB configuration. This may be due to a lack of
 	devusbfs support in kernel configuration. If kernel has support for it,
 	try to mount it using:
@@ -88,9 +94,11 @@ A:	Check your system's USB configuration. This may be due to a lack of
 	This can be set in your /etc/fstab for automounting at boot time.
 
 
+================================================================================
 Q:	eciconf reports me that the DABUSB module is loaded!
 	TODO: dabusb leads to which problems?
 
+--------------------------------------------------------------------------------
 A:	Disable/remove the dabusb module:
 		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
 	Then
@@ -99,6 +107,7 @@ A:	Disable/remove the dabusb module:
 	support from the kernel configuration too.
 
 
+================================================================================
 Q:	eciconf reports me:
 	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
 	and/or I see this in /var/log/messages:
@@ -107,6 +116,7 @@ Q:	eciconf reports me:
 		LCP: timeout sending Config-Requests
 		Connection terminated.
 
+--------------------------------------------------------------------------------
 A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
 
 	If you want to use the 'persist' option of pppd to reconnect automatically
@@ -123,6 +133,7 @@ A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
 	then jump to the kernel configuration question (below).
 
 
+================================================================================
 Q:	My kernel is OK (N_HDLC patched or kernel >=2.4.18-pre3) but I still get
 	I get LCP timeout lines in /var/log/messages then a modem hangup
 	(and eventually another problem more between both) like this:
@@ -130,18 +141,21 @@ Q:	My kernel is OK (N_HDLC patched or kernel >=2.4.18-pre3) but I still get
 		..
 		LCP: timeout sending Config-Requests
 
+--------------------------------------------------------------------------------
 A:	If your kernel really OK? Check above!
 
-	Check your kernel/pppd version.
+	Check your pppd version.
 
-	See next question also, because CHAP/PAP authentication problems are not
-	always verbosely shown.
+	Jump to then next question also, because CHAP/PAP authentication problems
+	are not always verbosely shown.
 
 	See also below questions related to international users.
 
 
+================================================================================
 Q:	/var/log/messages shows CHAP or PAP failures.
 
+--------------------------------------------------------------------------------
 A:	Check for bad PAP/CHAP authentication report in /var/log/messages.
 	If so, check your /etc/ppp/pap-secrets
 	or /etc/ppp/chap-secrets files. Entries must be like this:
@@ -149,8 +163,10 @@ A:	Check for bad PAP/CHAP authentication report in /var/log/messages.
 	Try to configure these using eciconf.
 
 
+================================================================================
 Q:	startmodem stucks at block xxx
 
+--------------------------------------------------------------------------------
 A:	Follow the pre-requisites.
 
 	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
@@ -158,9 +174,11 @@ A:	Follow the pre-requisites.
 	Try other synch .bin.
 
 
+================================================================================
 Q:	startmodem went OK, but I still cannot use Internet access?
 
-A:	See previous question.
+--------------------------------------------------------------------------------
+A:	Jump to the previous question.
 
 	If you can ping an IP but cannot ping a hostname, check at your
 	/etc/resolv.conf file, it must include your provider's DNS IP.
@@ -204,9 +222,11 @@ A:	See previous question.
 		route add default dev ppp0
 
 
+================================================================================
 Q:	Sometimes I see some LCP timeouts in /var/log/messages, but my connection
 	is still up or it doesn't disconnect every time.
 
+--------------------------------------------------------------------------------
 A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
 	or to slightly increase the values if uncommented.
 
@@ -215,10 +235,12 @@ A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
 	LCP timeouts.
 
 
+================================================================================
 Q:	I get these lines in /var/log/messages:
 	ioctl(PPPIOCGFLAGS): Inappropriate ioctl for device
 	Connexion failed
 
+--------------------------------------------------------------------------------
 A:	Check your kernel config (below).
 
 	Upgrade your eciadsl driver version.
@@ -226,13 +248,17 @@ A:	Check your kernel config (below).
 	Try another synch .bin.
 
 
+================================================================================
 Q:	I get some "USB timeout" lines in /var/log/messages.
 
+--------------------------------------------------------------------------------
 A:	Try to uncomment the MTU line in /etc/ppp/peers/adsl.
 
 
+================================================================================
 Q:	I get modem hangups but my problems doesn't match the previous questions.
 
+--------------------------------------------------------------------------------
 A:	Is your USB chipset an old VIA one? Some are known to be buggy and to have
 	problems regarding to USB power supply. If you modem is now OFF (no power),
 	this is your case.
@@ -241,8 +267,10 @@ A:	Is your USB chipset an old VIA one? Some are known to be buggy and to have
 	when you use multiple USB device that sucks a lot of power (video devices,
 	hdd).
 
+================================================================================
 Q:	PPP line sometimes goes down (modem hangup).
 
+--------------------------------------------------------------------------------
 A:	This may be due to high traffic on the line or to any provider problem/daily
 	disconnection (non-exhaustive list).
 
@@ -254,63 +282,75 @@ A:	This may be due to high traffic on the line or to any provider problem/daily
 	if your configuration has been properly set.
 
 
+================================================================================
 Q:	Is this possible to launch startmodem at boot time?
 
+--------------------------------------------------------------------------------
 A:	Yes it is, using init.d. Some pre-configured scripts/configurations are
 	available, ask us for them of check the cnx package available from the
 	download sections at the offcial eciadsl websites.
 
 
+================================================================================
 Q:	I cannot connect in console mode whereas it works fine under X11.
 
+--------------------------------------------------------------------------------
 A:	TODO
 
 
+================================================================================
 Q:	I cannot connect under X11 whereas it works fine in console mode.
 
+--------------------------------------------------------------------------------
 A:	TODO
 
 
-Q:	How to properly configure kernel from the sources to get USB/PPP/HDLC support?
+================================================================================
+Q:	How to properly configure kernel from the sources to get USB/PPP/HDLC
+	support?
 
+--------------------------------------------------------------------------------
 A:	Type the following commands:
 		cd /usr/src/linux
 		make -s menuconfig
-			USB support --->
-			<M> Support for USB
-			[ ]   USB verbose debug messages
-			--- Miscellaneous USB options
-			[*]   Preliminary USB device filesystem
-			[ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)
-			[ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)
-			--- USB Host Controller Drivers
-			< >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)
-			<M>   UHCI (Intel PIIX4, VIA, ...) support
-			<M>   UHCI Alternate Driver (JE) support
-			<M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
-			..
-			--- USB Multimedia devices
-			..
-			< >   DABUSB driver
-			..
 
-			Character devices --->
-			..
-			[*] Non-standard serial port support
-			<M>   HDLC line discipline support
-			..
+		  USB support --->
+		  <M> Support for USB
+		  [ ]   USB verbose debug messages
+		  --- Miscellaneous USB options
+		  [*]   Preliminary USB device filesystem
+		  [ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)
+		  [ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)
+		  --- USB Host Controller Drivers
+		  < >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)
+		  <M>   UHCI (Intel PIIX4, VIA, ...) support
+		  <M>   UHCI Alternate Driver (JE) support
+		  <M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
+		  ..
+		  --- USB Multimedia devices
+		  ..
+		  < >   DABUSB driver
+		  ..
 
-			Network device support --->
-			..
-			<M> PPP (point-to-point protocol) support
-			[ ]	PPP multilink support (EXPERIMENTAL)
-			<M>	PPP support for async serial ports
-			<M>	PPP support for sync tty ports
-			<M>	PPP Deflate compression
-			<M>	PPP BSD-Compress compression
-			< >	PPP over Ethernet (EXPERIMENTAL)
-			..
+		  Character devices --->
+		  ..
+		  [*] Non-standard serial port support
+		  <M>   HDLC line discipline support
+		  ..
+
+		  Network device support --->
+		  ..
+		  <M> PPP (point-to-point protocol) support
+		  [ ]	PPP multilink support (EXPERIMENTAL)
+		  <M>	PPP support for async serial ports
+		  <M>	PPP support for sync tty ports
+		  <M>	PPP Deflate compression
+		  <M>	PPP BSD-Compress compression
+		  < >	PPP over Ethernet (EXPERIMENTAL)
+		 ..
+
 		make -s dep modules modules_install && depmod -a
+
 	or whatever command you use to compile and install the kernal modules.
 	Also make -s bzImage if PPP or USB support was previously in kernel instead
 	of as modules!
@@ -347,26 +387,32 @@ A:	Type the following commands:
 		touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
+================================================================================
 Q:	I get kernel panic/oops like: TODO
 
+--------------------------------------------------------------------------------
 A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd
 	disconnects).
 	TODO: other problems.
 
 
+================================================================================
 Q:	I get the message in /var/log/messages:
 	kernel: usb-uhci.c: ENXIO 80000880, flags 0, urb c5205d60, burb c2ad1120
 
+--------------------------------------------------------------------------------
 A:	TODO
 
 
+================================================================================
 Q:	I'm not from France, will the driver work with my modem and provider?
 
+--------------------------------------------------------------------------------
 A:	Verify that your modem is supported. If your modem isn't in the list of
 	the supported modem and is NOT in the list of UN-supported modem, ask
 	us for further help.
 
-	Think about checking which protocol you windows driver uses. If it's PPPoE
+	Think about checking which protocol you Windows driver uses. If it's PPPoE
 	or other protocol/layers, it may be a problem since current driver version
 	may not support them until a further release.
 
@@ -379,9 +425,11 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 		http://www.hctechnews.org/
 
 
-Q:	I'm not from France, my modem is supported ans startmodem went OK, but I
+================================================================================
+Q:	I'm not from France, my modem is supported and startmodem went OK, but I
 	get problems with pppd (LCP problems maybe).
 
+--------------------------------------------------------------------------------
 A:	Verify that you modem is supported and that the installation and
 	configuration went OK.
 
@@ -398,10 +446,13 @@ A:	Verify that you modem is supported and that the installation and
 	to the pppoeci invocation in /etc/ppp/peers/adsl.
 	It may worth trying the -alt 4 option too.
 
-	See also the previous question.
+	Also jump to the previous question.
 
+
+================================================================================
 Q:	I have several hardware USB HUBs or several USB devices. Is this a problem?
 
+--------------------------------------------------------------------------------
 A:	Might be. If you dont't succeed in initializing your modem, try to disable
 	all additional hardware USB HUBs. We only have partial experience about
 	this.
@@ -411,3 +462,25 @@ A:	Might be. If you dont't succeed in initializing your modem, try to disable
 	devices. Sometimes the order of the devices in the USB ports may be a
 	problem too (to be verified).
 
+
+================================================================================
+Q:	probe_device.sh shows me VID1/PID1 that are the same as VID2/VID2, is this
+	normal?
+
+--------------------------------------------------------------------------------
+A:	You must unplug/replug your modem before launching probe_device.sh.
+
+
+================================================================================
+Q:	Switching from Linux to Windows, I cannot use my modem and have to re-install
+	the Windows driver to make it wokring again.
+
+--------------------------------------------------------------------------------
+A:	Unload all USB modules related to you modem when leaving Linux. This could be
+	done automatically, through the USB manager of your Linux distribution maybe,
+	or using init.d, (think of chaining modules unloading using the post-remove
+	or pre-remove commands in /etc/modules.conf file).
+
+	If it still doesn't work, you have to manually unplug you modem, wait for a
+	few seconds	so that it's resetted, and replug it. Then, you can use it under
+	Windows.

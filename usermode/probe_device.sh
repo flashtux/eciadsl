@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # probe device's VIDs and PIDs
-VERSION="0.0.3"
+VERSION="0.0.4"
 
 
 function version()
@@ -18,6 +18,8 @@ function commandlinehelp()
 	echo "          --dry-run              test mode (only perform neutral operations)"
 	echo "          --version              show version number then exit"
 	echo "          --help                 show this help then exit"
+	echo "          --smart                use smart mode: only show uninitialized devices"
+	echo "          --auto                 device auto selection"
 	exit $1
 }
 
@@ -147,17 +149,23 @@ BASE=${0##*/}
 BIN=eci-load1
 FIRMWARE=/etc/eciadsl/eci_firm_kit_wanadoo.bin
 DEVICES=/proc/bus/usb/devices
+VID1_TABLE=""
+VID2_TABLE=""
+PID1_TABLE=""
+PID2_TABLE=""
 VID1="????"
 PID1="????"
 VID2="????"
 PID2="????"
 SEP=":"
-declare -i TESTONLY=0 RET=0 CNT
+declare -i TESTONLY=0 RET=0 CNT SMART=0 AUTO=0
 
 while [ -n "$1" ]
 do
 	case "$1" in
 		"--dry-run")	let TESTONLY=1;;
+		"--smart")		let SMART=1;;
+		"--auto")		let AUTO=1;;
 		"--version")	version;;
 		"--help")		commandlinehelp 0;;
 		*)				echo "unrecognized switch $1"
@@ -250,4 +258,10 @@ fi
 echo -e "\nprobed USB device: $PRODUCT$MANUFACTURER"
 echo "VID1=$VID1, PID1=$PID1"
 echo "VID2=$VID2, PID2=$PID2"
+if [ "$VID1" == "$VID2" -a "$PID1" == "$PID2"]
+then
+	echo "Did you really unplug/replug your modem before launching this script?"
+	let RET+=1
+fi
+
 exit $RET
