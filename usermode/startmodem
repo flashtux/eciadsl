@@ -165,7 +165,7 @@ if [ $? -eq 0 ]; then
 fi
 
 #verify if n_hdlc is loaded (module only so, it's safe)
-check-hdlc > /dev/null
+"$BIN_DIR/check-hdlc" > /dev/null
 if [ $? -ne 0 ]; then
 	lsmod | grep n_hdlc > /dev/null
 	if [ $? -ne 0 ]; then
