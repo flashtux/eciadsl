@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # probe device's VIDs and PIDs
-VERSION="0.0.4"
+VERSION="0.0.5"
 
 
 function version()
