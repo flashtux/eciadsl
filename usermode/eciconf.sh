@@ -480,7 +480,7 @@ add_bins "$CONF_DIR"
 
 set bin_choisi [.bloc2.listebin.liste.contenu curselection]
 set bin_initial $bin_choisi
-bind .bloc2.listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eci-load2 !)"}
+bind .bloc2.listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eci-load2 or LCP timeouts !)"}
 bind .bloc2.listebin.liste.contenu <Leave> {popstate}
 scrollbar .bloc2.listebin.liste.scroll -command ".bloc2.listebin.liste.contenu yview"
 pack .bloc2.listebin.liste.contenu .bloc2.listebin.liste.scroll -side left -fill y
