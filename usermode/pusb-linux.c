@@ -53,7 +53,7 @@ struct pusb_urb_t
 };
 
 /* for ident(1) command */
-static char id[] = "@(#) $Id$";
+static const char id[] = "@(#) $Id$";
 
 static const char usb_path[] = "/proc/bus/usb";
 
@@ -540,7 +540,7 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	
 	do
 	{
-		ret = ioctl(dev->fd,USBDEVFS_REAPURBNDELAY,&purb);
+		ret = ioctl(dev->fd,USBDEVFS_REAPURB /*NDELAY*/,&purb);
 	} while (ret < 0 && errno == EINTR);
 
 	if (ret < 0 && errno == EAGAIN)
