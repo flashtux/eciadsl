@@ -15,7 +15,9 @@ Available Synch .bin files list:
 	synch13.bin (formerly eci_wan2.troll.bin - Italy/Napoli/Telecom Italia)
 	synch14.bin (formerly eci_cergy.bin)
 	synch15.bin (formerly Blade_sync.bin - Italy/Varese/Telecom Italia)
-	synch16.bin (generated in Brazil, with provider GVT)
+	synch16.bin (generated in Brazil, with provider GVT, G.DMT)
+	synch17.bin (generated in Brazil, with provider GVT, G.Lite)
+	synch18.bin (generated in France/Strasbourg, provider Club-Internet)
 
 WARNING:
 the former names are DEPRECATED, because they are not friendly since they do NOT
