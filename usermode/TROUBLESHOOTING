@@ -418,6 +418,8 @@ A:	This may be due to high traffic on the line or to any provider problem/daily
 	You may also try using a third-party autoconnect script, and of course check
 	if your configuration has been properly set.
 
+	Decreasing the MTU in /etc/ppp/peers/adsl to 1000 or even to 512 may help.
+
 
 4.9
 ================================================================================

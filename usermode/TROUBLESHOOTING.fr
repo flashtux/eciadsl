@@ -424,6 +424,9 @@ R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du
 	Vous pouvez aussi utiliser un script de reconnection automatique, et bien
 	sûr vérifiez que votre configuration est OK.
 
+	Vous pouvez aussi essayer en mettant le MTU à 1000 ou même 512 dans le
+	fichier /etc/ppp/peers/adsl.
+
 
 4.9
 ================================================================================
