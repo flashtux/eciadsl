@@ -337,7 +337,7 @@ case "$1" in
             	echo $vpi | grep -E "^[0-9]+$" > /dev/null 2>&1
             	if [ $? -ne 0 ]; then
                 	vpi=""
-                	echo -e"Invalid VPI, please enter it again\n"
+                	echo -e "Invalid VPI, please enter it again\n"
             	fi
 			fi
         done
@@ -522,8 +522,11 @@ case "$1" in
 		gateway="$prev_gateway"
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
+			echo -n "In current config, static IP is "
 			if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
-				echo -n "In current config, static IP is used"
+				echo "used"
+			else
+				echo "not used"
 			fi
         	echo "Did you get a static IP from your provider (MOST users should say NO)? "
 			foo=""
