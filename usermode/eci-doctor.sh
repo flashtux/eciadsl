@@ -30,19 +30,19 @@ function fatal () {
 # check for "usb-uhci.c: ENXIO 80000380, flags 0, urb c7f401c0, burb c6469140"
 	grep 'usb-uhci.c: ENXIO' /tmp/msg.log
 
-# check for "usb-uhci.c: interrupt, status 29, frame# 956" (TODO)
+# check for "usb-uhci.c: interrupt, status 29, frame# 956"
 	grep 'usb-uhci.c: interrupt' /tmp/msg.log
 
-# check for "usb_control/bulk_msg: timeout" (TODO)
+# check for "usb_control/bulk_msg: timeout"
 	grep 'usb_control/bulk_msg' /tmp/msg.log
 
-# check for "usb-uhci.c: Host controller halted, trying to restart" (TODO)
+# check for "usb-uhci.c: Host controller halted, trying to restart"
 	grep 'usb-uhci.c: Host controller halted' /tmp/msg.log
 
-# check for "usb-uhci.c: process_transfer: fixed toggle" (TODO)
+# check for "usb-uhci.c: process_transfer: fixed toggle"
 	grep 'usb-uhci.c: process_transfer' /tmp/msg.log
 
-# check for "usb-uhci.c: iso_find_start: gap in seamless isochronous scheduling" (TODO)
+# check for "usb-uhci.c: iso_find_start: gap in seamless isochronous scheduling"
 	grep 'usb-uhci.c: iso_find_start' /tmp/msg.log
 	rm /tmp/msg.log
 	exit -1;
@@ -409,7 +409,6 @@ fi
 # check for /var/log or /tmp partitions full (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
 # check for the dabusb module (TODO)
-# check for an installed pppd (/usr/sbin/pppd) (TODO)
 
 echo "Everything is OK" ;
 
