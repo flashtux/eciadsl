@@ -29,8 +29,8 @@ if {[string compare $current_user "root"] != 0} {
 }
 
 frame .images
-image create photo logo_eci -file eci_logo.gif
-image create photo modem_eci -file modemeci.gif
+image create photo logo_eci -file /etc/eciadsl/eci_logo.gif
+image create photo modem_eci -file /etc/eciadsl/modemeci.gif
 label .images.image1 -image logo_eci
 label .images.image2 -image modem_eci
 pack .images.image1 .images.image2 -padx 30 -pady 10 -side left
@@ -173,9 +173,9 @@ set statetext "Ready."
 proc run_makeconfig {username password path_pppoeci dns1 dns2} {
 global titre_fenetre majdns
     if {[string compare $majdns "oui"] == 0} {
-        set returncode [catch {exec ./makeconfig $username $password $path_pppoeci $dns1 $dns2} sortie]
+        set returncode [catch {exec makeconfig $username $password $path_pppoeci $dns1 $dns2} sortie]
     } else {
-        set returncode [catch {exec ./makeconfig $username $password $path_pppoeci 0 0} sortie]
+        set returncode [catch {exec makeconfig $username $password $path_pppoeci 0 0} sortie]
     }
     toplevel .confok
     wm title .confok $titre_fenetre
@@ -196,7 +196,7 @@ global titre_fenetre majdns
 }
 
 proc run_dabusb {} {
-    set returncode [catch {exec ./remove_dabusb} sortie]
+    set returncode [catch {exec remove_dabusb} sortie]
     toplevel .dab
     wm title .dab "dabusb"
     if {$returncode != 0} {
