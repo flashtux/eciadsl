@@ -429,6 +429,29 @@ A:	If your kernel really OK? N_HDLC support is OK? Check the pre-requisites
 	See also below questions related to international users (5.4).
 
 
+4.4.1
+================================================================================
+Q:	I get something like this:
+		pppd[1954]: pppd 2.4.1 started by root, uid 0
+		pppd[1954]: Using interface ppp0
+		pppd[1954]: Connect: ppp0 <--> /dev/pts/1
+
+	endless..
+	or, after a while:
+		pppd[1954]: Child process /usr/local/bin/pppoeci -vpi 8 -vci 35 -vendor
+			0x0915 -product 0x8000 -mode VCM_RFC2364 (pid 1955) terminated
+			with signal 2
+		pppd[1954]: Modem hangup
+		pppd[1954]: Connection terminated.
+		pppd[1954]: Exit.
+--------------------------------------------------------------------------------
+A:	Check your PAP and/or CHAP files (/etc/ppp/pap-secrets and
+	/etc/ppp/chap-secrets). This may happen with broken authentication even if
+	pppd is not verbose regarding to this in /var/log/message.
+
+	See also Q 4.4.
+
+
 4.5
 ================================================================================
 Q:	Sometimes I see some LCP timeouts in /var/log/messages, but my connection
