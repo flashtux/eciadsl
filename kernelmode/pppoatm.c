@@ -28,19 +28,6 @@ static bool vc_encaps = 0;
 static int device_got_set = 0;
 static int pppoatm_max_mtu, pppoatm_max_mru;
 
-static option_t my_options[] = {
-#if 0
-	{ "accept", o_bool, &pppoatm_accept,
-	  "set PPPoATM socket to accept incoming connections", 1 },
-#endif
-	{ "llc-encaps", o_bool, &llc_encaps,
-	  "use LLC encapsulation for PPPoATM", 1},
-	{ "vc-encaps", o_bool, &vc_encaps,
-	  "use VC multiplexing for PPPoATM (default)", 1},
-	{ "qos", o_string, &qosstr,
-	  "set QoS for PPPoATM connection", 1},
-	{ NULL }
-};
 
 /* returns:
  *  -1 if there's a problem with setting the device
@@ -54,7 +41,7 @@ static option_t my_options[] = {
  *     to set up S_ISCHR(devstat.st_mode) != 1, so we
  *     don't get confused that we're on stdin.
  */
-/*
+
 static int setdevname_pppoatm(const char *cp)
 {
 	struct sockaddr_atmpvc addr;
@@ -66,8 +53,8 @@ static int setdevname_pppoatm(const char *cp)
 	if (text2atm(cp, (struct sockaddr *) &addr, sizeof(addr),
 	    T2A_PVC | T2A_NAME) < 0)
 		return 0;
-	if (!dev_set_ok())
-		return -1;
+	/*if (!dev_set_ok())
+		return -1;*/
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
 	strlcpy(devnam, cp, sizeof devnam);
 	devstat.st_mode = S_IFSOCK;
@@ -75,7 +62,7 @@ static int setdevname_pppoatm(const char *cp)
 	device_got_set = 1;
 	return 1;
 }
-*/
+
 static int setspeed_pppoatm(const char *cp)
 {
 	return 0;
@@ -95,7 +82,7 @@ static void no_device_given_pppoatm(void)
 	fatal("No vpi.vci specified");
 }
 
-/*
+
 static int open_device_pppoatm(void)
 {
 	int fd;
@@ -108,9 +95,9 @@ static int open_device_pppoatm(void)
 		fatal("failed to create socket: %m");
 	memset(&qos, 0, sizeof qos);
 	qos.txtp.traffic_class = qos.rxtp.traffic_class = ATM_UBR;
-*/
+
 	/* TODO: support simplified QoS setting */
-/*
+
 	if (qosstr != NULL)
 		if (text2qos(qosstr, &qos, 0))
 			fatal("Can't parse QoS: \"%s\"");
@@ -119,9 +106,9 @@ static int open_device_pppoatm(void)
 	qos.aal = ATM_AAL5;
 	if (setsockopt(fd, SOL_ATM, SO_ATMQOS, &qos, sizeof(qos)) < 0)
 		fatal("setsockopt(SO_ATMQOS): %m");
-*/
+
 	/* TODO: accept on SVCs... */
-/*
+
 	if (connect(fd, (struct sockaddr *) &pvcaddr,
 	    sizeof(struct sockaddr_atmpvc)))
 		fatal("connect(%s): %m", devnam);
@@ -129,7 +116,7 @@ static int open_device_pppoatm(void)
 	pppoatm_max_mru = lcp_wantoptions[0].mru;
 	return fd;
 }
-*/
+
 
 static void post_open_setup_pppoatm(int fd)
 {
@@ -141,7 +128,7 @@ static void pre_close_restore_pppoatm(int fd)
 	/* NOTHING */
 }
 
-/*
+
 static void set_line_discipline_pppoatm(int fd)
 {
 	struct atm_backend_ppp be;
@@ -155,7 +142,7 @@ static void set_line_discipline_pppoatm(int fd)
 	if (ioctl(fd, ATM_SETBACKEND, &be) < 0)
 		fatal("ioctl(ATM_SETBACKEND): %m");
 }
-*/
+
 
 /*
 static void reset_line_discipline_pppoatm(int fd)
@@ -201,6 +188,70 @@ static void set_xaccm_pppoatm(int unit, ext_accm accm)
 	/* NOTHING */
 }
 
+void pppoatm_phase_change(void *opaque, int PHASE)
+{
+	int fd;
+
+	switch(PHASE)
+	{
+		case PHASE_INITIALIZE:
+			info("Phase INITIALIZE\n");
+			fd = open_device_pppoatm();
+			set_line_discipline_pppoatm(fd);
+			break;
+		case PHASE_SERIALCONN:
+			info("Phase SERIALCONN\n");
+			break;
+		case PHASE_DORMANT:
+			info("Phase DORMANT\n");
+			break;
+		case PHASE_ESTABLISH:
+			info("Phase ESTABLISH\n");
+			break;
+		case PHASE_AUTHENTICATE:
+			info("Phase AUTHENTICATE\n");
+			break;
+		case PHASE_CALLBACK:
+			info("Phase CALLBACK\n");
+			break;
+		case PHASE_NETWORK:
+			info("Phase NETWORK\n");
+			break;
+		case PHASE_RUNNING:
+			info("Phase RUNNING\n");
+			break;
+		case PHASE_TERMINATE:
+			info("Phase TERMINATE\n");
+			break;
+		case PHASE_DISCONNECT:
+			info("Phase DISCONNECT\n");
+			break;
+		case PHASE_HOLDOFF:
+			info("Phase HOLDOFF\n");
+			break;
+	}
+	return;
+}
+
+
+static option_t my_options[] = {
+#if 0
+	{ "accept", o_bool, &pppoatm_accept,
+	  "set PPPoATM socket to accept incoming connections", 1 },
+#endif
+	{ "device name", o_wild, (void *) &setdevname_pppoatm,
+	  "Serial port device name",
+	  OPT_DEVNAM, OPT_PRIVFIX | OPT_NOARG | OPT_A2STRVAL | OPT_STATIC,
+	  devnam},
+	{ "llc-encaps", o_bool, &llc_encaps,
+	  "use LLC encapsulation for PPPoATM", 1},
+	{ "vc-encaps", o_bool, &vc_encaps,
+	  "use VC multiplexing for PPPoATM (default)", 1},
+	{ "qos", o_string, &qosstr,
+	  "set QoS for PPPoATM connection", 1},
+	{ NULL }
+};
+
 void plugin_init(void)
 {
 	static char *bad_options[] = {
@@ -214,11 +265,12 @@ void plugin_init(void)
 		NULL };
 	info("PPPoATM plugin_init");
 	add_options(my_options);
+	add_notifier(&phasechange,pppoatm_phase_change,0);
 	/*add_devname_class(setdevname_pppoatm);
 	setspeed_hook = setspeed_pppoatm;
 	options_for_device_hook = options_for_pppoatm;*/
-	open_device_hook = open_device_pppoatm;
-	/*post_open_setup_hook = post_open_setup_pppoatm;
+	/*open_device_hook = open_device_pppoatm;
+	post_open_setup_hook = post_open_setup_pppoatm;
 	pre_close_restore_hook = pre_close_restore_pppoatm;
 	no_device_given_hook = no_device_given_pppoatm;
 	set_line_discipline_hook = set_line_discipline_pppoatm;
@@ -238,3 +290,4 @@ void plugin_init(void)
 	lcp_allowoptions[0].neg_asyncmap = 0;
 	lcp_wantoptions[0].neg_pcompression = 0;
 }
+
