@@ -607,6 +607,7 @@ static int eci_atm_receive_cell(
 
 static const struct atmdev_ops eci_atm_devops =
 {
+	owner:	THIS_MODULE,
 	open: 	eci_atm_open,
 	send: 	eci_atm_send,
 	close: 	eci_atm_close,
@@ -902,7 +903,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		}
 		eciurb->setup_packet = eciurb->transfer_buffer  +34;	
 		DBG_OUT("interrupt buffer = %p\n", out_instance->interrupt_buffer);
-		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
+		usb_fill_int_urb(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
 			out_instance->interrupt_buffer,64,
 			eci_int_callback,out_instance,3);
 		if(usb_submit_urb(eciurb)) {
@@ -1220,14 +1221,7 @@ out:
 
 /*******************************************************************************
 
-
-		
 		USB functions
-
-
-
-
-
 
 *******************************************************************************/
 
@@ -1253,7 +1247,7 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 			memcpy(eciurb->transfer_buffer, instance->setup_packets+8,size);
 			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
 		}
-		FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
+		usb_fill_control_urb(eciurb, instance->usb_wan_dev, pipe, 
 			setuppacket, eciurb->transfer_buffer, size, eci_init_vendor_callback,
 			instance);
 		if(usb_submit_urb(eciurb)) {
@@ -1491,7 +1485,7 @@ static void eci_int_callback(struct urb *urb) {
 					dr->wValue = cpu_to_le16(0xc02);
 					dr->wIndex = cpu_to_le16(0x580);
 					dr->wLength = cpu_to_le16(sizeof(eci_outbuf));
-					FILL_CONTROL_URB(instance->vendor_urb,
+					usb_fill_control_urb(instance->vendor_urb,
 						instance->usb_wan_dev, usb_pipecontrol(0),
 						(unsigned char*) &dr,	eci_outbuf,
 						sizeof(eci_outbuf),	eci_control_callback,dr);
@@ -1636,7 +1630,7 @@ static void eci_bh_bulk(unsigned long pinstance) {
 				}
 		/*if(_uni_cell_list_crs_next(&cell)) break;*/
 		}
-		FILL_BULK_URB(urb, instance->usb_wan_dev, 
+		usb_fill_bulk_urb(urb, instance->usb_wan_dev, 
 			usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 			buf, bufpos, eci_bulk_callback, instance);
 		if(usb_submit_urb(urb))	{
