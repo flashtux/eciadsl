@@ -1267,7 +1267,7 @@ static void eci_bh_atm (unsigned long param) {
 	struct atm_vcc *lp_vcc = NULL ;
 	int lv_rc ;
 	int flags;
-	
+	if(lp_instance->state == ECI_STATE_REMOVING) return;
 	spin_lock_irqsave(&lp_instance->lock, flags);
 	/*
 	 * 	Allow  more than one VCC
@@ -1305,7 +1305,8 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 	unsigned char *setuppacket;
 	unsigned int pipe;
 	int size;
-		
+
+	if(instance->state == ECI_STATE_REMOVING) return;		
 	instance = eciurb->context;
 	if(instance->setup_packets[0]) {
 		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
@@ -1607,6 +1608,7 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 static void eci_bh_iso(unsigned long instance)  {
 	int flags;
 
+	if(((struct eci_instance *)instance)->state == ECI_STATE_REMOVING) return;
 	spin_lock_irqsave(&(((struct eci_instance *)instance)->lock), flags);
  	eci_atm_receive_cell(((struct eci_instance *)instance),
 		&(((struct eci_instance *)instance)->iso_cells));
@@ -1730,6 +1732,7 @@ static void eci_bh_bulk(unsigned long pinstance) {
 	int flags;
 
 	instance = (struct eci_instance *)pinstance;
+	if(instance->state == ECI_STATE_REMOVING) return;
 	spin_lock_irqsave(&instance->lock , flags);
 	if(instance->bulkisfree)	{
 		buflen = ECI_BULK_BUFFER_SIZE;
@@ -1782,6 +1785,7 @@ static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
 	instance = (struct eci_instance *)urb->context;
+	if(instance->state == ECI_STATE_REMOVING) return;
 	spin_lock(&instance->lock);
 	instance->bulkisfree = 1;
 	if(_uni_cell_list_nbcells(&instance->bulk_cells)) {
