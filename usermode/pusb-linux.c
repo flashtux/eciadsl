@@ -53,6 +53,7 @@ struct pusb_device_t
 struct pusb_urb_t
 {
 	int ep;
+    int status;
 	int buf_nb;
 	unsigned char* buf [MAXBUFFER];
 	int buf_size[MAXBUFFER];
@@ -553,42 +554,23 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	pusb_urb_t urb;
 	int i, offset, retry;
 
-	retry=0;
-	do
-	{
-		do
-		{
-			ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
-		}
-		while (ret < 0 && errno == EINTR);
-
-		if (ret < 0 && errno == EAGAIN)
-			/* ok, there was no URB waiting for us */
-			return NULL;
-
-		/* si ioctl echoue, je retourne -1 code d'erreur dans errno	*/
-		if (ret<0)
-		{
-			perror("ioctl USBDEVFS_REAPURB");
-			return(NULL);
-		}
-
-		if (purb->status == -84 /* USB_ST_CRC */)
-			printf("CRC error in URB\n");
-
-        /* If we get a ctc error then retry, up to 5 times though only
-			I've only needed 1 retry so far */
-        retry++;
-	}
-	while (purb->status == -84 /* USB_ST_CRC */&& retry <=5);
-	
-	if (purb->status !=0 || purb->error_count != 0)
-	{
-		printf("ep=%02x status=%d error_count=%d\n", purb->endpoint,
-			   purb->status, purb->error_count);
-		return(NULL);
-	}
-
+    do
+    {
+        ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
+    }
+    while (ret < 0 && errno == EINTR);
+    
+    if (ret < 0 && errno == EAGAIN)
+        /* ok, there was no URB waiting for us */
+        return NULL;
+    
+    /* si ioctl echoue, je retourne -1 code d'erreur dans errno	*/
+    if (ret<0)
+    {
+        perror("ioctl USBDEVFS_REAPURB");
+        return(NULL);
+    }
+    
 	urb = (pusb_urb_t) malloc(sizeof(struct pusb_urb_t));
 	if (urb == NULL)
 	{
@@ -597,6 +579,14 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	}
 
 	urb->ep = purb->endpoint;
+    urb->status = purb->status;
+    urb->buf_nb = 0;
+
+	if (purb->status !=0 || purb->error_count != 0)
+	{
+		printf("ep=%02x status=%d error_count=%d\n", purb->endpoint,
+			   purb->status, purb->error_count);
+	}
 
 	switch (purb->type)
 	{
@@ -674,6 +664,11 @@ int pusb_release_interface(pusb_device_t dev, int interface)
 int pusb_urb_get_epnum(pusb_urb_t urb)
 {
 	return(urb->ep);
+}
+
+int pusb_urb_get_status(pusb_urb_t urb)
+{
+    return urb->status;
 }
 
 int pusb_urb_buffer_first(pusb_urb_t urb,
