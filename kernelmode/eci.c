@@ -203,11 +203,17 @@ static void _dumpk(
 
 static const char eci_drv_name[] =  "ECI HiFocus ADSL Modem";
 static const char eci_drv_label[] =  "ECI";
+#ifndef _DMT_
 static const unsigned char eci_init_setup_packets[] =
 {
 #include "usb_packets.h"
 };
-
+#else
+static const unsigned char eci_init_setup_packets[] =
+{
+#include "usb_packets_dmt.h"
+};
+#endif
 
 /**********************************************************************
                     USB stuff
@@ -1621,13 +1627,13 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 
 static void eci_bh_bulk(unsigned long pinstance)
 {
-	int 		ret;		/* counter			*/
+	//not used: int 		ret;		/* counter			*/
 	/*not used:int 		nbcell;*/	/* cellcount expected		*/
 	unsigned	char *buf;	/* urb buffer			*/
 	int		i;		/* loop counter			*/
 	int		buflen;		/* urb buffer len		*/
 	int		bufpos;		/* position in urb buffer	*/
-	int		nbcells;	/* number of cell to be sent 	*/
+	//not used: int		nbcells;	/* number of cell to be sent 	*/
 	uni_cell_list_crs_t	cell;	/* current computed cell	*/
 	struct urb	*urb;		/* urb pointer to sent urb	*/
 	struct eci_instance *instance;	/* pointer to instance		*/
@@ -1652,7 +1658,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 	}
 */
 	buf = urb->transfer_buffer;
-	DBG_OUT("Buf = %d\n");
+	DBG_OUT("Buf = %p\n", buf);
 	bufpos = 0;
  	while(bufpos < (ECI_BULK_BUFFER_SIZE) && 
  		(cell = _uni_cell_list_extract(&instance->bulk_cells)))
@@ -1860,7 +1866,8 @@ static int eci_atm_receive_cell(
  	} else {
  		_aal5_free(lp_aal5) ;
  	}
-	_uni_cell_list_free(plist) ;
+	//_uni_cell_list_free(plist) ;
+	_uni_cell_list_reset(plist);
 	return 0 ;
 }
 
