@@ -166,6 +166,14 @@ then
     echo "ERROR: $pppoeci is not a valid executable"
     exit 1
 fi
+if [ $vpi -ge 4096 ]; then
+    echo -e "ERROR: VPI not in range [0-4095]"
+    exit 1
+fi
+if [ $vci -ge 65536 ]; then
+    echo -e "ERROR: VCI not in range [0-65535]"
+    exit 1
+fi
 
 RET=0
 

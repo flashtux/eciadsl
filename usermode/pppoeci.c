@@ -221,8 +221,8 @@ int data_timeout = 0;
 #define PKT_NB 10
 
 /* ATM level : adapt according your ADSL provider settings */
-unsigned int my_vpi = 0xffff;
-unsigned int my_vci = 0xffff;
+unsigned int my_vpi = 0xffffffff;
+unsigned int my_vci = 0xffffffff;
 
 unsigned int vendor = 0;
 unsigned int product = 0;
@@ -732,7 +732,7 @@ int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
 		return(-1);
 
 	/* normalize */
-	vpi &= 0xff;
+	vpi &= 0x0fff;
 	vci &= 0xffff;
 	pti &= 0x0f;
 
@@ -1375,6 +1375,8 @@ void usage(const int ret)
 					"       -V or --version      display the version number then exit\n"
 					"       --modes              display a list of the supported modes (to use with -mode)\n"
 					"\n");
+	fprintf(stderr, "vpi value must be between 0 and %u\n", 0xfff);
+	fprintf(stderr, "vci value must be between 0 and %u\n", 0xffff);
 	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
 					"are assumed.\n"
 					"\n");
@@ -1510,19 +1512,19 @@ int main(int argc, char** argv)
 	read_config_file();
 
 	/* try to assume default values from the config file */
-	if ((my_vci == 0xffff) && (config.vci))
+	if ((my_vci == 0xffffffff) && (config.vci))
 			my_vci = config.vci;
-	if ((my_vpi == 0xffff) && (config.vpi))
+	if ((my_vpi == 0xffffffff) && (config.vpi))
 			my_vpi = config.vpi;
 	if ((!vendor) && (config.vid2))
 			vendor = config.vid2;
 	if ((!product) && (config.pid2))
 			product = config.pid2;
 
-	if (my_vci == 0xffff || my_vpi == 0xffff
+	if (my_vci == 0xffffffff || my_vpi == 0xffffffff
 		|| vendor == 0 || product == 0)
 	{
-		printf("no default parameters found in config file, couldn't assume default values\n");
+		fprintf(stderr, "no default parameters found in config file, couldn't assume default values\n");
 		usage(-1);
 	}	
 	/* now set the mode from conffile if not specified on commandline else we default to VCM_RFC2364 */
@@ -1532,12 +1534,24 @@ int main(int argc, char** argv)
 		{
 			if (!set_mode(config.mode))
 			{
-				printf("bad mode parameter found in config file, couldn't assume default values\n");
+				fprintf(stderr, "bad mode parameter found in config file, couldn't assume default values\n");
 				usage(-1);
 			}
 		}
 		else
 			frame_type = default_frame_type;
+	}
+
+	/* rfc-3292-56 range values check for vpi and vci */
+	if (my_vpi>0xfff)
+	{
+		fprintf(stderr, "incorrect vpi value\n");
+		usage(-1);
+	}
+	if (my_vci>0xffff)
+	{
+		fprintf(stderr, "incorrect vci value\n");
+		usage(-1);
 	}
 
 	if (pusb_set_interface_alt < 0

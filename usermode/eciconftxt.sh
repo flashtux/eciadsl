@@ -384,6 +384,11 @@ case "$1" in
             	if [ $? -ne 0 ]; then
                 	vpi=""
                 	echo -e "** invalid VPI, please enter it again\n"
+				else
+					if [ $vpi -ge 4096 ]; then
+	                	vpi=""
+    	            	echo -e "** VPI not in range [0-4095], please enter it again\n"
+					fi
             	fi
 			fi
         done
@@ -408,6 +413,11 @@ case "$1" in
             	if [ $? -ne 0 ]; then
                 	vci=""
                 	echo -e "** invalid VCI, please enter it again\n"
+				else
+					if [ $vci -ge 65536 ]; then
+	                	vci=""
+    	            	echo -e "** VCI not in range [0-65535], please enter it again\n"
+					fi
             	fi
 			fi
         done
