@@ -55,6 +55,7 @@
                     Debuging Stuf
 ***********************************************************************/
 
+#define DEBUG
 #ifdef DEBUG
 
 #define DBG_OUT(fmt, argz...) \
@@ -753,6 +754,7 @@ static int __init eci_init(void) {
 static int _eci_cleanup_instance(struct eci_instance *i) {
 	int cnt;
 	i->state = ECI_STATE_REMOVING;
+	ERR_OUT("CLEANUP 1\n");
 #ifdef __USE_ATM__
 	if(i->atm_dev) 	{
 		shutdown_atm_dev(i->atm_dev);
@@ -760,6 +762,7 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 	}
 #endif	
 	
+	DBG_OUT("CLEANUP 2\n");
 	for(cnt = 0 ; cnt< ECI_NB_ISO_PACKET;cnt ++) 
 			if(i->isourbs[cnt]){
 				if (i->isourbs[cnt]->status == -EINPROGRESS)
@@ -767,45 +770,54 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 				usb_free_urb(i->isourbs[cnt]);
 				i->isourbs[cnt] = 0;
 			}
+	DBG_OUT("CLEANUP 3\n");
 	if(i->vendor_urb) 	{
 		if (i->vendor_urb->status == -EINPROGRESS)
 			usb_unlink_urb(i->vendor_urb);
 		usb_free_urb(i->vendor_urb);
 		i->vendor_urb = 0;
 	}
+	DBG_OUT("CLEANUP 4\n");
 	if(i->interrupt_urb){
 		if (i->interrupt_urb->status == -EINPROGRESS)
 			usb_unlink_urb(i->interrupt_urb);
 		usb_free_urb(i->interrupt_urb);
 		i->interrupt_urb = 0;
 	}
+	DBG_OUT("CLEANUP 5\n");
 	if(i->bulk_urb) {
 		if (i->bulk_urb->status == -EINPROGRESS)
 			usb_unlink_urb(i->bulk_urb);
 		usb_free_urb(i->bulk_urb);
 		i->bulk_urb = 0;
 	}
+	DBG_OUT("CLEANUP 6\n");
 	if(i->bh_bulk.func) {
 		tasklet_kill(&i->bh_bulk);
 		i->bh_bulk.func = 0;
 	}
+	DBG_OUT("CLEANUP 7\n");
 	if(i->bh_iso.func) {
 		tasklet_kill(&i->bh_iso);
 		i->bh_iso.func = 0;
 	}
+	DBG_OUT("CLEANUP 8\n");
 	if(i->bh_atm.func) {
 		tasklet_kill(&i->bh_atm);
 		i->bh_atm.func = 0;
 	}
+	DBG_OUT("CLEANUP 9\n");
 	_uni_cell_list_reset(&i->iso_cells);
 	_uni_cell_list_reset(&i->bulk_cells);
 	/*skb_free(i->txq);*/
+	DBG_OUT("CLEANUP 10\n");
 	if(i->pcurvcc) 	{
 	}
 	if(i->pbklogaal5) 	{
 		_aal5_free(i->pbklogaal5);
 		i->pbklogaal5 = 0;
 	}
+	DBG_OUT("CLEANUP 11\n");
 	return 0;
 }
 
@@ -1305,9 +1317,9 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 	unsigned char *setuppacket;
 	unsigned int pipe;
 	int size;
-
-	if(instance->state == ECI_STATE_REMOVING) return;		
+DBG_OUT("SEND INIT URB\n");
 	instance = eciurb->context;
+	if(instance->state == ECI_STATE_REMOVING) return;		
 	if(instance->setup_packets[0]) {
 		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
 		memcpy(setuppacket, instance->setup_packets,8);
