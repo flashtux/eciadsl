@@ -145,7 +145,7 @@ int eoc_read_next() {
 		mes = 0x5301;		
 		data = 0x0e; /* EOD */
 	}
-	if(eocreadpar) {	/* set parity bit and switch eocpar value */
+	if(eocreadpar) {	/* set parity bit and switch eocreadpar value */
 		mes |= EOC_PARITY_EVEN;
 		eocreadpar = 0;
 	} else {
@@ -232,6 +232,8 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 							case EOC_OPCODE_NEXT:
 								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
+								eoc_out_buf[eoc_out_buffer_pos-2] = mes & 0xff;
+								eoc_out_buf[eoc_out_buffer_pos-1] = (mess >>8 ) & 0xff;
 								break;
 							case EOC_OPCODE_RTN:
 								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
