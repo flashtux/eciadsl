@@ -4,7 +4,7 @@
 # TODO: check for modules.conf location (warn if conf.modules is found)
 # TODO: better version string detection (for exotic debian gcc versions for instance)
 
-VERSION="0.0.1"
+VERSION="0.0.4"
 
 
 function version()
@@ -23,17 +23,27 @@ function commandline_help()
 	echo "    $BASE [switches]"
 	echo "switches:"
 	echo "    --prefix={PATH}           set runtime base directory (default=$DIST_PREFIX_DEFAULT)"
-	echo "    --etc-prefix={PATH}       set conf base directory (default=$DIST_ETC_DEFAULT)"
+	echo "    --etc-prefix={PATH}       system config base directory (default=$DIST_ETC_DEFAULT)"
+	echo "    --conf-prefix={PATH}      set conf base directory (default=$DIST_CONF_DEFAULT)"
+	echo "    --conf-dir={DIR}          set conf directory (default=$DIST_CONF_DIR_DEFAULT)"
 	echo "    --disable-debug           disable debug messages at runtime (default)"
 	echo "    --enable-debug            enable debug messages at runtime"
 	echo "    --disable-warnings        disable most warnings at compilation"
 	echo "    --enable-warnings         enable most warnings at compilation (default)"
 	echo "    --quiet                   silent operations"
 	echo "    --clean                   clean temporary files then exit"
-	echo "    --skip-make-check         do not check for make"
-	echo "    --skip-gcc-check          do not check for gcc"
-	echo "    --skip-make-version       do not check for make version"
-	echo "    --skip-gcc-version        do not check for gcc version"
+	echo "    --disable-make-check      do not check for make"
+	echo "    --disable-gcc-check       do not check for gcc"
+	echo "    --disable-pppd-check      do not check for make version (default)"
+	echo "    --disable-make-version    do not check for make version"
+	echo "    --disable-gcc-version     do not check for gcc version"
+	echo "    --disable-pppd-version    do not check for gcc version (default)"
+	echo "    --enable-make-check       force check for make (default)"
+	echo "    --enable-gcc-check        force check for gcc (default)"
+	echo "    --enable-pppd-check       force check for make version"
+	echo "    --enable-make-version     force check for make version (default)"
+	echo "    --enable-gcc-version      force check for gcc version (default)"
+	echo "    --enable-pppd-version     force check for gcc version"
 	echo "    --enable-maintainer-mode  use default settings for maintainers (config/make/runtime options)"
 	echo "    -h or --help              display this help then exit"
 	echo "    -v or --version           display version info then exit"
@@ -79,7 +89,7 @@ function abort()
 
 function default_or_user()
 {
-	# display text according to $1 and $2 comparison
+	# display text according to $1 and $2 [..] comparison
 	declare FOUND=0
 	COMP="$1"
 	shift 1
@@ -395,8 +405,10 @@ function configure_dot()
 	echo "PRODUCT_VERSION = $PRODUCT_VERSION" >> "$MAKEFILE_CONFIG"
 	echo "PREFIX = $DIST_PREFIX" >> "$MAKEFILE_CONFIG"
 	echo "ETC_PREFIX = $DIST_ETC_PREFIX" >> "$MAKEFILE_CONFIG"
+	echo "CONF_PREFIX = $DIST_CONF_PREFIX" >> "$MAKEFILE_CONFIG"
 	echo "BIN_DIR = \$(PREFIX)$DIST_BIN_DIR" >> "$MAKEFILE_CONFIG"
 	echo "ETC_DIR = \$(ETC_PREFIX)$DIST_ETC_DIR" >> "$MAKEFILE_CONFIG"
+	echo "CONF_DIR = \$(CONF_PREFIX)$DIST_CONF_DIR" >> "$MAKEFILE_CONFIG"
 	if [ $WARNINGS -eq 1 ]
 	then
 		echo "CFLAGS += -pedantic -Wall -W" >> "$MAKEFILE_CONFIG"
@@ -426,6 +438,8 @@ function configure_dot()
 	echo "#define PRODUCT_VERSION \"$PRODUCT_VERSION\"" >> "$CFGFILE"
 	echo "#define ETC_PATH \"$DIST_ETC_PREFIX\"" >> "$CFGFILE"
 	echo "#define ETC_DIR \"$DIST_ETC_DIR\"" >> "$CFGFILE"
+	echo "#define CONF_PATH \"$DIST_CONF_PREFIX\"" >> "$CFGFILE"
+	echo "#define CONF_DIR \"$DIST_CONF_DIR\"" >> "$CFGFILE"
 	display 1 "OK"
 	unset CFGFILE INCFGFILE
 
@@ -476,15 +490,19 @@ declare -i QUIET=0 DEBUG=0 WARNINGS=1 MAINTAINER=0
 declare -i PLATFORM_GUESS=1
 declare -i MAKE_CHECK=1 MAKE_CHECK_VERSION=1
 declare -i GCC_CHECK=1 GCC_CHECK_VERSION=1
-declare -i PPPD_CHECK=0 PPPD_CHECK_VERSION=1
+declare -i PPPD_CHECK=0 PPPD_CHECK_VERSION=0
 DIST_PREFIX_DEFAULT="/usr/local"
-DIST_ETC_PREFIX_DEFAULT=""
+DIST_ETC_PREFIX_DEFAULT="/"
+DIST_CONF_PREFIX_DEFAULT="/"
 DIST_BIN_DIR_DEFAULT="/bin"
 DIST_ETC_DIR_DEFAULT="/etc"
+DIST_CONF_DIR_DEFAULT="/etc/eciadsl"
 DIST_PREFIX=""
 DIST_ETC_PREFIX=""
+DIST_CONF_PREFIX=""
 DIST_BIN_DIR=""
 DIST_ETC_DIR=""
+DIST_CONF_DIR=""
 
 # commandline analyze
 while [ -n "$1" ]
@@ -494,16 +512,26 @@ do
 									DIST_PREFIX="$PARAM";;
 		"--etc-prefix="*)			check_param "$1"
 									DIST_ETC_PREFIX="$PARAM";;
-		"--skip-make-check")		let MAKE_CHECK=0;;
-		"--skip-gcc-check")			let GCC_CHECK=0;;
-		"--skip-pppd-check")		let PPPD_CHECK=0;;
-		"--skip-make-version")		let MAKE_CHECK_VERSION=0;;
-		"--skip-gcc-version")		let GCC_CHECK_VERSION=0;;
-		"--skip-pppd-version")		let PPPD_CHECK_VERSION=0;;
-		"--enable-warnings")		let WARNINGS=1;;
+		"--conf-prefix="*)			check_param "$1"
+									DIST_CONF_PREFIX="$PARAM";;
+		"--conf-dir="*)				check_param "$1"
+									DIST_CONF_DIR="$PARAM";;
+		"--disable-make-check")		let MAKE_CHECK=0;;
+		"--disable-gcc-check")		let GCC_CHECK=0;;
+		"--disable-pppd-check")		let PPPD_CHECK=0;;
+		"--disable-make-version")	let MAKE_CHECK_VERSION=0;;
+		"--disable-gcc-version")	let GCC_CHECK_VERSION=0;;
+		"--disable-pppd-version")	let PPPD_CHECK_VERSION=0;;
+		"--enable-make-check")	 	let MAKE_CHECK=1;;
+		"--enable-gcc-check") 	 	let GCC_CHECK=1;;
+		"--enable-pppd-check")	 	let PPPD_CHECK=1;;
+		"--enable-make-version")	let MAKE_CHECK_VERSION=1;;
+		"--enable-gcc-version")	 	let GCC_CHECK_VERSION=1;;
+		"--enable-pppd-version")	let PPPD_CHECK_VERSION=1;;
 		"--disable-warnings")		let WARNINGS=0;;
-		"--enable-debug")			let DEBUG=1;;
+		"--enable-warnings")		let WARNINGS=1;;
 		"--disable-debug")			let DEBUG=0;;
+		"--enable-debug")			let DEBUG=1;;
 		"--enable-maintainer-mode")	let MAINTAINER=1
 									maintainer_defaults;;
 		"--quiet")					let QUIET=1;;
@@ -525,19 +553,33 @@ done
 # apply defaults if no user-defined settings
 test -z "$DIST_PREFIX" && DIST_PREFIX="$DIST_PREFIX_DEFAULT"
 test -z "$DIST_ETC_PREFIX" && DIST_ETC_PREFIX="$DIST_ETC_PREFIX_DEFAULT"
+test -z "$DIST_CONF_PREFIX" && DIST_CONF_PREFIX="$DIST_CONF_PREFIX_DEFAULT"
 test -z "$DIST_BIN_DIR" && DIST_BIN_DIR="$DIST_BIN_DIR_DEFAULT"
 test -z "$DIST_ETC_DIR" && DIST_ETC_DIR="$DIST_ETC_DIR_DEFAULT"
+test -z "$DIST_CONF_DIR" && DIST_CONF_DIR="$DIST_CONF_DIR_DEFAULT"
 
 # display a summary of the settings
 display 1 "settings:"
 display 1 -n "runtime prefix path = $DIST_PREFIX "
 default_or_user "$DIST_PREFIX" "$DIST_PREFIX_DEFAULT"
-display 1 -n "conf files prefix path = $DIST_ETC_PREFIX "
+display 1 -n "system conf files prefix path = $DIST_ETC_PREFIX "
 default_or_user "$DIST_ETC_PREFIX" "$DIST_ETC_PREFIX_DEFAULT"
-display 1 -n "binaries directory = $DIST_PREFIX$DIST_BIN_DIR "
+display 1 -n "driver conf files prefix path = $DIST_CONF_PREFIX "
+default_or_user "$DIST_CONF_PREFIX" "$DIST_CONF_PREFIX_DEFAULT"
+display 1 -n "binaries directory = $DIST_BIN_DIR "
 default_or_user "$DIST_BIN_DIR" "$DIST_BIN_DIR_DEFAULT"
-display 1 -n "conf files directory = $DIST_ETC_PREFIX$DIST_ETC_DIR "
+display 1 -n "system conf files directory = $DIST_ETC_DIR "
 default_or_user "$DIST_ETC_DIR" "$DIST_ETC_DIR_DEFAULT"
+display 1 -n "driver conf files directory = $DIST_CONF_DIR "
+default_or_user "$DIST_CONF_DIR" "$DIST_CONF_DIR_DEFAULT"
+
+# fixes trailing and leading /
+test "${DIST_PREFIX:${#DIST_PREFIX}-1}" != "/" && DIST_PREFIX="$DIST_PREFIX/"
+test "${DIST_ETC_PREFIX:${#DIST_ETC_PREFIX}-1}" != "/" && DIST_ETC_PREFIX="$DIST_ETC_PREFIX/"
+test "${DIST_CONF_PREFIX:${#DIST_CONF_PREFIX}-1}" != "/" && DIST_CONF_PREFIX="$DIST_CONF_PREFIX/"
+test "${DIST_BIN_DIR:0:1}" == "/" && DIST_BIN_DIR="${DIST_BIN_DIR:1}"
+test "${DIST_ETC_DIR:0:1}" == "/" && DIST_ETC_DIR="${DIST_ETC_DIR:1}"
+test "${DIST_CONF_DIR:0:1}" == "/" && DIST_CONF_DIR="${DIST_CONF_DIR:1}"
 
 # start configuring!
 display 1 -e "\nstarting configuration for $PRODUCT_ID-$PRODUCT_VERSION in $(pwd)..\n"
