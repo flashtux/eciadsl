@@ -1,0 +1,91 @@
+*******************************************************************************
+*                                                                             *
+*                        --== Driver para EciAdsl ==--                        *
+*                  Generación del archivo de sincronización                   *
+*                                                                             *
+*******************************************************************************
+*                                                                             *
+*      versión inicial: Webdaemon <olivier@aixmarseille.com> 2002-03-06 04:12 *
+*           Mantenedor: FlashCode <flashcode@flashtux.org>                    *
+* Última actualización: FlashCode, 2003-03-31 23:06                           *
+*                                                                             *
+*******************************************************************************
+       (Gracias a [DNightmare+] por el mensaje anunciado en el Foro)  
+  
+  
+1. Cómo funciona  
+-----------------  
+  
+El proceso de conexión del módem Eci puede ser dividido en 3 fases:  
+  
+Fase 1: Upload (carga) del firmware  
+Fase 2: La sincronización de la Línea dsl  
+Fase 3: la conexión ppp  
+  
+En nuestro driver, el script ./startmodem realiza estas fases a través de 
+los comandos:  
+eci-load1 firmware.bin (fase 1), Esto es para la carga (uploading) del firmware  
+eci-load2 synch01.bin (fase 2), Esto es para la sincronización de la Línea  
+pppd call adsl (fase 3), Inicialización de la conexión TCP/IP Punto a Punto  
+  
+  
+2. Problemas  
+-------------  
+  
+El archivo predeterminado "synch01.bin" es un archivo genérico para tener la línea  
+sincronizada.  
+Este funciona muy bien para muchos usuarios, pero no siempre.  
+  
+Las personas de otros países pueden tener los mismos problemas.  
+  
+La solución es descargar todo el tráfico USB durante el proceso de inicialización 
+del Módem bajo Windows, generar un log y usar este log para crear su propio archivo
+de sincronización.  
+  
+  
+3. Hagámoslo  
+--------------  
+  
+Reinicie su sistema bajo MS Windows.  
+  
+Descarge el sniffer desde el sitio web de Benoit:  
+http://benoit.papillault.free.fr/usbsnoop/index.en.php3  
+  
+Desactive la auto-conexión en Windows, dado que sólo estamos interesados en los paquetes 
+USB de sincronización del Firmware.  
+  
+Desconecte cualquier otro dispositivo usb... deje sólo el módem conectado.  
+  
+Inicie el sniffer.  
+Instale los filtros para capturar los paquetes del módem durante la Conexión ADSL.  
+y reinicie.  
+  
+Nota: todos los paquetes capturados son almacenados en c:\WINxxx\usbsnoop.log  
+  
+En cuanto los leds rojos y verdes del módem esten iluminados fijos, desinstale los filtros.  
+En esta etapa, el firmware del módem USB está cargado y la syncronizacion está OK.  
+Por ésta razón ya no necesitamos mas el sniffer.  
+El archivo generado debe de haber crecido hasta aproximadamente los 10 Mb.  
+  
+  
+Reinicie bajo Linux.  
+Monte la partición Windows contiene el archivo de log usbsnoop y copie el archivo donde 
+usted desee.  
+Ejecute el script "eci_vendor_device.pl usbsnoop.log"  
+(el script eci_vendor_device.pl es proporcionado en el paquete usermode)  
+  
+El script analiza el archivo de log y a partir de éste genera un nuevo 
+archivo eci_vendor.bin.  
+  
+- Si la versión del Driver es <= 0.5:  
+    digite el comando "mv /etc/eciadsl/eci_wan3.bin /etc/eciadsl/eci_wan3.bin.old"  
+    y entonces digite el comando "mv eci_vendor.bin /etc/eciadsl/eci_wan3.bin"  
+
+- Si la versión del Driver es CVS o >= 0.6:  
+    digite el comando "mv eci_vendor.bin /etc/eciadsl/my_synch.bin"  
+    y ejecute el script eciconftxt.sh para usar este archivo .bin  
+  
+Ejecute el startmodem...  
+... y cruze sus dedos:)  
+  
+

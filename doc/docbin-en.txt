@@ -1,0 +1,83 @@
+*******************************************************************************
+*                                                                             *
+*                           --== EciAdsl Driver ==--                          *
+*                       Synchronization file generation                       *
+*                                                                             *
+*     Initial version: Webdaemon <olivier@aixmarseille.com> 2002-03-06 04:12  *
+*           Maintener: FlashCode <flashcode@flashtux.org>                     *
+*         Last update: FlashCode, 2003-03-30 14:23                            *
+*                                                                             *
+*******************************************************************************
+(Thanks to [DNightmare+] for the message posted in Forum)
+
+
+1. How it works
+---------------
+
+Eci modem connection process can be divided into 3 steps:
+
+Step 1: Upload of firmware
+Step 2: Synchronization of the dsl Line
+Step 3: ppp connection
+
+In our driver, the script ./startmodem performs those steps with commands:
+eci-load1 firmware.bin (step 1) This is for firmware uploading
+eci-load2 synch01.bin  (step 2) This is for Line Synchronisation
+pppd call adsl         (step 3) Initialisation of Point To Point TCP/IP Connection
+
+
+2. Troubles
+-----------
+
+The default file "synch01.bin" is a generic file for having the line
+synchronized.
+It works fine for a lot of users, but not all the time.
+
+People from other countries may have the same problems.
+
+The solution is to dump all the USB traffic during the Modem initialisation
+under Windows, generate a log and use this log to create your own sync file.
+
+
+3. Let's do it
+--------------
+
+Boot under windows.
+
+Download the sniffer from Benoit's website:
+http://benoit.papillault.free.fr/usbsnoop/index.en.php3
+
+Disable windows's auto-connection, because we're only interested in the Firmware
+synchronization USB packets.
+
+Unplug every other usb devices ... keep only the modem connected.
+
+Start the sniffer.
+Install the filters for the modem so as to capture packets from ADSL Connection.
+Reboot.
+
+NB: all the sniffed packets are logged in c:\WINxxx\usbsnoop.log
+
+As soon as both red and green leds are fixed, uninstall filter's filters.
+At this step, firmware is loaded and synchronisation is OK.
+That's the reason we don't need the sniffer anymore.
+The file should have grown up to about 10 Mb.
+
+
+Reboot under linux.
+Mount windows partition volume containing the usbsnoop log file so as to copy
+it where you want.
+Start the script eci_vendor.pl usbsnoop.log
+(script eci_vendor.pl is provided with usermode package)
+
+The script parses the log file and generate a new eci_vendor.bin file.
+
+- Driver's version <= 0.5 :
+    type mv /etc/eciadsl/eci_wan3.bin /etc/eciadsl/eci_wan3.bin.old
+    and then mv eci_vendor.bin /etc/eciadsl/eci_wan3.bin
+- Driver's version CVS or >= 0.6 :
+    type mv eci_vendor.bin /etc/eciadsl/my_synch.bin
+    and then run eciconftxt.sh to use this .bin
+
+Run startmodem...
+...and cross your fingers :)

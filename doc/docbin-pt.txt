@@ -1,0 +1,82 @@
+Webdaemon-olivier@aixmarseille.com 2002/03/06 04:12
+Ultimo Update: 2002/11/24 por FlashCode <flashcode@flashtux.org>
+
+
+
+Gerar ficheiros de sincronização
+
+(Obrigado ao [DNinghtmare+] pela mensagem enviada para o forum)
+
+
+1. Como é que funciona
+----------------------
+
+O processo de ligação do modem eci pode ser dividido em 3 passos:
+
+1º Passo: Carregar o firmware
+2º Passo: Sincronização da linha dsl
+3º Passo: Ligação ppp
+
+No nosso driver, o script startmodem executa estes passos com os comandos:
+
+./eci-load1 eci_firm_kit_wanadoo.bin (1º Passo) Este é para carregar o firmware
+./eci-load2 eci_wan3.bin (2º Passo) Este é para sincronizar a linha
+pppd call adsl (3º Passo) Inicialização da ligação TCP/IP Point To Point
+
+
+2. Problemas
+------------
+
+O ficheiro por defeito "eci_wan3" é um ficheiro genérico para conseguir
+sincronizar a linha.
+Ele funciona bem para a maior parte dos utilizadores, mas nem sempre.
+Por exemplo, pessoas de Bordeaux nunca conseguiriam ligar-se com este ficheiro
+porque aí, o protocolo da Wanadoo é um pouco diferente dos outros lados.
+
+Pessoas de outros países poderão ter o mesmo problema.
+
+A solução é despejar todo o tráfego realizado pelo inicialização do modem
+no Windows, gerar um log e usá-lo para criar o seu próprio ficheiro synch.
+
+
+3. Vamos fazê-lo
+----------------
+
+Inicie o Windows
+
+Descarregue o bisbilhoteiro do website de Benoit:
+http://benoit. papillault.free.fr/usbsnoop/index.en.php3
+
+Desliga a ligação automática do Windows, porque nós só estamos interessados
+nos pacotes de sincronização do Firmware USB.
+
+Desligue todos os outros aparelhos USB ... fique só com o modem ligado
+
+Inicie o bisbilhoteiro
+Instale os filtros para o modem de modo a capturar os pacotes da ligação ADSL
+Reinicie a máquina
+
+NB:Todos os pacotes bisbilhotados ficarão registados em c:\WINxxx\usbsnoop.log
+
+Assim que ambas as luzes estiverem fixas, desinstale os filtros.
+Neste momento, o firmware já foi carregado e a sincronização está OK.
+É por isso que já não precisamos mais dos filtros do bisbilhoteiro.
+O ficheiro deve ter agora cerca de 10Mb.
+
+Reinicie a máquina no Linux
+Monte a partição do Windows que contêm o ficheiro usbsnoop.log de modo a poder
+copiá-lo para onde o quer.
+Execute o script eci_vendor.pl usbsnoop.log
+(o script eci_vendor.pl é fornecido em conjunto com o pacote usermode)
+
+O script passa o ficheiro de log e gera um novo ficheiro eci_vendor.bin.
+
+- Versão de driver <= 0.5, escreva:
+		`mv /etc/eciadsl/eci_wan3.bin /etc/eciadsl/eci_wan3.bin.old`
+	e em seguida:
+  		`mv eci_vendor.bin /etc/eciadsl/eci_wan3.bin`
+- Versão de driver CVS ou >= 0.6, escreva:
+		`mv eci_vendor.bin /etc/eciadsl/meu_synch.bin`
+	e em seguida corra o eciconftxt.sh para usar este .bin
+
+Goze muito!!!!

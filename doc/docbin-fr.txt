@@ -1,0 +1,89 @@
+*******************************************************************************
+*                                                                             *
+*                           --== Driver EciAdsl ==--                          *
+*                   Generation de fichier de synchronisation                  *
+*                                                                             *
+*  Version originale : Webdaemon <olivier@aixmarseille.com> 06/03/2002 04:12  *
+*        Traduit par : Crevetor <crevetor@caramail.com>                       *
+*         Mainteneur : FlashCode <flashcode@flashtux.org>                     *
+*       Derniere MAJ : FlashCode, 30/03/2003 14:23                            *
+*                                                                             *
+*******************************************************************************
+(Merci aux messages postes par [DNightmare+] dans le forum)
+
+
+1. Comment ca marche
+---------------------
+
+Le processus de connection du modem eci peut etre divise en trois parties :
+
+Etape 1: Upload du firmware dans le modem
+Etape 2: Synchronisation du modem avec la ligne ADSL
+Etape 3: Connection via PPP
+
+Dans notre driver le script ./startmodem accomplit ces operations avec les
+commandes suivantes :
+eci-load1 firmware.bin  (etape 1) Upload le firmware dans le modem
+eci-load2 synch01.bin   (etape 2) Synchronise le modem avec la ligne ADSL
+pppd call adsl updetach (etape 3) Initialise la connection poit a point en TCP/IP
+
+
+2. Problemes
+------------
+
+Le fichier synch01.bin est le fichier par defaut pour obtenir la
+synchronisation.
+Il marche pour la plupart des utilisateurs mais pas pour tous.
+
+Les gens d'autres pays peuvent avoir des problemes similaires.
+
+La solution est de filtrer le traffic entre la machine et le modem via le port
+usb sous windows pendant la phase d'initialisation du modem puis de generer un
+fichier log a partir de ces enregistrements afin de creer son propre fichier
+de synchronisation.
+
+
+3. Faisons-le
+-------------
+
+Tout d'abord demarrez sous windows.
+
+Telechargez le sniffer usb usbsnoop a partir de la page de Benoit :
+http://benoit.papillault.free.fr/usbsnoop/index.en.php3
+
+Desactivez la connection automatique de windows (desactivez aussi
+adslautoconnect) puisque la seule chose qui nous interesse est la
+synchronisation et pas la connection.
+
+Packets usb de synchronisation
+Debranchez tous les autres peripheriques usb...
+Laissez seulement le modem connecte.
+
+Demarrez le sniffer.
+Installez les filtres pour le modem ainsi que ceux pour la connection ADSL.
+Redemarrez.
+
+N.B. tout les packets filtres sont dans c:\WINXXX\usbsnoop.log
+
+Des que les deux leds s'arretent de clignoter enlevez les filtres
+A partir de ce moment la synchronisation est OK.
+C'est pourquoi nous n'avons plus besoin d'usbsnoop.
+Votre fichier usbsnoop.log devrait faire dans les 10mo.
+
+Redemarrez sous linux.
+Montez la partition windows contenant le fichier usbsnoop.log et copiez
+celui-ci dans un répertoire de votre choix.
+Demarrez le script par la commande eci_vendor.pl usbsnoop.log
+(le script eci_vendor.pl se trouve dans le package usermode)
+
+Le script cree un nouveau fichier eci_vendor.bin
+
+- Version de driver <= 0.5 :
+    tapez mv /etc/eciadsl/eci_wan3.bin /etc/eciadsl/eci_wan3.bin.old
+    puis mv eci_vendor.bin /etc/eciadsl/eci_wan3.bin
+- Version de driver CVS ou >= 0.6 :
+    tapez mv eci_vendor.bin /etc/eciadsl/my_synch.bin
+    puis lancez eciconftxt.sh pour utiliser ce .bin
+
+Lancez startmodem...
+... et croisez les doigts :)
