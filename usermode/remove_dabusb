@@ -1,0 +1,27 @@
+#! /bin/sh
+# ************************************************************************
+# *                                                                      *
+# *      remove_dabusb v0.1 - dabusb destroyer script                    *
+# *                           by FlashCode and Crevetor (c) 14/04/2002   *
+# *                                                                      *
+# *          For any support, contact one of us :                        *
+# *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
+# *           - Crevetor : ziva@caramail.com                             *
+# *                                                                      *
+# ************************************************************************
+
+lsmod|grep dabusb
+if [ $? != 0 ]; then
+    echo "Dabusb not present - nothing to do !"
+else
+    kernel=$(uname -r)
+    mv /lib/modules/$kernel/kernel/drivers/usb/dabusb.o* dabusb.old
+    echo -e "\nmoved dabusb to /lib/modules/$kernel/kernel/drivers/usb/dabusb.old"
+    rmmod dabusb
+    lsmod|grep dabusb
+    if [ $? != 0 ]; then
+        echo "dabusb succesfully removed"
+    else
+        echo "Couldn't remove dabusb... try rmmod dabusb after unplugging your modem"
+    fi
+fi
