@@ -47,7 +47,9 @@ u_int16t eoc_decode(char b1, char b2) {
  * Handle the oec messages
  */
 void eoc_execute(u_int16_t eocmesval) {
-	
+	switch(EOC_OPCODE(eocmesval) {
+		default:
+	}
 }
 /*
 	parse and handle eoc code from the buffer
