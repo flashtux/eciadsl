@@ -133,6 +133,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch35.bin (généré à Turin/Italie, fournisseur Tiscali, G.DMT)
 	synch36.bin (généré en Inde/Vishakhapatnam, fournisseur DishnetDSL, modulation G.Lite)
 	synch37.bin (généré en Inde/Bangalore, fournisseur DishnetDSL, modulation G.Lite)
+	synch38.bin (généré en Égypte/Le Caire, fournisseur NoorGroup.net, modulation inconnue)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !

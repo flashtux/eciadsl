@@ -134,14 +134,15 @@ Lista dei file Synch .bin disponibili:
 	synch35.bin (generato in Italia/Turino, provider Tiscali, G.DMT)
 	synch36.bin (generato in India/Vishakhapatnam, provider DishnetDSL, modulazione G.Lite)
 	synch37.bin (generato in India/Bangalore, provider DishnetDSL, modulazione G.Lite)
+	synch38.bin (generato in Egitto/Cairo, provider NoorGroup.net, modulazione sconosciuta)
 
 Se hai generato il tuo .bin file sei pregato di spedircelo con alcune
-informazioni riguardo la localit… ed il provider.
+informazioni riguardo la posizione geografica ed il provider.
 
 Installazione:
 - driver versione <= 0.5: sostituisci ogni "/etc/eciadsl/eci_wan3.bin" con il
   nome del file .bin che usi con lo script startmodem.
 - driver versione >= 0.6 : installa tutti i file .bin nella directory eciadsl/
-  (di default Š /etc/eciadsl). Esegui eciconftxt.sh o eciconf.sh e segui le
+  (di default: /etc/eciadsl). Esegui eciconftxt.sh o eciconf.sh e segui le
   istruzioni interattive.
 
