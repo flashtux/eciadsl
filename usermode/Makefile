@@ -16,7 +16,7 @@ LDFLAGS += -g -Wall -lpthread
 # you can define ROOT by "make ROOT=/tmp" else it defaults to /
 ROOT ?= /
 
-prefix=$(ROOT)/usr/
+prefix=$(ROOT)/usr/local
 binprefix=$(prefix)/bin
 ETCDIR=$(ROOT)/etc
 
