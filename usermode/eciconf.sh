@@ -1,4 +1,4 @@
-#!/bin/wish
+#!/usr/bin/wish
 # ****************************************************************************
 # *                                                                          *
 # *   eciconf - Tcl/tk GUI for ECI Linux driver configuration (makeconfig)   *
@@ -123,8 +123,8 @@ list providers
 set file [open "$CONF_DIR/providers.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
-	set line [gets $file]
-	if {"$line"!=""} {
+	set line [string trim [gets $file]]
+	if {"$line"!="" && ![regexp {^[ \t]*#} $line]} {
 		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 1]
 		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 2]
 		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 3]
@@ -197,8 +197,8 @@ list modems
 set file [open "$CONF_DIR/modems.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
-	set line [gets $file]
-	if {"$line"!=""} {
+	set line [string trim [gets $file]]
+	if {"$line"!="" && ![regexp {^[ \t]*#} $line]} {
 		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 1]
 		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 2]
 		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 3]
