@@ -25,7 +25,8 @@ configure: configure-stamp
 configure-stamp:
 	dh_testdir
 # Add here commands to configure the package.
-	./configure --prefix=/usr/
+	./configure --prefix=/usr --doc-prefix=/usr/share \
+		--doc-dir=doc/eciadsl-usermode
 	touch configure-stamp
 
 
@@ -68,8 +69,8 @@ install: build
 	dh_clean -k
 	dh_installdirs
 
-# Add here commands to install the package into debian/eciadsl-usermode.0.5.
-	$(MAKE) install ROOT=$(CURDIR)/debian/eciadsl-usermode/
+# Add here commands to install the package into debian/eciadsl-usermode
+	$(MAKE) install ROOT=$(CURDIR)/debian/eciadsl-usermode
 
 #dh_movefiles
 
