@@ -30,7 +30,7 @@ set CONF_DIR "/etc/eciadsl"
 set PPPD_DIR "/etc/ppp"
 # </CONFIG>
 
-set titre_fenetre "ECI Linux driver configuration v0.6-pre3"
+set titre_fenetre "ECI Linux driver configuration v0.6-pre4"
 
 wm title . $titre_fenetre
 
@@ -294,7 +294,7 @@ radiobutton .bloc1.modem.ligne9.archtek -text "Archtek UGW-8000" -width 19 -vari
 bind .bloc1.modem.ligne9.archtek <Enter> {pushstate "Archtek UGW-8000 : VendorID/ProductID = 0x0915 / 0x0001 0x0915 / 0x0002"}
 bind .bloc1.modem.ligne9.archtek <Leave> {popstate}
 pack .bloc1.modem.ligne9.archtek -side left
-radiobutton .bloc1.modem.ligne9.cypress -text "Cypress Globespan\nADSL USB G7000" -width 19 -variable modem -value archtek -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+radiobutton .bloc1.modem.ligne9.cypress -text "Cypress Globespan\nADSL USB G7000" -width 19 -variable modem -value cypress -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
 .bloc1.modem.ligne9.cypress configure -anchor w
 bind .bloc1.modem.ligne9.cypress <Enter> {pushstate "Cypress Globespan ADSL USB G7000 : VendorID/ProductID = 0x0915 / 0x0001 0x0915 / 0x0002"}
 bind .bloc1.modem.ligne9.cypress <Leave> {popstate}
