@@ -42,15 +42,15 @@ CONFIGURATION
 =============
 
 Toujours sous root:
- - sous X11, ouvrir un terminal et lancer eciconf.sh (il est nécessaire que
+ - sous X11, ouvrir un terminal et lancer eciadsl-config-tk (il est nécessaire que
    tcl/tk soit installé au préalable)
- - en mode console, lancer eciconftxt.sh
+ - en mode console, lancer eciadsl-config-text
 
 Vous pouvez aussi taper:
 	make cfg
 cela exécutera automatiquement l'outil de configuration approprié.
 
-En cas de problème, utiliser eci-doctor.sh et consulter le fichier
+En cas de problème, utiliser eciadsl-doctor et consulter le fichier
 TROUBLESHOOTING.fr avant de crier à l'aide :-)
 
 S'il est nécessaire d'éditer la configuration du driver manuellement: les
@@ -64,7 +64,7 @@ protocole CHAP pour l'authentification.
 UTILISATION
 ===========
 
-Lancer startmodem (sous root), à partir d'un autre répertoir que celui
+Lancer eciadsl-start (sous root), à partir d'un autre répertoir que celui
 des sources.
 
 Utilisateurs de PPPoE:

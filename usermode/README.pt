@@ -77,7 +77,7 @@ Forneça as seguintes informações:
 	- modelo do controlador USB (HUB) (veja: `lspci | grep USB`)
 	- versão do driver eciadsl (veja se o ficheiro VERSION existe no
 	  pacote do código fonte para versões >0.5, ou tente
-	  pppoeci --version, ou pelo nome/data-CVS do pacote) e:
+	  eciadsl-pppoeci --version, ou pelo nome/data-CVS do pacote) e:
 	  	- informações do driver para MS Windows se tiver (e tambêm o
 		  tipo de modulação que o seu ISP suporta)
 		- o synch .bin que experimentou
@@ -87,8 +87,8 @@ Forneça as seguintes informações:
 	  encapsulamento/autenticação PPP
 	- o seu grau de experiência em Linux (por exemplo: novato, mediano,
 	  conformado, experiente, guru)
-	- o output de route -n ates e após correr startmodem se o problema
-	  ocurrer numa rede após o startmodem
+	- o output de route -n ates e após correr eciadsl-start se o problema
+	  ocurrer numa rede após o eciadsl-start
 	- o seu ficheiro /etc/eciadsl/eciadsl.conf e, se possível, o ficheiro
 	  /var/log/messages (verifique se ele contêm rasto de actividade desde
 	  o arranque do seu sistema até ao correr do driver ou até o problema
@@ -96,7 +96,7 @@ Forneça as seguintes informações:
 
 Ajudava muito se tivesse reunidas todas estas informações quando nos procurar.
 Apanhe tambêm as mensagens emitidas pelos programas que lançou (scripts de
-configuração ou startmodem), as contidas em /var/log/messages e em
+configuração ou eciadsl-start), as contidas em /var/log/messages e em
 /var/log/log se existir, a informação fornecida por `dmesg`, `lsmod`
 e `cat /proc/bus/usb/devices`.
 

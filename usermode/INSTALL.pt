@@ -39,15 +39,15 @@ CONFIGURAÇÃO
 ============
 
 Ainda como root:
- - no X11, abra um terminal e corra eciconf.sh (é necessário ter o tcl/tk
+ - no X11, abra um terminal e corra eciadsl-config-tk (é necessário ter o tcl/tk
    instalado)
- - na consola, corra eciconftxt.sh
+ - na consola, corra eciadsl-config-text
 
 Se escrever:
 	make cfg
 será automáticamente corrida a ferramenta de configuração adequada.
 
-Se tiver problemas, tente usar o eci-doctor.sh e por favor leia o ficheiro
+Se tiver problemas, tente usar o eciadsl-doctor e por favor leia o ficheiro
 TROUBLESHOOTING antes de pedir ajuda online :-)
 
 Se for necessário alterar manualmente os ficheiros de configuração, veja em
@@ -60,7 +60,7 @@ esperar autenticação CHAP, por exemplo.
 MODO DE UTILIZAÇÃO
 ==================
 
-Corra startmodem como root, a partir de qualquer ponto excepto da directoria
+Corra eciadsl-start como root, a partir de qualquer ponto excepto da directoria
 que contêm o código fonte.
 
 Utilizadores de PPPoE:

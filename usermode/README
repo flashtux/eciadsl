@@ -76,7 +76,7 @@ Provide use these info:
 	  the USB HUBs you have (if they are PCI cards or external HUBs)
 	- your other USB peripherals
 	- eciadsl driver version (see the VERSION file in the sources tarball if it
-	  exists for version >0.5, or try pppoeci --version, or the package name/CVS
+	  exists for version >0.5, or try eciadsl-pppoeci --version, or the package name/CVS
 	  date) and :
 		- your MS Windows driver info if you use it (and also the modulation
 		  type that your provider supports)
@@ -86,14 +86,14 @@ Provide use these info:
 	- your provider and the PPP encapsulation/authentication protocol used
 	- your Linux experience level (for instance: newbie, average, confirmed,
 	  experienced, guru)
-	- the output of route -n before and after running startmodem if a network
-	  problem occurs after startmodem
+	- the output of route -n before and after running eciadsl-start if a network
+	  problem occurs after eciadsl-start
 	- your /etc/eciadsl/eciadsl.conf file, and if possible, your
 	  /var/log/messages (verify that it contains activity trace since your last
 	  boot under Linux up to your use of the driver or your problem).
 
 It may help a lot if you come and see us with these info. Also get the output of
-the tools from the package you have launched (configure scripts or startmodem),
+the tools from the package you have launched (configure scripts or eciadsl-start),
 also provide us your /var/log/messages, /var/log/log if available, the output
 of `dmesg`, `lsmod` and `cat /proc/bus/usb/devices`.
 

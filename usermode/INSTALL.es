@@ -46,17 +46,17 @@ CONFIGURACIÓN
 =============
 
 Aún como usuario root:
- - bajo X11, abra un terminal y ejecute el script ecicon.sh
+ - bajo X11, abra un terminal y ejecute el script eciadsl-config-tk
    (requiere tener instalado tcl/tk),
    si no lo tiene instalado en tonces en modo consola,
- - ejecute el script eciconftxt.sh
+ - ejecute el script eciadsl-config-text
 
 Digite lo siguiente:
 	make cfg
 
 automáticamente se ejecutará la herramienta de configuración.
 
-Si usted encuentra problemas, pruebe usando el script eci-doctor.sh
+Si usted encuentra problemas, pruebe usando el script eciadsl-doctor
 y por favor lea el archivo TROUBLESHOOTING antes de solicitar
 soporte en línea: -)
 
@@ -72,7 +72,7 @@ espera la autenticación vía CHAP.
 UTILIZACIÓN
 ===========
 
-Como usuario root ejecute startmodem, desde cualquier parte menos en el
+Como usuario root ejecute eciadsl-start, desde cualquier parte menos en el
 directorio de los programas fuentes.
 
 Para los usuarios de PPPoE:

@@ -22,15 +22,15 @@ finding a solution.
 1.0
 ================================================================================
 Q:	I don't know if my modem is supported.
-	I don't see my modem in the list (using eciconf.sh or eciconftxt.sh).
+	I don't see my modem in the list (using eciadsl-config-tk or eciadsl-config-text).
 
 --------------------------------------------------------------------------------
 A:	Check the pre-requisites.
 
 	Check at http://eciadsl.flashtux.org/modems.php?lang=en.
 	
-	Install the latest driver version, then launch startmodem or eci-doctor.sh,
-	if they report errors, try to launch probe_device.sh to check your modem
+	Install the latest driver version, then launch eciadsl-start or eciadsl-doctor,
+	if they report errors, try to launch eciadsl-probe-device to check your modem
 	compatibility. If still uncertain, contact us!
 
 
@@ -60,22 +60,22 @@ A:	Did you run `./configure`? You should have!
 
 1.3
 ================================================================================
-Q:	`eciconf.sh` immediately fails, saying:
+Q:	`eciadsl-config-tk` immediately fails, saying:
 	wish: command not found
 
 --------------------------------------------------------------------------------
-A:	Install tcl/tk, or run `eciconftxt.sh`. Even if tcl/tk is not mandatory,
+A:	Install tcl/tk, or run `eciadsl-config-tk`. Even if tcl/tk is not mandatory,
 	check out the pre-requisites.
 
 
 1.4
 ================================================================================
-Q:	probe_device.sh shows me VID1/PID1 that are the same as VID2/VID2, is this
-	normal?
+Q:	eciadsl-probe-device shows me VID1/PID1 that are the same as VID2/VID2, is
+	this normal?
 
 --------------------------------------------------------------------------------
 A:	You must reset your modem (unplug/wait/replug) before launching
-	probe_device.sh.
+	eciadsl-probe-device.
 	Please read the WARNING displayed by this script when it starts.
 
 	This may be due to more general problems problems in your system's USB
@@ -88,7 +88,8 @@ A:	You must reset your modem (unplug/wait/replug) before launching
 
 1.5
 ================================================================================
-Q:	startmodem, eciconf or eci-doctor.sh report me an unsupported modem!
+Q:	eciadsl-start, eciadsl-config-tk or eciadsl-doctor report me an unsupported
+	modem!
 
 --------------------------------------------------------------------------------
 A:	See 1.4.
@@ -154,7 +155,7 @@ A:	Most people need them (except those who use ISP DHCP for instance), if you
 
 2.0
 ================================================================================
-Q:	startmodem, eciconf or eci-doctor's output shows:
+Q:	eciadsl-start, eciadsl-config-tk or eciadsl-doctor's output shows:
 	/proc/bus/usb: No such file or directory
 
 --------------------------------------------------------------------------------
@@ -172,7 +173,7 @@ A:	Check your system's USB configuration. This may be due to a lack of support
 
 2.1
 ================================================================================
-Q:	ecidoctor reports me that the DABUSB module is loaded, or startmodem says
+Q:	ecidoctor reports me that the DABUSB module is loaded, or eciadsl-start says
 	dabusb has been found, but couldn't remove it!
 
 --------------------------------------------------------------------------------
@@ -188,10 +189,10 @@ A:	Hotplug is probably enabled, and it wrongly detects your modems as an audio
 
 	Boot your Linux machine with your modem *UNPLUGGED*, then:
 
-	You can remove the dabusb module from your system using eciconf.sh or
-	eciconftxt.sh.
+	You can remove the dabusb module from your system using eciadsl-config-tk or
+	eciadsl-config-text.
 
-	You can also directly call remove_dabusb (in /usr/local/bin by default).
+	You can also directly call eciadsl-remove-dabusb (in /usr/local/bin by default).
 
 	Or, manually type the following command:
 		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
@@ -230,7 +231,7 @@ A:	No! This is not friendly at all.
 
 2.5
 ================================================================================
-Q:	`eci-doctor.sh` reports me:
+Q:	`eciadsl-doctor` reports me:
 	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
 
 --------------------------------------------------------------------------------
@@ -253,7 +254,7 @@ A:	Follow the pre-requisites, read the documentation about the N_HDLC problem.
 
 2.6
 ================================================================================
-Q:	startmodem says: ECI-load1: timeout
+Q:	eciadsl-start says: eciadsl-firmware: timeout
 
 --------------------------------------------------------------------------------
 A:	Your modem is probably not supported, start to read this FAQ from the
@@ -262,7 +263,7 @@ A:	Your modem is probably not supported, start to read this FAQ from the
 
 2.7
 ================================================================================
-Q:	startmodem/probe_device.sh/eci-doctor.sh cannot find my modem.
+Q:	eciadsl-start/eciadsl-probe-device/eciadsl-doctor cannot find my modem.
 
 --------------------------------------------------------------------------------
 A:	Your modem is probably not supported or there's a problem with your USB HUB
@@ -271,7 +272,7 @@ A:	Your modem is probably not supported or there's a problem with your USB HUB
 
 3.0
 ================================================================================
-Q:	startmodem says: ECI-load2: timeout
+Q:	eciadsl-start says: eciadsl-synch: timeout
 
 --------------------------------------------------------------------------------
 A:	See 3.1.
@@ -279,20 +280,20 @@ A:	See 3.1.
 
 3.1
 ================================================================================
-Q:	startmodem says: ECI-load2: failed
+Q:	eciadsl-start says: eciadsl-synch: failed
 
 --------------------------------------------------------------------------------
 A:	See 3.2.
 
-	Known problem: under GNOME or KDE, eci-load2 may not get the synch. Try the
+	Known problem: under GNOME or KDE, eciadsl-synch may not get the synch. Try the
 	latest version, or contact us.
-	This may also happen if you run startmodem while your CPU is under heavy
+	This may also happen if you run eciadsl-start while your CPU is under heavy
 	load.
 
 
 3.2
 ================================================================================
-Q:	startmodem is stalled at block xxx.
+Q:	eciadsl-start is stalled at block xxx.
 
 --------------------------------------------------------------------------------
 A:	Follow the pre-requisites.
@@ -316,7 +317,7 @@ Q:	/var/log/messages shows CHAP or PAP failures.
 A:	Check your /etc/ppp/pap-secrets or /etc/ppp/chap-secrets files. Entries must
 	be like this:
 		"username" * "userpassword" *
-	You can configure this using eciconf.
+	You can configure this using eciadsl-config-tk.
 
 	Following the pppd version, the syntax of pap-secrets and chap-secrets may
 	differ. If so, try to modify them by hand or contact us.
@@ -324,7 +325,7 @@ A:	Check your /etc/ppp/pap-secrets or /etc/ppp/chap-secrets files. Entries must
 
 4.1
 ================================================================================
-Q:	startmodem went OK, but I still cannot use Internet access?
+Q:	eciadsl-start went OK, but I still cannot use Internet access?
 
 --------------------------------------------------------------------------------
 A:	See 4.0.
@@ -334,7 +335,7 @@ A:	See 4.0.
 	For instance (French Wanadoo ones):
 		nameserver 193.252.19.3
 		nameserver 193.252.19.4
-	You can set this using eciconf.
+	You can set this using eciadsl-config-tk.
 
 	If you still cannot access a hostname using nslookup, try the following
 	commands and report us the output:
@@ -363,12 +364,12 @@ A:	See 4.0.
 	  The IP and other values will be different from the above ones.
 
 	If ppp0 interface is not up, check for error lines in /var/log/messages or
-	/var/log/ppp after having launched startmodem.
+	/var/log/ppp after having launched eciadsl-start.
 
 	If the default route (UG) is set to eth0, remove it:
 		> route del default dev eth0
 	or remove the "gateway" line from your /etc/sysconfig/network, or disable
-	your LAN network before launching startmodem.
+	your LAN network before launching eciadsl-start.
 
 	If the default route is NOT set to ppp0 even if ppp0 is up:
 		> route add default dev ppp0
@@ -383,16 +384,16 @@ A:	See 4.0.
 
 4.1.1
 ================================================================================
-Q:	ppp0 seems up (in /var/log/message and startmodem's output) but startmodem
-	still says "no ppp0 device found" after a while.
+Q:	ppp0 seems up (in /var/log/message and eciadsl-start's output) but
+	eciadsl-start still says "no ppp0 device found" after a while.
 
 	The problem could be encountered as well if your configuration requires
 	tap0 or tun0 instead of ppp0.
 
 --------------------------------------------------------------------------------
 A:	This may happen is net-tools package is not installed or not properly
-	configured for the user that runs startmodem (usually root).
-	startmodem needs `route` and `ifconfig` from this package and also /sbin to
+	configured for the user that runs eciadsl-start (usually root).
+	eciadsl-start needs `route` and `ifconfig` from this package and also /sbin to
 	be somewhere in the user's PATH. Following the system, you may need /sbin or
 	/usr/sbin or /usr/local/sbin or both, please check.
 
@@ -458,8 +459,8 @@ Q:	I get something like this:
 
 	endless..
 	or, after a while:
-		pppd[1954]: Child process /usr/local/bin/pppoeci -vpi 8 -vci 35 -vendor
-			0x0915 -product 0x8000 -mode VCM_RFC2364 (pid 1955) terminated
+		pppd[1954]: Child process /usr/local/bin/eciadsl-pppoeci -vpi 8 -vci 35
+			-vendor 0x0915 -product 0x8000 -mode VCM_RFC2364 (pid 1955) terminated
 			with signal 2
 		pppd[1954]: Modem hangup
 		pppd[1954]: Connection terminated.
@@ -502,16 +503,16 @@ A:	Check your kernel config (below).
 
 	Try another synch .bin.
 
-	This can happen when the invocation of pppoeci in the /etc/ppp/peers/adsl
+	This can happen when the invocation of eciadsl-pppoeci in the /etc/ppp/peers/adsl
 	file is corrupted or wrong (probably because it has been edited by hand?).
 	For instance, the use of "-vendor 0915" is wrong. The exact syntax is
-	"-vendor 0x0915". Use eciconf.sh to properly configure the driver!
+	"-vendor 0x0915". Use eciadsl-config-tk to properly configure the driver!
 
 	More generally, this may also come from a bad configuration, for instance
 	if the PPP mode is not the one you need.
 
-	Enable verbose logging to pppoeci (-v 2), and if you see in pppoeci's log
-	file these lines:
+	Enable verbose logging to eciadsl-pppoeci (-v 2), and if you see in
+	eciadsl-pppoeci's log file these lines:
 		hi! I'm the parent process, I handle the endpoint 0x07
 		file descriptors: fdin=3, fdout=4
 		error loading N_HDLC
@@ -568,19 +569,20 @@ A:	Is your USB chipset an old VIA one or a SiS 700x? Some are known to be buggy
 
 4.10
 ================================================================================
-Q:	I see strange characters on the terminal/console after startmodem completes,
+Q:	I see strange characters on the terminal/console after eciadsl-start completes,
 	and I get no PPP connection:
 	Connect Modem ...
 	~ÿ}#ְ!}!}!} }4}"}&} } } } }%}&רןpֶ}
 
 --------------------------------------------------------------------------------
-A:	You are not drunk, pppd cannot communicate with pppoeci (part of the driver)
-	and it must come from a bad pppd version, from a bad ppp configuration
-	inside the kernel, or because you're using the driver on a non supported
-	system.
+A:	You are not drunk, pppd cannot communicate with eciadsl-pppoeci (part of the
+	driver) and it must come from a bad pppd version, from a bad ppp
+	configuration inside the kernel, or because you're using the driver on a non
+	supported system.
 
-	Also check your /etc/ppp/peers/adsl file. The pppoeci invocation might be
-	corrupted also, or the file might not exist at all (this is a known bug).
+	Also check your /etc/ppp/peers/adsl file. The eciadsl-pppoeci invocation
+	might be corrupted also, or the file might not exist at all (this is a known
+	bug).
 
 
 4.11
@@ -607,7 +609,7 @@ A:	<TODO: describe problems with URB endpoints>
 
 4.13
 ================================================================================
-Q:	eci-doctor.sh says:
+Q:	eciadsl-doctor says:
 	Modem hangup
 	Connection terminated.
 	... usb_control/bulk_msg: timeout
@@ -633,7 +635,7 @@ A:	Try with another synch .bin.
 
 4.15
 ================================================================================
-Q:	I use ISP DHCP, `startmodem` goes OK but I still can't access internet.
+Q:	I use ISP DHCP, `eciadsl-start` goes OK but I still can't access internet.
 
 --------------------------------------------------------------------------------
 A:	Check your routing table: typing `route -n` as root. If no UG line is found
@@ -647,8 +649,8 @@ A:	Check your routing table: typing `route -n` as root. If no UG line is found
 
 4.16
 ================================================================================
-Q:	Startmodem says:
-	eci-load2: failed to create shared semaphore: No space left on device
+Q:	eciadsl-start says:
+	eciadsl-synch: failed to create shared semaphore: No space left on device
 
 --------------------------------------------------------------------------------
 A:	That's a bug introduced in version 0.6. It should be fixed in version higher
@@ -657,7 +659,7 @@ A:	That's a bug introduced in version 0.6. It should be fixed in version higher
 
 5.0
 ================================================================================
-Q:	Is it possible to launch startmodem at boot time?
+Q:	Is it possible to launch eciadsl-start at boot time?
 
 --------------------------------------------------------------------------------
 A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debian
@@ -893,9 +895,9 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 	Check which PPP protocol/encapsulation is used under MS Windows by your
 	provider. Also check if DHCP is used by your provider or if you use a
 	static IP.
-	Use eciconf.sh or eciconftxt.sh to properly use it. If it's not supported
-	by the driver or if you are uncertain, get the latest version of the driver
-	or contact us.
+	Use eciadsl-config-tk or eciadsl-config-text to properly use it. If it's not
+	supported by the driver or if you are uncertain, get the latest version of
+	the driver or contact us.
 
 	FYI:
     
@@ -934,7 +936,7 @@ Q:	Can I use my USB modem with a USB2.0 HUB?
 --------------------------------------------------------------------------------
 A:	We encountered problems when the modem or another device is plugged to a USB
 	2.0 HUB, which is currently not supported. In most cases, USB2.0 HUB module
-	has to be unloaded. That's why startmodem now unload ehci-hcd module
+	has to be unloaded. That's why eciadsl-start now unload ehci-hcd module
 	unconditionally when it founds it loaded.
 
 	If the USB2.0 ports are managed by usb-uhci or usb-ohci, this can work, we
@@ -981,12 +983,12 @@ A:	Unload all USB modules related to you modem when leaving Linux. This could
 
 5.8.1
 ================================================================================
-Q:	Switching from MS Windows to Linux, startmodem says that the firmware is
+Q:	Switching from MS Windows to Linux, eciadsl-start says that the firmware is
 	already loaded and fails.
 
 --------------------------------------------------------------------------------
 A:	You have to manually unplug you modem, wait for a few seconds so that it's
-	resetted, and replug it. Then you can retry startmodem.
+	resetted, and replug it. Then you can retry eciadsl-start.
 
 
 5.9
@@ -1013,18 +1015,13 @@ A:	The driver is known to be running on many GNU/Linux systems, but also on
 Q:	How can I stop the PPP connection?
 
 --------------------------------------------------------------------------------
-A:	`killall pppd` or `ifconfig ppp0 down`.
-	This will leave your modem still initialized.
-
-	Routed IP users (tun0): `killall pppoeci`.
-
-	PPPoE users (tap0): `killall pppoe && killall pppoeci`.
+A:	`eciadsl-stop`
 
 	If you really want to reset your modem, unload the module which manages your
 	USB HUB (`modprobe -r usb-uhci` for instance). But this may lead to problems
 	because some other USB devices may belong to this module (!), and you may
-	encounter problems re-starting startmodem (need to run it twice or maybe to
-	unplug/replug your modem then launch `startmodem`).
+	encounter problems re-starting eciadsl-start (need to run it twice or maybe to
+	unplug/replug your modem then launch `eciadsl-start`).
 	
 	You can also automatically stop the running PPP connection when rebooting or
 	shutting down your system. The proper way to configure this is describbed
@@ -1033,24 +1030,24 @@ A:	`killall pppd` or `ifconfig ppp0 down`.
 
 5.12
 ================================================================================
-Q:	Is it possible to run startmodem as any user?
+Q:	Is it possible to run eciadsl-start as any user?
 
 --------------------------------------------------------------------------------
 A:	Simply ensure that sudo is installed on your system.
 	Edit your /etc/sudoers file as root and add a line:
-		username ALL=NOPASSWD:/usr/local/bin/startmodem
-	where username is the name of the user you want to allow to run startmodem.
+		username ALL=NOPASSWD:/usr/local/bin/eciadsl-start
+	where username is the name of the user you want to allow to run eciadsl-start.
 	You can do this for many users or different scripts, adding the same line
 	with a relevant username and script path/name.
-	Granted users can now run startmodem, typing:
-		> sudo startmodem
+	Granted users can now run eciadsl-start, typing:
+		> sudo eciadsl-start
 
 	See 5.13 now.
 
 
 5.13
 ================================================================================
-Q:	When I run startmodem or sudo startmodem, I get this error:
+Q:	When I run eciadsl-start or sudo eciadsl-start, I get this error:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
@@ -1059,7 +1056,7 @@ A:	Check if pppd is installed on your system.
 	For sudo:
 
 	Otherwise, in the console or terminal as root, type:
-		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo eciadsl-start
 
 	If this works, add the following line to your normal user's ~/.bashrc or
 	~/.profile (*):
@@ -1067,7 +1064,7 @@ A:	Check if pppd is installed on your system.
 
 	Next time you will open a terminal (if you've modified ~/.bashrc) or next
 	time you login in console or graphical environment (if you've modified
-	~/.profile), running sudo startmodem should work.
+	~/.profile), running sudo eciadsl-start should work.
 
 	You can also create a small script containing the first command, then you
 	will only have to run this script. Don't forget to chmod 777 this script
@@ -1088,14 +1085,14 @@ A:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
 	tool to manage the PPP connection. See 5.3.1 and 5.4.
 
 	Of course, the PPP mode defined in the ECIADSL config must be one of the
-	supported PPPoE modes (see `pppoeci --list`).
+	supported PPPoE modes (see `eciadsl-pppoeci --list`).
 
 	You can find rp-pppoe here:
 		http://www.roaringpenguin.com/pppoe
 
 	Install and configure it so that it uses tap0 as ETH interface.
 
-	Run startmodem, then use rp-pppoe to enable the PPP line (see rp-pppoe
+	Run eciadsl-start, then use rp-pppoe to enable the PPP line (see rp-pppoe
 	documentation).
 
 

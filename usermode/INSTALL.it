@@ -41,15 +41,15 @@ CONFIGURAZIONE
 ==============
 
 Ancora da root:
- - in X11, apri un terminale ed esegui eciconf.sh (richiede tcl/tk per essere
+ - in X11, apri un terminale ed esegui eciadsl-config-tk (richiede tcl/tk per essere
    installato)
- - in modalità console, esegui eciconftxt.sh
+ - in modalità console, esegui eciadsl-config-text
 
 Eseguendo:
 	make cfg
 verranno eseguiti automaticamente gli strumenti di configurazione.
 
-Se incontri problemi, prova ad usare eci-doctor.sh e leggi il file
+Se incontri problemi, prova ad usare eciadsl-doctor e leggi il file
 TROUBLESHOOTING prima di chiederci supporto online :-)
 
 Se hai bisogno di modificare i file di configurazione, controlla in /etc/eciadsl
@@ -62,7 +62,7 @@ autenticazione CHAP.
 UTILIZZO
 ========
 
-Esegui startmodem da root, da qualunque directory tranne quella dei sorgenti.
+Esegui eciadsl-start da root, da qualunque directory tranne quella dei sorgenti.
 
 Utenti di PPPoE:
 Per connetterti al tuo modem attraverso tap0 devi configurare ed usare un

@@ -74,7 +74,7 @@ Fornire le seguenti informazioni:
 	  tutti gli HUB USB installati (se sono schede PCI o HUB esterni)
 	- altre periferiche USB
 	- versione dei driver eciadsl  (per le versioni >0.5 vedi il file
-	  VERSION nel tarball dei sorgenti, oppure prova `pppoeci --version`,
+	  VERSION nel tarball dei sorgenti, oppure prova `eciadsl-pppoeci --version`,
 	  oppure il nome del pacchetto/data CVS) e:
 		- se usi MS Windows, le informazioni sul suo driver (e quindi anche
 		  il tipo di modulazione supportato dal tuo provider)
@@ -86,13 +86,13 @@ Fornire le seguenti informazioni:
 	- il tuo livello di esperienza con Linux (per esempio: newbie, medio,
 	  approfondito, esperto, guru)
 	- l'output di `route -n` prima e dopo aver lanciato starmodem se avviene
-	  un problema di rete dopo startmodem
+	  un problema di rete dopo eciadsl-start
 	- il tuo file /etc/eciadsl/eciadsl.conf, e se possibile il  tuo
 	  /var/log/messages (verifica che contenga traccie di attività dall'ultimo
 	  boot di Linux fino all'uso del driver o alla comparsa del problema).
 
 Può aiutare molto se ci fai avere queste informazioni. Inoltre raccogli l'output
-dei tools del pacchetto che hai usato (script configure o startmodem), poi
+dei tools del pacchetto che hai usato (script configure o eciadsl-start), poi
 forniscici il tuo /var/log/messages, /var/log/log se disponibili, l'output di
 `dmesg`, `lsmod` e `cat /proc/bus/usb/devices`.
 

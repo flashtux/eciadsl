@@ -82,7 +82,7 @@ Infos à nous communiquer :
 	  externes
 	- la liste des autres périphériques USB que vous utilisez
 	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des
-	  sources s'il existe pour les versions >0.5, ou pppoeci --version, sinon le
+	  sources s'il existe pour les versions >0.5, ou eciadsl-pppoeci --version, sinon le
 	  nom du package/la date du CVS) et :
 		- les informations sur votre driver MS Windows si vous l'utilisez
 	      (et aussi le type de modulation que votre fournisseur supporte)
@@ -100,7 +100,7 @@ Infos à nous communiquer :
 
 Cela nous aidera grandement si vous nous fournissez toutes ces infos. Capturez
 aussi la sortie des outils du driver que vous avez lancé (scripts de
-configuration ou startmodem), et donnez nous aussi votre /var/log/messages,
+configuration ou eciadsl-start), et donnez nous aussi votre /var/log/messages,
 /var/log/boot.log si disponible, la sortie de `dmesg`, de `lsmod` et de
 `cat /proc/bus/usb/devices`.
 

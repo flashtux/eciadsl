@@ -79,7 +79,7 @@ Proporciónenos la siguiente información:
 	  los HUBs USB usted tiene (si ellos son tarjetas PCI o HUBs externos)
 	- sus otros periféricos USB
 	- la versión del driver eciadsl que está utilizando (vea el archivo VERSIÓN en el
-	  tarball de los fuentes si existe para versión >0.5, o pruebe pppoeci --version,
+	  tarball de los fuentes si existe para versión >0.5, o pruebe eciadsl-pppoeci --version,
 	  o el nombre del paquete/o fecha del CVS) y:
 		- la información de su driver MS Windows si es que usted lo usa
 		  (y también el tipo de modulación que su proveedor soporta)
@@ -89,17 +89,17 @@ Proporciónenos la siguiente información:
 	- su proveedor y el protocolo PPP de encapsulación/autenticacion utilizado
 	- su nivel de experiencia en Linux (por ejemplo: novicio, promedio, avanzado,
 	  experimentado, gurú)
-	- la salida del comando route -n antes de y después de ejecutar startmodem
+	- la salida del comando route -n antes de y después de ejecutar eciadsl-start
 	  si ocurre un problema en la red despues de ejecutarlo
 	- su archivo de configuración /etc/eciadsl/eciadsl.conf, y si es posible, su
-	  problema que ocurre después de ejecutar startmodem
+	  problema que ocurre después de ejecutar eciadsl-start
 	- su archivo /etc/eciadsl/eciadsl.conf, y si es posible, su archivo /var/log/messages
 	  (verifique que contiene el rastro de la actividad ya sea de su último reinicio de
 	  Linux, la utilización del driver o su problema).
 
 Puede ayudar mucho si usted nos envía estas informaciones. También consiga la salida de
 las herramientas del paquete que usted ha ejecutado (los scripts de configuración o el script
-startmodem), también proporciónenos su archivo /var/log/messages, /var/log/log si está disponible,
+eciadsl-start), también proporciónenos su archivo /var/log/messages, /var/log/log si está disponible,
 la salida del comando `dmesg`, `lsmod` y `cat /proc/bus/usb/devices`.
 
 Si usted nos avisa desde MS Windows, y si sus particiones Linux (sólo ext2 o ext3)
