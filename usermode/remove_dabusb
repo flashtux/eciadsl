@@ -8,9 +8,16 @@
 # *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
 # *           - Crevetor : ziva@caramail.com                             *
 # *                                                                      *
-# *          License : GPL                                              *
+# *          License : GPL                                               *
 # *                                                                      *
 # ************************************************************************
+
+# 30/12/2002 Benoit PAPILLAULT <benoit.papillault@free.fr>
+#
+#            Since depmod -a generate the file 
+#            /lib/modules/`uname -r`/modules.usbmap and since this file is used
+#            by USB hotplug, simply renaming dabusb.o do not work, the file
+#            must be deleted (since it can no longer be used).
 
 # <CONFIG>
 BIN_DIR="/usr/local/bin"
@@ -38,13 +45,13 @@ then
 	module=$(modprobe -l | grep dabusb)
 	if [ -n "$module" ]
 	then
-	    mv -f "$module" "$module.removed"
+	    rm -f "$module"
 	    if [ $? -eq 0 ]
 		then
-			echo -e "\ndabusb module file renamed to $module.removed"
+			echo -e "\n${module} removed"
 			depmod -a
 		else
-			echo -e "\ncouldn't rename file $module"
+			echo -e "\n${module} cannot be removed"
 		fi
 	else
 		echo -e "\ncouldn't find dabusb module file"
