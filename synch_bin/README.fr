@@ -135,6 +135,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch37.bin (généré en Inde/Bangalore, fournisseur DishnetDSL, G.Lite)
 	synch38.bin (généré en Égypte/Le Caire, fournisseur Menanet, G.DMT)
 	synch39.bin (généré en Angleterre, fournisseur Eclipse Internet, T1.413)
+	synch40.bin (généré en France/Bordeaux, fournisseur Nerim (dégroupé), T1.413)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !

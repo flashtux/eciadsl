@@ -135,6 +135,7 @@ Available Synch .bin files list:
 	synch37.bin (generated in India/Bangalore, provider DishnetDSL, G.Lite)
 	synch38.bin (generated in Egypt/Cairo, provider Menanet, G.DMT)
 	synch39.bin (generated in UK, provider Eclipse Internet, T1.413)
+	synch40.bin (generated in France/Bordeaux, provider Nerim, T1.413)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
