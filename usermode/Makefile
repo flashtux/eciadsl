@@ -40,7 +40,7 @@ install-strip: install
 
 install_no_system_fixes: all install_dirs install_scripts uninstall_old_bin_files ppp_peer
 	$(INSTALL_DATA) adsl $(CONF_DIR)/adsl-skel
-	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif $(CONF_DIR)
+	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif providers.db modems.db $(CONF_DIR)
 	ln -fs $(CONF_DIR)/firmware00.bin $(CONF_DIR)/firmware.bin
 	ln -fs $(CONF_DIR)/synch01.bin $(CONF_DIR)/synch.bin
 	$(INSTALL_EXEC) $(TARGETS) $(BIN_DIR)
