@@ -755,8 +755,16 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 	
 	for(cnt = 0 ; cnt< ECI_NB_ISO_PACKET;cnt ++) 
 			if(i->isourbs[cnt]){
-		    	}
+				if (i->isourbs[cnt]->status == -EINPROGRESS)
+					usb_unlink_urb(i->isourbs[cnt]);
+				usb_free_urb(i->isourbs[cnt]);
+					i->isourbs[cnt] = 0;
+			    	}
 	if(i->vendor_urb) 	{
+		if (i->vendor_urb->status == -EINPROGRESS)
+			usb_unlink_urb(i->vendor_urb);
+		usb_free_urb(i->vendor_urb);
+		i->vendor_urb = 0;
 	}
 	if(i->interrupt_urb){
 		if (i->interrupt_urb->status == -EINPROGRESS)
@@ -765,7 +773,8 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 		i->interrupt_urb = 0;
 	}
 	if(i->bulk_urb) {
-		usb_unlink_urb(i->bulk_urb);
+		if (i->bulk_urb->status == -EINPROGRESS)
+			usb_unlink_urb(i->bulk_urb);
 		usb_free_urb(i->bulk_urb);
 		i->bulk_urb = 0;
 	}
