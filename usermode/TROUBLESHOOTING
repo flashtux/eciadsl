@@ -548,9 +548,10 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 
 	Copy the rc.adsl file to /etc/init.d: cp rc.adsl /etc/init.d
 
-	In /etc/rc.d, each rc*.d directory corresponds to an init level. For
-	instance, init level 5 is the one that leads to a graphical login (this is
-	default on most Linux systems), so /etc/rc.d/rc5.d belongs to that level.
+	In /etc/rc.d, each rc*.d directory corresponds to an init's runlevel. For
+	instance, runlevel 5 is the one that leads to a graphical login (this is
+	default on most Linux systems, but sometimes it's 3), so /etc/rc.d/rc5.d
+	belongs to that level.
 
 	You will find more information about init levels:
 		man inittab

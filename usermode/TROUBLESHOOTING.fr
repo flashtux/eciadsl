@@ -579,10 +579,11 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 
 	Copier le fichier rc.adsl vers /etc/init.d: cp rc.adsl /etc/init.d
 
-	Dans /etc/rc.d, chaque répertoire rc*.d correspond à un init-level. Par
-	exemple, l'init-level 5 est celui qui est atteint par défaut au démarrage de
-	nombreuses distributions Linux, permettant un login graphique.
-	À cet init-level correspond 5 donc le répertoire /etc/rc.d/rc5.d.
+	Dans /etc/rc.d, chaque répertoire rc*.d correspond à un runlevel d'init. Par
+	exemple, le runlevel 5 est celui qui est atteint par défaut au démarrage de
+	nombreuses distributions Linux, permettant un login graphique (parfois c'est
+	le runlevel 3).
+	À ce runlevel 5 correspond donc le répertoire /etc/rc.d/rc5.d.
 
 	Vous trouverez plus d'informations à propos des ces init-levels en tapant:
 		man inittab
