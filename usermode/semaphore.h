@@ -9,13 +9,17 @@
   $Id$
 */
 
-union semun
+/*#if defined(__GNU_LIBRARY__) && defined(_SEM_SEMUN_UNDEFINED)*/
+typedef struct semun_
 {
    int val;                           /* value for SETVAL */
    struct semid_ds *buf;              /* buffer for IPC_STAT & IPC_SET */
    unsigned short int *array;         /* array for GETALL & SETALL */
    struct seminfo *__buf;             /* buffer for IPC_INFO */
-};
+} semun;
+/*#endif*/
+
+typedef union semun* semunptr;
 
 /*
   semaphore_init:
@@ -23,7 +27,7 @@ union semun
   create a semaphore and return the semaphore id or -1 in case of errors
 */
 
-int semaphore_init(int count);
+int semaphore_init(semunptr count);
 
 /*
   semaphore_incr:

@@ -16,7 +16,7 @@
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
-int semaphore_init(int count)
+int semaphore_init(semunptr count)
 {
     int sem;
 
@@ -24,10 +24,10 @@ int semaphore_init(int count)
     if (sem == -1)
         return -1;
 
-    if (semctl(sem, 0, SETVAL, count) == -1)
+    if (semctl(sem, 0, SETVAL, *count) == -1)
         return(-1);
 
-    return sem;
+    return(sem);
 }
 
 int semaphore_incr(int sem, int val)
@@ -41,7 +41,7 @@ int semaphore_incr(int sem, int val)
     if (semop(sem, &buf, 1) == -1)
         return(-1);
 
-    return 0;
+    return(0);
 }
 
 int semaphore_decr(int sem, int val)
@@ -55,7 +55,7 @@ int semaphore_decr(int sem, int val)
     if (semop(sem, &buf, 1) == -1)
         return(-1);
 
-    return 0;
+    return(0);
 }
 
 int semaphore_done(int sem)
@@ -65,5 +65,5 @@ int semaphore_done(int sem)
    if (semctl(sem, 0, IPC_RMID, un) == -1)
         return(-1);
 
-    return 0;
+    return(0);
 }
