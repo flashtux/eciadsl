@@ -157,12 +157,12 @@ $ gcc -o d51 Dis8051.c
 
 To use it, don't forget to create a file \textit{entries} in the
 current directory, containing all entry points (in our case,
-0000). And next, using an Intel Hex Record file as input:
+0000). And next, using an Intel HeX record file as input:
 \begin{verbatim}
-$ d51 < firm.hex > firm.s
+$ d51 < firm.ihx > firm.s
 \end{verbatim}
 
-\item 8051 C Compiler :
+\item 8051 C Compiler (8051 assembler included):
 \htmladdnormallink{http://sdcc.sourceforge.net/}{http://sdcc.sourceforge.net/}
 
 To install sdcc from the source package, get sdcc-XXX.tar.gz from the
@@ -175,6 +175,46 @@ $ su
 # make install
 \end{verbatim}
 
+\item 8051 Simulator (not working) :
+\htmladdnormallink{http://simikon.sourceforge.net/}{http://simikon.sourceforge.net/}.
+  
+To install simikon, you need
+\htmladdnormallink{tmake}{ftp://ftp.trolltech.com/freebies/tmake/} and
+\htmladdnormallink{qt-2.1.0 or
+  higher}{ftp://ftp.trolltech.com/qt/source/}. I use the cvs version.
+
+\begin{verbatim}
+$ cvs -d:pserver:anonymous@cvs.simikon.sourceforge.net:/cvsroot/simikon login
+$ cvs -z3 -d:pserver:anonymous@cvs.simikon.sourceforge.net:/cvsroot/simikon co simikon
+$ cd simikon
+$ find . -name Makefile -exec rm {} \;
+$ patch -p0
+Index: src/simikon/simikon.pro
+===================================================================
+RCS file: /cvsroot/simikon/simikon/src/simikon/simikon.pro,v
+retrieving revision 1.1.1.1
+diff -u -r1.1.1.1 simikon.pro
+--- src/simikon/simikon.pro     28 Apr 2000 00:20:25 -0000      1.1.1.1
++++ src/simikon/simikon.pro     23 Feb 2002 05:01:44 -0000
+@@ -24,4 +24,4 @@
+ OBJECTS_DIR = obj
+ MOC_DIR     = moc
+ LIBS = -L../widgets -lstabctl -lqdbttabular
+-INCLUDEPATH = . ../../pixmaps ../widgets/include ./8052
++INCLUDEPATH = . ../../pixmaps ../widgets/STabCtl ../widgets/QdbtTabular ./8052
+^D^D
+$ tmake simikon.pro -o Makefile
+$ make
+$ ./simikon
+\end{verbatim}
+
+\end{itemize}
+
+\section{Legal information}
+
+\begin{itemize}
+\item GlobeSpan is a trademark of GlobeSpan, Inc.
+\item EZ-USB is a registered trademark of Cypress Semiconductor Corporation.
 \end{itemize}
 
 \end{document}
