@@ -23,7 +23,9 @@
                     Include stuf
 ***********************************************************************/
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 #include <linux/modversions.h>
+#endif
 
 #include <linux/module.h>
 
@@ -979,7 +981,11 @@ static int eci_usb_probe(struct usb_interface *interface,
 			Send vendors URB 
 			First allocate the urb struct
 		*/
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 		eciurb=usb_alloc_urb(0);
+#else
+		eciurb=usb_alloc_urb(0, GFP_KERNEL);
+#endif
 		if(!eciurb) {
 			ERR_OUT("Can't allocate urb\n");
 			goto erreure;
@@ -1930,7 +1936,7 @@ end:
  *
  */
 static int _eci_rx_aal5(struct eci_instance *	pinstance,
-		aal5_t *		paal5,struct atm_vdcc *vcc) {
+		aal5_t *		paal5,struct atm_vcc *vcc) {
 	uni_cell_t *		lp_cell		= NULL ;
 	int			lv_vpi ;
 	int			lv_vci ;
@@ -1992,11 +1998,8 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 		lp_data, 
 		_uni_cell_getPayload(lp_cell), 
 		lv_size) ;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
-	pinstance->atm_dev->vccs->push(pinstance->pcurvcc, lp_skb) ;
-	atomic_inc(&pinstance->atm_dev->vccs->stats->rx) ;
-#else
-#endif
+	vcc->push(pinstance->pcurvcc, lp_skb) ;
+	atomic_inc(&vcc->stats->rx) ;
 	return 0 ;
 }
 
