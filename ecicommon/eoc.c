@@ -27,6 +27,7 @@ static eoc_state eocstate;	/*	State of the oec system	*/
 static int eocreadpar;		/*	0 odd, 1 even	*/
 static int eocreadcnt;		/* readcounter	*/	
 static int eocreadpos;		/* position index in readed register	*/
+static int eocreadlen;		/* length inread register	*/
 
 static char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
