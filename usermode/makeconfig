@@ -24,6 +24,8 @@
 # *        13 = static IP                                                *
 # *        14 = gateway IP                                               *
 # *        15 = use DHCP (yes/no)                                        *
+# *        16 = modem                                                    *
+# *        17 = provider                                                 *
 # *                                                                      *
 # ************************************************************************
 
@@ -82,6 +84,17 @@ function set_synch()
 	echo "OK"
 }
 
+function update_entry()
+{
+	grep -E "^[ \t]*$1[ \t]*=.*" "$backupfile" > /dev/null
+	if [ $? -eq 0 ]
+	then
+		echo "s/^[ \t]*$1[ \t]*=.*/$1=$2/g" >> "$tmpupdatefile"
+	else
+		echo "$1=$2" >> "$tmpaddfile"
+	fi
+}
+
 
 # <CONFIG>
 BIN_DIR="/usr/local/bin"
@@ -112,7 +125,7 @@ then
     exit 255
 fi
 
-if [ $# -ne 15 ]
+if [ $# -ne 17 ]
 then
     echo -e "\nERROR: invalid number of parameters"
     echo -e "syntax:\n  makeconfig <mode> <username> <password> </path/to/pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin>"
@@ -136,9 +149,13 @@ firmware="${12}"
 staticip=${13}
 gateway=${14}
 use_dhcp=${15}
+modem="${16}"
+provider="${17}"
 test -z "$mode" && mode="$($pppoeci --modes 2>&1 | grep default |cut -d ' ' -f 1)"
 test -z "$synch" && synch="$CONF_DIR/synch01.bin"
 test -z "$firmware" && firmware="$CONF_DIR/firmware00.bin"
+test -z "$modem" && modem="Other"
+test -z "$provider" && provider="Other"
 
 if [ ! -f "$pppoeci" -o ! -x "$pppoeci" ]
 then
@@ -278,41 +295,51 @@ fi
 # create eciadsl.conf file
 #
 
-tmpconffile="/tmp/eciadsl.conf.tmp"
 if [ -s "$conffile" ]
 then
 
 	backup "$conffile"
 
 	echo -n "updating $conffile.."
-	echo "s/^[ \t]*VID1[ \t]*=.*/VID1=$vid1/g" > "$TMPFILE"
-	echo "s/^[ \t]*PID1[ \t]*=.*/PID1=$pid1/g" >> "$TMPFILE"
-	echo "s/^[ \t]*VID2[ \t]*=.*/VID2=$vid2/g" >> "$TMPFILE"
-	echo "s/^[ \t]*PID2[ \t]*=.*/PID2=$pid2/g" >> "$TMPFILE"
-	echo "s/^[ \t]*MODE[ \t]*=.*/MODE=$mode/g" >> "$TMPFILE"
-	echo "s/^[ \t]*VCI[ \t]*=.*/VCI=$vci/g" >> "$TMPFILE"
-	echo "s/^[ \t]*VPI[ \t]*=.*/VPI=$vpi/g" >> "$TMPFILE"
-	TMP=$(echo "$firmware" | sed "s/\//\\\\\//g")
-	echo "s/^[ \t]*FIRMWARE[ \t]*=.*/FIRMWARE=$TMP/g" >> "$TMPFILE"
-	TMP=$(echo "$synch" | sed "s/\//\\\\\//g")
-	echo "s/^[ \t]*SYNCH[ \t]*=.*/SYNCH=$TMP/g" >> "$TMPFILE"
-	TMP=$(echo "$username" | sed "s/\//\\\\\//g")
-	echo "s/^[ \t]*PPPD_USER[ \t]*=.*/PPPD_USER=$TMP/g" >> "$TMPFILE"
-	echo "s/^[ \t]*STATICIP[ \t]*=.*/STATICIP=$staticip/g" >> "$TMPFILE"
-	echo "s/^[ \t]*GATEWAY[ \t]*=.*/GATEWAY=$gateway/g" >> "$TMPFILE"
-	echo "s/^[ \t]*USE_DHCP[ \t]*=.*/USE_DHCP=$use_dhcp/g" >> "$TMPFILE"
-	sed -f "$TMPFILE" "$backupfile" > "$tmpconffile"
+	tmpconffile="/tmp/eciadsl.conf.tmp"
+	tmpupdatefile="/tmp/eciadsl.conf.update"
+	tmpaddfile="/tmp/eciadsl.conf.add"
+	TMPFIRMWARE=$(echo "$firmware" | sed "s/\//\\\\\//g")
+	TMPSYNCH=$(echo "$synch" | sed "s/\//\\\\\//g")
+	TMPUSERNAME=$(echo "$username" | sed "s/\//\\\\\//g")
+	:> "$tmpupdatefile"
+	:> "$tmpaddfile"
+	update_entry "VID1" "$vid1"
+	update_entry "PID1" "$pid1"
+	update_entry "VID2" "$vid2"
+	update_entry "PID2" "$pid2"
+	update_entry "MODE" "$mode"
+	update_entry "VPI" "$vpi"
+	update_entry "VCI" "$vci"
+	update_entry "FIRMWARE" "$TMPFIRMWARE"
+	update_entry "SYNCH" "$TMPSYNCH"
+	update_entry "USERNAME" "$TMPUSERNAME"
+	update_entry "STATICIP" "$staticip"
+	update_entry "GATEWAY" "$gateway"
+	update_entry "USE_DHCP" "$use_dhcp"
+	update_entry "MODEM" "$modem"
+	update_entry "PROVIDER" "$provider"
+	test -s "$tmpupdatefile" && sed -f "$tmpupdatefile" "$backupfile" > "$tmpconffile" \
+							|| cp -f "$backupfile" "$tmpconffile"
+	test -s "$tmpaddfile" && cat "$tmpaddfile" >> "$tmpconffile"
 	if [ -s "$tmpconffile" ]
 	then
 		mv -f "$tmpconffile" "$conffile"
-	    echo "OK"
+		echo "OK"
 	else
 		rm -f "$tmpconffile"
 		echo -e "\nERROR: failed to set up $conffile"
 		RET=1
 	fi
+	rm -f "$tmpaddfile"
+	rm -f "$tmpupdatefile"
 else
-	echo -n "updating $conffile.."
+	echo -n "creating $conffile.."
 	cat << EOFCONF > "$conffile"
 VID1=$vid1
 PID1=$pid1
@@ -327,9 +354,11 @@ PPPD_USER=$username
 STATICIP=$staticip
 GATEWAY=$gateway
 USE_DHCP=$use_dhcp
+MODEM=$modem
+PROVIDER=$provider
 EOFCONF
 	echo "OK"
 fi
 
-rm -f "$TMPFILE"
+rm -f "$TMPFILE" > /dev/null 2>&1
 exit $RET
