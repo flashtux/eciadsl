@@ -283,9 +283,6 @@ int eci_load2(const char * file)
 	{
 		n++;
 
-		if (n >= 347)
-			break;
-
 		if (!usb_block_read(fp,&block))
 		{
 			printf("can't read block\n");
