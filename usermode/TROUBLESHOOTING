@@ -141,7 +141,17 @@ Q:	ecidoctor reports me that the DABUSB module is loaded, or startmodem says
 	dabusb has been found, but couldn't remove it!
 
 --------------------------------------------------------------------------------
-A:	Boot your Linux machine with your modem *UNPLUGGED*, then:
+A:	Hotplug is probably enabled, and it wrongly detects your modems as an audio
+	device and loads dabusb module in order to add support for this audio
+	device.
+	If /etc/hotplug/blacklist exists, edit it and add a line containing the
+	word 'dabusb' (without the quotes) to it. Restart Linux.
+	
+	If you cannot find such file whereas hotplug is installed and enabled,
+	there must be another way to configure it, but you can also apply the
+	following method (a bit rough):
+
+	Boot your Linux machine with your modem *UNPLUGGED*, then:
 
 	You can remove the dabusb module from your system using eciconf.sh or
 	eciconftxt.sh.
