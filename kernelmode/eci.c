@@ -1409,7 +1409,7 @@ static void eci_iso_callback(struct urb *urb)
 				}
 				for(buf=urb->transfer_buffer +
 					urb->iso_frame_desc[i].offset;
-					pos + ATM_CELL_SZ <= 
+					pos + ATM_CELL_SZ <=
 					urb->iso_frame_desc[i].actual_length;
 					pos+=ATM_CELL_SZ)
 				{
@@ -1431,11 +1431,13 @@ static void eci_iso_callback(struct urb *urb)
 					urb->iso_frame_desc[i].actual_length - 
 					pos))
 				{
+					DBG_OUT("Saving data for next frame\n");
 					memcpy(instance->iso_celbuf, buf +pos,
 						instance->iso_celbuf_pos);
 				}
 			}
 		}
+		DBG_OUT("Received cell, send to atm\n");
  		if(eci_atm_receive_cell(instance, cells)) {
 			_uni_cell_list_free(cells);
 		}
@@ -1525,6 +1527,7 @@ static void eci_bulk_callback(struct urb *urb)
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
 	kfree(urb->transfer_buffer);
+	usb_free_urb(urb);
 }
 /**********************************************************************
 		END USB CODE
