@@ -606,6 +606,7 @@ int main(int argc, char** argv)
 	while(errno != ECHILD);
 	alarm(0);
 
+	semaphore_done(shared_sem);
 	if (status || !ret)
 		return(1);
 

@@ -25,7 +25,7 @@ int semaphore_init(int count)
         return -1;
 
     if (semctl(sem, 0, SETVAL, count) == -1)
-        return -1;
+        return(-1);
 
     return sem;
 }
@@ -34,13 +34,12 @@ int semaphore_incr(int sem, int val)
 {
     struct sembuf buf;
 
-    memset(&buf, 0, sizeof(buf));
     buf.sem_num = 0;
     buf.sem_op  = val;
     buf.sem_flg = 0;
 
     if (semop(sem, &buf, 1) == -1)
-        return -1;
+        return(-1);
 
     return 0;
 }
@@ -49,21 +48,22 @@ int semaphore_decr(int sem, int val)
 {
     struct sembuf buf;
 
-    memset(&buf, 0, sizeof(buf));
     buf.sem_num = 0;
     buf.sem_op  = -val;
     buf.sem_flg = 0;
 
     if (semop(sem, &buf, 1) == -1)
-        return -1;
+        return(-1);
 
     return 0;
 }
 
 int semaphore_done(int sem)
 {
-    if (semctl(sem, 0, IPC_RMID, 0) == -1)
-        return -1;
+   union semun un;
+ 
+   if (semctl(sem, 0, IPC_RMID, un) == -1)
+        return(-1);
 
     return 0;
 }
