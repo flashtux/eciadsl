@@ -4,18 +4,18 @@
   Licence : GPL
 
   First : Upload the firwmare to the EZUSB part of the ECI USB ADSL modem
-  It uses a firmware file generate by a perl script (eci_uc.pl) from Windows
+  It uses a firmware file generate by a perl script (eciadsl-uc.pl) from Windows
   USB log. The generated file name is eci_firmware.bin.
 
   23/11/2001 : Added some delay before testing for the existence of
   the WAN USB interface (ECI_xxx).
 
-*********************************************************************
- File		: 	$RCSfile$
- Version	:	$Revision$
- Modified by	:	$Author$ ($Date$)
-*********************************************************************
-
+**************************************************************************
+ File           :       $RCSfile$
+ Version        :       $Revision$
+ Modified by    :       $Author$ ($Date$)
+**************************************************************************
+  
   Tested with :
   eci_firm_1.bin                     : file is corrupted or in wrong format
   eci_firm_bourrin.bin               : works
@@ -129,7 +129,7 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 
   31/07/2002, Benoit PAPILLAULT
   Added a verbose mode. By default, few lines are output. This removes
-  a bug when eci-load1 is launch by initlog (like in boot script).
+  a bug when eciadsl-firmware is launch by initlog (like in boot script).
 */
 
 #define _GNU_SOURCE
@@ -384,7 +384,7 @@ void usage(const int ret)
 
 void sigtimeout()
 {
-	printf("ECI load 1: timeout\n");
+	printf("ERROR eciadsl-firmware: timeout\n");
 	fflush(stdout);
 	if (mychild_pid)
 		kill(mychild_pid, SIGINT);
@@ -393,7 +393,7 @@ void sigtimeout()
 
 void fail(void)
 {
-	printf("ECI load 1: failed\n");
+	printf("ERROR eciadsl-firmware: failed\n");
 	fflush(stdout);
 	_exit(-1);
 }
@@ -523,7 +523,7 @@ int main(int argc, char** argv)
 	if (WEXITSTATUS(status))
 		return(1);
 
-	printf("ECI load 1: success\n");
+	printf("eciadsl-firmware: success\n");
 	fflush(stdout);
 		
 	return(0);
