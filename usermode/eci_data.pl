@@ -45,6 +45,7 @@ $BIN_DIR = "/usr/local/bin"
 $ETC_DIR = "/etc"
 $CONF_DIR = "/etc/eciadsl"
 $PPPD_DIR = "/etc/ppp"
+$VERSION = ""
 # </CONFIG>
 
 $t = 0;

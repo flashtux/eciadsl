@@ -18,7 +18,7 @@ Sorted according to priority (the upper in the list, the prior):
 + packaging:
   * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
     modify scripts
-  - fix eciconf* and/or makeconfig: adsl file seems to be blank or not written sometimes
+  - fix makeconfig: adsl file seems to be empty sometimes
   * fix ETC_DIR use (separate installation and syst configuration uses)
   * updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
   + some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
@@ -29,8 +29,10 @@ Sorted according to priority (the upper in the list, the prior):
 * redesign eciconf.sh UI
 * see if selected modem/provider/synchbin can be still coloured when an item from another
   listbox is selected.
-- see if synch_bin update function (invert_bin) can use invert_fai's scheme.
+- see if synch_bin update function (invert_bin) can use invert_fai's scheme (minor).
 * add grep -m check to ./configure, else use egrep (fixed temporarily).
+- synch_bin installation (asks or greps to/into makeconfig or startmodem for CONF_DIR)
+- use section numbers in TROUBLESHOOTING files
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)

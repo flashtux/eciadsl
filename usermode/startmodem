@@ -36,58 +36,83 @@ BIN_DIR="/usr/local/bin"
 ETC_DIR="/etc"
 CONF_DIR="/etc/eciadsl"
 PPPD_DIR="/etc/ppp"
+VERSION=""
 # </CONFIG>
 
-if [ ! -d /proc/bus/usb ]; then
-    echo "Loading support for USB"
-    modprobe usbcore
-	sleep 1
+if [ "$1" == "--version" -o "$1" == "-v" ]; then
+	echo "$VERSION"
+	exit 0
 fi
 
-if [ -f $CONF_DIR/vidpid ]; then
-    vid1=`cat $CONF_DIR/vidpid | cut -f1 -d' '`
-    pid1=`cat $CONF_DIR/vidpid | cut -f2 -d' '`
-    vid2=`cat $CONF_DIR/vidpid | cut -f3 -d' '`
-    pid2=`cat $CONF_DIR/vidpid | cut -f4 -d' '`
-    echo "vid/pid read from $CONF_DIR/vidpid: $vid1/$pid1 $vid2/$pid2"
+if [ $# -eq 4 ]; then
+	vid1="$1"
+	pid1="$2"
+	vid2="$3"
+	pid2="$4"
+	echo -n "got vid/pid from command line"
 else
-    vid1="0547"
-    pid1="2131"
-    vid2="0915"
-    pid2="8000"
+	if [ -f "$CONF_DIR/vidpid" ]; then
+		vid1=`cat "$CONF_DIR/vidpid" | cut -f 1 -d ' '`
+		pid1=`cat "$CONF_DIR/vidpid" | cut -f 2 -d ' '`
+		vid2=`cat "$CONF_DIR/vidpid" | cut -f 3 -d ' '`
+		pid2=`cat "$CONF_DIR/vidpid" | cut -f 4 -d ' '`
+		echo -n "got vid/pid from $CONF_DIR/vidpid"
+	else
+	    vid1="0547"
+	    pid1="2131"
+	    vid2="0915"
+	    pid2="8000"
+		echo -n "default vid/pid assumed"
+	fi
+fi
+echo ": $vid1/$pid1 $vid2/$pid2"
+
+
+echo -e "\nsetting up USB support (1/5).."
+
+if [ ! -d /proc/bus/usb ]; then
+    modprobe usbcore > /dev/null
+	sleep 1
 fi
 
 # mount usbdevfs is this is not the case
 if [ ! -f /proc/bus/usb/devices ]; then
-    echo "Loading preliminary USB device filesystem" 
+    echo -e "\nloading preliminary USB device filesystem" 
     mount -t usbdevfs none /proc/bus/usb
+	sleep 1
+	mount | grep usbdevfs > /dev/null
+	if [ $? == "0" ]; then
+		echo "couldn't mount usbdevfs"
+	else
+		echo "usbdevfs mounted successfully"
+	fi
 fi
 
 #verify if dabusb is loaded
 lsmod | grep dabusb > /dev/null
 if [ $? -eq 0 ]; then
-    echo "Dabusb seems to be present trying to remove it..."
+    echo -e "\ndabusb seems to be present trying to remove it..."
     modprobe -r dabusb
 	sleep 1
     lsmod | grep dabusb > /dev/null
 	if [ $? == "0" ]; then
-		echo "Couldn't remove dabusb try rmmod dabusb manually"
+		echo "couldn't remove dabusb try to rmmod dabusb manually"
 	else
-		echo "Removed dabusb successfully"
+		echo "dabusb removed successfully"
 	fi
 fi
 
 #verify if ehci-hcd is loaded
 lsmod | grep ehci-hcd > /dev/null
 if [ $? -eq 0 ]; then
-    echo "ehci-hcd seems to be present trying to remove it..."
+    echo -e "\nehci-hcd seems to be present trying to remove it..."
     modprobe -r ehci-hcd
 	sleep 1
     lsmod | grep ehci-hcd > /dev/null
 	if [ $? -eq 0 ]; then
-		echo "Couldn't remove ehci-hcd try rmmod ehci-hcd manually"
+		echo "couldn't remove ehci-hcd try to rmmod ehci-hcd manually"
 	else
-		echo "Removed ehci-hcd successfully"
+		echo "ehci-hcd removed successfully"
 	fi
 fi
 
@@ -97,9 +122,20 @@ if [ $? -eq 0 ]; then
 	# ok, we have a UHCI controller, check if the linux driver is loaded
     grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
     if [ $? -ne 0 ]; then
-        echo "Loading UHCI support"
-        modprobe usb-uhci
-        sleep 2
+        echo -e "\nloading UHCI support"
+		modprobe -l | grep usb-uhci > /dev/null
+		if [ $? -ne 0 ]; then
+			echo "warning: usb-uhci module doesn't exist"
+		else
+        	modprobe usb-uhci
+        	sleep 2
+    		lsmod | grep usb-uhci > /dev/null
+			if [ $? -ne 0 ]; then
+				echo "couldn't load usb-uhci module"
+			else
+				echo "usb-uhci loaded successfully"
+			fi
+		fi
     fi
 fi
 
@@ -109,102 +145,122 @@ if [ $? -eq 0 ]; then
 	# ok, we have a OHCI controller, check if the linux driver is loaded
     grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
     if [ $? -ne 0 ]; then
-        echo "Loading OHCI support"
-        modprobe usb-ohci
-        sleep 2
+        echo -e "\nloading OHCI support"
+		modprobe -l | grep usb-ohci > /dev/null
+		if [ $? -ne 0 ]; then
+			echo "warning: usb-ohci module doesn't exist"
+		else
+	        modprobe usb-ohci
+	        sleep 2
+    		lsmod | grep usb-ohci > /dev/null
+			if [ $? -ne 0 ]; then
+				echo "couldn't load usb-ohci module"
+			else
+				echo "usb-ohci loaded successfully"
+			fi
+		fi
     fi
 fi
 
-echo "Init modem ..."
+#verify if n_hdlc is loaded (module only so, it's safe)
+lsmod | grep n_hdlc > /dev/null
+if [ $? -ne 0 ]; then
+	modprobe -l | grep n_hdlc > /dev/null
+	if [ $? -ne 0 ]; then
+		echo -e "\nwarning: n_hdlc support not found in kernel config"
+	else
+    	modprobe n_hdlc
+		sleep 1
+    	lsmod | grep n_hdlc > /dev/null
+		if [ $? -ne 0 ]; then
+			echo -e "\ncouldn't load n_hdlc module"
+		else
+			echo -e "\nn_hdlc loaded successfully"
+		fi
+	fi
+fi
 
+
+echo -e "\nloading firmware (2/5)..\n"
 # check for the EZ-USB chips. If it's not there, maybe the firmware is
 # already loaded ... so continue.
-if [ $# -ne 4 ]; then
-	grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
-else
-	grep "^P:  Vendor=$1 ProdID=$2" /proc/bus/usb/devices > /dev/null
-fi
+grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
-    echo "  Load Firmware ..."
-    if [ $# -ne 4 ]; then
-        $BIN_DIR/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 $CONF_DIR/firmware.bin
-    else
-        $BIN_DIR/eci-load1 0x$1 0x$2 0x$3 0x$4 $CONF_DIR/firmware.bin
-    fi
+    "$BIN_DIR/eci-load1" 0x$vid1 0x$pid1 0x$vid2 0x$pid2 "$CONF_DIR/firmware.bin"
     if [ $? -ne 0 ]; then
-        echo "Failed to load firmware"
+        echo "failed to load firmware"
         exit -1
     fi
-    echo "  ... Load Firmware OK"
+    echo " OK"
+else
+	grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "firmware seems to be already loaded"
+	else
+    	echo "modem not found"
+    	exit -1
+	fi
 fi
 
-if [ $# -ne 4 ]; then
-grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
-else
-grep "^P:  Vendor=$3 ProdID=$4" /proc/bus/usb/devices > /dev/null
-fi
+
+echo -e "\nsetting up modem (3/5)..\n"
+"$BIN_DIR/eci-load2" 0x$vid2 0x$pid2 "$CONF_DIR/synch.bin"
 if [ $? -ne 0 ]; then
-    echo "I can't find your modem... sorry :-("
+    echo "failed to get synchronization"
     exit -1
 fi
+echo "synchronization successful"
 
-echo "  Setup modem ..."
-if [ $# -ne 4 ]; then
-    $BIN_DIR/eci-load2 0x$vid2 0x$pid2 $CONF_DIR/synch.bin
-else
-    $BIN_DIR/eci-load2 0x$3 0x$4 $CONF_DIR/synch.bin
-fi
-if [ $? -ne 0 ] ; then
-    echo "Failed to setup the modem"
-    exit -1
-fi
-echo "  ... Setup Modem OK"
 
-echo "... modem init OK"
-
-echo "Connect Modem ..."
+echo -e "\nconnecting modem (4/5)..\n"
 nice --20 pppd call adsl updetach
-if [ $? -ne 0 ] ; then
-    echo "Connexion failed"
+if [ $? -ne 0 ]; then
+    echo "failed to connect"
     exit -1
 fi
-echo "... Connect Modem OK"
+echo "connection successful"
 
-# The default route should be added automatically if no default route
-# already exists. If you already have a default route using your
-# ethernet card, you should configure your ethernet card.
 
-exit 0
-
+echo -e "\nsetting up route table (5/5)..\n"
 # Wait until ppp0 get available
-COUNTER=20
-FLREADY="no"
-echo "Add Default route ..."
-echo -n "   wait for ppp0 : "
-for (( times = 1; times < $COUNTER; times++ )) ; do
-    FOUND=`ifconfig | grep ppp0`
-    if [ ! -z "$FOUND" ] ; then
-        FLREADY="yes"
+COUNTER=10
+FLREADY=0
+echo -n "waiting for ppp0.."
+for (( times = 1; times < $COUNTER; times++ )); do
+    ifconfig ppp0 > /dev/null 2>&1
+    if [ $? -eq 0 ]; then
+        FLREADY=1
         break
     fi
     sleep 1
     echo -n "."
 done
-
 echo
-unset COUNTER
-unset FOUND
-
-if [ "$FLREADY" = "yes" ] ; then
-    echo "  ppp0 now available"
-    route add default dev ppp0
-    echo "Default route added"
-else
-    echo "No device found"
-    unset FLREADY
-    exit -1
+if [ "$FLREADY" -eq 0 ]; then
+	echo "no ppp0 device found"
+	exit -1
 fi
 
-unset FLREADY
+for IFACE in 0 1; do
+do
+	route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+eth$IFACE$" > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "removing existing default route (eth$IFACE).."
+		route del default -net eth$IFACE
+	fi
+done
+
+echo "adding default route.."
+route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+ppp0$" > /dev/null
+if [ $? -ne 0 ]; then
+   	route add default dev ppp0
+	if [ $? -ne 0 ]; then
+		echo "failed to set default route"
+	else
+		echo "default route added"
+	fi
+else
+	echo "default route already set"
+fi
 
 exit 0

@@ -136,7 +136,7 @@ A:	Check your system's USB configuration. This may be due to a lack of support
 	to mount it using:
 		mount -t usbdevfs none /proc/bus/usb
 	This can be set in your /etc/fstab. To get his automounted at boot time,
-	add	this line:
+	add this line:
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
 
 
@@ -239,7 +239,7 @@ A:	Follow the pre-requisites.
 Q:	/var/log/messages shows CHAP or PAP failures.
 
 --------------------------------------------------------------------------------
-A:	Check your /etc/ppp/pap-secrets	or /etc/ppp/chap-secrets files. Entries must
+A:	Check your /etc/ppp/pap-secrets or /etc/ppp/chap-secrets files. Entries must
 	be like this:
 		"username" * "userpassword" *
 	You can configure this using eciconf.
@@ -324,7 +324,7 @@ A:	Often seen on some recent distros (MDK9, Slackware 8.1 and RH8).
 	Did you see a disconnection (and a reconnection maybe)? In /var/log/messages
 	or /var/log/ppp? If so, jump to the previous question.
 
-	Else it might be network/firewall related, but not sure.
+	Else it might be network/firewall configuration related, but not sure.
 
 	<TODO: add MDK9/shorewall info>
 
@@ -517,7 +517,7 @@ A:	Type the following commands:
 	or whatever command you use to compile and install the kernal modules.
 	Also make -s bzImage if PPP or USB support was previously in kernel instead
 	of as modules!
- 	You can enable all USB Host Controller Drivers but must use the relevant one
+	You can enable all USB Host Controller Drivers but must use the relevant one
 	only!
 	DABUSB must be disabled.
 
@@ -633,10 +633,10 @@ A:	Verify that you modem is supported and that the installation and
 Q:	Can I use my USB modem with a USB2.0 HUB?
 
 --------------------------------------------------------------------------------
-A:	We encountered problems when the modem is plugged to USB 2.0 HUB, which is
-	not supported. In most case, USB2.0 HUB module has to be unloaded. That's
-	why startmodem now unload ehci-hcd module when it founds it loaded.
-
+A:	We encountered problems when the modem or another device is plugged to a USB
+	2.0 HUB, which is currently not supported. In most cases, USB2.0 HUB module
+	has to be unloaded. That's why startmodem now unload ehci-hcd module
+	unconditionally when it founds it loaded.
 
 
 ================================================================================
@@ -681,11 +681,11 @@ Q:	Switching from Linux to Windows, I cannot use my modem and have to
 --------------------------------------------------------------------------------
 A:	Unload all USB modules related to you modem when leaving Linux. This could
 	be done automatically, through the USB manager of your Linux distribution
-	maybe, or using init.d, (think of chaining modules unloading using the
-	post-remove	or pre-remove commands in /etc/modules.conf file).
+	maybe, or using init.d, (think of cascading modules unloading using the
+	post-remove or pre-remove commands in /etc/modules.conf file).
 
 	If it still doesn't work, you have to manually unplug you modem, wait for a
-	few seconds	so that it's resetted, and replug it. Then, you can use it under
+	few seconds so that it's resetted, and replug it. Then, you can use it under
 	Windows.
 
 	<TODO: unverified problems with ericsson and usermode 0.5>
@@ -722,7 +722,7 @@ Q:	`./configure` fails and returns some errors :-\
 A:	Please report us the output of `./configure`.
 	Check which options (see `./configure --help`) could help you.
 	For instance, you may use --disable-gcc-check if `./configure` fails in
-	finding	gcc or checking its version number whereas gcc is installed and is
+	finding gcc or checking its version number whereas gcc is installed and is
 	in your $PATH. This error may happen on some systems, which include a
 	modified gcc (Debian for instance).
 

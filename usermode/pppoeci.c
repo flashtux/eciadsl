@@ -1027,11 +1027,14 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 			if (w == 0x7311)
 				replace73reset++;
 			else
-				replace73reset = 0;
+				if (replace73reset<2)
+					replace73reset = 0;
+
 			if (w == 0x5311)
 				replace53reset++;
 			else
-				replace53reset = 0;
+				if (replace53reset<2)
+					replace53reset = 0;
 
 			/* responses are as follows
 			   73 11 -> 63 13 && 63 01 && 73 11

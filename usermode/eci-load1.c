@@ -156,7 +156,7 @@ struct eci_firm_block
 {
 	unsigned short addr;
 	unsigned short len;
-	unsigned char * content;
+	unsigned char* content;
 };
 
 /* for ident(1) command */
@@ -171,21 +171,21 @@ pid_t mychild_pid=0;
   Return 1 is sucessfull.
 */
 
-int eci_firm_block_read(FILE *fp, struct eci_firm_block *p)
+int eci_firm_block_read(FILE* fp, struct eci_firm_block* p)
 {
 	unsigned char b[4];
 	int r;
 
-	if ((r = fread(b, 1, sizeof(b), fp)) != sizeof(b))
+	if ((r = fread(b, sizeof(char), sizeof(b), fp)) != sizeof(char)*sizeof(b))
 	{
-		printf("read %d bytes instead of %d\n", r, sizeof(b));
+		printf("read %d bytes instead of %d\n", r, sizeof(char)*sizeof(b));
 		return 0;
 	}
 
 	p->addr = (b[0] << 8) | b[1];
 	p->len  = (b[2] << 8) | b[3];
 
-	p->content = (unsigned char *) realloc (p->content, p->len);
+	p->content = (unsigned char*) realloc (p->content, p->len);
 	if (p->content == NULL)
 	{
 		perror("malloc");
@@ -201,10 +201,10 @@ int eci_firm_block_read(FILE *fp, struct eci_firm_block *p)
 	return 1;
 }
 
-int eci_load1(const char * file, unsigned short vid1, unsigned short pid1,
+int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 			  int option_verbose)
 {
-	FILE * fp ;
+	FILE* fp ;
 	struct eci_firm_block block;
 	long size ;
 	pusb_device_t dev;
@@ -315,7 +315,7 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 
 	sleep(1);
 
-	for (i=0; i<RETRY_MAX; i++)
+	for (i = 0; i < RETRY_MAX; i++)
 	{
 		fd_set rset;
 		FD_ZERO(&rset);
@@ -337,14 +337,14 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 
 	if (dev == NULL)
 	{
-		printf("can't find your " GS_NAME "\n");
+		printf("can't find any " GS_NAME " compatible modem\n");
 		return 0;
 	}
 
 	gettimeofday(&now, NULL);
 	
 	printf(
-		GS_NAME " modem found (in %ld ms): GREAT!\n",
+		GS_NAME " compatible modem found (in %ld ms): GREAT!\n",
 		(long) (( (now.tv_sec - start.tv_sec) * 1000) 
 				+ ((now.tv_usec - start.tv_usec) / 1000) ));
 	pusb_close(dev);
@@ -362,7 +362,7 @@ void version(const int full)
 void usage(const int ret)
 {
 	printf("usage:\n");
-	printf("       eci-load1 [<switch>..] [VID1 PID1 VID2 PID2] firmware.bin\n");
+	printf("       eci-load1 [<switch>..] [VID1 PID1 VID2 PID2] <firmware.bin>\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
 	printf("       -h or --help      show this help message then exit\n");
@@ -379,9 +379,16 @@ void sigtimeout()
 	_exit(-1);
 }
 
-int main(int argc, char *argv[])
+void fail(void)
 {
-	const char * file;
+	printf("ECI load 1: failed\n");
+	fflush(stdout);
+	_exit(-1);
+}
+
+int main(int argc, char** argv)
+{
+	const char* file;
 	int status;
 	unsigned short vid1, vid2;
 	unsigned short pid1, pid2;
@@ -391,7 +398,7 @@ int main(int argc, char *argv[])
 
 	/* parse command line options */
 
-	for (i=1, j=1; i<argc; i++)
+	for (i = 1, j = 1; i < argc; i++)
 	{
 		if ((strcmp(argv[i], "-V") == 0) || (strcmp(argv[i], "--version") == 0))
 			version(0);
@@ -438,18 +445,14 @@ int main(int argc, char *argv[])
 	{
 		alarm(0);
 		perror("fork failed");
-		printf("ECI load 1: failed\n");
-		fflush(stdout);
-		_exit(-1);
+		fail();
 	}
 	if (child_pid == 0)
 	{
 		if (!eci_load1(file, vid1, pid1, option_verbose) || !check_modem(vid2, pid2))
 		{
 			alarm(0);
-			printf("ECI load 1: failed\n");
-			fflush(stdout);
-			_exit(-1);
+			fail();
 		}
 		_exit(0);
 	}
@@ -460,7 +463,7 @@ int main(int argc, char *argv[])
 			if (errno == EINTR)
 			{
 				perror("child failed (aborted)");
-				_exit(1);
+				fail();
 			}
 	while(errno != ECHILD);
 	alarm(0);

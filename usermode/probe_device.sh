@@ -1,7 +1,6 @@
 #!/bin/sh
 
 # probe device's VIDs and PIDs
-VERSION="0.0.5"
 
 
 function version()
@@ -16,8 +15,8 @@ function commandlinehelp()
 	echo "          $BASE [<switch>..]"
 	echo "switches:"
 	echo "          --dry-run              test mode (only perform neutral operations)"
-	echo "          --version              show version number then exit"
-	echo "          --help                 show this help then exit"
+	echo "          --version or -v        show version number then exit"
+	echo "          --help or -h           show this help then exit"
 	echo "          --smart                use smart mode: only show uninitialized devices"
 	echo "          --auto                 device auto selection"
 	exit $1
@@ -149,6 +148,7 @@ BIN_DIR="/usr/local/bin"
 ETC_DIR="/etc"
 CONF_DIR="/etc/eciadsl"
 PPPD_DIR="/etc/ppp"
+VERSION=""
 # </CONFIG>
 
 BASE=${0##*/}
@@ -169,14 +169,14 @@ declare -i TESTONLY=0 RET=0 CNT SMART=0 AUTO=0
 while [ -n "$1" ]
 do
 	case "$1" in
-		"--dry-run")	let TESTONLY=1;;
-		"--smart")		let SMART=1;;
-		"--auto")		let AUTO=1;;
-		"--version")	version;;
-		"--help")		commandlinehelp 0;;
-		*)				echo "unrecognized switch $1"
-						commandlinehelp 1
-						;;
+		"--dry-run")		let TESTONLY=1;;
+		"--smart")			let SMART=1;;
+		"--auto")			let AUTO=1;;
+		"--version"|"-v")	version;;
+		"--help"|"-h")		commandlinehelp 0;;
+		*)					echo "unrecognized switch $1"
+							commandlinehelp 1
+							;;
 	esac
 	shift
 done

@@ -17,11 +17,17 @@
 #   Added the 'nopersist' flag for diagnostic purpose.
 
 # <CONFIG>
-ETC_DIR=/etc
-CONF_DIR=/etc/eciadsl
-BIN_DIR=/usr/local/bin
-PPPD_DIR=/etc/ppp
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+BIN_DIR="/usr/local/bin"
+PPPD_DIR="/etc/ppp"
+VERSION=""
 # </CONFIG>
+
+if [ "$1" == "--version" -o "$1" == "-v" ]; then
+	echo "$VERSION"
+	exit 0
+fi
 
 # cd to the directory where the 'doctor' is.
 cd `dirname $0`

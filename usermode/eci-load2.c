@@ -51,21 +51,21 @@ struct usb_block
 	unsigned short  value;
 	unsigned short  index;
 	unsigned short  size;
-	unsigned char * buf; /* buf's content is stored in the .bin file
+	unsigned char* buf; /* buf's content is stored in the .bin file
 							only for OUT request (ie request_type & 0x80)=0 */
 };
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
-int usb_block_read(FILE *fp, struct usb_block *p)
+int usb_block_read(FILE* fp, struct usb_block* p)
 {
 	unsigned char b[8];
 	int r;
 
-	if ((r = fread(b, 1, sizeof(b), fp)) != sizeof(b))
+	if ((r = fread(b, sizeof(char), sizeof(b), fp)) != sizeof(char)*sizeof(b))
 	{
-		printf("usb_block_read: read %d bytes instead of %d\n", r, sizeof(b));
+		printf("usb_block_read: read %d bytes instead of %d\n", r, sizeof(char)*sizeof(b));
 		return 0;
 	}
 
@@ -77,7 +77,7 @@ int usb_block_read(FILE *fp, struct usb_block *p)
 
 	if (p->size != 0)
 	{
-		p->buf = (unsigned char *)realloc(p->buf, p->size);
+		p->buf = (unsigned char*)realloc(p->buf, p->size);
 		if (p->buf == NULL)
 		{
 			printf("usb_block_read: can't allocate %d bytes\n",
@@ -86,7 +86,7 @@ int usb_block_read(FILE *fp, struct usb_block *p)
 		}
 
 		if ((p->request_type & 0x80) == 0)
-			if ((r=fread(p->buf, 1, p->size, fp)) != p->size)
+			if ((r=fread(p->buf, sizeof(char), p->size, fp)) != p->size)
 			{
 				printf("usb_block_read: read %d bytes instead of %d\n",
 					   r, p->size);
@@ -110,17 +110,17 @@ void print_char(unsigned char c)
 		printf(".");
 }
 
-void dump(unsigned char *buf, int len)
+void dump(unsigned char* buf, int len)
 {
   int i, j;
   
-	for (i=0; i<len; i+=16)
+	for (i = 0; i < len; i+=16)
 	{
-		for (j=i; j<len && j<i+16; j++)
+		for (j = i; j < len && j < i + 16; j++)
 			printf("%02x ", buf[j]);
-		for (; j<i+16; j++)
+		for (; j < i + 16; j++)
 			printf("   ");
-		for (j=i; j<len && j<i+16; j++)
+		for (j = i; j < len && j < i + 16; j++)
 			print_char(buf[j]);
 		printf("\n");
 	}
@@ -158,11 +158,11 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 	if (ep == NULL)
 	{
 		perror("pusb_endpoint_open");
-		_exit (-1);
+		_exit(-1);
 	}
 
 	/* we DO NOT stop after receiving 100 interrupts */
-	for (i=0; /*i<100*/; i++)
+	for (i = 0; /* i < 100 */; i++)
 	{
 
 		/*
@@ -221,13 +221,13 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 
 	pusb_endpoint_close(ep);
 	
-	_exit (0);
+	_exit(0);
 }
 
-int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
+int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 			  int option_verbose)
 {
-	FILE * fp ;
+	FILE* fp ;
 	struct usb_block block;
 	long size ;
 	pusb_device_t dev;
@@ -254,7 +254,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 	if (dev == NULL)
 	{
 		printf("can't find your " GS_NAME "\n");
-		fclose (fp);
+		fclose(fp);
 		return 0;
 	}
 
@@ -340,7 +340,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 
 			if ((block.request_type & 0x80))
 			{
-				for (i=0; i<r; i++)
+				for (i = 0; i < r; i++)
 					printf("%02x ", block.buf[i]);
 				printf("\n");
 			}
@@ -435,12 +435,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 #endif
 
 	if (ftell(fp) != size)
-	{
-		printf(
-			"file size = %ld <=> bytes read = %ld\n",
-			size,
-			ftell(fp));
-	}
+		printf("file size = %ld <=> bytes read = %ld\n", size, ftell(fp));
 
 	fclose(fp);
 
@@ -458,7 +453,7 @@ void version(const int full)
 void usage(const int ret)
 {
 	printf("usage:\n");
-	printf("       eci-load2 [<switch>..] [VID2 PID2] synch.bin\n");
+	printf("       eci-load2 [<switch>..] [VID2 PID2] <synch.bin>\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
 	printf("       -h or --help      show this help message then exit\n");
@@ -481,15 +476,15 @@ void sigtimeout()
 }
 
 
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
-	const char * file;
+	const char* file;
 	int status;
 	unsigned short vid2, pid2;
 	int i, j;
 	int option_verbose = 0;
 
-	for (i=1, j=1; i<argc; i++)
+	for (i = 1, j = 1; i < argc; i++)
 	{
 		if ((strcmp(argv[i], "-V") == 0) || (strcmp(argv[i], "--version") == 0))
 			version(0);

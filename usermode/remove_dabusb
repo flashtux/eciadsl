@@ -17,7 +17,13 @@ BIN_DIR="/usr/local/bin"
 ETC_DIR="/etc"
 CONF_DIR="/etc/eciadsl"
 PPPD_DIR="/etc/ppp"
+VERSION=""
 # </CONFIG>
+
+if [ "$1" == "--version" -o "$1" == "-v" ]; then
+	echo "$VERSION"
+	exit 0
+fi
 
 lsmod | grep dabusb
 if [ $? -ne 0 ]; then

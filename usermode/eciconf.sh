@@ -28,6 +28,7 @@ set BIN_DIR "/usr/local/bin"
 set ETC_DIR "/etc"
 set CONF_DIR "/etc/eciadsl"
 set PPPD_DIR "/etc/ppp"
+set VERSION ""
 # </CONFIG>
 
 set titre_fenetre "ECI Linux driver configuration v0.6-pre4"

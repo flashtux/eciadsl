@@ -4,7 +4,7 @@
 # TODO: check for modules.conf location (warn if conf.modules is found)
 # TODO: better version string detection (for exotic debian gcc versions for instance)
 
-VERSION="0.0.6"
+VERSION="?"
 
 
 function version()
@@ -495,6 +495,7 @@ BASE="${0##*/}"
 PRODUCT_ID="$(head -1 ./ID)"
 PRODUCT_NAME="$(tail -1 ./ID)"
 PRODUCT_VERSION="$(head -1 ./VERSION)"
+test -n "$PRODUCT_VERSION" && VERSION="$PRODUCT_VERSION"
 SRC_DIR=""
 
 # requested values for tools
@@ -570,7 +571,7 @@ do
 		"--clean")					clean_files "all"
 									exit 0;;
 		"-h"|"--help")				commandline_help 0;;
-		"-V"|"--version")			version;;
+		"-v"|"--version")			version;;
 		*)							echo "unknown switch $1"
 									commandline_help 1;;
 	esac

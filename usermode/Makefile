@@ -53,18 +53,22 @@ install_scripts:
 	etcdir=$$(echo "$(ETC_DIR)" | sed "s/\//\\\\\//g"); \
 	confdir=$$(echo "$(CONF_DIR)" | sed "s/\//\\\\\//g"); \
 	pppddir=$$(echo "$(PPPD_DIR)" | sed "s/\//\\\\\//g"); \
+	version=$$(echo "$(PRODUCT_VERSION)" | sed "s/\//\\\\\//g"); \
 	echo "s/set BIN_DIR .\+/set BIN_DIR \"$$bindir\"/" >> $(TMP_DIR)/tcl.sed; \
 	echo "s/set ETC_DIR .\+/set ETC_DIR \"$$etcdir\"/" >> $(TMP_DIR)/tcl.sed; \
 	echo "s/set CONF_DIR .\+/set CONF_DIR \"$$confdir\"/" >> $(TMP_DIR)/tcl.sed; \
 	echo "s/set PPPD_DIR .\+/set PPPD_DIR \"$$pppddir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set VERSION .\+/set VERSION \"$$version\"/" >> $(TMP_DIR)/tcl.sed; \
 	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$bindir\"/" >> $(TMP_DIR)/pl.sed; \
 	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$etcdir\"/" >> $(TMP_DIR)/pl.sed; \
 	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$confdir\"/" >> $(TMP_DIR)/pl.sed; \
 	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$pppddir\"/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$VERSION =.\+/\$$VERSION = \"$$version\"/" >> $(TMP_DIR)/pl.sed; \
 	echo "s/BIN_DIR=.\+/BIN_DIR=\"$$bindir\"/" >> $(TMP_DIR)/sh.sed; \
 	echo "s/ETC_DIR=.\+/ETC_DIR=\"$$etcdir\"/" >> $(TMP_DIR)/sh.sed; \
 	echo "s/CONF_DIR=.\+/CONF_DIR=\"$$confdir\"/" >> $(TMP_DIR)/sh.sed; \
-	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$pppddir\"/" >> $(TMP_DIR)/sh.sed;
+	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$pppddir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/VERSION=.\+/VERSION=\"$$version\"/" >> $(TMP_DIR)/sh.sed;
 	@for FILE in $(SCRIPTS); do \
 		head -50 $$FILE | grep -E "^exec wish" > /dev/null; \
 		if [ $$? -eq 0 ]; then \
@@ -131,7 +135,7 @@ ppp_peer:
 		USER=`grep -E "^user[ \t]+" $(PPPD_DIR)/peers/adsl`; \
 		grep -v -E "^user[ \t]+" adsl > $(PPPD_DIR)/peers/adsl; \
 		echo -e "$$USER\n$$PERSIST" >> $(PPPD_DIR)/peers/adsl; \
-		grep "^persist" $(PPPD_DIR)/peers/adsl || echo -e "persist\n" >> $(PPPD_DIR)/peers/adsl; \
+		grep "^persist" $(PPPD_DIR)/peers/adsl > /dev/null || echo -e "persist\n" >> $(PPPD_DIR)/peers/adsl; \
 	else \
 		echo "creating $(PPPD_DIR)/peers/adsl.."; \
 		$(INSTALL_DATA) adsl $(PPPD_DIR)/peers/adsl; \
