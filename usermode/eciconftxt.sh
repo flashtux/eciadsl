@@ -29,7 +29,7 @@ tmpbin=/tmp/binfile.tmp
 previous="Previous setting"
 
 if [ $UID -ne 0 ]; then
-    echo -e "This script must be run as root.\nEnter the root password, please."
+    echo -e "This script must be run as root.\nType in root password, please."
     su  - -c  "DISPLAY=$DISPLAY PATH=$PATH  $0  $*"
     exit 1
 fi
@@ -86,7 +86,7 @@ case "$1" in
         if [ $? -eq 0 ]; then
             choice_ok=1
         else
-            echo -e "Incorrect choice, try again\n"
+            echo -e "** Incorrect choice, try again\n"
         fi
     done
     exit $choice_menu
@@ -106,7 +106,7 @@ case "$1" in
 			echo "$prev_synch" > $tmpbin
 			exit 0
 		else
-	        echo "Skipping synch .bin selection.."
+	        echo "** skipping synch .bin selection"
 	        :> $tmpbin
 	        exit 255
 		fi
@@ -127,7 +127,7 @@ case "$1" in
     menu1="Your choice|Configure all settings|Remove dabusb module|Change synch .bin file"
 
     if [ ! -d $CONF_DIR ]; then
-        echo -e "Config directory not found!\n"
+        echo -e "*** config directory not found\n"
         exit 1
     fi
 
@@ -179,7 +179,7 @@ case "$1" in
     vid1pid1="$vid1pid1|????????"
     vid2pid2="$vid2pid2|????????"
 
-    echo -e "\n***** Welcome to Eci Adsl Linux driver configuration *****\n"
+    echo -e "\n===== Welcome to the Eci Adsl Linux driver configuration =====\n"
     echo -e "At any time, press Ctrl+C to quit this script without saving modifications.\n"
     echo -e "Tip: you can run eciconftxt.sh with a .bin file as parameter to change\nyour .bin quickly.\n"
 
@@ -205,7 +205,7 @@ case "$1" in
             read user
 			if [ -z "$user" -a -n "$prev_pppd_user" ]; then
 				user="$prev_pppd_user"
-				echo "User name unchanged"
+				echo "* user name unchanged"
 			fi
         done
 
@@ -229,7 +229,7 @@ case "$1" in
             if [ "$password" == "$password2" ]; then
                 pwdmatch=1
             else
-                echo -e "Passwords don't match, try again\n"
+                echo -e "** passwords don't match, try again\n"
             fi
         done
 
@@ -262,14 +262,14 @@ case "$1" in
 				if [ "$dns1" == "?" ]; then
 	                dns1=""
 				else
-					echo "DNS1 unchanged"
+					echo "* DNS1 unchanged"
 				fi
 				break
             else
                 echo $i_dns1 | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1
                 if [ $? -ne 0 ]; then
 					i_dns1=""
-                    echo -e "Invalid IP for DNS1, please retry\n"
+                    echo -e "** invalid IP for DNS1, please retry\n"
                 else
 					if [ "$i_dns1" != "$dns1" ]; then
 						provider="Other"
@@ -296,14 +296,14 @@ case "$1" in
 				if [ "$dns2" == "?" ]; then
 	                dns2=""
 				else
-					echo "DNS2 unchanged"
+					echo "* DNS2 unchanged"
 				fi
 				break
             else
                 echo $i_dns2 | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1
                 if [ $? -ne 0 ]; then
 					i_dns2=""
-                    echo -e "Invalid IP for DNS2, please retry\n"
+                    echo -e "** invalid IP for DNS2, please retry\n"
                 else
 					if [ "$i_dns2" != "$dns2" ]; then
 						provider="Other"
@@ -332,12 +332,12 @@ case "$1" in
             read vpi
 			if [ -n "$prev_vpi" -a -z "$vpi" ]; then
 				vpi="$prev_vpi"
-				echo "VPI unchanged"
+				echo "* VPI unchanged"
 			else
             	echo $vpi | grep -E "^[0-9]+$" > /dev/null 2>&1
             	if [ $? -ne 0 ]; then
                 	vpi=""
-                	echo -e "Invalid VPI, please enter it again\n"
+                	echo -e "** invalid VPI, please enter it again\n"
             	fi
 			fi
         done
@@ -356,12 +356,12 @@ case "$1" in
             read vci
 			if [ -n "$prev_vci" -a -z "$vci" ]; then
 				vci="$prev_vci"
-				echo "VCI unchanged"
+				echo "* VCI unchanged"
 			else
 	            echo $vci | grep -E "^[0-9]+$" > /dev/null 2>&1
             	if [ $? -ne 0 ]; then
                 	vci=""
-                	echo -e "Invalid VCI, please enter it again\n"
+                	echo -e "** invalid VCI, please enter it again\n"
             	fi
 			fi
         done
@@ -396,10 +396,10 @@ case "$1" in
             read i_vid1
             if [ -z "$i_vid1" ]; then
 				if [ "$vid1" != "????" ]; then
-					echo "VID1 unchanged"
+					echo "* VID1 unchanged"
     	            break
 				else
-                    echo -e "VID1 still unset, please enter a value\n"
+                    echo -e "** VID1 still unset, please enter a value\n"
 				fi
             else
                 echo $i_vid1 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
@@ -407,7 +407,7 @@ case "$1" in
 					vid1="$i_vid1"
                 else
 					i_vid1=""
-                    echo -e "Invalid VID1, please enter it again\n"
+                    echo -e "** invalid VID1, please enter it again\n"
                 fi
             fi
         done
@@ -427,10 +427,10 @@ case "$1" in
             read i_pid1
             if [ -z "$i_pid1" ]; then
 				if [ "$pid1" != "????" ]; then
-					echo "PID1 unchanged"
+					echo "* PID1 unchanged"
     	            break
 				else
-                    echo -e "PID1 still unset, please enter a value\n"
+                    echo -e "** PID1 still unset, please enter a value\n"
 				fi
             else
                 echo $i_pid1 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
@@ -438,7 +438,7 @@ case "$1" in
 					pid1="$i_pid1"
                 else
 					i_pid1=""
-                    echo -e "Invalid PID1, please enter it again\n"
+                    echo -e "** invalid PID1, please enter it again\n"
                 fi
             fi
         done
@@ -458,10 +458,10 @@ case "$1" in
             read i_vid2
             if [ -z "$i_vid2" ]; then
 				if [ "$vid2" != "????" ]; then
-					echo "VID2 unchanged"
+					echo "* VID2 unchanged"
     	            break
 				else
-                    echo -e "VID2 still unset, please enter a value\n"
+                    echo -e "** VID2 still unset, please enter a value\n"
 				fi
             else
                 echo $i_vid2 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
@@ -469,7 +469,7 @@ case "$1" in
 					vid2="$i_vid2"
                 else
 					i_vid2=""
-                    echo -e "Invalid VID2, please enter it again\n"
+                    echo -e "** invalid VID2, please enter it again\n"
                 fi
             fi
         done
@@ -489,10 +489,10 @@ case "$1" in
             read i_pid2
             if [ -z "$i_pid2" ]; then
 				if [ "$pid2" != "????" ]; then
-					echo "PID2 unchanged"
+					echo "* PID2 unchanged"
     	            break
 				else
-                    echo -e "PID2 still unset, please enter a value\n"
+                    echo -e "** PID2 still unset, please enter a value\n"
 				fi
             else
                 echo $i_pid2 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
@@ -500,7 +500,7 @@ case "$1" in
 					pid2="$i_pid2"
                 else
 					i_pid2=""
-                    echo -e "Invalid PID2, please enter it again\n"
+                    echo -e "** invalid PID2, please enter it again\n"
                 fi
             fi
         done
@@ -551,13 +551,13 @@ case "$1" in
 					;;
 			"")		if [ -n "$prev_use_dhcp" ]; then
 						use_dhcp="$prev_use_dhcp"
-						echo "DHCP usage unchanged"
+						echo "* DHCP usage unchanged"
 					else
 						use_dhcp="no"
 					fi
 					;;
 			*)		use_dhcp=""
-					echo -e "Invalid answer, try again\n"
+					echo -e "** invalid answer, try again\n"
 					;;
 			esac
         done
@@ -566,12 +566,17 @@ case "$1" in
 		gateway="$prev_gateway"
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
-			echo -n "In current config, static IP is "
-			if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
-				echo "used"
-				TMP=" or press ENTER to keep current setting"
+			# check if the settings were really existing before
+			if [ -n "$prev_dhcp" ]; then
+				echo -n "In current config, static IP is "
+				if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
+					echo "used"
+					TMP=" or press ENTER to keep current setting"
+				else
+					echo "not used"
+					TMP=""
+				fi
 			else
-				echo "not used"
 				TMP=""
 			fi
         	echo "Did you get a static IP from your provider (MOST users should say NO)? "
@@ -594,13 +599,13 @@ case "$1" in
 							fi
 						fi
 						if [ -n "$foo" ]; then
-							echo "Static IP usage unchanged"
+							echo "* static IP usage unchanged"
 						else
 							foo="no"
 						fi
 					;;
 				*)		foo=""
-						echo -e "Invalid answer, try again\n"
+						echo -e "** invalid answer, try again\n"
 						;;
 				esac
         	done
@@ -619,7 +624,7 @@ case "$1" in
 					case "$staticip" in
 					"")		if [ -n "$prev_staticip" ]; then
 								staticip="$prev_staticip"
-								echo "Static IP unchanged"
+								echo "* static IP unchanged"
 							fi
 							;;
 					*)		echo "$staticip" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1 
@@ -628,7 +633,7 @@ case "$1" in
 							fi
 							;;
 					esac
-        			test -z "$staticip" && echo -n "Invalid static IP, try again $TMP: "
+        			test -z "$staticip" && echo -n "** invalid static IP, try again $TMP: "
         		done
 
 				if [ -n "$prev_gateway" ]; then
@@ -644,7 +649,7 @@ case "$1" in
 					case "$gateway" in
 					"")		if [ -n "$gateway" ]; then
 								gateway="$prev_gateway"
-								echo "Gateway unchanged"
+								echo "* gateway unchanged"
 							fi
 							;;
 					*)		echo "$gateway" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1 
@@ -653,7 +658,7 @@ case "$1" in
 							fi
 							;;
 					esac
-        			test -z "$gateway" && echo -n "Invalid gateway IP, try again $TMP: "
+        			test -z "$gateway" && echo -n "** invalid gateway IP, try again $TMP: "
         		done
 			fi
 		fi
@@ -661,7 +666,7 @@ case "$1" in
 		# extract values from lists
 		mode="$(echo $modes | cut -f $mode -d '|')"
 		modem="$(echo $modems | cut -f $modem -d '|')"
-		provider="$(echo $providers | cut -f $provider -d '|')"
+		test "$provider" != "Other" && provider="$(echo $providers | cut -f $provider -d '|')"
 		# remove "previous ()" is necessary
 		echo "$provider" | grep -E "^$previous \(.+\)$" > /dev/null 2>&1 && \
 			provider=$(echo "$provider" | cut -d '(' -f 2 | cut -d ')' -f 1)
@@ -702,12 +707,12 @@ case "$1" in
             echo "==== eciconftxt.sh: Configuration updated with success !"
             echo "You can now run startmodem (as root) to connect to the internet."
         else
-            echo "ERROR: makeconfig reports error(s), please fix the problem and run eciconftxt.sh again."
+            echo "*** makeconfig reports error(s), please fix the problem and run eciconftxt.sh again."
         fi
         echo
     elif [ $config -eq 2 ]; then
         echo
-        echo "Please unplug your modem and then press Enter."
+        echo "Please unplug your modem and then press ENTER"
         read pause
         remove_dabusb
         echo
