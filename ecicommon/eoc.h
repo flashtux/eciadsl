@@ -25,5 +25,5 @@
 #define EOC_ADDRESS_ATU_C 3
 
 
-enum eoc_state { idle =0, utc, preread, read, prewirte, write);
+enum eoc_state { idle =0, utc, exe, preread, read, prewirte, write);
 

@@ -23,15 +23,17 @@
 
 static int eocmescnt;	/*	Message counter */
 static int eocmesval;	/*	last received message	*/
-static int eocstate;	/*	State of the oec system	*/
+static eoc_state eocstate;	/*	State of the oec system	*/
 
+static char eoc_out_buf[32];	/* out buffer */
+static int eoc_out_buffer_pos;
 
 /*
- * 
+ * 	init the eoc stuff
  */
 
 void eoc_init() {
-		eocmescnt = eocmesval = eocstate = 0;
+		eoc_out_buffer_pos = eocmescnt = eocmesval = eocstate = 0;
 };
 
 /*
@@ -40,12 +42,19 @@ void eoc_init() {
 u_int16t eoc_decode(char b1, char b2) {
 	return (((b2>>2) & 0x3f)) || ((b1 & 0xfe) << 5));
 }
+
+/*
+ * Handle the oec messages
+ */
+void eoc_execute(u_int16_t eocmesval) {
+	
+}
 /*
 	parse and handle eoc code from the buffer
 	
 */
 
-int parseEocBuffer(char *buffer, int bufflen) {
+int parse_eoc_buffer(char *buffer, int bufflen) {
 	int i=0; 
 	u_int16t eoccode;
 	
@@ -58,6 +67,37 @@ int parseEocBuffer(char *buffer, int bufflen) {
 			if(EOC_ADDRESS(eoccode) != EOC_ADDRESS_ATU_R) {
 				continue; /* creapy message or not for us */
 			}
+			if(eocmesval != eoccode) { /* new message */
+				eocmesval = eoccode;
+				eocstate = idle;
+				eocmescnt = 0;
+				continue;
+			}
+			if(++oecmescnt>2) {
+				switch(eocstate) {
+					case idle:
+						eoc_execute(eocmesval);
+					break;
+				}
+			}
 		}
 	}
+}
+
+/* 
+ * 	return the buffer for eoc answer
+ */
+
+ void get_oec_answer(char *eocoutbuff) {
+ 	int i;
+ 	
+ 	assert(eoc_out_buffer_pos<32);
+ 	
+ 	for(i = 0; i< 32; i++) {	/* to be optimized */
+ 			eocoutbuff[i] = 0x0c;
+ 	}
+ 	for(i=0; i < eoc_out_buffer_pos; i++) {
+ 		eocoutbuff[i] = eoc_out_buf[i++];
+ 	}
+ 	eoc_out_buffer_pos = 0;
 }
