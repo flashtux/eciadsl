@@ -48,6 +48,7 @@ int main(int argc, char** argv)
 	short int word;
 
 	word=0x00FF;
-	fprintf(stdout, OS " (%s endian)", *(&word)?"little":"big");
+	fprintf(stdout, OS " (%s endian), c:%d si:%d i:%d li:%d", *(&word)?"little":"big",
+		sizeof(char), sizeof(short int), sizeof(int), sizeof(long int));
 	return(0);
 }
