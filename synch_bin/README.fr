@@ -147,6 +147,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch49.bin (généré en Suisse/Bern, fournisseur Sunrise, Multimode)
 	synch50.bin (généré en France/Domont, fournisseur Club Internet, T1.413)
 	synch51.bin (généré en Suisse, fournisseur Netstream, T1.413)
+	synch52.bin (généré en France, fournisseur Club Internet, G.DMT)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
