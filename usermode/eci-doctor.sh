@@ -4,7 +4,10 @@
 # Creation: 01/02/2002
 
 # 02/02/2002: added the permission check for check-hdlc & check-hdlc-bug
-# 07/02/2002: added check on the pppd output
+# 07/02/2002: added check on the pppd output. added the CVS Id.
+
+# CVS $Id$
+# Tag $Name$
 
 if [ `whoami` != "root" ]; then
 	echo "You need to be root (type su)" ;
