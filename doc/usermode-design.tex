@@ -1,0 +1,145 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[colorlinks,urlcolor=blue,linkcolor=blue]{hyperref}
+
+\begin{document}
+
+\title{\huge{Design of a usermode driver for the ECI ADSL USB modem}}
+\author{Benoît PAPILLAULT, \href{mailto:benoit.papillault@free.fr}{benoit.papillault@free.fr}}
+
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+This document was started March 2003, 04. There is a need of a totally
+new design for the usermode driver, since :
+
+\begin{itemize}
+\item the current driver is based on a lot of workaround in the USB
+filesystem. This can result to buggy driver anytime someone make a
+modification.
+\item the current driver is using ISO USB transfers which seems to be
+the reason of most disconnections.
+\end{itemize}
+
+The new design has to be modular.
+
+\section{Basic design}
+
+The role of the current driver is to make a link between the USB
+filesystem where the ECI ADSL USB modem is accessible and the PPP
+layer. This is done through the binary \textit{pppoeci} which is
+launch by \textit{pppd}. \textit{pppd} and \textit{pppoeci}
+communicate through stdin and stdout.
+
+But currently, \textit{pppoeci} is just a big program, not a modular
+program.
+
+\section{Modular design}
+
+The aim of any modular design is to separate functionality:
+
+\begin{itemize}
+\item USB access should be handled by a separate library, that should
+be ported to several Unices, like Linux and BSD (OpenBSD, NetBSD,
+FreeBSD).
+\item PPP access should be done through a layer of module, one module
+handling only its own layer.
+\item Modem access should be done by a separate module. In this way,
+we can hope to handle several modem using different protocols (like
+the ECI ADSL USB modem and the Speedtouch modem).
+\end{itemize}
+
+\section{USB library}
+
+To avoid having to deal with OS differences, this library should be
+complete. To be used in different projects, this library should be packaged
+separately. The package name will be \textbf{pusb}.
+
+\subsection{USB library : initialisation and destruction}
+
+To initialize the library:
+
+\begin{verbatim}
+pusb\_init();
+\end{verbatim}
+
+To free all the memory internally allocated by the library:
+
+\begin{verbatim}
+pusb\_done();
+\end{verbatim}
+
+\subsection{USB library : enumerating devices}
+
+The first step is to enumerate devices to find the one you want to handle:
+
+\begin{verbatim}
+int pusb\_enumerate\_first();
+\end{verbatim}
+
+\begin{verbatim}
+int pusb\_enumerate\_next();
+\end{verbatim}
+
+\subsection{Opening and closing USB devices}
+
+\begin{verbatim}
+pusb\_device\_t pusb\_open(const char *path);
+
+int pusb\_close(pusb\_device\_t dev);
+\end{verbatim}
+
+\subsection{USB library : sending and receiving data}
+
+A USB device can handle 4 types of transfers :
+\begin{itemize}
+\item CTRL transfers
+\item BULK transfers
+\item INT  transfers
+\item ISO tranfers
+\end{itemize}
+
+\subsubsection{CTRL transfers}
+
+int pusb\_control\_msg(pusb\_device\_t dev,
+		     int request\_type, int request,
+		     int value, int index, 
+		     unsigned char *buf, int size, int timeout);
+
+\subsubsection{BULK transfers}
+
+\begin{verbatim}
+int pusb\_endpoint\_read(pusb\_endpoint\_t ep, 
+		       unsigned char *buf, int size, int timeout);
+
+int pusb\_endpoint\_write(pusb\_endpoint\_t ep, 
+			const unsigned char *buf, int size, int timeout);
+\end{verbatim}
+
+\subsubsection{INT transfers}
+
+\subsubsection{ISO transfers}
+
+\subsection{USB library : how to use it}
+
+At the top of your source code, just add:
+
+\begin{verbatim}
+#include <pusb.h>
+\end{verbatim}
+
+In your \textbf{Makefile}, add the following:
+
+\begin{verbatim}
+LDLIBS += -lpusb
+\end{verbatim}
+
+\section{modem library}
+
+\section{layer module}
+
+\end{document}
+
