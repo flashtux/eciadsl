@@ -1821,6 +1821,10 @@ static int eci_atm_receive_cell(
 	struct atm_vcc *vcc;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,22))	
 	struct sock *s;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+	struct hlist_head *head;
+	int i;
+#endif
 #endif
 	
 	/* Check Interface */
@@ -1834,15 +1838,25 @@ static int eci_atm_receive_cell(
 		return -ENXIO ;
 	} 
 #else
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 	read_lock(vcc_sklist_lock);
-	for(s = vcc_sklist; s->s; s = s->next)
+	for(s = vcc_sklist; s; s = s->next)
 	{
 		vcc = s->protinfo.af_atm;
 		if(vcc->dev == pinstance) break;
-		
 	}
 	read_unlock(vcc_sklist_lock);
 	if(!s)	return -ENXIO ;
+#else
+	for(i=0; i< VCC_HTABLE_SIZE; i++) {
+		head = &vcc_hash[i];
+		sk_for_each(s, node, head) {
+				vcc = s->protinfo.af_atm;
+				if(vcc->dev == pinstance) break;
+		}
+		if(vcc->dev == pinstance) break;
+	}
+	if(vcc->dev != pinstance) return -ENXIO;
 #endif
 
  	/* Manage backlog AAL5 */
