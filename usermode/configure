@@ -4,7 +4,7 @@
 # TODO: check for modules.conf location (warn if conf.modules is found)
 # TODO: better version string detection (for exotic debian gcc versions for instance)
 
-VERSION="0.0.4"
+VERSION="0.0.5"
 
 
 function version()
@@ -454,8 +454,9 @@ function maintainer_defaults()
 		let DEBUG=1
 		let WARNINGS=1
 		let PPPD_CHECK=1
-		DIST_PREFIX_DEFAULT="$(pwd)/dist"
-		DIST_ETC_PREFIX_DEFAULT="$(pwd)/dist"
+		DIST_PREFIX="$(pwd)/dist"
+		DIST_ETC_PREFIX="$(pwd)/dist"
+		DIST_CONF_PREFIX="$(pwd)/dist"
 	fi
 }
 
