@@ -38,8 +38,8 @@
 #include "modem.h"
 
 #define TIMEOUT 2000
-#define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enought */
-#define ECILOAD_TIMEOUT 100
+#define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enough */
+#define ECILOAD_TIMEOUT 60
 
 /* just for testing without USB */
 /*#define TESTECI*/
@@ -225,11 +225,12 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 }
 
 int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
-			  int option_verbose)
+			  int option_verbose, uint option_timeout)
 {
 	FILE* fp ;
 	struct usb_block block;
-	long size ;
+	long size, foo;
+	uint approx_timeout;
 	pusb_device_t dev;
 	int n = 0, r, i;
 
@@ -247,6 +248,20 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
 	fseek(fp, 0, SEEK_SET);
+
+	/* divide by 1024, div0 exception free */
+	approx_timeout=size>>10;
+	/* substract 1/1000 of its squared elevation (non linear) */
+	foo=(approx_timeout*approx_timeout)/1000;
+	approx_timeout-=foo;
+	if (approx_timeout<ECILOAD_TIMEOUT)
+		approx_timeout=ECILOAD_TIMEOUT;
+	if (option_timeout==0)
+		option_timeout=approx_timeout;
+	if (option_verbose)
+		printf("timeout set to %usec\n", option_timeout);
+
+	alarm(option_timeout);
 
 	/* open the USB device */
 #ifndef TESTECI
@@ -535,8 +550,7 @@ int main(int argc, char** argv)
 
 	signal(SIGUSR1, sigusr1);
 	signal(SIGALRM, sigtimeout);
-	alarm(option_timeout?option_timeout:ECILOAD_TIMEOUT);
-	if (!eci_load2(file, vid2, pid2, option_verbose))
+	if (!eci_load2(file, vid2, pid2, option_verbose, option_timeout))
 	{
 		printf("ECI load 2: failed\n");
 		fflush(stdout);
