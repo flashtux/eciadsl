@@ -1092,7 +1092,13 @@ int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf) {
 #ifdef __USE_ATM__
 
 /*----------------------------------------------------------------------*/
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci) {
+#else
+static int eci_atm_open(struct atm_vcc *vcc) {
+	int vpi = vcc->vpi;
+	int vci = vcc->vci;
+#endif
 	int lv_rc ;
 	
 	DBG_OUT("eci_atm_open in [%hd.%d]\n", vpi, vci);
@@ -1940,7 +1946,6 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 	size_t			lv_size ;
 	struct sk_buff *	lp_skb		= NULL ;
 	struct sock *s;
-	struct atm_vcc *vcc;
 	byte *			lp_data		= NULL ;
 
 	/* Check Interface */
