@@ -273,7 +273,7 @@ fi
 echo -e "\nsetting up modem (3/5)..\n"
 CNT=1
 RET=$CNT
-while [ $CNT -le $synch_attempts ]; do
+while [ $CNT -le $synch_attempts -a $RET -ne 0 ]; do
 	"$BIN_DIR/eci-load2" $eciload2_options
 	RET=$?
 	sleep 1
