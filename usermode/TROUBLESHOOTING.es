@@ -57,7 +57,7 @@ P:	Obtengo el siguiente error cuando ejecuto `make` o `make install`:
 	make: *** No rule to make target `Makefile.config'. Stop.
 
 --------------------------------------------------------------------------------
-R:	¡Usted ejecuto `./configure`? Usted debe poseer una versión >=0.6-pre4!
+R:	¡Usted ejecuto `./configure`? Usted debe poseer una versión >= 0.6-pre4!
 
 
 1.3
@@ -138,7 +138,7 @@ R:	La mayoría de las personas los necesita (excepto aquéllos que usan DHCP por
 	manera de obtener esta información incluso bajo MS Windows. Aquí se muestra
 	la manera para obtener esta información desde Linux, ejecute el siguiente
 	comando:
-		>host -n dn <nombre de dominio del proveedor>
+		> host -n dn <nombre de dominio del proveedor>
 
 	Este comando le devuelve un cantidad de nombres de servidores DNSs. Usted
 	puede ejecutar el comando ping sobre algunos de ellos para obtener las
@@ -151,7 +151,7 @@ R:	La mayoría de las personas los necesita (excepto aquéllos que usan DHCP por
 		clix.com. name server ns7.dnsmanaged.com.
 		clix.com. name server ns6.dnsmanaged.com.
 
-		>ping -c 1 -q ns4.dnsmanaged.com
+		> ping -c 1 -q ns4.dnsmanaged.com
 		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99: 56(84) bytes of
 		data.
 		--- ns4.dnsmanaged.com ping statistics---
@@ -176,7 +176,7 @@ P:	los mensajes emitidos por startmodem, eciconf o eci-doctor indican:
 R:	Verifique la configuración USB de su sistema. Esto puede ser debido a una
 	falta de soporte para el usbdevfs en su configuración del kernel. Si el
 	kernel tiene el soporte para él, pruebe montarlo usando:
-		>mount -t usbdevfs none /proc/bus/usb
+		> mount -t usbdevfs none /proc/bus/usb
 	Esto puede ponerse en su archivo /etc/fstab.
 	Para conseguir que sea montado automaticamente en momento de la
 	inicialización del sistema, agregue esta línea:
@@ -213,7 +213,7 @@ R:	Hotplug probablemente esté habilitado, y este detecta sus módems como un
 	(en /usr/local/bin por omisión).
 
 	O manualmente digite el siguiente comando:
-		>modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
+		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	Si este kernel ha sido compilado a mano, también no se olvide de quitar el
 	soporte dabusb de la configuración del kernel.
@@ -261,16 +261,16 @@ R:	Siga los pre-requisitos, lea la documentación sobre el problema del N_HDLC.
 
 	Si usted quiere usar la opcion 'persistente' del pppd para reconectar
 	automáticamente cuando es desconectado del proveedor de servicios, usted
-	tendrá que parchar el kernel o use un kernel >=2.4.18-pre3.
+	tendrá que parchar el kernel o use un kernel >= 2.4.18-pre3.
 	Usted puede encontrar el parche n_hdlc.c.diff en el archivo de los drivers
 	del módem Speedtouch en: http://speedtouch.sourceforge.net /.
 	Éstas son las instrucciones sobre cómo usarlo:
-		>cd /usr/src/linux
-		>patch -p1--dry-run < /path/to/n_hdlc.c.diff
+		> cd /usr/src/linux
+		> patch -p1--dry-run < /path/to/n_hdlc.c.diff
 
 	Si ningún mensaje del error ha sido devuelto por el comando anterior, digite
 	la siguiente línea para realizar la corrección del fuente:
-		>patch -p1 < /path/to/n_hdlc.c.diff
+		> patch -p1 < /path/to/n_hdlc.c.diff
 	una vez realizado esto valla a la pregunta de configuración del kernel
 	(5.3).
 
@@ -368,7 +368,7 @@ R:	Vea 4.0.
 	Si usted todavía no puede acceder un host por su nombre usando el comando
 	nslookup, pruebe los siguientes comandos y nos informa los resultados:
 
-	>route -n (o netstat -rn)
+	> route -n (o netstat -rn)
 
 	  Kernel IP routing table
 	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
@@ -381,7 +381,7 @@ R:	Vea 4.0.
 	  debe, diferir de 10.0.0.0 (si es que usted tiene uno).
 	  La línea de UG debe aparecer, esto indica la ruta predefinida al gateway.
 
-	>ifconfig ppp0
+	> ifconfig ppp0
 
 	  ppp0    Link encap:Point-to-Point Protocol
         	  inet addr:80.14.50.227 P-t-P:80.14.50.1 Mask:255.255.255.255
@@ -398,13 +398,13 @@ R:	Vea 4.0.
 
 	Si la ruta predefinida (UG) esta configurada para la interfaz eth0, quítela
 	utilizando el siguiente comando:
-		>route del default dev eth0
+		> route del default dev eth0
 	o quite la línea de "gateway" de su archivo /etc/sysconfig/network, o
 	desactive su red LAN antes de ejecutar el comando startmodem.
 
 	Si la ruta predefinida no es configurada a la interfaz ppp0 aun cuando el
 	ppp0 esté activo, realice el siguiente comando:
-		>route add default dev ppp0
+		> route add default dev ppp0
 
 	Esto puede ser un problema del firewall. Intente desactivarlo, si esto
 	ahora funciona, usted tiene que ajustar la configuración de su firewall.
@@ -686,11 +686,11 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 
 
 	Copie el archivo rc.adsl a /etc/init.d:
-		>cp rc.adsl /etc/init.d
+		> cp rc.adsl /etc/init.d
 	(al archivo rc.adsl se proporciona con la versión >= 0.7 (o CVS))
 
 	Para Debian, simplemente digite como root:
-	>update-rc.d rc.adsl defaults 15
+		> update-rc.d rc.adsl defaults 15
 
 	Para otras distribuciones, vea mas adelante:
 
@@ -700,7 +700,7 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	3), de cualquier modo /etc/rc.d/rc5.d pertenece a ese nivel.
 
 	Usted encontrará más información sobre los niveles de inicialización:
-		>man inittab
+		> man inittab
 	o mire su archivo /etc/inittab.
 
 	Para saber qué nivel de inicialización predefinido se alcanza en el
@@ -725,7 +725,7 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	alfabético ascendente).
 
 	Por ejemplo:
-		>ls /etc/rc.d/rc5.d
+		> ls /etc/rc.d/rc5.d
 	shows
 		S01foo
 		S15bar
@@ -742,8 +742,8 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 
 	Ahora usted sabe cómo todo este material trabaja, usted puede hacer los
 	enlaces pertinentes a /etc/init.d en /etc/rc.d/rc5.d:
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
 	Antes que usted cree estos enlaces, asegurese que el archivo S90 es
 	relevante, esto significa que S90* será llamado después de todos los otros
@@ -756,9 +756,9 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	usted puede probarlos mediante la reinicialización de su sistema.
 	Usted también puede probarlos sin reiniciar: cierre su sesión de X11, abra
 	una sesión root en modo consola, entonces:
-		>init 3
+		> init 3
 	luego
-		>init 5
+		> init 5
 	¿Entendido lo que hace? Significa dejando el nivel de inicialización 5 yendo
 	al nivel de inicialización 3, luego, ¡regresando al nivel de inicialización
 	5. ¡Los enlaces relevantes S* y K* serán llamados!
@@ -789,8 +789,8 @@ P:	Cómo configuro adecuadamente el kernel a partir de los fuentes para obtener
 
 --------------------------------------------------------------------------------
 R:	Digite los siguientes comandos:
-		>cd /usr/src/linux
-		>make -s menuconfig
+		> cd /usr/src/linux
+		> make -s menuconfig
 
 		  USB support --->
 		  <M> Support for USB
@@ -834,7 +834,7 @@ R:	Digite los siguientes comandos:
 	Usuarios PPPoE o IPoATM, por favor, refiéranse a 5.3.1.
 
 	Una vez el archivo de configuración del kernel ha sido guardado, digite:
-		>make -s dep modules modules_install && depmod -a
+		> make -s dep modules modules_install && depmod -a
 	o el comando que usted use para compilar e instalar los módulos del kernel.
 	Por supuesto su configuración completa del kernel debe ponerse
 	adecuadamente, y el soporte de módulos cargables activado.
@@ -872,7 +872,7 @@ R:	Digite los siguientes comandos:
 	or	alias usb-hostadapter usb-ohci
 	or	alias usb-hostadapter uhci
 	entonces
-		>touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+		> touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
 5.3.1
@@ -895,9 +895,9 @@ R:	La configuración del kernel y principios de la compilación todavía son los
 	  <M> PPP over ATM (EXPERIMENTAL)
 
 	entonces digite:
-		>mkdir /dev/net
-		>mknod /dev/net/tun0 c 10 200
-		>ln -s /dev/net/tun0 /dev/net/tun
+		> mkdir /dev/net
+		> mknod /dev/net/tun0 c 10 200
+		> ln -s /dev/net/tun0 /dev/net/tun
 
 	Usuarios PPPoE: lean el archivo INSTALL, hay algunos programas que ustedes
 	necesitan instalar y configurar.
@@ -1070,7 +1070,7 @@ R:	Simplemente asegurese que sudo esta instalado en su sistema.
 	la misma línea para un username y el path/name del script que desea que
 	ejecuten.
 	Los usuarios autorizados ahora pueden ejecutar el startmodem, digitando:
-		>sudo startmodem
+		> sudo startmodem
 
 	Vea ahora 5.13.
 
@@ -1082,11 +1082,11 @@ P:	Cuando ejecuto sudo startmodem, obtengo este error:
 
 --------------------------------------------------------------------------------
 R:	En la consola o terminal como root, digite:
-		>PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
 	Si esto funciona, agregue la línea siguiente a su usuario normal ~/.bashrc o
 	~/.profile (*):
-		>export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+		> export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
 
 	La próxima vez que usted abra un terminal (si usted ha modificado ~/.bashrc)
 	o la proxima vez que Ud. realice login en la consola o en el ambiente

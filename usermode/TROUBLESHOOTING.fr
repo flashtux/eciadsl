@@ -55,7 +55,7 @@ Q:	J'obtiens l'erreur suivante lorsque je fais un `make` ou `make install` :
 
 --------------------------------------------------------------------------------
 R:	Avez-vous lancé `./configure` ? Vous devriez !
-	(version >=0.6-pre4 seulement)
+	(version >= 0.6-pre4 seulement)
 
 
 1.3
@@ -129,7 +129,7 @@ R:	La plupart des utilisateurs en ont en effet besoin (ce n'est pas le cas de
 	celui-ci vous a envoyé, ou encore dans la config MS Windows un fois installé
 	un éventuel CD de connexion, sachez qu'il existe des moyens de les obtenir !
 	En voici un, sous Linux :
-		>host -n dn <le nom de domaine de votre provider>
+		> host -n dn <le nom de domaine de votre provider>
 
 	Cela vous donne une liste de noms de DNS. Vous pouvez alors faire un ping
 	sur quelques un d'entre eux afin d'en obtenir l'adress IP.
@@ -165,7 +165,7 @@ Q:	startmodem ou eci-doctor.sh affiche :
 R:	Vérifiez votre configuration USB. Cela pourrait être lié à l'absence de
 	support usbdevfs dans la configuration de votre noyau. Si le noyau l'inclut,
 	essayez de le monter en tapant :
-		>mount -t usbdevfs none /proc/bus/usb
+		> mount -t usbdevfs none /proc/bus/usb
 	Ceci peut être mis dans votre /etc/fstab. Pour le monter automatiquement au
 	boot, ajoutez cette ligne :
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
@@ -198,7 +198,7 @@ R:	A priori, hotplug est le coupable. Il détecte votre modem comme étant un
 	par défaut).
 
 	Ou encore, manuellement, tapez la commande suivante :
-		>modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
+		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	Si le noyau a été compilé à la main, n'oubliez pas de retirer dabusb de la
 	configuration du noyau.
@@ -243,16 +243,16 @@ R:	Suivez les pré-requis, lisez la documentation en rapport au problème N_HDLC.
 
 	Si vous voulez utiliser l'option 'persist' de pppd pour vous reconnecter
 	automatiquement en cas de déconnection du fournisseur, alors vous devez
-	patcher votre noyau ou utiliser un noyau >=2.4.18-pre3.
+	patcher votre noyau ou utiliser un noyau >= 2.4.18-pre3.
 	Vous trouverez le patch n_hdlc.c.diff dans l'archive du driver pour le modem
 	Speedtouch ici : http://speedtouch.sourceforge.net/.
 	Les instructions pour l'installer sont les suivantes :
-		>cd /usr/src/linux
-		>patch -p1 --dry-run < /chemin/vers/n_hdlc.c.diff
+		> cd /usr/src/linux
+		> patch -p1 --dry-run < /chemin/vers/n_hdlc.c.diff
 
 	S'il n'y a pas de message d'erreur à la suite de la commande précédente,
 	tapez la commande suivante pour appliquer le patch sur les sources :
-		>patch -p1 < /chemin/vers/n_hdlc.c.diff
+		> patch -p1 < /chemin/vers/n_hdlc.c.diff
 	et consultez la question sur la configuration du noyau (5.3).
 
 
@@ -347,7 +347,7 @@ R:	Voir la question 4.0.
 
 	Si vous ne pouvez toujours pas atteindre un nom de domaine avec nslookup,
 	essayez les commandes suivantes et envoyez-nous la sortie :
-	>route -n (ou netstat -rn)
+	> route -n (ou netstat -rn)
 
 	  Kernel IP routing table
 	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
@@ -361,7 +361,7 @@ R:	Voir la question 4.0.
 	  La ligne UG doit apparaître, elle indique la route par défaut vers le
 	  gateway.
 
-	>ifconfig ppp0
+	> ifconfig ppp0
 
 	  ppp0    Link encap:Point-to-Point Protocol  
 			  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
@@ -377,13 +377,13 @@ R:	Voir la question 4.0.
 	/var/log/messages ou /var/log/ppp après avoir lancé startmodem.
 
 	Si la route par défaut (UG) est eth0, supprimez-là :
-		>route del default dev eth0
+		> route del default dev eth0
 	ou supprimez la ligne passerelle ("gateway") de votre
 	/etc/sysconfig/network, ou encore désactivez votre réseau LAN avant de
 	lancer startmodem.
 
 	Si votre route par défaut n'est PAS ppp0 bien que ppp0 soit actif :
-		>route add default dev ppp0
+		> route add default dev ppp0
 
 	Cela peut etre un problème de firewall. Essayez de désactiver le firewall,
 	si ça marche ensuite, vous devez juste changer les paramètres du firewall.
@@ -661,7 +661,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	   http://eciadsl.flashtux.org/download.php
 
 	Copier le fichier rc.adsl vers /etc/init.d :
-		>cp rc.adsl /etc/init.d
+		> cp rc.adsl /etc/init.d
 	(le fichier rc.adsl est fourni avec les versions >= 0.7 (ou CVS))
 
 	Sous Debian, tapez simplement en root : update-rc.d rc.adsl defaults 15
@@ -675,7 +675,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	À ce runlevel 5 correspond donc le répertoire /etc/rc.d/rc5.d.
 
 	Vous trouverez plus d'informations à propos des ces init-levels en tapant :
-		>man inittab
+		> man inittab
 	ou en jetant un oeil à votre /etc/inittab.
 
 	Afin de savoir quel est l'init-level par défaut au démarrage de votre
@@ -698,7 +698,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	xx, puis par ordre alphabétique croissant de yyyyy.
 
 	Par exemple :
-		>ls /etc/rc.d/rc5.d
+		> ls /etc/rc.d/rc5.d
 	affiche
 		S01dupond
 		S15dupont
@@ -715,8 +715,8 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	Maintenant vous en savez un peu plus sur le fonctionnement des init-level
 	vous pouvez donc créer les liens symboliques vers /etc/init.d dans
 	/etc/rc.d/rc5.d :
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
 	Avant de créer ces liens, assurez-vous que 90 est un chiffre pertinent, au
 	sens ou il doit être disponible :-), mais aussi que S90 sera exécuté après
@@ -728,9 +728,9 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	Vous pouvez toutefois faire le test sans avoir à redémarrer : fermez tous
 	vos applications, ainsi que vos sessions X11 ou console. Logguez-vous sous
 	root en mode console, puis changez d'init-level en tapant :
-		>init 3
+		> init 3
 	puis revenez à votre init-level normal en tapant :
-		>init 5
+		> init 5
 	Vous voyez ce dont il s'agit ? En quittant l'init-level 5 pour l'init-level
 	3 puis en revenant à l'init-level 5, les fichiers K* et S* correspondants
 	aux init-levels quittés et entrés sont appelés !
@@ -761,8 +761,8 @@ Q:	Comment configurer correctement le noyau depuis les sources pour inclure le
 
 --------------------------------------------------------------------------------
 R:	Tapez les commandes suivantes :
-		>cd /usr/src/linux
-		>make -s menuconfig
+		> cd /usr/src/linux
+		> make -s menuconfig
 
 		  USB support --->
 		  <M> Support for USB
@@ -807,7 +807,7 @@ R:	Tapez les commandes suivantes :
 	IPoATM, consultez la question 5.3.1.
 
 	Une fois le fichier de configuration du noyau sauvegardé, tapez :
-		>make -s dep modules modules_install && depmod -a
+		> make -s dep modules modules_install && depmod -a
 	ou la commande que vous utilisez habituellement pour compiler et installer
 	les modules du noyau.
 	Bien entendu, il faut que votre configuration soit correcte, et que le
@@ -844,7 +844,7 @@ R:	Tapez les commandes suivantes :
 	ou	alias usb-hostadapter usb-ohci
 	ou	alias usb-hostadapter uhci
 	et enfin tapez :
-		>touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+		> touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
 5.3.1
@@ -867,9 +867,9 @@ R:	Les principes de configuration et de compilation du noyau sont les mêmes
 		<M> PPP over ATM (EXPERIMENTAL)
 
 	puis tapez :
-		>mkdir /dev/net
-		>mknod /dev/net/tun0 c 10 200
-		>ln -s /dev/net/tun0 /dev/net/tun
+		> mkdir /dev/net
+		> mknod /dev/net/tun0 c 10 200
+		> ln -s /dev/net/tun0 /dev/net/tun
 
 	Utilisateurs de PPPoE : lisez le fichier INSTALL.fr, il y a un outil
 	supplémentaire à installer et configurer.
@@ -1044,7 +1044,7 @@ R:	Assurez-vous que sudo est installé sur votre système.
 	startmodem.
 	Vous pouvez faire de me pour plusieurs utilisateurs ou scripts différents.
 	L'utilisateur peut dorénavant lancer startmodem ainsi :
-		>sudo startmodem
+		> sudo startmodem
 
 	Passez à la question 5.13 maintenant.
 
@@ -1056,11 +1056,11 @@ Q:	Quand je lance sudo startmodem, j'ai cette erreur :
 
 --------------------------------------------------------------------------------
 R:	Dans la console ou dans un terminal, sous root, tapez :
-		>PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
 	Si cela fonctionne, ajoutez la ligne suivante au ~/.bashrc ou au ~/.profile
 	de votre utilisateur favori (*) :
-		>export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+		> export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
 
 	La prochaine fois que vous ouvrirez un terminal (si vous avez modifié
 	~/.bashrc) ou que vous vous loguerez en console (si vous avez modifié

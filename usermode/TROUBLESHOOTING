@@ -55,7 +55,7 @@ Q:	I get the following error when I run `make` or `make install`:
 
 --------------------------------------------------------------------------------
 A:	Did you run `./configure`? You should have!
-	(>=0.6-pre4 only)
+	(>= 0.6-pre4 only)
 
 
 1.3
@@ -126,7 +126,7 @@ A:	Most people need them (except those who use ISP DHCP for instance), if you
 	can't find them at your provider's website or in the configuration CD or the
 	paper they've send to you, or even under MS Windows, there's a way to guess
 	them. Here is the way to do this under Linux:
-		>host -n dn <your provider domain name>
+		> host -n dn <your provider domain name>
 
 	This returns you a bunch of DNS server names. You can ping some of them in
 	order to get the IP.
@@ -161,7 +161,7 @@ Q:	startmodem, eciconf or eci-doctor's output shows:
 A:	Check your system's USB configuration. This may be due to a lack of support
 	for usbdevfs in your kernel configuration. If kernel has support for it, try
 	to mount it using:
-		>mount -t usbdevfs none /proc/bus/usb
+		> mount -t usbdevfs none /proc/bus/usb
 	This can be set in your /etc/fstab. To get his automounted at boot time,
 	add this line:
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
@@ -194,7 +194,7 @@ A:	Hotplug is probably enabled, and it wrongly detects your modems as an audio
 	You can also directly call remove_dabusb (in /usr/local/bin by default).
 
 	Or, manually type the following command:
-		>modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
+		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	If this kernel has been compiled by hand, don't forget to remove dabusb
 	support from the kernel configuration too.
@@ -238,16 +238,16 @@ A:	Follow the pre-requisites, read the documentation about the N_HDLC problem.
 
 	If you want to use the 'persist' option of pppd in order to reconnect
 	automatically when disconnected from the provider, then you will have to
-	patch your kernel or use a kernel >=2.4.18-pre3.
+	patch your kernel or use a kernel >= 2.4.18-pre3.
 	You can find the patch n_hdlc.c.diff in the drivers' archive of the
 	Speedtouch modem: http://speedtouch.sourceforge.net/.
 	These are instructions about how to use it:
-		>cd /usr/src/linux
-		>patch -p1 --dry-run < /path/to/n_hdlc.c.diff
+		> cd /usr/src/linux
+		> patch -p1 --dry-run < /path/to/n_hdlc.c.diff
 
 	If no error message is returned by the previous command, type the following
 	line to make the source's patch:
-		>patch -p1 < /path/to/n_hdlc.c.diff
+		> patch -p1 < /path/to/n_hdlc.c.diff
 	then jump to the kernel configuration question (5.3).
 
 
@@ -338,7 +338,7 @@ A:	See 4.0.
 
 	If you still cannot access a hostname using nslookup, try the following
 	commands and report us the output:
-	>route -n (or netstat -rn)
+	> route -n (or netstat -rn)
 
 	  Kernel IP routing table
 	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
@@ -351,7 +351,7 @@ A:	See 4.0.
 	  differ from 10.0.0.0 (if you have one).
 	  The UG line must appear, this indicates the default route to the gateway.
 
-	>ifconfig ppp0
+	> ifconfig ppp0
 
 	  ppp0    Link encap:Point-to-Point Protocol  
 			  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
@@ -366,12 +366,12 @@ A:	See 4.0.
 	/var/log/ppp after having launched startmodem.
 
 	If the default route (UG) is set to eth0, remove it:
-		>route del default dev eth0
+		> route del default dev eth0
 	or remove the "gateway" line from your /etc/sysconfig/network, or disable
 	your LAN network before launching startmodem.
 
 	If the default route is NOT set to ppp0 even if ppp0 is up:
-		>route add default dev ppp0
+		> route add default dev ppp0
 
 	This may be a firewall issue. Try to disable your firewall, if this works
 	now, you have to adjust your firewall's settings.
@@ -631,7 +631,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	   http://eciadsl.flashtux.org/download.php?lang=en
 
 	Copy the rc.adsl file to /etc/init.d:
-		>cp rc.adsl /etc/init.d
+		> cp rc.adsl /etc/init.d
 	(the rc.adsl file is provided with version >= 0.7 (or CVS))
 
 	For Debian, just type as root: update-rc.d rc.adsl defaults 15
@@ -644,7 +644,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	belongs to that level.
 
 	You will find more information about init levels:
-		>man inittab
+		> man inittab
 	or look at your /etc/inittab file.
 
 	To know which default init level is reached at boot, find a line like the
@@ -667,7 +667,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	by the service name (yyyyy, alphabetical increasing order).
 
 	For instance:
-		>ls /etc/rc.d/rc5.d
+		>l s /etc/rc.d/rc5.d
 	shows
 		S01foo
 		S15bar
@@ -683,8 +683,8 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 
 	Now you know how all this stuff works, you can make the relevant links to
 	/etc/init.d in /etc/rc.d/rc5.d:
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
 	Before you create these links, ensure that the S90 is relevant, this means
 	that S90* will be called after all other network services.
@@ -695,9 +695,9 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	Once all the symlinks are done, you can test it by rebooting your system.
 	You can also test it without rebooting: close your X11 session, open a
 	root session in console mode, then:
-		>init 3
+		> init 3
 	then
-		>init 5
+		> init 5
 	Understood what it does? It means leaving init level 5 to init level 3, then
 	coming back to init level 5. The relevant S* and K* links will be called!
 
@@ -726,8 +726,8 @@ Q:	How to properly configure kernel from the sources to get USB/PPP/N_HDLC
 
 --------------------------------------------------------------------------------
 A:	Type the following commands:
-		>cd /usr/src/linux
-		>make -s menuconfig
+		> cd /usr/src/linux
+		> make -s menuconfig
 
 		  USB support --->
 		  <M> Support for USB
@@ -771,7 +771,7 @@ A:	Type the following commands:
 	refer to 5.3.1.
 
 	Once the kernel configuration file stored, type:
-		>make -s dep modules modules_install && depmod -a
+		> make -s dep modules modules_install && depmod -a
 	or whatever command you use to compile and install the kernal modules.
 	Of course your whole kernel config must be properly set, and the loadable
 	module support turned ON.
@@ -807,7 +807,7 @@ A:	Type the following commands:
 	or	alias usb-hostadapter usb-ohci
 	or	alias usb-hostadapter uhci
 	then
-		>touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+		> touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
 5.3.1
@@ -830,9 +830,9 @@ A:	The kernel configuration and compilation principles are still the same
 		<M> PPP over ATM (EXPERIMENTAL)
 
 	then type:
-		>mkdir /dev/net
-		>mknod /dev/net/tun0 c 10 200
-		>ln -s /dev/net/tun0 /dev/net/tun
+		> mkdir /dev/net
+		> mknod /dev/net/tun0 c 10 200
+		> ln -s /dev/net/tun0 /dev/net/tun
 
 	PPPoE users: read the INSTALL file, there's some software you need to
 	install and configure.
@@ -996,7 +996,7 @@ A:	Simply ensure that sudo is installed on your system.
 	You can do this for many users or different scripts, adding the same line
 	with a relevant username and script path/name.
 	Granted users can now run startmodem, typing:
-		>sudo startmodem
+		> sudo startmodem
 
 	See 5.13 now.
 
@@ -1008,11 +1008,11 @@ Q:	When I run sudo startmodem, I get this error:
 
 --------------------------------------------------------------------------------
 A:	In the console or terminal as root, type:
-		>PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
 	If this works, add the following line to your normal user's ~/.bashrc or
 	~/.profile (*):
-		>export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+		> export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
 
 	Next time you will open a terminal (if you've modified ~/.bashrc) or next
 	time you login in console or graphical environment (if you've modified

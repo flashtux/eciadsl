@@ -55,7 +55,7 @@ P:	Tenho o seguinte erro quando lanço `make` ou `make install`:
 
 -------------------------------------------------------------------------------
 R:	Lançou antes o `./configure`? Deveria tê-lo feito!
-	(só >=0.6-pre4)
+	(só >= 0.6-pre4)
 
 
 1.3
@@ -130,19 +130,19 @@ R:	É necessário para a maior parte das pessoas (exepto os que usam o DHCP
 	no CD de configuração ou nos papéis que eles lhe mandaram, ou até mesmo
 	no MS Windows, há uma forma de os advinhar. Esta é a forma de o fazer
 	no Linux:
-		>host -n dn <o domínio do seu provedor>
+		> host -n dn <o domínio do seu provedor>
 
 	Isto irá devolver-lhe um monte de nomes de servidores de DNS. Pode
 	ping'ar alguns deles para obter o IP.
 
 	Por exemplo:
-		>host -t ns clix.com
+		> host -t ns clix.com
 		clix.com. name server ns4.dnsmanaged.com.
 		clix.com. name server ns1.dnsmanaged.com.
 		clix.com. name server ns7.dnsmanaged.com.
 		clix.com. name server ns6.dnsmanaged.com.
 
-		>ping -c 1 -q ns4.dnsmanaged.com
+		> ping -c 1 -q ns4.dnsmanaged.com
 		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) 
 		bytes of data.
                 --- ns4.dnsmanaged.com ping statistics ---
@@ -168,7 +168,7 @@ R:	Verifique a configuração USB do seu sistema. Se o kernel tem suporte
 		mount -t usbdevfs none /proc/bus/usb
 	Isto pode ser incluido no seu /etc/fstab. Para que este processo seja
 	automatizado durante o arranque, inclua a seguinte linha:
-		>usbdevfs /proc/bus/usb usbdevfs defaults 0 0
+		> usbdevfs /proc/bus/usb usbdevfs defaults 0 0
 
 	Nota: não haverá nada em /proc/bus/usb até que um modulo controlador
 	anfitrião seja carregado.
@@ -199,9 +199,9 @@ R:	Provavelmente o Hotplug está activado, e erroneamente detecta o seu
 	defeito).
 
 	Ou, manualmente executando o seguinte comando:
-		>modprobe -r dabusb && \
-		>rm -f $(modprobe -l | grep dabusb) && \
-		>depmod -a
+		> modprobe -r dabusb && \
+		> rm -f $(modprobe -l | grep dabusb) && \
+		> depmod -a
 
 	Se este kernel foi compilado por si, não se esqueça de remover o
 	suporte para dabusb do ficheiro de configuração do kernel.
@@ -246,16 +246,16 @@ R:	Siga os pré-requesitos, leia a documentação sobre o problema do N_HDLC.
 
 	Se pretende usar a opção 'presist' do pppd de modo a automáticamente
 	religar quando se desligar do seu provedor, então terá de aplicar um
-	patch ao seu kernel ou usar um kernel >=2.4.18-pre3.
+	patch ao seu kernel ou usar um kernel >= 2.4.18-pre3.
 	Encontrará o patch n_hdlc.c.diff nos arquivos do driver para o modem
 	Speedtouch: http://speedtouch.sourceforge.net/ .
 	Estas são as instruções de como usá-lo:
-		>cd /usr/src/linux
-		>patch -p1 --dry-run < /path/to/n_hdlc.c.diff
+		> cd /usr/src/linux
+		> patch -p1 --dry-run < /path/to/n_hdlc.c.diff
 
 	Se nenhuma mensagem de erro for devolvida pelo comando indicado, use o
 	seguinte para aplicar o patch ao codigo fonte do kernel:
-		>patch -p1 < /path/to/n_hdlc.c.diff
+		> patch -p1 < /path/to/n_hdlc.c.diff
 	e salte para a questão sobre configuração do kernel (5.3).
 
 
@@ -348,7 +348,7 @@ R:	Veja 4.0.
 
 	Se mesmo assim não conseguir aceder a um hostname utilizando nslookup,
 	tente os seguintes comandos e informe-nos dos resultados:
-	>route -n (ou netstat -rn)
+	> route -n (ou netstat -rn)
 
 	  Kernel IP routing table
 	  Destination Gateway     Genmask         Flags MSS Window irtt Iface
@@ -362,7 +362,7 @@ R:	Veja 4.0.
 	A linha UG tem de existir, ela indica a route por defeito para o
 	gateway.
 
-	>ifconfig ppp0
+	> ifconfig ppp0
 
 	  ppp0  Link encap:Point-to-Point Protocol
 		  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
@@ -377,13 +377,13 @@ R:	Veja 4.0.
 	/var/log/messages ou /var/log/ppp depois de executar o startmodem.
 
 	Se a route por defeito estiver atribuida a eth0, revova-a:
-		>route del default dev eth0
+		> route del default dev eth0
 	ou remova a linha "gateway" do ficheiro /etc/sysconfig/network, ou
 	desactive a sua rede LAN antes de executar o startmodem.
 
 	Se a route por defeito NÃO estiver atribuida a ppp0 ainda que o ppp0
 	esteja activo:
-		>route add default dev ppp0
+		> route add default dev ppp0
 
 	Isto poderá ser um problema com o firewall. Tente desactivar o seu
 	firewall, e se assim funcionar, terá de ajustar as definições do seu
@@ -645,7 +645,7 @@ R:	Sim, isando o init.d por exemplo, ou o /etc/ppp/ppp_on_boot para
 
 
 	Copiar o ficheiro rc.adsl para /etc/init.d: cp rc.dsl /etc/init.d
-	( o ficheiro rc.adsl é fornecido nas versões >=0.7 (ou CVS))
+	( o ficheiro rc.adsl é fornecido nas versões >= 0.7 (ou CVS))
 
 	No Debian, escreva como root: update-rc.d rc.adsl default 15
 
@@ -657,7 +657,7 @@ R:	Sim, isando o init.d por exemplo, ou o /etc/ppp/ppp_on_boot para
 	assim /etc/rc.d/rc5.d corresponde a esse nível.
 
 	Para encontrar mais informações sobres níveis de init:
-		>man inittab
+		> man inittab
 	ou veja o seu ficheiro /etc/inittab.
 
 	Para saber qual o nível de init atingido no arranque, procure uma linha
@@ -680,7 +680,7 @@ R:	Sim, isando o init.d por exemplo, ou o /etc/ppp/ppp_on_boot para
 	(crescente), seguido do nome (yyyyy, ordem crescente alfabetica).
 
 	Por exemplo:
-		>ls /etc/rc.d/rc5.d
+		> ls /etc/rc.d/rc5.d
 	mostra
 		S01gato
 		S15rato
@@ -697,8 +697,8 @@ R:	Sim, isando o init.d por exemplo, ou o /etc/ppp/ppp_on_boot para
 
 	Agora que sabe como tudo isto funciona, já pode criar as ligações
 	necessárias para /etc/init.d em /etc/rc.d/rc5.d:
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
-		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
 	Antes de criar as ligações, verifique se S90 é o indicado, ou seja, o
 	S90 deve ser chamado após todos os outros serviços de rede.
@@ -709,9 +709,9 @@ R:	Sim, isando o init.d por exemplo, ou o /etc/ppp/ppp_on_boot para
 	Uma vez todas as ligações criadas, pode fazer o teste reiniciando o
 	sistema. Tambêm pode fazer o teste sem reiniciar: feche a sessão no X,
 	abra uma sessão como root numa consola e escreva:
-		>init 3
+		> init 3
 	seguido de
-		>init 5
+		> init 5
 	Percebe o que isto faz? Isto faz abandonar o nível 5 para o nível 3 e
 	voltar ao nível 5. As ligações S* e K* indicadas serão chamadas!
 
@@ -788,7 +788,7 @@ R:	Escreva os seguintes comandos:
 	Utilizadores de PPPoE ou IPoATM, leiam por favor a 5.3.1.
 
 	Uma vez o ficheiro de configuração gravado, escreva:
-		>make -s dep modules modules_install && depmod -a
+		> make -s dep modules modules_install && depmod -a
 	ou qualquer outro que seja o comando que usa para compilar e instalar
 	os modulos do kernel.
 	Claro que todo o kernel deve estar devidamente configurado e deve estar
@@ -828,7 +828,7 @@ R:	Escreva os seguintes comandos:
 	ou	alias usb-hostadapter uhci
 
 	e seguidamente execute o comando:
-	     >touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+	     > touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
 5.3.1
@@ -850,9 +850,9 @@ R:	Os prícipios de configuração e compilação do kernel são os mesmos
 		  <M> PPP over ATM (EXPERIMENTAL)
 
 	depois execute:
-		>mkdir /dev/net
-		>mknod /dev/net/tun0 c 10 200
-		>ln -s /dev/net/tun0 /dev/net/tun
+		> mkdir /dev/net
+		> mknod /dev/net/tun0 c 10 200
+		>l n -s /dev/net/tun0 /dev/net/tun
 
 	Utilizadores do PPPoE: leiam o ficheiro INSTALL, há mais software que
 	é necessário instalar e configurar.
@@ -1040,7 +1040,7 @@ R:	Certifique-se que tem o sudo instalado no seu sistema.
 	quizer, adicionando para tal uma linha com o respectivo username e
 	caminho/nome do script.
 	Utilizadores autorizados podem agora lançar o startmodem, escrevendo:
-		>sudo startmodem
+		> sudo startmodem
 
 	Agora veja a 5.13.
 
@@ -1052,11 +1052,11 @@ P:	Quando executo sudo startmodem, recebo este erro:
 
 -------------------------------------------------------------------------------
 R:	Numa consola ou terminal, como root escreva:
-		>PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
 	Se isto funcionar, adicione a seguinte linha ao ~/.bashrc ou
 	~/.profile (*) do seu utilizador normal:
-		>export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+		> export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
 
 	Da proxima vez que abrir um terminal (se modificou o ~/.bashrc) ou da
 	proxima vez que fizer login numa consola ou ambiente grafico (se
