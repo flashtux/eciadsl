@@ -102,8 +102,12 @@
 #include <sys/socket.h>
 #include <pthread.h>
 #if !defined(__FreeBSD__) && !defined(__NetBSD__)
-#include <linux/if_tun.h>
-#include <linux/if.h>
+#include <net/if.h>
+/* from <linux/if_tun.h> */
+#define IFF_TUN		0x0001
+#define IFF_TAP		0x0002
+#define IFF_NO_PI	0x1000
+#define TUNSETIFF	_IOW('T', 202, int)
 #endif
 
 #include "util.h"

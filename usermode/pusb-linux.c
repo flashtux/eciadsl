@@ -12,32 +12,29 @@
   Portable USB user library -- Linux implementation
 */
 
+#define _XOPEN_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <dirent.h>
+#include <limits.h>
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
 #include <sys/utsname.h>
-#include <linux/version.h> /* to check kernel version*/
 
 #include <signal.h>
 #include <errno.h>
 #include <string.h>
 
-#include <linux/limits.h>
-#include <linux/usb.h>
-#include <linux/usbdevice_fs.h>
+#include "pusb-linux.h"
 #include <asm/page.h>
-
-#define KERNEL_VERSION(a,b,c) (((a) << 16) + ((b) << 8) + (c))
 
 struct pusb_endpoint_t
 {
 	int fd;
-    	/*int is_2_5;*/
+    	int is_2_5;
 	int ep;
 };
 
@@ -46,7 +43,7 @@ struct pusb_endpoint_t
 struct pusb_device_t
 {
 	int fd;
-    	/*int is_2_5;*/
+    	int is_2_5;
 };
 
 
@@ -66,26 +63,6 @@ static const char id[] = "@(#) $Id$";
 
 static const char usb_path[] = "/proc/bus/usb";
 
-/* Device descriptor */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-struct usb_device_descriptor
-{
-	__u8  bLength;
-	__u8  bDescriptorType;
-	__u16 bcdUSB;
-	__u8  bDeviceClass;
-	__u8  bDeviceSubClass;
-	__u8  bDeviceProtocol;
-	__u8  bMaxPacketSize0;
-	__u16 idVendor;
-	__u16 idProduct;
-	__u16 bcdDevice;
-	__u8  iManufacturer;
-	__u8  iProduct;
-	__u8  iSerialNumber;
-	__u8  bNumConfigurations;
-} __attribute__ ((packed));
-#endif
 /* try to open the file and get USB device information,
    if it's ok, check if it matches vendorID & productID and return
    a usable file descriptor in this case. Else returns -1.
@@ -193,21 +170,21 @@ int usbfs_search(const char* path, int vendorID, int productID)
 	return(result);
 }
 
-/* this isn't needed anymore since we check kernel version at compilation time (avoiding compilation errors)
+
 static int is_kernel_2_5()
 {
     struct utsname uts;
     int ret;
 
     uname(&uts);
-    printf("release = %s\n",uts.release);
+    /* printf("release = %s\n",uts.release);*/
 
     ret = (strncmp(uts.release,"2.5.",4) == 0) || (strncmp(uts.release,"2.6.",4) == 0) ;
-    printf("is_kernel_2_5 = %d\n",ret);
+    /*printf("is_kernel_2_5 = %d\n",ret);*/
 
     return ret;
 }
-*/
+
 
 static pusb_device_t make_device(int fd)
 {
@@ -219,10 +196,10 @@ static pusb_device_t make_device(int fd)
 		return(0);
 	}
 
-    /* check for a 2.5 kernel */
+    /* check for a 2.5 or 2.6 kernel */
 	
     dev->fd = fd;
-    /*dev->is_2_5 = is_kernel_2_5();*/
+    dev->is_2_5 = is_kernel_2_5();
     return(dev);
 }
 
@@ -273,15 +250,6 @@ int pusb_control_msg(pusb_device_t dev,
 		   request_type, request, value, index);
 	dump(buf, size);
 */
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	ctrl.requesttype = request_type;
-	ctrl.request     = request;
-	ctrl.value       = value;
-	ctrl.index       = index;
-	ctrl.length      = size;
-	ctrl.timeout     = timeout;
-	ctrl.data        = buf;
-#else
 	ctrl.bRequestType = request_type;
 	ctrl.bRequest     = request;
 	ctrl.wValue       = value;
@@ -289,7 +257,6 @@ int pusb_control_msg(pusb_device_t dev,
 	ctrl.wLength      = size;
 	ctrl.timeout     = timeout;
 	ctrl.data        = buf;
-#endif
 	ret = ioctl(dev->fd, USBDEVFS_CONTROL, &ctrl);
 	return(ret);
 }
@@ -325,7 +292,7 @@ pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 		return(NULL);
 
 	ep->fd     = dev->fd;
-    	/*ep->is_2_5 = dev->is_2_5;*/
+    	ep->is_2_5 = dev->is_2_5;
 	ep->ep     = epnum & 0xf;
 
 	return(ep);
@@ -447,11 +414,7 @@ int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_IN;
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	purb->flags = USBDEVFS_URB_QUEUE_BULK;
-#else
-	purb->flags  = 0;
-#endif
+	purb->flags  = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
 	purb->buffer = buf;
 	purb->buffer_length = size;
 	purb->signr =  signr;
@@ -484,11 +447,7 @@ int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_OUT;	
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	purb->flags = USBDEVFS_URB_QUEUE_BULK;
-#else
-	purb->flags  = 0;
-#endif
+	purb->flags = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
 	purb->buffer = buf;
 	purb->buffer_length = size;
 	purb->signr =  signr;
@@ -518,13 +477,8 @@ int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
 		return(-1);
 	
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
-#if LINUX_VERSION_CODE < KERNEL_VERSION(2,5,0)
-	purb->type = USBDEVFS_URB_TYPE_BULK; /* in 2.4 kernel INTERRUPT wasn't suported and BULK works with ep in so*/
-	purb->flags = USBDEVFS_URB_QUEUE_BULK;
-#else
-	purb->type = USBDEVFS_URB_TYPE_INTERRUPT; 
-	purb->flags  = 0;
-#endif
+	purb->type = ep->is_2_5 ? USBDEVFS_URB_TYPE_INTERRUPT : USBDEVFS_URB_TYPE_BULK; /* in 2.4 kernel INTERRUPT wasn't suported and BULK works with ep in so*/
+	purb->flags = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_IN;
 	purb->buffer = buf;
 	purb->buffer_length = size;
