@@ -81,7 +81,7 @@
 
 
 
-typedef enum { _idle =0, _utc, _exe, _preread, _read, _prewirte, _write} eoc_state;
+typedef enum { _idle =0, _utc, _exe, _preread, _read, _prewrite, _write} eoc_state;
 
 struct eoc_registers {
 	char vendorID[8];	/* reg 0 */
