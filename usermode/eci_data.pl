@@ -3,19 +3,12 @@
 # Auteur : Benoit PAPILLAULT <benoit.papillault@free.fr>
 # Creation : 01/07/2001
 
-# 16/07/2001 : stopped the firmware image generation after "DriverUnload"
+# usage : used to analyze snoopy log file passed on STDIN. This script displays
+# complete information on ISO, BULK, INTERRUPT and VENDOR_DEVICE (subset of
+# CONTROL messages).
 
 # pusb_control_msg ( dev, request_type , request, value, index, buf, size, tmo)
 # request_type = 0x40 (vendor device OUT)
-
-# 7f92 : CPUCS $12.5 EZ-USB tech. ref.
-
-# eci_firmware.bin has the following file format :
-# it's a list of the following structure.
-# 2 bytes : in big endian : addr
-# 2 bytes : in big endian : content's length
-# length  : data
-# Reset sequence (0x7f92, 1) are put in the generated file
 
 # 23/11/2001. Afficher les URBs classer par numero ne respecte pas
 #   l'echelle de temps. En effet, pour une URB qui envoie des donnees, c'est
@@ -34,14 +27,8 @@
 
 $t = 0;
 
-# the endpoint selected for display : 0x2 0x86 0x88
-#$ep_selected = 0x88;
-
-#printf "Selected endpoint is 0x%x\n", $ep_selected ;
-
-#open BIN, ">endpoint_${ep_selected}.bin";
-
-# dump ($buf)
+# print_buffer ($buf)
+# print a buffer in hexadecimal and ASCII format
 
 sub print_buffer {
 	my ($buf) = @_;
@@ -80,6 +67,8 @@ sub print_buffer {
 # $urb_list{$urb}{'index'}
 
 undef ($urb_direction);
+
+# we read the snoopy log file on stdin.
 
 while (<>) {
 
@@ -231,10 +220,6 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		$value   = $urb_list{$k}{'value'};
 		$index   = $urb_list{$k}{'index'};
 
-#		if ($request != 0xdd) {
-#			next;
-#		}
-
 		if (!defined($request)) {
 			print "Fatal error: URB $k has undefined Request\n";
 			exit;
@@ -268,16 +253,14 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		$buf = $urb_list{$k}{'buf'};
 		$size = hex($urb_list{$k}{'length'});
 
-#		if ($endpoint != 0x86) {
-			print "URB $k: ";
-			if ($size != length ($buf)) {
-				print "XXX ";
-			}
-			print "BULK/INT $transfer_direction endpoint=$endpoint size=$size\n";
-			if ($display_buffer) {
-				print_buffer ($buf);
-			}
-#		}
+		print "URB $k: ";
+		if ($size != length ($buf)) {
+			print "XXX ";
+		}
+		print "BULK/INT $transfer_direction endpoint=$endpoint size=$size\n";
+		if ($display_buffer) {
+			print_buffer ($buf);
+		}
 	} elsif ($type eq "ISO_TRANSFER" && $display_iso) {
 
 		$endpoint = $urb_list{$k}{'endpoint'};
@@ -296,7 +279,4 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			}
 		}
 	}
-#	foreach $kk (keys %$href) {
-#		print "=> urb_list {$k} {$kk} = $urb_list{$k}{$kk}\n";
-#	}
 }
