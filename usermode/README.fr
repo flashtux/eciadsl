@@ -1,1 +1,2 @@
-Pas encore mis à jour/traduit! Voir INSTALL.fr.
+Consultez le fichier INSTALL.fr.
+En cas de problème, lisez le fichier TROUBLESHOOTING.fr!
