@@ -13,7 +13,7 @@ TMP_FILE = Makefile.tmp
 all: check ${TARGETS} ${SCRIPTS}
 
 eci-load1: eci-load1.o pusb.o util.o
-eci-load2: eci-load2.o pusb.o util.o
+eci-load2: eci-load2.o pusb.o util.o semaphore.o
 pppoeci: pppoeci.o pusb.o gs7070.o util.o
 eci-eeprom: eci-eeprom.o pusb.o
 check-hdlc: check-hdlc.o
@@ -25,6 +25,7 @@ eci-load2.o: eci-load2.c modem.h pusb.h
 pppoeci.o: pppoeci.c modem.h pusb.h
 gs7070.o: gs7070.c gs7070.h
 util.o: util.c util.h modem.h
+semaphore.o: semaphore.c semaphore.h
 eci-eeprom.o: eci-eeprom.c modem.h pusb.h
 check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
