@@ -795,7 +795,7 @@ A:	The kernel configuration and compilation principles are still the same
 		mknod /dev/net/tun c 10 200
 
 
-5.4
+5.4 (OUTDATED)
 ================================================================================
 Q:	I'm not from France, will the driver work with my modem and provider?
 
@@ -827,7 +827,7 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 		http://www.thecaretaker.org.uk/drivers/btvoyager/btvoyagerlinux.htm
 
 
-5.5
+5.5 (OUTDATED)
 ================================================================================
 Q:	I'm not from France, my modem is supported and startmodem went OK, but I
 	get problems with pppd (LCP problems maybe).

@@ -60,6 +60,11 @@ USE
 
 Run startmodem as root, from elsewhere but the sources directory.
 
+PPPoE user's:
+You have to configure and use a standard PPPoE client as rp-pppoe
+(http://www.roaringpenguin.com/pppoe) to connect to your adsl modem
+through tap0.
+
 
 DEINSTALLATION
 ==============

@@ -60,6 +60,11 @@ UTILISATION
 Lancer startmodem (sous root), à partir d'un autre répertoir que celui
 des sources.
 
+Utilisateurs de PPPoE:
+Vous devez configurer et utiliser un client PPPoE standard tel que rp-pppoe
+(http://www.roaringpenguin.com/pppoe) afin de connecter votre modem ADSL via
+tap0.
+
 
 DÉSINSTALLATION
 ===============

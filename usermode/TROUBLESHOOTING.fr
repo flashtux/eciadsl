@@ -1,4 +1,4 @@
-TROUBLESHOOTING FAQ
+5TROUBLESHOOTING FAQ
 ===================
 
 
@@ -814,7 +814,7 @@ A:	Les principes de configuration et de compilation du noyau sont les mêmes
 		mknod /dev/net/tun c 10 200
 
 
-5.4
+5.4 (MISE A JOUR NÉCESSAIRE)
 ================================================================================
 Q:	Je ne suis pas en France, le driver fonctionnera-t-il avec mon modem et mon
 	fournisseur ?
@@ -850,7 +850,7 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 		http://www.thecaretaker.org.uk/drivers/btvoyager/btvoyagerlinux.htm
 
 
-5.5
+5.5 (MISE A JOUR NÉCESSAIRE)
 ================================================================================
 Q:	Je ne suis pas en France, mon modem est supporté et startmodem est OK, mais
 	j'ai des problèmes avec pppd (par exemple des problèmes LCP).
