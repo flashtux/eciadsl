@@ -1823,8 +1823,9 @@ static int eci_atm_receive_cell(
 	struct atm_vcc *vcc;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,22))	
 	struct sock *s;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0))
 	struct hlist_head *head;
+	struct hlist_node *node;
 	int i;
 #endif
 #endif
@@ -1853,7 +1854,7 @@ static int eci_atm_receive_cell(
 	for(i=0; i< VCC_HTABLE_SIZE; i++) {
 		head = &vcc_hash[i];
 		sk_for_each(s, node, head) {
-				vcc = s->protinfo.af_atm;
+				vcc = s->sk_ protinfo.af_atm;
 				if(vcc->dev == pinstance) break;
 		}
 		if(vcc->dev == pinstance) break;
@@ -1964,8 +1965,11 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 	/* Init SKB */
 	skb_put(lp_skb, lv_size) ;
 	ATM_SKB(lp_skb)->vcc = vcc ;
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 	lp_skb->stamp = xtime ;
-
+#else
+	lp_skb->stamp = vcc->stamp ;
+#endif 	
 	/* Copy data */
 	lp_data = lp_skb->data ;
 	while (lv_size > ATM_CELL_PAYLOAD) {
