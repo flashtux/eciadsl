@@ -65,7 +65,8 @@ PROVIDE US THESE INFO
 
 It may help a lot if you come and see us with these info. Also get the output of
 the tools from the package you have launched (configure scripts or startmodem),
-also provide us your /var/log/messages, /var/log/dmesg if available.
+also provide us your /var/log/messages, /var/log/dmesg if available, the output
+of lsmod and your /proc/bus/usb/devices file.
 
 If you contact us from Windows, and if your Linux partition (ext2 or ext3 only)
 is on the same machine, use explore2fs to get the files directly from your Linux
