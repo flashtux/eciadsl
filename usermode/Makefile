@@ -13,9 +13,12 @@
 CFLAGS += -Wall -g
 LDFLAGS += -g -Wall -lpthread
 
-prefix=/usr/local
+# you can define ROOT by "make ROOT=/tmp" else it defaults to /
+ROOT ?= /
+
+prefix=$(ROOT)/usr/local
 binprefix=$(prefix)/bin
-ETCDIR=/etc
+ETCDIR=$(ROOT)/etc
 
 # Final targets
 BIN = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
@@ -41,9 +44,16 @@ eci-memr.o: eci-memr.c pusb.h
 
 install: all check-char-major-108 check-tty-ldisc-14 check-tty-ldisc-13 \
   install-etc-ppp-peers-adsl
-	install -g root -d $(binprefix)
-	install -m 500 eci-load1 eci-load2 eci_firm_kit_wanadoo.bin \
-	eci_wan3.bin pppoeci startmodem $(binprefix)
+# copy executable files to /usr/local/bin
+	install -d $(binprefix)
+	install startmodem eci-load1 eci-load2 pppoeci eci-doctor.sh \
+		check-hdlc check-hdlc-bug eciconf.sh remove_dabusb makeconfig \
+		$(binprefix)
+# copy configuration files to /etc/eciadsl
+	install -d $(ETCDIR)/eciadsl
+	install adsl $(ETCDIR)/eciadsl/adsl-skel
+	install eci_firm_kit_wanadoo.bin eci_wan3.bin eci_wan3.dmt.bin \
+		eci_logo.gif modemeci.gif $(ETCDIR)/eciadsl
 	@echo "don't forget to edit  $(ETCDIR)/ppp/peers/adsl and  $(ETCDIR)/ppp/chap-secrets files"
 
 clean:
@@ -51,6 +61,7 @@ clean:
 
 # for for the ppp_generic alias in /etc/modules.conf
 check-char-major-108:
+	@mkdir -p $(ETCDIR)
 	@grep "^alias char-major-108" $(ETCDIR)/modules.conf > /dev/null; \
 	if [ $$? -ne 0 ]; then \
 		echo "adding ppp_generic alias ..." ; \
@@ -59,6 +70,7 @@ check-char-major-108:
 
 # check for ppp_synctty alias in /etc/modules.conf
 check-tty-ldisc-14:
+	@mkdir -p $(ETCDIR)
 	@grep "^alias tty-ldisc-14" $(ETCDIR)/modules.conf > /dev/null; \
 	if [ $$? -ne 0 ]; then \
 		echo "adding ppp_synctty alias ..." ;\
@@ -67,6 +79,7 @@ check-tty-ldisc-14:
 
 # check for the n_hdlc alias in /etc/modules.conf
 check-tty-ldisc-13:
+	@mkdir -p $(ETCDIR)
 	@grep "^alias tty-ldisc-13" $(ETCDIR)/modules.conf > /dev/null; \
 	if [ $$? -ne 0 ]; then \
 		echo "adding n_hdlc alias ..." ;\
@@ -75,6 +88,7 @@ check-tty-ldisc-13:
 
 # install the /etc/ppp/peers/adsl file
 install-etc-ppp-peers-adsl:
+	@mkdir -p $(ETCDIR)/ppp/peers
 	@if [ -f $(ETCDIR)/ppp/peers/adsl ]; then \
 		echo "modifying existing $(ETCDIR)/ppp/peers/adsl" ; \
 		user=`grep "^user " $(ETCDIR)/ppp/peers/adsl` ; \
@@ -84,16 +98,25 @@ install-etc-ppp-peers-adsl:
 		echo $$persist >> $(ETCDIR)/ppp/peers/adsl ; \
 	else \
 		echo "creating $(ETCDIR)/ppp/peers/adsl" ; \
-		cp adsl $(ETCDIR)/ppp/peers/adsl ; \
-		chmod 700 $(ETCDIR)/ppp/peers/adsl ; \
-		chown root:root $(ETCDIR)/ppp/peers/adsl ; \
+		install adsl $(ETCDIR)/ppp/peers/adsl ; \
 	fi
+
 uninstall:
+	$(RM) $(binprefix)/startmodem
 	$(RM) $(binprefix)/eci-load1
 	$(RM) $(binprefix)/eci-load2
-	$(RM) $(binprefix)/eci_firm_kit_wanadoo.bin
-	$(RM) $(binprefix)/eci_wan3.bin
 	$(RM) $(binprefix)/pppoeci
-	$(RM) $(binprefix)/startmodem 
+	$(RM) $(binprefix)/eci-doctor.sh
+	$(RM) $(binprefix)/check-hdlc
+	$(RM) $(binprefix)/check-hdlc-bug
+	$(RM) $(binprefix)/eciconf.sh
+	$(RM) $(binprefix)/remove_dabusb
+	$(RM) $(binprefix)/makeconfig
+	$(RM) $(ETCDIR)/eciadsl/adsl-skel
+	$(RM) $(ETCDIR)/eciadsl/eci_firm_kit_wanadoo.bin
+	$(RM) $(ETCDIR)/eciadsl/eci_wan3.bin
+	$(RM) $(ETCDIR)/eciadsl/eci_wan3.dmt.bin
+	$(RM) $(ETCDIR)/eciadsl/eci_logo.gif
+	$(RM) $(ETCDIR)/eciadsl/modemeci.gif
 	@echo "The driver has been successfully uninstalled"
 
