@@ -11,6 +11,7 @@ Available Synch .bin files list:
 	synch09.bin (formerly eci_uk.bin or eci_ca.bin)
 	synch10.bin (formerly eci_ca2.bin)
 	synch11.bin (formerly eci_foggia.webpower.bin)
+    synch12.bin (formerly eci_bastia.bin)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
