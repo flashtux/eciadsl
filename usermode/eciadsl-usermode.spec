@@ -42,6 +42,8 @@ that handles the modem. A kernel module is under development.
 
 %post
 # post-install script
+echo "Now you need to configure the driver. Please read the README"
+echo "and INSTALL files located in /usr/local/doc/eciadsl."
 
 %preun
 # pre-uninstall script
