@@ -3,16 +3,18 @@
 # the tar.gz should contain a directory eciadsl-usermode-0.7
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
-Name:		eciadsl-usermode
-Version:	0.8
+Name:     eciadsl-usermode
+Version:	0.9
 Release:	1
+URL:      http://eciadsl.flashtux.org/
 License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
 
-Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.8.tar.gz
+Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.9.tar.gz
 
 BuildRoot:	%_tmppath/%name-%version-%release
+Requires: ppp
 Prefix: /usr
 
 %description
@@ -71,6 +73,15 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 /usr/local/bin/eci_data.pl
 /usr/local/bin/eci_uc.pl
 /usr/local/bin/makeconfig
+%dir /usr/local/doc/eciadsl
+/usr/local/doc/eciadsl/BUGS
+/usr/local/doc/eciadsl/INSTALL
+/usr/local/doc/eciadsl/INSTALL.fr
+/usr/local/doc/eciadsl/README
+/usr/local/doc/eciadsl/README.fr
+/usr/local/doc/eciadsl/TODO
+/usr/local/doc/eciadsl/TROUBLESHOOTING
+/usr/local/doc/eciadsl/TROUBLESHOOTING.fr
 # config files should be : rw-r--r--
 %defattr(644,root,root)
 %dir /etc/eciadsl
@@ -105,6 +116,8 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 	rm -rf %buildroot
 
 %changelog
+* Sat Apr 03 2004 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.9-1
+- Updated to the 0.9 release
 * Tue Jul 01 2003 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.8-1
 - Corrected a bug in reporting errors from the USB layer
 * Wed Jan 22 2003 wwp <subscript@free.fr> 0.7-1
