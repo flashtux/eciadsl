@@ -1169,7 +1169,6 @@ static void eci_init_vendor_callback(struct urb *urb)
 static void eci_int_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
-	struct urb *eci_vendor;
 	int i; 		/*loop counter	*/
 	int outi = 0; 
 	unsigned char *in_buf, b1, b2;
@@ -1261,23 +1260,49 @@ static void eci_int_callback(struct urb *urb)
 
 static void eci_iso_callback(struct urb *urb)
 {
-	struct eci_instance *instance;
-	int i;
+	struct eci_instance 	*instance;	/* Driver private structre	*/
+	int 			i;		/* Frame Counter		*/
+ 	int 			pos;		/* Buffer curent pos counter	*/
+ 	struct uni_cell_q	*cells;		/* New computed queue of cell	*/
+	struct uni_cell 	*cell;		/* Working cell			*/
+	unsigned char 		*buf;		/* Working buffer pointer 	*/
 
-	if (!urb->status) {
-		for (i=0;i<ECI_NB_ISO_PACKET;i++) {
+	instance = (struct eci_instance *)urb->context;
+	if (!urb->status)
+	{
+ 		cells = _uni_cell_qalloc();
+		for (i=0;i<ECI_NB_ISO_PACKET;i++)
+		{
 			if (!urb->iso_frame_desc[i].status &&
-					urb->iso_frame_desc[i].actual_length) {
+					urb->iso_frame_desc[i].actual_length)
+			{
 				DBG_OUT("Data available in frame [%d]\n", i) ;
 				DBG_RAW_OUT(
 					"received data", 
-					urb->transfer_buffer + urb->iso_frame_desc[i].offset,
-					urb->iso_frame_desc[i].actual_length) ;
+					urb->transfer_buffer +
+						urb->iso_frame_desc[i].offset,
+					urb->iso_frame_desc[i].actual_length);
+ 				if(urb->iso_frame_desc[i].actual_length)
+ 				  for(pos=0, buf=urb->transfer_buffer + 
+ 				    urb->iso_frame_desc[i].offset;
+ 				    pos+=ATM_CELL_SZ; pos < 
+ 			 	    urb->iso_frame_desc[i].actual_length);
+ 				  {
+ 					cell = _uni_cell_alloc();
+ 					memcpy(cell->raw, buf + pos,
+ 						ATM_CELL_SZ);
+ 					if(_uni_cell_qpush(cell, cells))
+ 					{
+ 					  ERR_OUT("Couldn't queue One cell\n");
+ 					  _uni_cell_free(cell);
+ 					}
+ 				  }			
+
 			}
 		}
+ 		eci_atm_receive_cell(instance, cells);
 	}
 					
-	instance = (struct eci_instance *)urb->context;
 	urb->dev = instance->usb_wan_dev;
 	urb->pipe = usb_rcvisocpipe(urb->dev, ECI_ISO_PIPE);
 	urb->transfer_flags = USB_ISO_ASAP;
@@ -1295,49 +1320,39 @@ static void eci_iso_callback(struct urb *urb)
 	*/
 }
 
-static int eci_usb_send_urb(struct eci_instance *instance, struct aal5 *aal5)
+static int eci_usb_send_urb(struct eci_instance *instance, struct uni_cell_q *cells)
 {
-	int 		ret;		/*	counter			*/
-	int 		nbcell;		/*	cellcount expected	*/
-	unsigned	char *buf;	/*	urb buffer		*/
-	int		buflen;		/*	urb buffer len		*/
-	int		bufpos;		/*	position in urb buffer	*/
-	struct uni_cell	*cell;		/*	current computed cell	*/
-	struct urb	*urb;		/*	urb pointer to sent urb	*/
+	int 		ret;		/* counter			*/
+	int 		nbcell;		/* cellcount expected		*/
+	unsigned	char *buf;	/* urb buffer			*/
+	int		buflen;		/* urb buffer len		*/
+	int		bufpos;		/* position in urb buffer	*/
+	int		nbcells;	/* number of cell to be sent 	*/
+	struct uni_cell	*cell;		/* current computed cell	*/
+	struct urb	*urb;		/* urb pointer to sent urb	*/
 
-	nbcell = aal5->nbcells;	/*	Must be change to use	*/
-	/*
-	buflen = ATM_CELL_PAYLOAD * 
-	*/
+	nbcells = cells->nbcells;	/* Must be change to use	*/
 	buflen = ATM_CELL_SZ * 
-			aal5->nbcells;	/*	abstraction function	*/
+			cells->nbcells;	/* abstraction function	*/
 	if(!(buf=(unsigned char *)kmalloc(buflen, GFP_KERNEL)))
 	{
 		ERR_OUT("Can't allocate bulk urb Buffer\n");
 		return(0);
 	}
 	bufpos = ret = 0;
-	while((cell = _aal5_get_next(aal5)))
+ 	cell = cells->first;
+ 	while(ret < nbcells)
 	{
-		/* Attention il faut ausi tenir compte du header
-		if( memcpy(buf + bufpos, cell->raw, ATM_CELL_PAYLOAD) ==
-			ATM_CELL_PAYLOAD)
-		*/
-		if (memcpy(
-				buf + bufpos, 
-				_uni_cell_getPayload(cell), 
-				ATM_CELL_SZ) != NULL)
+ 		if(cell)
 		{
-			/*
-			bufpos += ATM_CELL_PAYLOAD;
-			*/
+			memcpy(buf + bufpos, cell->raw, ATM_CELL_SZ);
 			bufpos += ATM_CELL_SZ;
 			ret++;
 		}
 		else
 			break;
 	}
-	if( ret != nbcell)
+	if( ret != nbcells)
 	{
 		ERR_OUT("Error computing bulk buffer\n");
 		ERR_OUT("Expecting %d cell got %d\n", nbcell, ret);
@@ -1355,7 +1370,6 @@ static int eci_usb_send_urb(struct eci_instance *instance, struct aal5 *aal5)
 		ERR_OUT("Can't submit bulk urb\n");
 		return(0);
 	}
-	_aal5_free(aal5);
 	return(ret);	
 }
 
