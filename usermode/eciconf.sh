@@ -142,7 +142,7 @@ while {[eof $file]!=1} {
 	}
 }
 close $file
-lappend providers "other" "" ""
+lappend providers "Other" "" ""
 
 frame .bloc1.fai.liste
 listbox .bloc1.fai.liste.contenu -yscrollcommand {.bloc1.fai.liste.scroll set} -width 27 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
@@ -231,7 +231,7 @@ while {[eof $file]!=1} {
 	}
 }
 close $file
-lappend modems "other" "" "" "" ""
+lappend modems "Other" "" "" "" ""
 
 frame .bloc1.modem.liste
 listbox .bloc1.modem.liste.contenu -yscrollcommand {.bloc1.modem.liste.scroll set} -width 43 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black

@@ -3,8 +3,8 @@ Askey USB-ADSL					1690	0205	0915	0206
 Aztech 100U						0509	0801	0915	0802
 BT Voyager						1690	0203	0915	0204
 Cypress Globespan ADSLUSB G7000	0915	0001	0915	0002
-Digicom Michel Angelo			0547	2131	0915	8000
-ECIHiFocus / B-Focus			0547	2131	0915	8000
+Digicom MichelAngelo			0547	2131	0915	8000
+ECI HiFocus or B-Focus			0547	2131	0915	8000
 Eicon Diva						071d	ac81	0915	ac82
 Ericsson hm120dp				08ea	00c9	0915	00ca
 Fujitsu FDX310					0e60	0101	0915	0102
@@ -13,7 +13,7 @@ Siemens Santis					0915	0001	0915	0002
 Topcom Webr@cer 850				0915	0001	0915	0002
 Topcom XPlorer 850				0547	2131	0915	8000
 US Robotics 8500				0baf	00e6	0915	00e7
-Webpower Ipmdatacom				0915	0001	0915	0002
+Webpower IPM Datacom			0915	0001	0915	0002
 Wisecom ws-ad80usg or EA100		0915	0001	0915	0002
 Xentrix USB						0e60	0100	0915	0101
 Zyxel Prestige 630-41			0547	2131	0915	8000
