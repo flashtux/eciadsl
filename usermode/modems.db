@@ -16,8 +16,8 @@ Ericsson hm120dp					08ea	00c9	0915	00ca
 Fujitsu FDX310						0e60	0101	0915	0102
 GVC BB039							0915	0001	0915	0002
 IPM Datacom Webpower				0915	0001	0915	0002
-Nortek 2020	(#1)					0915	0001	0915	0002
-Nortek 2020	(#2)					0fe8	8000	0915	8001
+Nortek 2020 (#1)					0915	0001	0915	0002
+Nortek 2020 (#2)					0fe8	8000	0915	8001
 Siemens Santis (#1)					0915	0001	0915	0002
 Siemens Santis (#2)					0547	2131	0915	8000
 Solwise SAR100/EA100				0915	0001	0915	0002
