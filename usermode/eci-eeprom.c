@@ -59,8 +59,12 @@ int main(int argc, const char *argv[])
 	unsigned short old_vid, new_vid;
 	unsigned short old_pid, new_pid;
 
-	unsigned char pkt[16];
-	unsigned char opkt[16];
+    /* We use 13 bytes length packet, since the Windows driver is
+       using 13 bytes packets. If we use 16 bytes packets,
+       pusb_control_msg() returns a timeout */
+
+	unsigned char pkt[13];
+	unsigned char opkt[13];
 	time_t debut, fin;
 
 	if (argc != 5)
@@ -89,10 +93,6 @@ int main(int argc, const char *argv[])
 	pkt[10] = mac[2];
 	pkt[11] = mac[1];
 	pkt[12] = mac[0];
-
-	pkt[13] = 0xff;
-	pkt[14] = 0xff;
-	pkt[15] = 0xff;
 
 	if (new_vid == 0 && new_pid == 0)
 		pkt[0] = 0xff;
