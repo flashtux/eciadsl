@@ -298,9 +298,9 @@ then
 	echo "s/^[ \t]*SYNCH[ \t]*=.*/SYNCH=$TMP/g" >> "$TMPFILE"
 	TMP=$(echo "$username" | sed "s/\//\\\\\//g")
 	echo "s/^[ \t]*PPPD_USER[ \t]*=.*/PPPD_USER=$TMP/g" >> "$TMPFILE"
-	echo "s/^[ \t]*STATICIP[ \t]*=.*/VID1=$staticip/g" >> "$TMPFILE"
-	echo "s/^[ \t]*GATEWAY[ \t]*=.*/VID1=$gateway/g" >> "$TMPFILE"
-	echo "s/^[ \t]*USE_DHCP[ \t]*=.*/VID1=$use_dhcp/g" >> "$TMPFILE"
+	echo "s/^[ \t]*STATICIP[ \t]*=.*/STATICIP=$staticip/g" >> "$TMPFILE"
+	echo "s/^[ \t]*GATEWAY[ \t]*=.*/GATEWAY=$gateway/g" >> "$TMPFILE"
+	echo "s/^[ \t]*USE_DHCP[ \t]*=.*/USE_DHCP=$use_dhcp/g" >> "$TMPFILE"
 	sed -f "$TMPFILE" "$backupfile" > "$tmpconffile"
 	if [ -s "$tmpconffile" ]
 	then
