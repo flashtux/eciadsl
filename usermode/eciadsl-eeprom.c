@@ -18,7 +18,7 @@ ff ff ff ff ff ff ff 06 05 04 03 02 01          .............
   of bytes to write. The green leds switch off during the writing if it was
   blinking.
 
-  To compile: make eci-eeprom
+  To compile: make eciadsl-eeprom
 */
 
 #include <stdio.h>
@@ -35,7 +35,7 @@ static const char id[] = "@(#) $Id$";
 
 void usage()
 {
-	printf("Usage: eci-eeprom oldVID oldPID newVID newPID\n");
+	printf("Usage: eciadsl-eeprom oldVID oldPID newVID newPID\n");
 	printf("where: VID = Vendor ID and PID = Product ID\n");
 	printf("specify newVID=0 & newPID=0 to revert to the original values (VID/PID=0547/2131)\n");
 	exit (-1);
