@@ -453,25 +453,34 @@ function configure_dot()
 	# global config.h generation
 	CFGFILE="config.h"
 	INCFGFILE="config.h.sk"
+	CFGTMPFILE="$CFGFILE.tmp"
 	display 1 -n "generating $CFGFILE... "
-	> "$CFGFILE"
-	insert_edit_warning "/*" "*/" "$CFGFILE" "$INCFGFILE"
-	cat "$INCFGFILE" >> "$CFGFILE"
+	> "$CFGTMPFILE"
+	insert_edit_warning "/*" "*/" "$CFGTMPFILE" "$INCFGFILE"
+	cat "$INCFGFILE" >> "$CFGTMPFILE"
 	if [ $DEBUG -eq 1 ]
 	then
-		echo "#define DEBUG" >> "$CFGFILE"
+		echo "#define DEBUG" >> "$CFGTMPFILE"
 	else
-		echo "#undef DEBUG" >> "$CFGFILE"
+		echo "#undef DEBUG" >> "$CFGTMPFILE"
 	fi
-	echo "#define PRODUCT_ID \"$PRODUCT_ID\"" >> "$CFGFILE"
-	echo "#define PRODUCT_NAME \"$PRODUCT_NAME\"" >> "$CFGFILE"
-	echo "#define PRODUCT_VERSION \"$PRODUCT_VERSION\"" >> "$CFGFILE"
-	echo "#define ETC_PATH \"$DIST_ETC_PREFIX\"" >> "$CFGFILE"
-	echo "#define ETC_DIR \"$DIST_ETC_DIR\"" >> "$CFGFILE"
-	echo "#define CONF_PATH \"$DIST_CONF_PREFIX\"" >> "$CFGFILE"
-	echo "#define CONF_DIR \"$DIST_CONF_DIR\"" >> "$CFGFILE"
-	display 1 "OK"
-	unset CFGFILE INCFGFILE
+	echo "#define PRODUCT_ID \"$PRODUCT_ID\"" >> "$CFGTMPFILE"
+	echo "#define PRODUCT_NAME \"$PRODUCT_NAME\"" >> "$CFGTMPFILE"
+	echo "#define PRODUCT_VERSION \"$PRODUCT_VERSION\"" >> "$CFGTMPFILE"
+	echo "#define ETC_PATH \"$DIST_ETC_PREFIX\"" >> "$CFGTMPFILE"
+	echo "#define ETC_DIR \"$DIST_ETC_DIR\"" >> "$CFGTMPFILE"
+	echo "#define CONF_PATH \"$DIST_CONF_PREFIX\"" >> "$CFGTMPFILE"
+	echo "#define CONF_DIR \"$DIST_CONF_DIR\"" >> "$CFGTMPFILE"
+	diff "$CFGTMPFILE" "$CFGFILE" > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		display 1 "unchanged"
+		rm -f "$CFGTMPFILE"
+	else
+		mv -f "$CFGTMPFILE" "$CFGFILE"
+		display 1 "OK"
+	fi
+	unset CFGFILE INCFGFILE CFGTMPFILE
 
 	display 1 "leaving ./"
 }
