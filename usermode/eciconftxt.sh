@@ -567,7 +567,7 @@ case "$1" in
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
 			# check if the settings were really existing before
-			if [ -n "$prev_dhcp" ]; then
+			if [ -n "$prev_use_dhcp" ]; then
 				echo -n "In current config, static IP is "
 				if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
 					echo "used"
@@ -594,7 +594,7 @@ case "$1" in
 						else
 							# check if the settings were really existing before
 							# if so, default NO can be assumed
-							if [ -n "$prev_dhcp" ]; then
+							if [ -n "$prev_use_dhcp" ]; then
 								foo="no"
 							fi
 						fi
