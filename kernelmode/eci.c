@@ -313,6 +313,9 @@ struct uni_cell {
 /* Alloc a new UNI Cell */
 static uni_cell_t * _uni_cell_alloc(void) ;
 
+/* Create New Cell from raw */
+static uni_cell_t * _uni_cell_fromRaw(size_t, byte*) ;
+
 /* Free an UNI Cell 	*/
 static void _uni_cell_free(uni_cell_t *) ;
 
@@ -1848,6 +1851,39 @@ static uni_cell_t * _uni_cell_alloc(void) {
 	/*
 	DBG_OUT("_uni_cell_alloc out\n") ;
 	*/
+	return lp_cell ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/*
+ * Built a new UNI cell from raw data
+ * Warning : buffer size MUST be ATM_CELL_SZ bytes
+ */
+static uni_cell_t * _uni_cell_fromRaw(
+		size_t	szbuffer,	/* IN: buffer length = 53	*/
+		byte *	buffer		/* IN: Raw Cell data		*/
+) {
+	uni_cell_t * lp_cell = NULL ;
+	
+	/* Check interface */
+	if (!buffer || (szbuffer != ATM_CELL_SZ)) {
+		ERR_OUT("_uni_cell_fromRaw interface error\n") ;
+		return NULL ;
+	}
+
+	/* Alloc new cell */
+	lp_cell = _uni_cell_alloc() ;
+	if (!lp_cell) {
+		ERR_OUT("Not enought mem for new cell\n") ;
+		return NULL ;
+	}
+
+	/* Copy data */
+	memcpy(lp_cell->raw, buffer, szbuffer) ;
+
+	lp_cell->next = NULL ;
+
 	return lp_cell ;
 }
 
