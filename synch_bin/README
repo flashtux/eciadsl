@@ -35,6 +35,7 @@ Available Synch .bin files list:
 	synch21.bin (generated in Italy/Belluno, provider Telecom Italia)
 	synch22.bin (generated in France/Arcueil, provider 9online)
 	synch23.bin (generated in Italy/Sardinia/Cagliari, provider Tiscali, G.DMT)
+	synch24.bin (generated in Peru, provider Telefonica del Peru, unknown modulation type)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider

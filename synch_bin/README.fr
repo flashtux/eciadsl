@@ -35,7 +35,8 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch20.bin (généré en Italie/Brescia, provider Tiscali)
 	synch21.bin (généré en Italie/Belluno, provider Telecom Italia)
 	synch22.bin (généré en France/Arcueil, provider 9online)
-	synch22.bin (généré en Italie/Sardaigne/Cagliari, provider Tiscali, G.DMT)
+	synch23.bin (généré en Italie/Sardaigne/Cagliari, provider Tiscali, G.DMT)
+	synch24.bin (généré au Pérou, provider Telefonica del Peru, modulation inconnue)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
