@@ -831,14 +831,14 @@ R:	Non.
 
 5.11
 ================================================================================
-Q:	How can I stop the PPP connection?
+Q:	Comment puis-je stopper la connection PPP ?
 
 --------------------------------------------------------------------------------
-A:	`killall pppd` or `ifconfig ppp0 down`.
-	This will leave your modem still initialized.
+R:	`killall pppd` ou `ifconfig ppp0 down`.
+	Ceci laissera votre modem initialisé.
 	
-	If you really want to reset your modem, unload the module which manages your
-	USB HUB (`modprobe -r usb-uhci` for instance). But this may lead to problems
-	because some other USB devices may belong to this module (!), and you may
-	encounter problems re-starting startmodem (need to run it twice or maybe to
-	unplug/replug your modem then launch `startmodem`).
+	Si vous voulez vraiment réinitialiser votre modem, déchargez le module qui gère votre
+	HUB USB (`modprobe -r usb-uhci` par exemple). Mais ceci peut causer des problèmes
+	car d'autres périphériques USB peuvent être gérés par ce module (!), et vous pouvez
+	rencontrer des problèmes en relançant startmodem (besoin de le relancer plusieurs fois
+	ou peut-être de débrancher/rebrancher votre modem et relancer ensuite `startmodem`).
