@@ -253,7 +253,7 @@ Q:	`eci-doctor.sh` reports me:
 	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
 
 --------------------------------------------------------------------------------
-A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
+A:	Follow the pre-requisites, read the documentation about the N_HDLC problem.
 
 	If you want to use the 'persist' option of pppd in order to reconnect
 	automatically when disconnected from the provider, then you will have to
@@ -418,7 +418,7 @@ A:	If your kernel really OK? N_HDLC support is OK? Check above!
 
 	Check your pppd version.
 
-	Jump to then next question also, because CHAP/PAP authentication problems
+	Jump to the next question also, because CHAP/PAP authentication problems
 	are not always verbosely reported by pppd.
 
 	See also below questions related to international users.
@@ -441,8 +441,9 @@ A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
 
 4.6
 ================================================================================
-Q:	I get these lines in /var/log/messages:
-	ioctl(PPPIOCGFLAGS): Inappropriate ioctl for device
+Q:	I get a modem hangup or I'm not able to connect at all, and I see these
+	lines in /var/log/messages:
+	ioctl(PPP..): Inappropriate ioctl for device
 	Connexion failed
 
 --------------------------------------------------------------------------------

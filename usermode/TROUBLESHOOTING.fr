@@ -456,12 +456,13 @@ R:	Essayez de décommenter les deux lignes concernant les LCP dans
 
 4.6
 ================================================================================
-Q:	J'obtiens ces lignes dans /var/log/messages:
-	ioctl(PPPIOCGFLAGS): Inappropriate ioctl for device
+Q:	J'obtiens un modem hangup ou pas de connexion du tout, et je peux voir ces
+	lignes dans /var/log/messages:
+	ioctl(PPP..): Inappropriate ioctl for device
 	Connexion failed
 
 --------------------------------------------------------------------------------
-R:	Varifiez votre configuration du noyau (ci-dessous).
+R:	Vérifiez votre configuration du noyau (ci-dessous).
 
 	Mettez à jour votre driver eciadsl.
 
