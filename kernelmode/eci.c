@@ -867,10 +867,12 @@ static int eci_usb_probe(struct usb_interface *interface,
 				ERR_OUT("out of memory\n");
 				goto erreure;
 			}
+#if 0			
 			if(usb_set_configuration(dev,1)<0) {
 				ERR_OUT("Can't set interface\n");
 				goto erreure;
 			}
+#endif
 			if(usb_set_interface(dev,0,4)<0) {
 				ERR_OUT("Cant set configuration\n");
 				goto erreure;
@@ -1293,15 +1295,16 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 	if(instance->setup_packets[0]) {
 		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
 		memcpy(setuppacket, instance->setup_packets,8);
-		size = (instance->setup_packets[7] << 8 ) |
-				instance->setup_packets[6];
 			/*
 				If write URB then read the buffer and
 				set endpoint else just set enpoint
 			*/
 		if(setuppacket[0] & 0x80) {
+			size = 0;
 			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
 		} else {
+			size = (instance->setup_packets[7] << 8 ) |
+				instance->setup_packets[6];			
 			memcpy(eciurb->transfer_buffer, instance->setup_packets+8,size);
 			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
 		}
@@ -1344,7 +1347,7 @@ static void eci_init_vendor_callback(struct urb *urb, struct pt_regs *regs) {
 	int size;
 
 	instance = (struct eci_instance *) urb->context;
-	spin_lock_bh(&instance->lock);
+	spin_lock(&instance->lock);
 /*
 	If urb status is set warn about it, else do what we gotta do
 */
@@ -1370,7 +1373,7 @@ static void eci_init_vendor_callback(struct urb *urb, struct pt_regs *regs) {
 			_eci_send_init_urb(instance->vendor_urb);
 		}
 	}
-	spin_unlock_bh(&instance->lock);
+	spin_unlock(&instance->lock);
 }
 
 /*
@@ -1643,7 +1646,7 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 			else
 				if(urb->iso_frame_desc[i].actual_length)
 #endif	/* 	DEBUG	*/
-				DBG_OUT("Dropping one frame\tStatus %d\n", \
+				DBG_OUT("Dropping one frame\tStatus %d\n", 
 					urb->iso_frame_desc[i].status);
 		}
 	}
