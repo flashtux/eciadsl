@@ -140,19 +140,20 @@ int eoc_read_next() {
 	printf("OEC.C - eco_readnext - START [eocreadpos : %d| eocreadlen : %d]\n", eocreadpos, eocreadlen);
 	if(eocreadpos < eocreadlen) {
 		data = *eocnextrw++;
-		mes = 0x2301;
-		if(eocreadpar) {	/* set parity bit and switch eocpar value */
-			mes |= EOC_PARITY_EVEN;
-			eocpar = 0;
-		} else {
-			mes |= EOC_PARITY_ODD;
-			eocpar = 1;			
-		}
-		mes |= (data & 0x01 ) << (7 + 8); /* 1st byte contain lsb in bit 7 */
-		mes |= (data & &0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
+		mes = 0x4301;
 	} else {
-		mes = EOC_OPCODE_EOD;
+		mes = 0x5301;		
+		data = 0x0e; /* EOD */
 	}
+	if(eocreadpar) {	/* set parity bit and switch eocpar value */
+		mes |= EOC_PARITY_EVEN;
+		eocpar = 0;
+	} else {
+		mes |= EOC_PARITY_ODD;
+		eocpar = 1;			
+	}
+	mes |= (data & 0x01 ) << (7 + 8); /* 1st byte contain lsb in bit 7 */
+	mes |= (data & &0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
 	printf("OEC.C - eco_readnext - END   [mes : %04x]\n", mes);
 	return(mes);
 }
