@@ -17,39 +17,52 @@
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 #
-#	Ugly stuff to check for eci-load? location.
-#	If not in path assume it is in /usr/local/bin
+#   Ugly stuff to check for eci-load? location.
+#   If not in path assume it is in /usr/local/bin
 #
 export ECILOAD1
 ECILOAD1=`which eci-load1`
 if [ -f $ECILOAD1 ]; then
-	ECILOAD1=/usr/local/bin/eci-load1
-	echo "test : $ECILOAD1"
+    ECILOAD1=/usr/local/bin/eci-load1
+    echo "test : $ECILOAD1"
 fi
 
 
 ECILOAD2=`which eci-load2`
 if [ -f $ECILOAD2 ]; then
-	ECILOAD2=/usr/local/bin/eci-load2
+    ECILOAD2=/usr/local/bin/eci-load2
 fi
 
 if [ ! -d /proc/bus/usb ]; then
-	echo "Loading support for USB" ;
-	modprobe usbcore
+    echo "Loading support for USB" ;
+    modprobe usbcore
+fi
+
+if [ -e /etc/eciadsl/vidpid ]; then
+    vid1=`cat /etc/eciadsl/vidpid | cut -f1 -d' '` ;
+    pid1=`cat /etc/eciadsl/vidpid | cut -f2 -d' '` ;
+    vid2=`cat /etc/eciadsl/vidpid | cut -f3 -d' '` ;
+    pid2=`cat /etc/eciadsl/vidpid | cut -f4 -d' '` ;
+    echo "vid/pid read from /etc/eciadsl/vidpid: $vid1/$pid1 $vid2/$pid2" ;
+else
+    vid1="0547" ;
+    pid1="2131" ;
+    vid2="0915" ;
+    pid2="8000" ;
 fi
 
 # mount usbdevfs is this is not the case
 if [ ! -f /proc/bus/usb/devices ]; then
-	echo "Loading preliminary USB device filesystem" ;
-	mount -t usbdevfs none /proc/bus/usb
+    echo "Loading preliminary USB device filesystem" ;
+    mount -t usbdevfs none /proc/bus/usb
 fi
 
 #verify if dabusb is loaded
 lsmod|grep dabusb > /dev/null;
 if [ $? == "0" ]; then
-	echo "Dabusb seems to be present trying to remove it...";
-	rmmod dabusb;
-	lsmod|grep dabusb > /dev/null;
+    echo "Dabusb seems to be present trying to remove it...";
+    rmmod dabusb;
+    lsmod|grep dabusb > /dev/null;
 if [ $? == "0" ]; then
 echo "Couldn't remove dabusb try rmmod dabusb manually";
 else
@@ -61,84 +74,84 @@ fi
 grep -A 4 USB /proc/pci | grep I/O > /dev/null
 if [ $? -eq 0 ]; then
 # ok, we have a UHCI controller, check if the linux driver is loaded
-	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-	if [ $? -ne 0 ]; then
-		echo "Loading UHCI support" ;
-		modprobe usb-uhci ;
-		sleep 2 ;
-	fi
+    grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Loading UHCI support" ;
+        modprobe usb-uhci ;
+        sleep 2 ;
+    fi
 fi
 
 # try to locate OHCI controller
 grep -A 4 USB /proc/pci | grep memory > /dev/null
 if [ $? -eq 0 ]; then
 # ok, we have a OHCI controller, check if the linux driver is loaded
-	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-	if [ $? -ne 0 ]; then
-		echo "Loading OHCI support" ;
-		modprobe usb-ohci
-		sleep 2
-	fi
+    grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Loading OHCI support" ;
+        modprobe usb-ohci
+        sleep 2
+    fi
 fi
 
 echo "Init modem ..." ;
 
-# check for the EZ-USB chips. If it's not there, maybe the firmware is 
+# check for the EZ-USB chips. If it's not there, maybe the firmware is
 # already loaded ... so continue.
 if [ $# != "4" ]; then
-grep "^P:  Vendor=0547 ProdID=2131" /proc/bus/usb/devices > /dev/null;
+grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null;
 else
 grep "^P:  Vendor=$1 ProdID=$2" /proc/bus/usb/devices > /dev/null;
 fi
 if [ $? -eq 0 ]; then
-	echo "	Load Firmware ...";
-	if [ $# != "4" ]; then	
-		$ECILOAD1 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
-	else
-		$ECILOAD1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
-	fi
-	if [ $? -ne 0 ] ; then
-		echo "Failed to load firmware" ;
-		exit -1 ;
-	fi ;
-	echo "	... Load Firmware OK"
+    echo "  Load Firmware ...";
+    if [ $# != "4" ]; then
+        $ECILOAD1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
+    else
+        $ECILOAD1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
+    fi
+    if [ $? -ne 0 ] ; then
+        echo "Failed to load firmware" ;
+        exit -1 ;
+    fi ;
+    echo "  ... Load Firmware OK"
 fi
 
 if [ $# != "4" ];then
-grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null;
+grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null;
 else
 grep "^P:  Vendor=$3 ProdID=$4" /proc/bus/usb/devices > /dev/null;
 fi
 if [ $? -ne 0 ]; then
-	echo "I can't find your modem... sorry :-("
-	exit -1;
+    echo "I can't find your modem... sorry :-("
+    exit -1;
 fi
 
-echo "	Setup modem ..." ;
+echo "  Setup modem ..." ;
 if [ $# != "4" ]; then
-	$ECILOAD2 /etc/eciadsl/eci_wan3.bin;
+    $ECILOAD2 0x$vid2 0x$pid2 /etc/eciadsl/eci_wan3.bin;
 else
-	$ECILOAD2 0x$3 0x$4 /etc/eciadsl/eci_wan3.bin;
+    $ECILOAD2 0x$3 0x$4 /etc/eciadsl/eci_wan3.bin;
 fi
 if [ $? -ne 0 ] ; then
-	echo "Failed to setup the modem" ;
-	exit -1 ;
+    echo "Failed to setup the modem" ;
+    exit -1 ;
 fi ;
-echo "	... Setup Modem OK" ;
+echo "  ... Setup Modem OK" ;
 
 echo "... modem init OK" ;
 
 echo "Connect Modem ..." ;
 nice --20 pppd call adsl updetach
 if [ $? -ne 0 ] ; then
-	echo "Connexion failed" ;
-	exit -1 ;
+    echo "Connexion failed" ;
+    exit -1 ;
 fi ;
 echo "... Connect Modem OK" ;
 
 # The default route should be added automatically if no default route
 # already exists. If you already have a default route using your
-# ethernet card, you should configure your ethernet card. 
+# ethernet card, you should configure your ethernet card.
 
 exit 0;
 
@@ -146,15 +159,15 @@ exit 0;
 COUNTER=20
 FLREADY="no"
 echo "Add Default route ..." ;
-echo -n "	wait for ppp0 : " ;
+echo -n "   wait for ppp0 : " ;
 for (( times = 1; times < $COUNTER; times++ )); do
-	FOUND=`ifconfig | grep ppp0` ;
-	if [ ! -z "$FOUND" ] ; then
-		FLREADY="yes" ;
-		break ;
-	fi ;
-	sleep 1 ;
-	echo -n "." ;
+    FOUND=`ifconfig | grep ppp0` ;
+    if [ ! -z "$FOUND" ] ; then
+        FLREADY="yes" ;
+        break ;
+    fi ;
+    sleep 1 ;
+    echo -n "." ;
 done
 
 echo "" ;
@@ -162,13 +175,13 @@ unset COUNTER ;
 unset FOUND ;
 
 if [ "$FLREADY" = "yes" ] ; then
-	echo "	ppp0 now available" ;
-	route add default dev ppp0 ;
-	echo "Default route added" ;
+    echo "  ppp0 now available" ;
+    route add default dev ppp0 ;
+    echo "Default route added" ;
 else
-	echo "No device found" ;
-	unset FLREADY ;
-	exit -1 ;
+    echo "No device found" ;
+    unset FLREADY ;
+    exit -1 ;
 fi ;
 
 unset FLREADY ;
