@@ -163,23 +163,25 @@ if [ $? -eq 0 ]; then
 fi
 
 #verify if n_hdlc is loaded (module only so, it's safe)
-lsmod | grep n_hdlc > /dev/null
+check-hdlc > /dev/null
 if [ $? -ne 0 ]; then
-	modprobe -l | grep n_hdlc > /dev/null
+	lsmod | grep n_hdlc > /dev/null
 	if [ $? -ne 0 ]; then
-		echo -e "\nwarning: n_hdlc support not found in kernel config"
-	else
-    	modprobe n_hdlc
-		sleep 1
-    	lsmod | grep n_hdlc > /dev/null
+		modprobe -l | grep n_hdlc > /dev/null
 		if [ $? -ne 0 ]; then
-			echo -e "\ncouldn't load n_hdlc module"
+			echo -e "\nwarning: n_hdlc support not found in kernel config"
 		else
-			echo -e "\nn_hdlc loaded successfully"
+    		modprobe n_hdlc
+			sleep 1
+    		lsmod | grep n_hdlc > /dev/null
+			if [ $? -ne 0 ]; then
+				echo -e "\ncouldn't load n_hdlc module"
+			else
+				echo -e "\nn_hdlc loaded successfully"
+			fi
 		fi
 	fi
 fi
-
 
 echo -e "\nloading firmware (2/5)..\n"
 # check for the EZ-USB chips. If it's not there, maybe the firmware is
