@@ -176,7 +176,7 @@ P:	los mensajes emitidos por startmodem, eciconf o eci-doctor indican:
 R:	Verifique la configuración USB de su sistema. Esto puede ser debido a una
 	falta de soporte para el usbdevfs en su configuración del kernel. Si el
 	kernel tiene el soporte para él, pruebe montarlo usando:
-		mount -t usbdevfs none /proc/bus/usb
+		>mount -t usbdevfs none /proc/bus/usb
 	Esto puede ponerse en su archivo /etc/fstab.
 	Para conseguir que sea montado automaticamente en momento de la
 	inicialización del sistema, agregue esta línea:
@@ -582,6 +582,7 @@ R:	Usted no está bebido, pppd no puede comunicarse con el pppoeci (parte del
 	driver) y debe provenir de una mala versión del pppd, de una configuración
 	mala del ppp, dentro del kernel, o porque usted está usando el driver en un
 	sistema no soportado.
+
 	También verifique el archivo /etc/ppp/peers/adsl. La invocación del pppoeci
 	podría estar corrupta, o el archivo no existe en lo absoluto (éste es un
 	problema conocido).
