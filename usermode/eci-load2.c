@@ -206,7 +206,7 @@ void read_endpoint(pusb_device_t dev, int epnum)
 	_exit (0);
 }
 
-int eci_load2(const char * file)
+int eci_load2(const char * file, int vid, int pid)
 {
 	FILE * fp ;
 	struct usb_block block;
@@ -422,7 +422,7 @@ int eci_load2(const char * file)
 void usage()
 {
 	printf("eci-load2 version $Name$\n");
-	printf("usage: eci-load2 eci_sequence.bin\n");
+	printf("usage: eci-load2 eci_sequence.bin [VENDOR_ID PRODUCT_ID]\n");
 	exit (-1);
 }
 
@@ -435,13 +435,19 @@ int main(int argc, char *argv[])
 {
 	const char * file = argv[1];
 	int r, status;
+	int vid = GS_VENDOR, pid = GS_PRODUCT;
 
-	if (argc != 2)
+	if (argc != 2 && argc != 4)
 		usage();
+	if(argc == 4)
+	{
+		vid = atoi(argv[2]);
+		pid = atoi(argv[3]);
+	}
 
 	signal(SIGUSR1,sigusr1);
 
-	if (!eci_load2(file))
+	if (!eci_load2(file, vid, pid))
 	{
 		printf("ECI Load 2 : failed!\n");
 		return -1;
