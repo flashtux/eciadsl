@@ -41,33 +41,22 @@ install_scripts:
 # patch scripts with useful pathes, use sed filter for perl, tcl and shell scripts
 # filtered files are in $(TMP_DIR) then installed to $(BIN_DIR)
 	$(INSTALL_DIR) $(TMP_DIR)
-	@> $(TMP_DIR)/tcl.sed; \
-	TMP=$$(echo "$(BIN_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/set BIN_DIR .\+/set BIN_DIR \"$$TMP\"/" >> $(TMP_DIR)/tcl.sed; \
-	TMP=$$(echo "$(ETC_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/set ETC_DIR .\+/set ETC_DIR \"$$TMP\"/" >> $(TMP_DIR)/tcl.sed; \
-	TMP=$$(echo "$(CONF_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/set CONF_DIR .\+/set CONF_DIR \"$$TMP\"/" >> $(TMP_DIR)/tcl.sed; \
-	TMP=$$(echo "$(PPPD_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/set PPPD_DIR .\+/set PPPD_DIR \"$$TMP\"/" >> $(TMP_DIR)/tcl.sed;
-	@> $(TMP_DIR)/pl.sed; \
-	TMP=$$(echo "$(BIN_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$TMP\"/" >> $(TMP_DIR)/pl.sed; \
-	TMP=$$(echo "$(ETC_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$TMP\"/" >> $(TMP_DIR)/pl.sed; \
-	TMP=$$(echo "$(CONF_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$TMP\"/" >> $(TMP_DIR)/pl.sed; \
-	TMP=$$(echo "$(PPPD_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$TMP\"/" >> $(TMP_DIR)/pl.sed
-	@> $(TMP_DIR)/sh.sed; \
-	TMP=$$(echo "$(BIN_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/BIN_DIR=.\+/BIN_DIR=\"$$TMP\"/" >> $(TMP_DIR)/sh.sed; \
-	TMP=$$(echo "$(ETC_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/ETC_DIR=.\+/ETC_DIR=\"$$TMP\"/" >> $(TMP_DIR)/sh.sed; \
-	TMP=$$(echo "$(CONF_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/CONF_DIR=.\+/CONF_DIR=\"$$TMP\"/" >> $(TMP_DIR)/sh.sed; \
-	TMP=$$(echo "$(PPPD_DIR)" | sed "s/\//\\\\\//g"); \
-	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$TMP\"/" >> $(TMP_DIR)/sh.sed;
+	@bindir=$$(echo "$(BIN_DIR)" | sed "s/\//\\\\\//g"); \
+	etcdir=$$(echo "$(ETC_DIR)" | sed "s/\//\\\\\//g"); \
+	confdir=$$(echo "$(CONF_DIR)" | sed "s/\//\\\\\//g"); \
+	pppddir=$$(echo "$(PPPD_DIR)" | sed "s/\//\\\\\//g"); \
+	echo "s/set BIN_DIR .\+/set BIN_DIR \"$$bindir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set ETC_DIR .\+/set ETC_DIR \"$$etcdir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set CONF_DIR .\+/set CONF_DIR \"$$confdir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set PPPD_DIR .\+/set PPPD_DIR \"$$pppddir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$bindir\"/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$etcdir\"/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$confdir\"/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$pppddir\"/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/BIN_DIR=.\+/BIN_DIR=\"$$bindir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/ETC_DIR=.\+/ETC_DIR=\"$$etcdir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/CONF_DIR=.\+/CONF_DIR=\"$$confdir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$pppddir\"/" >> $(TMP_DIR)/sh.sed;
 	@for FILE in $(SCRIPTS); do \
 		head -50 $$FILE | grep -E "^exec wish" > /dev/null; \
 		if [ $$? -eq 0 ]; then \
@@ -176,3 +165,6 @@ rpm:
 #	rpm -ta /tmp/eciadsl-usermode-x.y.tar.gz
 #   RPMS : /usr/src/RPM/RPMS/i686/eciadsl-usermode-0.5-2.i686.rpm
 #	SRPMS: /usr/src/RPM/SRPMS/eciadsl-usermode-0.5-2.src.rpm
+
+cfg:
+	@type wish > /dev/null && $(BIN_DIR)/eciconf.sh || $(BIN_DIR)/eciconftxt.sh
