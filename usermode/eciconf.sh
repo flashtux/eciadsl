@@ -10,6 +10,8 @@
 # *                                                                          *
 # ****************************************************************************
 #
+# 2002/10/19, FlashCode :
+#   Added Belgacom provider
 # 2002/10/07, FlashCode :
 #   Added modem Zyxel Prestige 630-41 and provider Bluewin
 # 2002/10/05, FlashCode :
@@ -138,7 +140,9 @@ pack .bloc1.fai.ligne4.tiscali .bloc1.fai.ligne4.pipexuk -side left
 frame .bloc1.fai.ligne5
 radiobutton .bloc1.fai.ligne5.bluewin -text "Bluewin" -width 11 -variable fai -value bluewin -command {set dns1 "195.186.1.111"; set dns2 "195.186.4.111"} -selectcolor blue
 .bloc1.fai.ligne5.bluewin configure -anchor w
-pack .bloc1.fai.ligne5.bluewin -side left
+radiobutton .bloc1.fai.ligne5.belgacom -text "Belgacom" -width 12 -variable fai -value belgacom -command {set dns1 "195.238.2.21"; set dns2 "195.238.2.22"} -selectcolor blue
+.bloc1.fai.ligne5.belgacom configure -anchor w
+pack .bloc1.fai.ligne5.bluewin .bloc1.fai.ligne5.belgacom -side left
 
 pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 .bloc1.fai.ligne5 -side top -anchor w
 
@@ -505,6 +509,7 @@ global majdns
         .bloc1.fai.ligne4.tiscali configure -state normal -selectcolor blue
         .bloc1.fai.ligne4.pipexuk configure -state normal -selectcolor blue
         .bloc1.fai.ligne5.bluewin configure -state normal -selectcolor blue
+        .bloc1.fai.ligne5.belgacom configure -state normal -selectcolor blue
         .bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
         .bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
         .bloc1.fai.dns1.labeldns configure -foreground black
@@ -519,6 +524,7 @@ global majdns
         .bloc1.fai.ligne4.tiscali configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne4.pipexuk configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne5.bluewin configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne5.belgacom configure -state disabled -selectcolor darkgray
         .bloc1.fai.dns1.entry configure -state disabled -foreground darkgray -background lightgray
         .bloc1.fai.dns2.entry configure -state disabled -foreground darkgray -background lightgray
         .bloc1.fai.dns1.labeldns configure -foreground darkgray
