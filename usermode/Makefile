@@ -204,8 +204,8 @@ rpm: rpmdistclean
 	$(MAKE) rpmdistclean
 
 rpmdistclean:
-	-@rm -Rf /tmp/eciadsl-usermode-$(PRODUCT_VERSION) /tmp/usermode
-	-@rm -f /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
+	-@$(RM) -R /tmp/eciadsl-usermode-$(PRODUCT_VERSION) /tmp/usermode
+	-@$(RM) /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
 
 cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
