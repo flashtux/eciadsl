@@ -738,7 +738,8 @@ A:	The kernel configuration and compilation principles are still the same
 
 	then type:
 		mkdir /dev/net
-		mknod /dev/net/tun c 10 200
+		mknod /dev/net/tun0 c 10 200
+		ln -s /dev/net/tun0 /dev/net/tun
 
 
 5.4

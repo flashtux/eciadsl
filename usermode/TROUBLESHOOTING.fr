@@ -776,7 +776,8 @@ R:	Les principes de configuration et de compilation du noyau sont les mêmes
 
 	puis tapez:
 		mkdir /dev/net
-		mknod /dev/net/tun c 10 200
+		mknod /dev/net/tun0 c 10 200
+		ln -s /dev/net/tun0 /dev/net/tun
 
 
 5.4
