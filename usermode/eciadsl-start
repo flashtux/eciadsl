@@ -1,0 +1,622 @@
+#!/bin/sh
+#
+# Author   : Jean-Sebastien VALETTE <jean-sebastien.valette@libertysurf.fr>
+# Creation : 06/12/2001
+# Licence  : GPL
+#
+# 07/02/2002: added the CVS Id
+# CVS $Id: startmodem,v 1.55 2003/08/01 14:14:02 crevetor Exp $
+# Tag $Name:  $
+#
+# 03/02/2002
+#  - added a sleep 2 after loading USB controller driver, as suggested
+#    by Sebastien YAPO <sebastien.yapo@free.fr>.
+#
+# 15/02/2002 Benoit PAPILLAULT:
+#  - remove "modprobe uhci" since this module never worked with this modem
+#
+# 13/06/2002 FlashCode <flashcode@flashtux.org>
+#  - new file: /etc/eciadsl/vidpid : contains vid/pid (1 & 2) for your modem
+#              example of content ECI:   0547 2131 0915 8000
+#
+# 03/07/2002 FlashCode <flashcode@flashtux.org>
+#  - new file: /etc/eciadsl/eci_wan.bin (created by Makefile and eciconf) :
+#              this is a link to your .bin
+#  - to change your .bin file, run eciconf or type this command :
+#    rm /etc/eciadsl/eci_wan.bin && ln -s /path/your.bin /etc/eciadsl/eci_wan.bin
+#
+# 23/10/2002 wwp
+#  - removed ugly hardcoded pathes, used new scheme.
+#
+# 21/10/2002 wwp
+#  - default .bin is synch01.bin now, /etc/eciadsl/synch.bin is a symlink to this one!
+#  - removed ugly modutils uses, added some delays.
+#
+# 29/07/2003 crevetor
+#  - added code to support the 2.6 kernel series.
+#
+# 23/04/2004 FlashCode <flashcode@flashtux.org>
+#  - renamed all driver scripts/binaries with "eciadsl-" prefix
+#  - new exit codes according to step with error (firm, synch, ..)
+#  - added comments
+#
+
+
+function usage()
+{
+    echo "usage:"
+    echo "  $BASE [<switch> ..]"
+    echo "switches:"
+    echo "  -h or --help        show this short help then exit"
+    echo "  -v or --version     show version number then exit"
+    echo
+    echo "exit codes:"
+    echo "  0 - normal termination (no error)"
+    echo "  1 - usage/cmdline error"
+    echo "  2 - USB system init error"
+    echo "  3 - modem init error"
+    echo "  4 - synchronization error"
+    echo "  5 - connection error"
+    echo "  6 - routing error"
+    exit $1
+}
+
+function version()
+{
+    echo "$VERSION"
+    exit $NOERROR
+}
+
+function next_step()
+{
+	# increase step
+	STEP=$(($STEP+1))
+	# show new step title and step-1 ('cause 1st and 2nd steps are reserved
+	# but user-sight steps are 1-5)
+	echo -e "\n[EciAdsl $((STEP-1))/$MAXSTEPS] $@...\n"
+}
+
+function check_host_is_EHCI()
+{
+    HOSTVERSION=""
+    HOSTDEVICES=0
+    HOSTINFO=""
+    VER=""
+    DEVICES=0
+    INFO=""
+    TMPVER=""
+    OLDIFS="$IFS"
+    IFS=$'\n'
+    for LINE in $(cat /proc/bus/usb/devices)
+    do
+        IFS="$OLDIFS"
+        case "${LINE:0:2}" in
+        "P:")	DEVICE="${LINE:11:4}${LINE:23:4}"
+                case "$DEVICE" in
+                "00000000")	if [ -n "$HOSTVERSION" ]; then
+                                HOSTDEVICES=$DEVICES
+                                HOSTINFO="$INFO"
+                                break
+                            fi
+                            INFO=""
+                            VER="$TMPVER"
+                            DEVICES=0
+                            TMPVER=""
+                            ;;
+                "$vid1$pid1"|"$vid2$pid2")
+                            HOSTVERSION=$VER
+                            DEVICES=$(($DEVICES+1))
+                            ;;
+                *)			DEVICES=$(($DEVICES+1))
+                            ;;
+                esac
+
+                ;;
+        "D:")	TMPVER=${LINE:8:5}
+                ;;
+        *)		INFO="$INFO$LINE";;
+        esac
+        IFS=$'\n'
+    done
+    IFS="$OLDIFS"
+#	echo "Host version: $HOSTVERSION"
+#	echo "Devices in use: $HOSTDEVICES"
+#	echo $HOSTINFO | grep -iEqm 1 "ehci.hcd" && \
+#		echo "Host is ehci-hcd"
+    if [ "${HOSTVERSION:0:2}" != " 1" ]; then
+        # modem is not plugged to a USB1 port
+        echo $HOSTINFO | grep -iEqm 1 "ehci.hcd"
+        if [ $? -eq 0 ]; then
+            if [ $HOSTDEVICES -le 1 ]; then
+                # no other device is using this host module
+                # feel free to unload it!
+                WHATTODOWITHEHCI=1
+            else
+                # some other device(s) are using this host module
+                # it is highly unsafe to unload it
+                WHATTODOWITHEHCI=2
+            fi
+        else
+            # another USB2 host module is in use - need further
+            # compatibility info to know what to do (TODO)
+            WHATTODOWITHEHCI=3
+        fi
+    else
+        # USB1 port is used
+        WHATTODOWITHEHCI=0
+    fi
+}
+
+function wait_for_iface()
+{
+    next_step "Setting up route table"
+    # Wait until ppp0 get available
+    COUNTER=10
+    FLREADY=0
+    TIMES=1
+    echo -n "Waiting for $1... "
+    while [ $TIMES -le $COUNTER ]; do
+        ifconfig $1> /dev/null 2>&1
+        if [ $? -eq 0 ]; then
+            FLREADY=1
+            break
+        fi
+        sleep 1
+        echo -n "."
+        TIMES=$(expr $TIMES + 1)
+    done
+    echo
+    if [ "$FLREADY" -eq 0 ]; then
+        echo "no $1 device found"
+        exit $STEP
+    fi
+}
+
+
+# <CONFIG>
+BIN_DIR="/usr/local/bin"
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+PPPD_DIR="/etc/ppp"
+VERSION=""
+# </CONFIG>
+
+MAXSTEPS=5
+STEP=1
+NOERROR=0
+BASE=${0##*/}
+while [ -n "$1" ]
+do
+	case "$1" in
+	"-v"|"--version")	version;;
+	"-h"|"--help")		usage $NOERROR;;
+	-*)					echo "unsupported switch '$1'"
+						usage $STEP;;
+	*)					echo "unsupported argument '$1'"
+						usage $STEP;;
+	esac
+	shift
+done
+
+# ===== Read options from config file =====
+
+if [ -s "$CONF_DIR/eciadsl.conf" ]; then
+    vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    mode=`grep -E "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    firmware=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+    synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+    staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    use_staticip=`grep -E "^[ \t]*USE_STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    firmware_options=`grep -E "^[ \t]*FIRMWARE_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+    synch_options=`grep -E "^[ \t]*SYNCH_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+    pppoeci_options=`grep -E "^[ \t]*PPPOECI_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+    synch_attempts=`grep -E "^[ \t]*SYNCH_ATTEMPTS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+    preferred_usb_hub=`grep -E "^[ \t]*PREFERRED_USB_HUB[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+else
+    echo -e "\nWarning: couldn't find $CONF_DIR/eciadsl.conf, default config assumed"
+fi
+test -z "$vid1" && vid1="0547"
+test -z "$pid1" && pid1="2131"
+test -z "$vid2" && vid2="0915"
+test -z "$pid2" && pid2="8000"
+test -z "$mode" && mode="$($BIN_DIR/eciadsl-pppoeci --modes 2>&1 | grep default |cut -d ' ' -f 1)"
+test -z "$firmware" && firmware="$CONF_DIR/firmware00.bin"
+test -z "$synch" && synch="$CONF_DIR/synch01.bin"
+test -z "$synch_attempts" && synch_attempts=1
+
+# ===== eciadsl-pppoeci already running? ======
+
+ps ax | grep "eciadsl-pppoeci" | grep -v grep > /dev/null 2>&1
+if [ $? -eq 0 ]; then
+    echo -e "\nERROR: eciadsl-pppoeci is already running!"
+    echo "You should kill all instances of eciadsl-pppoeci and restart this script."
+    exit $STEP
+fi
+
+# ===== Setup USB support =====
+
+next_step "Setting up USB support"
+
+if [ ! -d /proc/bus/usb ]; then
+    modprobe usbcore > /dev/null
+    sleep 1
+fi
+
+# ===== Mount usbdevfs if needed ======
+
+mount | grep usbdevfs > /dev/null
+if [ $? -ne 0 ]; then
+    echo -ne "Loading USB device filesystem... "
+    mount -t usbdevfs none /proc/bus/usb
+    sleep 1
+    mount | grep usbdevfs > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "Warning: couldn't mount usbdevfs"
+    else
+        echo "mounted successfully"
+    fi
+fi
+
+# ===== Check if dabusb is loaded =====
+
+lsmod | grep dabusb > /dev/null
+if [ $? -eq 0 ]; then
+    echo -ne "dabusb is loaded, trying to remove it... "
+    modprobe -r dabusb
+    sleep 1
+    lsmod | grep dabusb > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "Warning: couldn't remove dabusb, try to modprobe -r dabusb manually"
+        echo "or add dabusb to /etc/hotplug/blacklist if possible"
+    else
+        echo "dabusb removed successfully"
+    fi
+fi
+
+# ===== Check for ehci-hcd and USB port where modem is plugged =====
+
+# if the modem is using ehci-hcd and no other device is also
+# plugged in that USB host, unload ehci-hcd. if some other devices
+# are using ehci-hcd, warn the user about this unsupported USB controler
+# (the user should not plug the modem to such USB2 host or use another
+# module if possible). If the modem is not using ehci-hcd but such module
+# is loaded, do nothing (not relevant).
+WHATTODOWITHEHCI=0
+check_host_is_EHCI
+case "$WHATTODOWITHEHCI" in
+0)  ;;
+1)  echo "The modem seems to be plugged to a USB2 port which is managed by the ehci-hcd module."
+    echo "unfortunately, this driver does not support such module."
+    lsmod | grep ehci-hcd > /dev/null
+    if [ $? -eq 0 ]; then
+        echo -e "\ntrying to remove ehci-hcd module..."
+        modprobe -r ehci-hcd
+        sleep 1
+        lsmod | grep ehci-hcd > /dev/null
+        if [ $? -eq 0 ]; then
+            echo "Warning: couldn't remove ehci-hcd try to modprobe -r ehci-hcd manually"
+        else
+            echo "ehci-hcd removed successfully"
+        fi
+    fi
+    ;;
+2)  echo "The modem seems to be plugged to a USB2 port which is managed by the ehci-hcd module."
+    echo "unfortunately, this driver does not support such module, and some other USB devices"
+    echo "are using this host module so it is not possible to unload it."
+    echo "$BASE will probably fail and you'll have to plug your modem to a USB1 port"
+    ;;
+3)  # No message today (TODO: complete or write appropriate message)
+    #echo "The modem seems to be plugged to a USB2 port which is not managed by the ehci-hcd module."
+    #echo "$BASE may fail, please report any problem to the developpers"
+	;;
+esac
+
+# ===== Look for USB controller =====
+
+minor_v=`uname -r | cut -d . -f 2`
+if [ -z "$preferred_usb_hub" ]; then
+
+    # try to locate UHCI controller
+    lspci -v | grep -A 4 USB  | grep I/O > /dev/null
+    if [ $? -eq 0 ]; then
+        # ok, we have a UHCI controller, check if the linux driver is loaded
+        #grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+        lsmod | grep uhci > /dev/null
+        if [ $? -ne 0 ]; then
+            echo -ne "Loading UHCI support... "
+            if [ $minor_v -eq 4 ]; then
+                # 2.4 kernel
+                modprobe -l | grep usb-uhci > /dev/null
+                if [ $? -ne 0 ]; then
+                    echo "Warning: usb-uhci module doesn't exist"
+                else
+                    modprobe usb-uhci
+                    sleep 2
+                    lsmod | grep usb-uhci > /dev/null
+                    if [ $? -ne 0 ]; then
+                        echo "couldn't load usb-uhci module"
+                    else
+                        echo "usb-uhci loaded successfully"
+                    fi
+                fi
+            elif [ $minor_v -ge 5 ]; then
+                # >= 2.5/2.6 kernel
+                modprobe -l | grep uhci-hcd > /dev/null
+                if [ $? -ne 0 ]; then
+                    echo "Warning: uhci-hcd module doesn't exist"
+                else
+                    sleep 1
+                    modprobe uhci-hcd
+                    sleep 2
+                    lsmod | grep uhci-hcd > /dev/null
+                    if [ $? -ne 0 ]; then
+                        echo "couldn't load uhci-hcd module"
+                    else
+                        echo "uhci-hcd loaded successfully"
+                    fi
+                fi
+            fi
+        fi
+    fi
+
+    # try to locate OHCI controller
+    lspci -v | grep -A 4 USB | grep memory > /dev/null
+    if [ $? -eq 0 ]; then
+        # ok, we have a OHCI controller, check if the linux driver is loaded
+        #grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+        lsmod | grep ohci > /dev/null
+        if [ $? -ne 0 ]; then
+            echo -ne "Loading OHCI support... "
+            if [ $minor_v -eq 4 ]; then
+                modprobe -l | grep usb-ohci > /dev/null
+                if [ $? -ne 0 ]; then
+                    echo "Warning: usb-ohci module doesn't exist"
+                else
+                    modprobe usb-ohci
+                    sleep 2
+                    lsmod | grep usb-ohci > /dev/null
+                    if [ $? -ne 0 ]; then
+                        echo "couldn't load usb-ohci module"
+                    else
+                        echo "usb-ohci loaded successfully"
+                    fi
+                fi
+            elif [ $minor_v -ge 5 ]; then
+                modprobe -l | grep ohci-hcd > /dev/null
+                if [ $? -ne 0 ]; then
+                    echo "Warning: ohci-hcd module doesn't exist"
+                else
+                    modprobe ohci-hcd
+                    sleep 2
+                    lsmod | grep ohci-hcd > /dev/null
+                    if [ $? -ne 0 ]; then
+                        echo "couldn't load ohci-hcd module"
+                    else
+                        echo "ohci-hcd loaded successfully"
+                    fi
+                fi
+            fi
+        fi
+    fi
+else
+    echo -ne "Loading USB HUB support ($preferred_usb_hub)... "
+    modprobe -l | grep $preferred_usb_hub > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Warning: $preferred_usb_hub module doesn't exist"
+    else
+        modprobe $preferred_usb_hub
+        sleep 2
+        lsmod | grep $preferred_usb_hub > /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Warning: couldn't load $preferred_usb_hub module"
+        else
+            echo "ok"
+        fi
+    fi
+fi
+
+# ===== Load TAP/TUN support =====
+
+case "$mode" in
+"LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH"|"LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
+    # load tap/tun module
+    echo -ne "Loading TAP/TUN support... "
+    modprobe -l | grep -E "/tun\." > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "Warning: tun module doesn't exist"
+    else
+        modprobe tun
+        sleep 2
+        lsmod | grep -E "^tun[ \t]" > /dev/null
+        if [ $? -ne 0 ]; then
+            echo "couldn't load tun module"
+        else
+            echo "tun loaded successfully"
+        fi
+    fi
+    # verify that /dev/net/tun exists
+    if [ ! -c /dev/net/tun ]; then
+        echo "/dev/net/tun doesn't exist"
+        exit $STEP
+    fi
+    ;;
+esac
+
+# ===== Check for N_HDLC module =====
+
+"$BIN_DIR/eciadsl-check-hdlc" > /dev/null
+if [ $? -ne 0 ]; then
+    lsmod | grep n_hdlc > /dev/null
+    if [ $? -ne 0 ]; then
+        modprobe -l | grep n_hdlc > /dev/null
+        if [ $? -ne 0 ]; then
+            echo -e "Warning: n_hdlc support not found in kernel config"
+        else
+            modprobe n_hdlc
+            sleep 1
+            lsmod | grep n_hdlc > /dev/null
+            if [ $? -ne 0 ]; then
+                echo -e "Couldn't load n_hdlc module"
+            else
+                echo -e "n_hdlc loaded successfully"
+            fi
+        fi
+    fi
+fi
+
+# ===== Upload firmware into modem =====
+
+next_step "Uploading firmware"
+
+# check for the EZ-USB chips. If it's not there, maybe the firmware is
+# already loaded ... so continue.
+grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
+if [ $? -eq 0 ]; then
+    "$BIN_DIR/eciadsl-firmware" $firmware_options
+    if [ $? -ne 0 ]; then
+        echo "ERROR: failed to upload firmware"
+        exit $STEP
+    fi
+    echo "firmware loaded successfully"
+else
+    grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
+    if [ $? -eq 0 ]; then
+        echo "Warning: firmware seems to be already loaded"
+        echo "Check that your modem is OFF before running $BASE (if modem is"
+        echo "powered on, then unplug/replug it)"
+    else
+        echo "ERROR: modem not found"
+        exit $STEP
+    fi
+fi
+
+# ===== Synchronization =====
+
+next_step "Synchronization"
+
+CNT=1
+RET=$CNT
+while [ $CNT -le $synch_attempts -a $RET -ne 0 ]; do
+    "$BIN_DIR/eciadsl-synch" $synch_options
+    RET=$?
+    sleep 1
+    CNT=$(expr $CNT + 1)
+done
+if [ $RET -eq 0 ]; then
+    echo "Synchronization successful"
+else
+    echo "ERROR: failed to get synchronization"
+    exit $STEP
+fi
+
+mount | grep devpts > /dev/null
+if [ $? -ne 0 ]
+then
+    echo -e "Mounting devpts filsystem... "
+    mount -t devpts devpts /dev/pts > /dev/null
+    mount | grep devpts > /dev/null
+    if [ $? -ne 0 ]; then
+        echo "failed to mount"
+    else
+        echo "ok"
+    fi
+fi
+
+# ===== Connection =====
+
+next_step "Connecting to provider"
+
+GW=""
+case "$mode" in
+"VCM_RFC2364"|"LLC_RFC2364")
+
+    nice --20 pppd call adsl updetach
+    if [ $? -ne 0 ]; then
+        echo "ERROR: failed to connect"
+        exit $STEP
+    fi
+    echo "Connection successful"
+
+    wait_for_iface ppp0
+    GW=ppp0
+    ;;
+
+"LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH")
+
+    $BIN_DIR/eciadsl-pppoeci $pppoeci_options
+    if [ $? -ne 0 ]; then
+        echo "ERROR: failed to connect"
+        exit $STEP
+    fi
+    echo "Connection successful"
+
+    ifconfig tap0 up
+    wait_for_iface tap0
+    GW=tap0
+    ;;
+
+"LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
+
+    $BIN_DIR/eciadsl-pppoeci $pppoeci_options
+    if [ $? -ne 0 ]; then
+        echo "ERROR: failed to connect"
+        exit $STEP
+    fi
+    echo "Connection successful"
+
+    ifconfig tun0 up
+    wait_for_iface tun0
+    GW=tun0
+    ;;
+
+*)  echo "unknown PPP mode ($mode), check your driver configuration"
+    ;;
+esac
+
+if [ "$use_dhcp" != "yes" ]; then
+    DEV="$GW"
+    case "$GW" in
+    tap0|tun0)
+        if [ "$use_staticip" == "yes" -a -n "$staticip" -a -n "$gateway" ]; then
+            ifconfig $GW $staticip pointopoint $gateway
+            GW="gw $gateway"
+        else
+            echo "ERROR: couldn't set your static IP or your external gateway"
+            echo "If you don't use PPPoE, please check your configuration."
+            exit $STEP
+        fi
+        ;;
+	*)	GW="dev $GW"
+        ;;
+    esac
+
+    if [ -n "$GW" ]; then
+        for IFACE in 0 7; do
+            route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+eth$IFACE$" > /dev/null
+            if [ $? -eq 0 ]; then
+                echo "Removing existing default route (eth$IFACE)..."
+                route del default dev eth$IFACE
+            fi
+        done
+
+        echo -n "Adding default route... "
+        route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+$DEV$" > /dev/null
+        if [ $? -ne 0 ]; then
+            route add default $GW
+            if [ $? -ne 0 ]; then
+                echo "failed to set default route to $DEV"
+            else
+                echo "default route added: $DEV"
+            fi
+        else
+            echo "default route to $DEV already exists"
+        fi
+    fi
+fi
+
+exit $NOERROR
