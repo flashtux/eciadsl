@@ -136,10 +136,8 @@ A:	You can remove the dabusb module from your system using eciconf.
 
 	You can also directly call remove_dabusb.
 
-	Or, manually, unplug your modem, then type the following commands:
-		modprobe -r dabusb
-		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
-		depmod -a
+	Or, manually, unplug your modem, then type the following command:
+		modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	If the module cannot be removed, try to enter init 1 mode (close all apps,
 	then in console mode, login as root then type `init 1`, now run
@@ -147,6 +145,11 @@ A:	You can remove the dabusb module from your system using eciconf.
 
 	If this kernel has been compiled by hand, don't forget to remove dabusb
 	support from the kernel configuration too.
+
+	If still unable to remove this f*cking module, and if MS Windows is
+	installed on the same machine, boot under MS Windows, install explore2fs and
+	enable the write support. Then, using this tool, remove the dabusb file (see
+	its location above).
 
 
 2.2
@@ -757,7 +760,7 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 	the supported modem and is NOT in the list of UN-supported modem, ask
 	us for further help.
 
-	Check which PPP protocol/encapsulation is used under Windows by your
+	Check which PPP protocol/encapsulation is used under MS Windows by your
 	provider. Also check if DHCP is used by your provider or if you use a
 	static IP.
 	Use eciconf.sh or eciconftxt.sh to properly use it. If it's not supported
@@ -787,7 +790,7 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 		between IP and LLC.
 		
 		For more information, please refer to the control application of your
-		modem under Windows, it should list the mode used, or to your provider.
+		modem under MS Windows, it should list the mode used, or to your provider.
 
 		You can also read RFC1483 and RFC2364 which describe all theses
 		modes in detail.
@@ -844,8 +847,8 @@ A:	Might be. If you don't succeed in initializing your modem, try to disable
 
 5.8
 ================================================================================
-Q:	Switching from Linux to Windows, I cannot use my modem and have to
-	re-install the Windows driver to make it working again.
+Q:	Switching from Linux to MS Windows, I cannot use my modem and have to
+	re-install the MS Windows driver to make it working again.
 
 --------------------------------------------------------------------------------
 A:	Unload all USB modules related to you modem when leaving Linux. This could
@@ -855,7 +858,7 @@ A:	Unload all USB modules related to you modem when leaving Linux. This could
 
 	If it still doesn't work, you have to manually unplug you modem, wait for a
 	few seconds so that it's resetted, and replug it. Then, you can use it under
-	Windows.
+	MS Windows.
 
 	If the problem still persist, contact us.
 

@@ -137,10 +137,8 @@ R:	Vous pouvez supprimer le module dabusb de votre système en utilisant
 
 	Vous pouvez aussi directement appeler remove_dabusb.
 
-	Ou, manuellement, débranchez votre modem, et tapez les commandes suivantes :
-		modprobe -r dabusb
-		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
-		depmod -a
+	Ou, manuellement, débranchez votre modem, et tapez la commande suivante :
+		modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	Si le module ne peut pas être déchargé, essayer d'entrer en mode init 1
 	(fermez toutes les applications, allez en mode console, logguez vous en root
@@ -148,6 +146,11 @@ R:	Vous pouvez supprimer le module dabusb de votre système en utilisant
 
 	Si le noyau a été compilé à la main, n'oubliez pas de retirer dabusb de la
 	configuration du noyau.
+
+	Si vous n'arrivez toujours pas à supprimer le fichier module dabusb, et que
+	MS Windows est installé sur la même machine, installez explore2fs et activez
+	le support pour l'écriture. Avec cet outil, effacez alors le fichier module
+	de dabusb (voir plus haut pour savoir où le trouver).
 
 
 2.2
@@ -796,8 +799,8 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 	des modems supportés et qu'il n'est PAS dans la liste des NON supportés,
 	consultez-nous pour plus d'aide.
 
-	Trouvez quel protocol/encapsulation PPP est utilisé sous Windows par votre
-	provider. Déterminez aussi s'il utilise DHCP ou une IP statique.
+	Trouvez quel protocol/encapsulation PPP est utilisé sous MS Windows par
+	votre provider. Déterminez aussi s'il utilise DHCP ou une IP statique.
 	Utilisez alors eciconf.sh ou eciconftxt.sh pour configurer le driver en ce
 	sens, et si le driver ne supporte pas ces modes ou si vous avez un problème
 	ou un doute, récupérez la dernière version ou contactez-nous.
@@ -822,11 +825,11 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 		VCM RFC1483 ROUTED IP est un mode similaire à LLC RFC1483 ROUTED IP
 			mais n'est pas souvent utilisé.
 
-		SNAP est une couche d'encapsulation supplémentaire, entre ethernet et LLC
-		ou entre IP et LLC.
+		SNAP est une couche d'encapsulation supplémentaire, entre ethernet et
+		LLC ou entre IP et LLC.
 
     	Plus d'informations sur le mode utilisé dans votre pays peut ètre
-		trouvées dans l'application de controle du modem sous Windows, ou par
+		trouvées dans l'application de controle du modem sous MS Windows, ou par
 		votre provider.
 
 		Vous pouvez aussi lire les RFC1483 et RFC2364 qui décrivent ces
@@ -888,8 +891,8 @@ R:	Peut-être. Si vous n'arrivez pas à initialiser votre modem, essayez de
 
 5.8
 ================================================================================
-Q:	En revenant sous Windows après Linux, je ne peux plus utiliser mon modem et
-	je dois réinstaller le driver Windows pour qu'il fonctionne à nouveau.
+Q:	En revenant sous MS Windows après Linux, je ne peux plus utiliser mon modem
+	et je dois réinstaller le driver MS Windows pour qu'il fonctionne à nouveau.
 
 --------------------------------------------------------------------------------
 R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter
@@ -902,7 +905,7 @@ R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter
 
 	Si cela ne fonctionne toujours pas, vous devez débrancher manuellement le
 	modem, attendre quelques secondes qu'il se réinitialise, et le rebrancher.
-	Vous pouvez alors l'utiliser sous Windows.
+	Vous pouvez alors l'utiliser sous MS Windows.
 
 	Si le problème persiste, contactez-nous.
 

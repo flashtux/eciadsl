@@ -81,7 +81,7 @@ Infos à nous communiquer :
 	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des
 	  sources s'il existe pour les versions >0.5, ou pppoeci --version, sinon le
 	  nom du package/la date du CVS) et :
-		- les informations sur votre driver Windows si vous l'utilisez
+		- les informations sur votre driver MS Windows si vous l'utilisez
 	      (at aussi le type de modulation que votre fournisseur supporte)
 		- les .bin de synchronisation que vous avez essayés
 	- votremodem (les références exactes: fabricant/modèle)
@@ -101,8 +101,8 @@ configuration ou startmodem), et donnez nous aussi votre /var/log/messages,
 /var/log/boot.log si disponible, la sortie de `dmesg`, de `lsmod` et de
 `cat /proc/bus/usb/devices`.
 
-Si vous nous contactez depuis Windows, et si votre partition Linux (ext2 ou ext3
-seulement) est sur la même machine, utilisez explore2fs pour lire les fichiers
-directement sur votre partition Linux, au lieu de rebooter Linux à chaque fois
-pour récupérer un fichier !
+Si vous nous contactez depuis MS Windows, et si votre partition Linux (ext2 ou
+ext3 seulement) est sur la même machine, utilisez explore2fs pour lire les
+fichiers directement sur votre partition Linux, au lieu de rebooter Linux à
+chaque fois pour récupérer un fichier !
 explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm

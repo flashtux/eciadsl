@@ -76,7 +76,7 @@ Provide use these info:
 	- eciadsl driver version (see the VERSION file in the sources tarball if it
 	  exists for version >0.5, or try pppoeci --version, or the package name/CVS
 	  date) and :
-		- your Windows driver info if you use it (and also the modulation
+		- your MS Windows driver info if you use it (and also the modulation
 		  type that your provider supports)
 		- the synch .bin you've tried
 	- your modem exact brand/model
@@ -95,7 +95,7 @@ the tools from the package you have launched (configure scripts or startmodem),
 also provide us your /var/log/messages, /var/log/log if available, the output
 of `dmesg`, `lsmod` and `cat /proc/bus/usb/devices`.
 
-If you contact us from Windows, and if your Linux partition (ext2 or ext3 only)
+If you contact us from MS Windows, and if your Linux partition (ext2 or ext3 only)
 is on the same machine, use explore2fs to get the files directly from your Linux
 partition instead of rebooting each time to Linux to get a file!
 explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
