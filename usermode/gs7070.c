@@ -75,11 +75,11 @@ int gs7070SetControl(GS7070int* gs, unsigned char* buffer)
 			if (gs->controlseqcount!=3)
 				printf("Unexpected control code change %d\n",
 						gs->controlseqcount);
-			/* See if the we have recieved a reset command */
+			/* See if the we have received a reset command */
 			/* also a 0xF343? */
 			if (controlcode==0xF301)
 			{ /* F301 is some kind of reset command */
-				printf("Command change recieved\n");
+				printf("Command change received\n");
 				gs->controlcodecount=0;
 /*				gs->controlseqcount=0; */
 			}
