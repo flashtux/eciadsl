@@ -4,18 +4,45 @@
 # Creation: 01/02/2002
 
 # 02/02/2002: added the permission check for check-hdlc & check-hdlc-bug
+# 07/02/2002: added check on the pppd output
 
 if [ `whoami` != "root" ]; then
 	echo "You need to be root (type su)" ;
 	exit -1;
 fi
 
+# note the size in lines of /var/log/messages
+line=`wc -l /var/log/messages | awk '{print $1}'`
+
+function fatal () {
+	tail +$line /var/log/messages > /tmp/msg.log
+# check for "usb-uhci.c: ENXIO 80000380, flags 0, urb c7f401c0, burb c6469140"
+	grep 'usb-uhci.c: ENXIO' /tmp/msg.log
+
+# check for "usb-uhci.c: interrupt, status 29, frame# 956" (TODO)
+	grep 'usb-uhci.c: interrupt' /tmp/msg.log
+
+# check for "usb_control/bulk_msg: timeout" (TODO)
+	grep 'usb_control/bulk_msg' /tmp/msg.log
+
+# check for "usb-uhci.c: Host controller halted, trying to restart" (TODO)
+	grep 'usb-uhci.c: Host controller halted' /tmp/msg.log
+
+# check for "usb-uhci.c: process_transfer: fixed toggle" (TODO)
+	grep 'usb-uhci.c: process_transfer' /tmp/msg.log
+
+# check for "usb-uhci.c: iso_find_start: gap in seamless isochronous scheduling" (TODO)
+	grep 'usb-uhci.c: iso_find_start' /tmp/msg.log
+	/bin/rm /tmp/msg.log
+	exit -1;
+}
+
 if [ ! -d /proc/bus/usb ]; then
 	echo "Support for USB is missing... trying to load" ;
 	/sbin/modprobe usbcore
 	if [ ! -d /proc/bus/usb ]; then
 		echo "Support for USB: failed to load" ;
-		exit -1;
+		fatal;
 	else
 		echo "Support for USB is OK" ;
 	fi
@@ -29,7 +56,7 @@ if [ ! -f /proc/bus/usb/devices ]; then
 	mount -t usbdevfs none /proc/bus/usb
 	if [ ! -f /proc/bus/usb/devices ]; then
 		echo "Preliminary USB device filesystem: failed to load" ;
-		exit -1 ;
+		fatal ;
 	else
 		echo "Preliminary USB device filesystem is OK" ;
 	fi
@@ -86,7 +113,7 @@ fi
 
 if [ $uhci -eq 0 -a $ohci -eq 0 ]; then
 	echo "I found no USB controller" ;
-	exit -1;
+	fatal;
 fi
 
 # check for the presense of /dev/ppp
@@ -95,7 +122,7 @@ if [ ! -c /dev/ppp ]; then
 	mknod /dev/ppp c 108 0
 	if [ ! -c /dev/ppp ]; then
 		echo "/dev/ppp: failed to create" ;
-		exit -1;
+		fatal;
 	fi
 fi
 
@@ -107,7 +134,7 @@ if [ $3 != "root" ]; then
 	set `ls -la /dev/ppp`
 	if [ $3 != "root" ]; then
 		echo "/dev/ppp: failed to change owner to root" ;
-		exit -1;
+		fatal;
 	fi
 fi
 
@@ -118,7 +145,7 @@ if [ $5 != "108," ]; then
 	set `ls -la /dev/ppp`
 	if [ $5 != "108," ]; then
 		echo "/dev/ppp: failed to change major number" ;
-		exit -1;
+		fatal;
 	fi
 fi
 
@@ -129,7 +156,7 @@ if [ $6 != "0" ]; then
 	set `ls -la /dev/ppp`
 	if [ $6 != "0" ]; then
 		echo "/dev/ppp: failed to change minor number" ;
-		exit -1;
+		fatal;
 	fi
 fi
 echo "/dev/ppp is OK" ;
@@ -152,7 +179,7 @@ if [ $? -ne 0 ]; then
 		echo "You should check your kernel config with: cd /usr/src/linux ; make menuconfig" ;
 		echo "and look under Character devices for Non-standard serial port support and" ;
 		echo "HDLC line discipline support" ;
-		exit -1;
+		fatal;
 	fi
 # here, HDLC support is OK, but maybe some alias are missing
 	/sbin/rmmod n_hdlc ;
@@ -165,7 +192,7 @@ if [ $? -ne 0 ]; then
 		./check-hdlc ;
 		if [ $? -ne 0 ]; then
 			echo "HDLC support: adding alias does not work" ;
-			exit -1;
+			fatal;
 		else
 			echo "HDLC support is OK" ;
 		fi
@@ -183,7 +210,7 @@ if [ -f check-hdlc-bug -a ! -x check-hdlc-bug ]; then
 	chmod a+x check-hdlc-bug
 fi
 
-# check for the HDLC bug (TODO)
+# check for the HDLC bug
 ./check-hdlc-bug > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo "HDLC support is buggy, you should apply the HDLC patch to your \
@@ -202,8 +229,14 @@ if [ $? -eq 0 ]; then
 	echo "Loading EZ-USB firmware... ";
 	/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
 	if [ $? -ne 0 ] ; then
-		echo "Failed to load firmware" ;
-		exit -1 ;
+		echo "Failed to load EZ-USB firmware" ;
+		fatal ;
+	fi ;
+	echo "Loading the GlobeSpan firmware..." ;
+	/usr/local/bin/eci-load2 /usr/local/bin/eci_wan3.bin
+	if [ $? -ne 0 ] ; then
+		echo "Failed to load GlobeSpan firmware" ;
+		fatal ;
 	fi ;
 fi
 
@@ -212,7 +245,7 @@ fi
 
 if [ ! -f /etc/ppp/peers/adsl ]; then
 	echo "No /etc/ppp/peers/adsl: did you install the ECI driver?" ;
-	exit -1;
+	fatal;
 fi
 
 # check for an existing user param. The actual user param may be 
@@ -220,7 +253,7 @@ fi
 user=`grep "^user" /etc/ppp/peers/adsl | awk '{print $2}'`
 if [ "$user" = "" ]; then
 	echo "Option 'user' if missing from /etc/ppp/peers/adsl: Fatal" ;
-	exit -1 ;
+	fatal ;
 fi
 
 # remove "" from $user if needed.
@@ -246,17 +279,51 @@ fi
 grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null
 if [ $? -ne 0 ]; then
 	echo "I cannot find your ADSL modem: Fatal"
-	exit -1;
+	fatal;
 fi
 
 # check for an existing PPP connection (select the first one if several)
 PPP=`/sbin/ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
-	echo "No existing PPP connection... trying to make one" ;
+	echo "No existing PPP connection... trying to make one (please wait)" ;
 	nice --20 pppd call adsl updetach > /tmp/ppp.log
+
+# check if we succeed in making a new PPP connection
+	PPP=`/sbin/ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
+	if [ "$PPP" = "" ]; then
+		# check for no response from PPP
+		grep 'LCP: timeout sending Config-Requests' /tmp/ppp.log > /dev/null
+		if [ $? -eq 0 ]; then
+			echo "PPP connection failed: check your vci & vpi parameters in /etc/ppp/peers/adsl and check for USB errors in /var/log/messages" ;
+			/bin/rm /tmp/ppp.log
+			fatal;
+		fi
+		# check for invalid password 
+		grep 'CHAP authentication failed' /tmp/ppp.log > /dev/null
+		if [ $? -eq 0 ]; then
+			echo "CHAP authentication failed: check your user in /etc/ppp/peers/adsl and the matching password in /etc/ppp/chap-secrets" ;
+			/bin/rm /tmp/ppp.log
+			fatal;
+		fi
+		# check for "sent [LCP ConfRej id=0xa5 <auth chap MD5>]"
+		grep 'sent \[LCP ConfRej' /tmp/ppp.log | grep '<auth chap MD5>' > /dev/null
+		if [ $? -eq 0 ]; then
+			echo "Password for user $user is missing in /etc/ppp/chap-secrets";
+			/bin/rm /tmp/ppp.log
+			fatal;
+		fi
+		echo "Cannot make a PPP connection: Fatal" ;
+		/bin/rm /tmp/ppp.log
+		fatal;
+	else
+		/bin/rm /tmp/ppp.log
+		echo "PPP connection is OK" ;
+    fi
+else
+	echo "PPP connection is OK" ;
 fi
 
-# check for the default route over pppN (TODO)
+# check for the default route over pppN
 /sbin/route -n | grep "^0.0.0.0" | grep $PPP > /dev/null
 if [ $? -ne 0 ]; then
 	echo "No default route over $PPP... trying to add" ;
@@ -264,7 +331,7 @@ if [ $? -ne 0 ]; then
 	/sbin/route -n | grep "^0.0.0.0" | grep $PPP > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "No default over $PPP: failed" ;
-		exit -1;
+		fatal;
 	else
 		echo "Default route over $PPP is OK" ;
     fi
@@ -272,7 +339,7 @@ else
 	echo "Default route over $PPP is OK" ;
 fi
 
-# check for the default route not over ethN (TODO)
+# check for the default route not over ethN
 /sbin/route -n | grep "^0.0.0.0" | grep -v $PPP > /dev/null
 if [ $? -eq 0 ]; then
 	echo "You have default route(s) not over $PPP... trying to delete" ;
@@ -285,14 +352,19 @@ if [ $? -eq 0 ]; then
 	/sbin/route -n | grep "^0.0.0.0" | grep -v $PPP > /dev/null
 	if [ $? -eq 0 ]; then
 		echo "Deleting default route not over $PPP: failed" ;
-		exit -1;
+		fatal;
     fi
 fi
 
+# check if ICMP packets are sent & received (is it usefull?)
+#ping -c 10 yahoo.fr > /dev/null
+#if [ $? -eq 0 ]; then
+#	echo "ICMP traffic is OK" ;
+#else
+#	echo "ICMP traffic does not work" ;
+#fi
+
 # check for /var/log or /tmp partitions full (TODO)
-# check for USB interrupt in /var/log/messages (TODO)
-# check for no response from PPP (TODO)
-# check for "sent [LCP ConfRej id=0xa5 <auth chap MD5>]" (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
 # check for the dabusb module (TODO)
 # check for an installed pppd (/usr/sbin/pppd) (TODO)
