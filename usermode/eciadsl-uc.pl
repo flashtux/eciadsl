@@ -21,8 +21,8 @@
 # 23/11/2001 : updated to the new USB log format. (few modifications in fact)
 
 # 07/02/2002 : added the CVS Id
-# CVS $Id$
-# Tag $Name$
+# CVS $Id: eciadsl-uc.pl,v 1.10 2003/01/19 16:04:55 wwp Exp $
+# Tag $Name:  $
 
 # 2002/01/06 Benoit PAPILLAULT <benoit.papillault@free.fr>
 #
