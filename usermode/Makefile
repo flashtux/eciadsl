@@ -22,7 +22,7 @@ eci-eeprom: eci-eeprom.o pusb.o
 check-hdlc: check-hdlc.o
 check-hdlc-bug: check-hdlc-bug.o
 
-pusb.o : pusb.c pusb-linux.c pusb.h
+pusb.o: pusb.c pusb-linux.c pusb.h
 eci-load1.o: eci-load1.c modem.h pusb.h
 eci-load2.o: eci-load2.c modem.h pusb.h
 pppoeci.o: pppoeci.c modem.h pusb.h
@@ -187,7 +187,11 @@ debian: all
 
 rpm: rpmdistclean
 	@test -n "$(CVS_TAG)" || { \
-		echo -e "usage:\nmake -s CVS_TAG=\"release-0-6\" [RPM_ARCH=i386,i686] [PRODUCT_VERSION=0.6] rpm" >&2; \
+		echo -e "usage:\nmake -s CVS_TAG=\"release-0-6\" [ECIADSLCVS=\":ext:username@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl\"] [RPM_ARCH=i386,i686] [PRODUCT_VERSION=0.6] rpm" >&2; \
+		exit 1; }
+	@test -n "$(ECIADSLCVS)" || { \
+		echo -e "you must define an environment variable ECIADSLCVS that contains the full cvs login," >&2; \
+		echo -e "for instance: export ECIADSLCVS=\":ext:username@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl\"" >&2; \
 		exit 1; }
 	@echo "building .(s)rpm for eciadsl-usermode-$(PRODUCT_VERSION) (cvs tag $(CVS_TAG), target arch=$(RPM_ARCH))"
 	-@mkdir /tmp/usermode
