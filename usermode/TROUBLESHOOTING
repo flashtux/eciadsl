@@ -552,6 +552,20 @@ A:	Try with another synch .bin.
 	You can also play with the MTU value.
 
 
+4.15
+================================================================================
+Q:	I use ISP DHCP, `startmodem` goes OK but I still can't access internet.
+
+--------------------------------------------------------------------------------
+A:	Check your routing table: typing `route -n` as root. If no UG line is found
+	(no default route), it might be a DHCP client issue on your side.
+	Most common DHCP clients are pump, dhclient and dhcpcd. Check if your DHCP
+	client is installed, else install another or a more recent version
+	
+	Note: this problem has been reported by users in Finland, Sweden or some
+	countries in Asia.
+
+
 5.0
 ================================================================================
 Q:	Is it possible to launch startmodem at boot time?

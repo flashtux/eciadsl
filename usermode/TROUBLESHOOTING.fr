@@ -569,6 +569,23 @@ R:	Essayez un autre .bin de synchro.
 	Jouer avec la valeur du MTU peut être une solution.
 
 
+4.15
+================================================================================
+Q:	J'utilise DHCP avec mon provider, mais impossible d'accéder à internet après
+	avoir lancé `startmodem`.
+
+--------------------------------------------------------------------------------
+A:	Vérifiez que vous avez bien une ligne UG (route par défaut) en tapant sous
+	root: `route -n`. Si ce n'est pas le cas, il s'agit probablement d'un
+	problème relatif au client DHCP de votre système.
+	Les clients DHCP les plus utilisés sont: pump, dhclient, dhcpcd. Vérifiez
+	que votre client DHCP est bien installé. Si c'est le cas, installez-en un
+	autre ou une mise à jour.
+	
+	Note: des problèmes de ce type ont été rapportés par des utilisateurs
+	finlandais, suédois ou de certains pays d'Asie.
+
+
 5.0
 ================================================================================
 Q:	Est-il possible de lancer startmodem au démarrage de Linux ?
