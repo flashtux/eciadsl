@@ -323,10 +323,10 @@ int pusb_endpoint_rw_no_timeout(int fd,int ep,
 		return ret;
 
 	if (purb != &urb)
-		printf("purb=%p, &urb=%p\n",purb,&urb);
+		printf("purb=%p, &urb=%p\n",(void*)purb,(void*)&urb);
 
 	if (purb->buffer != buf)
-		printf("purb->buffer=%p, buf=%p\n",purb->buffer,buf);
+		printf("purb->buffer=%p, buf=%p\n",(void*)purb->buffer,(void*)buf);
 
 	return purb->actual_length;
 }
