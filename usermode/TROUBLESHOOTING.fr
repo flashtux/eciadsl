@@ -403,7 +403,7 @@ Q:	ppp0 semble OK (à le voir dans /var/log/message et dans la sortie de
 	de tun0.
 
 --------------------------------------------------------------------------------
-A:	Ce problème peut provenir de l'absence du package net-tools sur votre
+R:	Ce problème peut provenir de l'absence du package net-tools sur votre
 	système, ou d'une configuration incomplète pour l'utilisateur qui lance
 	startmodem (habituellement root).
 	En effet, startmodem nécessite `route` et `ifconfig` (en général installer
