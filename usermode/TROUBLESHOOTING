@@ -379,7 +379,7 @@ A:	You are not drunk, pppd cannot communicate with pppoeci (part of the driver)
 	inside the kernel, or because you're using the driver on a non supported
 	system.
 	Also check your /etc/ppp/peers/adsl file. The pppoeci invocation might be
-	corrupted also.
+	corrupted also, or the file might not exist at all.
 
 
 ================================================================================
