@@ -33,8 +33,8 @@
 # Also added some checks on TransferBufferLength.
 
 # 07/02/2002 Added the CVS Id & Tag
-# CVS $Id$
-# Tag $Name$
+# CVS $Id: eci_data.pl,v 1.15 2003/01/21 18:41:55 papillau Exp $
+# Tag $Name:  $
 
 # 11/03/2002 Benoit PAPILLAULT
 #            added 2 functions to correctly and fully display USB descriptors
