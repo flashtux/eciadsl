@@ -1362,14 +1362,15 @@ void usage(const int ret)
 					"       -alt <num>           force the use of an alternate method to set USB interface\n"
 					"       -dto <num>           override default DATA_TIMEOUT value\n"
                     "       -mode <name>         PPP encapsulation method (see below)\n"
-					"       -v or --verbosity    define the verbosity level [0-2] (enables logging)\n"
-					"       -f or --logfile      define the log filename to use (default " LOG_FILE ")\n"
+					"       -v or --verbosity    define the verbosity level [0-2] (enables logging)\n");
+	fprintf(stderr,	"       -f or --logfile      define the log filename to use (default " LOG_FILE ")\n"
 					"       -h or --help         display this message then exit\n"
 					"       -V or --version      display the version number then exit\n"
 					"       --modes              display a list of the supported modes (to use with -mode)\n"
 					"\n");
 	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
-					"are assumed.\n");
+					"are assumed.\n"
+					"\n");
 	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
 					"by provider. For instance: 8.35 for France, 0.38 for UK.\n"
 					"\n");
