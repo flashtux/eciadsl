@@ -12,8 +12,10 @@
 # *          $1 = username + domain (username@domain)                    *
 # *          $2 = password (given by provider)                           *
 # *          $3 = path to pppoeci (eg: /usr/local/bin/pppoeci)           *
-# *          $4 = DNS 1 (depends on provider)                            *
+# *          $4 = DNS 1 (depends on provider, 0=no DNS setup)            *
 # *          $5 = DNS 2 (depends on provider)                            *
+# *          $6 = VPI (depends on provider)                              *
+# *          $7 = VCI (depends on provider)                              *
 # *                                                                      *
 # ************************************************************************
 
@@ -32,16 +34,16 @@ if [ $UID -ne 0 ]; then
     exit 255
 fi
 
-if [ $# -ne 5 ]; then
+if [ $# -ne 7 ]; then
     echo -e "Error: invalid number of parameters."
-    echo -e "Syntax: makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2>"
+    echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci>"
     exit 1
 fi
 
 pppoeci=$3
 if [ ! -f ${pppoeci} -o ! -x ${pppoeci} ]; then
-	echo "Error: ${pppoeci} is not a valid executable"
-	exit 1
+    echo "Error: ${pppoeci} is not a valid executable"
+    exit 1
 fi
 
 #
@@ -69,7 +71,7 @@ if [ $4 != 0 ]; then
 fi
 
 #
-# backup and create chap-secrets, pap-secrets
+# create or backup/modify "chap-secrets" and "pap-secrets"
 #
 
 for auth in "chap" "pap"
@@ -86,15 +88,19 @@ for auth in "chap" "pap"
         echo -n "Backing up $nomsecret (to $nombak)... "
         cp -f $nomsecret $nombak
         echo "ok"
+        echo -n "Modifying $nomsecret... "
+        echo -e "\"$1\"\t*\t\"$2\"\t*\t" >>$nomsecret
+        echo "ok"
+    else
+        echo -n "Creating $nomsecret... "
+        echo "# Secrets for authentication using $auth" >$nomsecret
+        echo -e "\"$1\"\t*\t\"$2\"\t*\t" >>$nomsecret
+        echo "ok"
     fi
-    echo -n "Creating $nomsecret... "
-    echo "# Secrets for authentication using $auth" >$nomsecret
-    echo -e "$1\t*\t$2\t*\t" >>$nomsecret
-    echo "ok"
 }
 
 #
-# backup and create adsl script
+# create or backup/modify "adsl" script
 #
 
 nomadsl=${base_etc}/ppp/peers/adsl
@@ -109,9 +115,12 @@ if [ -s $nomadsl ]; then
     echo -n "Backing up $nomadsl (to $nombak)... "
     cp -f $nomadsl $nombak
     echo "ok"
-fi
-echo -n "Creating $nomadsl... "
-cat <<EOF >$nomadsl
+    echo -n "Modifying $nomadsl... "
+    sed s£"^pty \".*"£"pty \"$3 -vpi $6 -vci $7\""£ $nomadsl | sed s£"^user \".*"£"user \"$1\""£ >$nomadsl
+    echo "ok"
+else
+    echo -n "Creating $nomadsl... "
+    cat <<EOF >$nomadsl
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
 # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
 # 07/02/2002 Replace "maxfail 0" by "maxfail 10"
@@ -125,7 +134,7 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "$3 -vpi 8 -vci 35"
+pty "$3 -vpi $6 -vci $7"
 sync
 user "$1"
 noaccomp
@@ -160,4 +169,5 @@ lcp-echo-interval 0
 # You may need the following, but ONLY as a workaround
 # mtu 1432
 EOF
-echo "ok"
+    echo "ok"
+fi
