@@ -41,7 +41,7 @@ Sorted according to priority (the upper in the list, the prior):
 * removed: skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
   adsl file, is this relevant in Makefile?
 * keep previous settings when installing/configuring (eciconf.sh)
-- keep previous settings when installing/configuring (eciconftxt.sh)
+* keep previous settings when installing/configuring (eciconftxt.sh)
 * merge oliverthered's pending patches (stability, gs7070), update doc if necessary
 * merge flynux's pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
 * remove synch and firm link, all scripts and exec must use eciadsl.conf (startmodem for instance)
