@@ -38,6 +38,12 @@ if [ $# -ne 5 ]; then
     exit 1
 fi
 
+pppoeci=$3
+if [ ! -f ${pppoeci} -o ! -x ${pppoeci} ]; then
+	echo "Error: ${pppoeci} is not a valid executable"
+	exit 1
+fi
+
 #
 # backup and create resolv.conf
 #
