@@ -1,11 +1,12 @@
 #!/bin/sh
 # ************************************************************************
 # *                                                                      *
-# *      makeconfig v0.6 - ECI Linux driver configuration script         *
+# *      makeconfig v0.8 - ECI Linux driver configuration script         *
 # *                        by FlashCode and Crevetor (c) 14/04/2002      *
 # *                                                                      *
 # *          For any support, contact one of us :                        *
-# *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
+# *           - FlashCode: flashcode@flashtux.org                        *
+# *                        http://eciadsl.flashtux.org                   *
 # *           - Crevetor : ziva@caramail.com                             *
 # *                                                                      *
 # *      Parameters for this script :                                    *
