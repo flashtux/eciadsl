@@ -997,7 +997,7 @@ R:	Vous devez débrancher manuellement le modem, attendre quelques secondes
 Q:	Puis-je utiliser ce driver sous *BSD ?
 
 --------------------------------------------------------------------------------
-R:	Un portage de la version 0.5 est en développement.
+R:	Un portage u driver est en cours de développement.
 	Pas officiellement supporté !
 
 
@@ -1007,7 +1007,9 @@ Q:	Puis-je utiliser ce driver sous GNU/Hurd, Darwin, QNX, BeOS ou d'autres
 	systèmes ?
 
 --------------------------------------------------------------------------------
-R:	Non.
+R:	Le driver tourne sur différents systèmes GNU/Linux, et bientôt sous *BSD.
+	Il ne fonctionne pas pour les autres systèmes qui ne sont pas basés sur le
+	noyau Linux.
 
 
 5.11

@@ -951,7 +951,7 @@ A:	You have to manually unplug you modem, wait for a few seconds so that it's
 Q:	Can I use this driver under *BSD?
 
 --------------------------------------------------------------------------------
-A:	A BSD port of the version 0.5 is under development.
+A:	A BSD port of the driver is under development.
 	Still not officially supported!
 
 
@@ -960,7 +960,9 @@ A:	A BSD port of the version 0.5 is under development.
 Q:	Can I use this driver under GNU/Hurd, Darwin, QNX or BeOS or other systems?
 
 --------------------------------------------------------------------------------
-A:	No.
+A:	The driver is known to be running on many GNU/Linux systemsm, but also on
+	*BSD (work under progress) other non-Linux kernel based systems are not
+	supported. 
 
 
 5.11
