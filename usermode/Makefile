@@ -51,11 +51,11 @@ install: all check-char-major-108 check-tty-ldisc-14 check-tty-ldisc-13 \
 # copy configuration files to /etc/eciadsl
 	install -d $(ETCDIR)/eciadsl
 	install adsl $(ETCDIR)/eciadsl/adsl-skel
-	rm -f /etc/eciadsl/eci_firm_kit_wanadoo.bin;
-	install firmware00.bin synch01.bin \
-		modemeci.gif $(ETCDIR)/eciadsl
-	rm -f /etc/eciadsl/eci_wan.bin /etc/eciadsl/synch.bin; \
-		ln -s /etc/eciadsl/synch01.bin /etc/eciadsl/synch.bin
+	rm -f /etc/eciadsl/eci_firm_kit_wanadoo.bin /etc/eciadsl/eci_wan*.bin
+	rm -f /etc/eciadsl/firmware.bin /etc/eciadsl/synch.bin
+	install firmware00.bin synch01.bin modemeci.gif $(ETCDIR)/eciadsl
+	ln -s /etc/eciadsl/firmware00.bin /etc/eciadsl/firmware.bin
+	ln -s /etc/eciadsl/synch01.bin /etc/eciadsl/synch.bin
 	@echo "don't forget to edit  $(ETCDIR)/ppp/peers/adsl and  $(ETCDIR)/ppp/chap-secrets files"
 
 clean:
