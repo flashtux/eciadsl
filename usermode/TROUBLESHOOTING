@@ -126,7 +126,7 @@ A:	Most people need them (except those who use ISP DHCP for instance), if you
 	can't find them at your provider's website or in the configuration CD or the
 	paper they've send to you, or even under MS Windows, there's a way to guess
 	them. Here is the way to do this under Linux:
-		> host -n dn <your provider domain name>
+		> host -t ns <your provider domain name>
 
 	This returns you a bunch of DNS server names. You can ping some of them in
 	order to get the IP.

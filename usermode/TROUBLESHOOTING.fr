@@ -129,7 +129,7 @@ R:	La plupart des utilisateurs en ont en effet besoin (ce n'est pas le cas de
 	celui-ci vous a envoyé, ou encore dans la config MS Windows un fois installé
 	un éventuel CD de connexion, sachez qu'il existe des moyens de les obtenir !
 	En voici un, sous Linux :
-		> host -n dn <le nom de domaine de votre provider>
+		> host -t ns <le nom de domaine de votre provider>
 
 	Cela vous donne une liste de noms de DNS. Vous pouvez alors faire un ping
 	sur quelques un d'entre eux afin d'en obtenir l'adress IP.

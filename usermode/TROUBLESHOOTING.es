@@ -138,7 +138,7 @@ R:	La mayoría de las personas los necesita (excepto aquéllos que usan DHCP por
 	manera de obtener esta información incluso bajo MS Windows. Aquí se muestra
 	la manera para obtener esta información desde Linux, ejecute el siguiente
 	comando:
-		> host -n dn <nombre de dominio del proveedor>
+		> host -t ns <nombre de dominio del proveedor>
 
 	Este comando le devuelve un cantidad de nombres de servidores DNSs. Usted
 	puede ejecutar el comando ping sobre algunos de ellos para obtener las

@@ -130,7 +130,7 @@ R:	É necessário para a maior parte das pessoas (exepto os que usam o DHCP
 	no CD de configuração ou nos papéis que eles lhe mandaram, ou até mesmo
 	no MS Windows, há uma forma de os advinhar. Esta é a forma de o fazer
 	no Linux:
-		> host -n dn <o domínio do seu provedor>
+		> host -t ns <o domínio do seu provedor>
 
 	Isto irá devolver-lhe um monte de nomes de servidores de DNS. Pode
 	ping'ar alguns deles para obter o IP.
