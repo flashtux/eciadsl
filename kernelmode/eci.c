@@ -1726,8 +1726,8 @@ static void eci_bulk_callback(struct urb *urb)
 	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
 	//kfree(urb->transfer_buffer);
 	//usb_free_urb(urb);
-	spin_lock(&instance->lock);
 	instance = (struct eci_instance *)urb->context;
+	spin_lock(&instance->lock);
 	instance->bulkisfree = 1;
 	tasklet_schedule(&instance->bh_bulk);
 	spin_unlock(&instance->lock);
