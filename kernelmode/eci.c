@@ -2,8 +2,8 @@
 *                                                                            *
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
-*     Author : Valette Jean-Sebastien <jean-sebastien.valette@free.fr>       *
-*              Eric Bardes  <email@fournisseur>                              *
+*     Author : Valette Jean-Sebastien <jeanseb.valette@free.fr>              *
+*              Eric Bardes  <eric.bardes@wanadoo.fr>                         *
 *                                                                            *
 *     Copyright : GPL                                                        *
 *                                                                            *
@@ -705,13 +705,10 @@ static int __init eci_init(void)
 	int lv_res = 0 ;
 
 	/*	Must register driver and claim for hardware */
-	DBG_OUT("init module in\n");
 
 	printk("ECI HiFocus ADSL Modem Driver  loading\n");
 	DBG_OUT("$Id$");
 	lv_res = usb_register(&eci_usb_driver) ;
-
-	DBG_OUT("init module out\n");
 
 	return lv_res ;
 
@@ -720,7 +717,6 @@ static int __init eci_init(void)
 
 static void __exit eci_cleanup(void)
 {
-	DBG_OUT("cleanup in\n");
 	usb_deregister(&eci_usb_driver);
 
 	/* Free Unused UNI Cell List */
@@ -733,7 +729,6 @@ static void __exit eci_cleanup(void)
 		}
 	}
 
-	DBG_OUT("cleanup out\n");
 	return;
 };
 	
@@ -748,7 +743,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	int pid=0, vid=0; /* for device checking */
 
 
-	DBG_OUT("Probe in\n");
 /*		We don't yet support more than one modem connected */
 	
 /************************************************
@@ -809,13 +803,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			ERR_OUT("out of memory\n");
 			return 0;
 		}
-		DBG_OUT("Setting configuration 1\n");
 		if(usb_set_configuration(dev,1)<0)
 		{
 			ERR_OUT("Can't set interface\n");
 			return 0;
 		}
-		DBG_OUT("Setting interface\n");
 		if(usb_set_interface(dev,0,4)<0)
 		{
 			ERR_OUT("Cant set configuration\n");
@@ -824,7 +816,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		/*
 			send 20 Urbs to the iso EP
 		*/
-		DBG_OUT("Init ISO urbs\n");
 		out_instance->isourbs = 0;
 		for(eci_isourbcnt=0;eci_isourbcnt<20;eci_isourbcnt++)
 		{
@@ -872,7 +863,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		/*
 			Should reset the Iso EP and send 20 Urbs
 		*/
-		DBG_OUT("Init INT endpoint\n");
 		if(!(eciurb=usb_alloc_urb(0)))
 		{
 			ERR_OUT("Can't allocate int urb !\n");
@@ -921,7 +911,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			Now bulk URB AVAILABLE
 		*/
 		out_instance->bulkisfree = 1;
-		DBG_OUT("Vendor Stuff\n");
 		/*
 			Just Reset EP 0x02 (no reset)
 			if some one day, all endpoint before sending any urb
@@ -961,11 +950,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	   		dev->descriptor.idProduct);
 		return 0;
 	}
-	DBG_OUT("Probe: done with usb\n");			
 	
 #ifdef __USE_ATM__
 
-	DBG_OUT(" doing ATM\n");
 	memset(&out_instance->bh_atm, 0, sizeof(out_instance->bh_atm)) ;
 	out_instance->bh_atm.func	= eci_bh_atm ;
 	out_instance->bh_atm.data	= (unsigned long) out_instance ;
@@ -987,7 +974,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		out_instance->atm_dev->ci_range.vci_bits = ATM_CI_MAX;
 		out_instance->atm_dev->link_rate = 640*1024/8/53;
 /*	Further ATM DEVICE Should be initialize here	*/
-		DBG_OUT("Probe: ATM device registered\n");
 	}	
 	else
 	{
@@ -997,7 +983,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	
 	DBG_OUT("out_instance : %p\n", out_instance);
 	
-	DBG_OUT("Probe out\n");
 	return out_instance;
 };
 
@@ -1005,26 +990,21 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 {
 	struct urb *urb;
 	
-	DBG_OUT("disconnect in\n");
 	if(eci_instances)
 	{
 #ifdef __USE_ATM__
-		DBG_OUT("disconnect : freeing atm_dev\n");
 		atm_dev_deregister(eci_instances->atm_dev);
 		if (eci_instances->pbklogaal5)
 			_aal5_free(eci_instances->pbklogaal5) ;
 #endif /* __USE_ATM__ */
 
-		DBG_OUT("disconnect : freeing int urb\n");
 		usb_unlink_urb(eci_instances->interrupt_urb);
 		usb_free_urb(eci_instances->interrupt_urb);
-		DBG_OUT("disconnect : freeing iso urbs\n");
 		urb=eci_instances->isourbs;
 		while(urb->next!=eci_instances->isourbs) urb=urb->next;
 		urb->next = 0;
 		while((urb = eci_instances->isourbs) != NULL)
 		{
-			DBG_OUT("Freeing one iso\n");
 			eci_instances->isourbs = urb->next;
 			usb_unlink_urb(urb);
 			usb_free_urb(urb);
@@ -1034,7 +1014,6 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 		eci_instances=NULL;
 	}
 	MOD_DEC_USE_COUNT;
-	DBG_OUT("disconnect out\n");
 
 };
 
@@ -1102,8 +1081,6 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 	/* test */
 	((struct eci_instance*)vcc->dev->dev_data)->pcurvcc = vcc ;
 	
-	DBG_OUT("eci_atm_open out\n");
-
 	return 0;
 };
 
@@ -1112,13 +1089,11 @@ static void eci_atm_close(struct atm_vcc *vcc)
 {
 	struct eci_instance * lp_instance = 
 		(struct eci_instance*)vcc->dev->dev_data ;
-	DBG_OUT("eci_atm_close in\n");
 	lp_instance->pcurvcc = NULL ;
 	if (lp_instance->pbklogaal5) {
 		_aal5_free(lp_instance->pbklogaal5) ;
 		lp_instance->pbklogaal5 = NULL ;
 	}
-	DBG_OUT("eci_atm_close out\n");
 };
 
 /*----------------------------------------------------------------------*/
@@ -1126,7 +1101,6 @@ static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
 {
 	int lv_res = -EINVAL ;
 
-	DBG_OUT("eci_atm_ioctl in\n");
 	switch (cmd) {
 		case ATM_QUERYLOOP:
 			lv_res = put_user(ATM_LM_NONE, (int*)arg) ? -EFAULT : 0;
@@ -1136,7 +1110,6 @@ static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
 			lv_res =  -ENOIOCTLCMD;
 			break ;
 	}
-	DBG_OUT("eci_atm_ioctl out\n");
 	return lv_res ;
 };
 
@@ -1149,8 +1122,6 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	struct sk_buff		*lp_newskb = NULL;
 	/* unsigned long		flags; */
 	
-	DBG_OUT("eci_atm_send in\n");
-
 	/* Check interface */
 	if (!skb) {
 		ERR_OUT("Invalid Socket Buffer\n") ;
@@ -1198,7 +1169,6 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	}
 
 
-	DBG_OUT("eci_atm_send out\n");
 	return lv_rc ;
 };
 
@@ -1212,8 +1182,6 @@ static void eci_bh_atm (unsigned long param) {
 	int lv_rc ;
 	int flags;
 	
-	DBG_OUT("eci_bh_atm IN\n") ;
-	DBG_OUT("Locking Instance\n");
 	spin_lock_irqsave(&lp_instance->lock, flags);
 	if (!(lp_vcc = lp_instance->pcurvcc)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
@@ -1221,21 +1189,17 @@ static void eci_bh_atm (unsigned long param) {
 	}
 
 	if((lp_skb = skb_dequeue(&lp_instance->txq))) {
-		DBG_OUT("Manage new AAL5 data\n") ;
 		lv_rc = _eci_tx_aal5(lp_vcc->vpi, lp_vcc->vci, lp_instance, lp_skb) ;
 		if (lv_rc) {
 			ERR_OUT("_eci_tx_aal5 failed\n") ;
 			atomic_inc(&lp_vcc->stats->tx_err) ;
 		} else {
 			atomic_inc(&lp_vcc->stats->tx) ;
-			DBG_OUT("AAL5 sent\n") ;
 		}
 		/* Free Socket Buffer */
 		FREE_SKB(lp_instance->pcurvcc, lp_skb) ;
 	}
-	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
-	DBG_OUT("eci_bh_atm OUT\n") ;
 }
 /*----------------------------------------------------------------------*/
 
@@ -1322,7 +1286,6 @@ static void eci_init_vendor_callback(struct urb *urb)
 	int size;
 
 	instance = (struct eci_instance *) urb->context;
-	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 
 /*
@@ -1357,7 +1320,6 @@ static void eci_init_vendor_callback(struct urb *urb)
 			_eci_send_init_urb(instance->vendor_urb);
 		}
 	}
-	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_bh(&instance->lock);
 }
 
@@ -1493,9 +1455,7 @@ static void eci_int_callback(struct urb *urb)
 			}
 		}
 	}
-	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_bh(&instance->lock);
-	/*	DBG_OUT("Int callBack out\n");	*/
 }
 
 static void eci_bh_iso(unsigned long instance)
@@ -1600,7 +1560,6 @@ static void eci_iso_callback(struct urb *urb)
 	}
 	if(received)
 	{
-		DBG_OUT("Received cell, scheduling send to atm\n");
 		tasklet_schedule (&instance->bh_iso);
 	}
 					
@@ -1649,7 +1608,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 	struct eci_instance *instance;	/* pointer to instance		*/
 	int flags;
 
-	DBG_OUT("eci_bh_bulk IN\n") ;
 	instance = (struct eci_instance *)pinstance;
 	spin_lock_irqsave(&instance->lock , flags);
 	if(instance->bulkisfree)
@@ -1657,7 +1615,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 	buflen = ECI_BULK_BUFFER_SIZE;
 	urb = instance->bulk_urb;	
 	buf = urb->transfer_buffer;
-	DBG_OUT("Buf = %p\n", buf);
 	bufpos = 0;
  	while(bufpos < (ECI_BULK_BUFFER_SIZE) && 
  		(cell = _uni_cell_list_extract(&instance->bulk_cells)))
@@ -1667,7 +1624,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 			memcpy(buf + bufpos, cell->raw, ATM_CELL_SZ);
 			for(i=53; i < 64; i++) buf[bufpos + i] = 0xff;
 			bufpos += 64;
-			DBG_OUT("Bufpos = %d\n", bufpos);
 			_uni_cell_free(cell) ;
 		}
 		else
@@ -1693,7 +1649,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 		instance->bulkisfree = 0;
 	}
 	spin_unlock_irqrestore(&instance->lock, flags);
-	DBG_OUT("eci_bh_bulk OUT\n") ;
 	return;	
 }
 
@@ -1706,14 +1661,11 @@ static void eci_bulk_callback(struct urb *urb)
 	{
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
-	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
 	instance = (struct eci_instance *)urb->context;
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
 	if(_uni_cell_list_nbcells(&instance->bulk_cells))
 	{
-		DBG_OUT("Nb Cells %d\n",
-			_uni_cell_list_nbcells(&instance->bulk_cells));
 		tasklet_schedule(&instance->bh_bulk);
 	}
 	else
@@ -1748,8 +1700,6 @@ static int _eci_tx_aal5(
 	int		lv_nbsent ;
 	uni_cell_list_t 	lv_list ;
 	
-	DBG_OUT("_eci_tx_aal5 IN\n");
-
 	lv_rc = _uni_cell_list_init(&lv_list) ;
 	if (lv_rc) return lv_rc ;
 
@@ -1777,7 +1727,6 @@ static int _eci_tx_aal5(
 		_uni_cell_list_reset(&lv_list) ;
 	}
 
-	DBG_OUT("_eci_tx_aal5 OUT\n");
 	return lv_rc ;
 }
 
@@ -1790,8 +1739,6 @@ static int _eci_usb_rx(
 	uni_cell_t *thecell		/* IN: UNI Cell		*/
 ) {
 	int	lv_rc	= 0 ;
-	DBG_OUT("_eci_usb_rx in\n") ;
-	DBG_OUT("_eci_usb_rx out\n") ;
 	return lv_rc ;
 }
 
@@ -1808,7 +1755,6 @@ static int eci_atm_receive_cell(
  	aal5_t *		lp_aal5 	= NULL ;
 	int			lv_rc ;
 	
-	DBG_OUT("eci_atm_receive_cell IN\n");
 	/* Check Interface */
 	if (!pinstance || !plist)
 		return -EINVAL ;
@@ -1881,7 +1827,6 @@ static int eci_atm_receive_cell(
 		tasklet_schedule(&pinstance->bh_iso);
 	}
 	_uni_cell_list_reset(plist);
-	DBG_OUT("eci_atm_receive_cell OUT\n");
 	return 0 ;
 }
 
@@ -1955,9 +1900,6 @@ static int _eci_rx_aal5(
 		_uni_cell_getPayload(lp_cell), 
 		lv_size) ;
 
-	DBG_RAW_OUT("aal5 to be sent", lp_skb->data, lp_skb->len) ;
-
-	DBG_OUT("SEND AAL5 TO ATM\n") ;
 	pinstance->pcurvcc->push(pinstance->pcurvcc, lp_skb) ;
 	atomic_inc(&pinstance->pcurvcc->stats->rx) ;
 	
@@ -2079,10 +2021,6 @@ static uni_cell_t * _uni_cell_alloc(void) {
 	
 	uni_cell_t *lp_cell = NULL ;
 	
-	/*
-	DBG_OUT("_uni_cell_alloc in\n") ;
-	*/
-
 	/* Try to Retreive one from unused list */
 	/*
 	spin_lock(&gl_ucells_lock) ;
@@ -2111,9 +2049,6 @@ static uni_cell_t * _uni_cell_alloc(void) {
 		}
 	}
 
-	/*
-	DBG_OUT("_uni_cell_alloc out\n") ;
-	*/
 	return lp_cell ;
 }
 
@@ -2165,7 +2100,6 @@ static uni_cell_t * _uni_cell_fromRaw(
 static void _uni_cell_free(
 		uni_cell_t * pcell
 ) {
-	DBG_OUT("_uni_cell_free in\n") ;
 	if (pcell) {
 		/*
 		spin_lock(&gl_ucells_lock) ;
@@ -2176,7 +2110,6 @@ static void _uni_cell_free(
 		spin_unlock(&gl_ucells_lock) ;
 		*/
 	}
-	DBG_OUT("_uni_cell_free out\n") ;
 }
 
 /*----------------------------------------------------------------------*/
@@ -2192,10 +2125,6 @@ static int _uni_cell_format(
 ) {
 	int		lv_padd	= 0 ;
 	byte *		lp_cell	= NULL ;
-
-	/*
-	DBG_OUT("_uni_cell_format in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!size || !pdata || !pcell || (size > ATM_CELL_PAYLOAD)) {
@@ -2258,9 +2187,6 @@ static int _uni_cell_format(
 	if (lv_padd > 0)
 		memset(lp_cell + size, 0, lv_padd) ;
 
-	/*
-	DBG_OUT("_uni_cell_format out\n") ;
-	*/
 	return 0 ;
 }
 
@@ -2273,10 +2199,6 @@ static inline int _uni_cell_getVpi(
 	byte *	lp_raw = NULL ;
 	int	lv_vpi ;
 
-	/*
-	DBG_OUT("_uni_cell_getVpi in\n") ;
-	*/
-
 	/* Check Interface */
 	if (!pcell) {
 		ERR_OUT("Interface Error\n") ;
@@ -2287,9 +2209,6 @@ static inline int _uni_cell_getVpi(
 
 	lv_vpi = ((0x0f & lp_raw[0]) << 4) | (lp_raw[1] >> 4) ;
 
-	/*
-	DBG_OUT("_uni_cell_getVpi out\n") ;
-	*/
 	return lv_vpi ;
 }
 
@@ -2301,10 +2220,6 @@ static inline int _uni_cell_getVci(
 ) {
 	byte *	lp_raw = NULL ;
 	int	lv_vci ;
-	
-	/*
-	DBG_OUT("_uni_cell_getVci in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcell) {
@@ -2318,9 +2233,6 @@ static inline int _uni_cell_getVci(
 		((((0x0f & lp_raw[1]) << 4) | (lp_raw[2] >> 4)) << 8) |
 	       	( ((0x0f & lp_raw[2]) << 4) | (lp_raw[3] >> 4)) ;
 
-	/*
-	DBG_OUT("_uni_cell_getVci out\n") ;
-	*/
 	return lv_vci ;
 }
 
@@ -2331,9 +2243,6 @@ static inline bool _uni_cell_islast(
 		uni_cell_t *		pcell	/* IN: the cell		*/
 ) {
 	bool lv_res ;
-	/*
-	DBG_OUT("_uni_cell_islast in\n") ;
-	*/
 
 	/* check interface */
 	if (!pcell) {
@@ -2343,9 +2252,6 @@ static inline bool _uni_cell_islast(
 
 	lv_res = ((pcell->raw[3] & 0x02) == 0x02) ;
 
-	/*
-	DBG_OUT("_uni_cell_islast out\n") ;
-	*/
 	return lv_res ;
 }
 
@@ -2355,9 +2261,6 @@ static inline bool _uni_cell_islast(
 static inline byte * _uni_cell_getPayload(
 		uni_cell_t *		pcell	/* in: the cell		*/
 ) {
-	/*
-	DBG_OUT("_uni_cell_getPayload in\n") ;
-	*/
 
 	/* check interface */
 	if (!pcell) {
@@ -2365,9 +2268,6 @@ static inline byte * _uni_cell_getPayload(
 		return NULL ;
 	}
 
-	/*
-	DBG_OUT("_uni_cell_getPayload out\n") ;
-	*/
 	return &(pcell->raw[0]) + ATM_CELL_HDR ;
 }
 
@@ -2520,9 +2420,6 @@ static bool _uni_cell_chkHEC(
 
 /* Init a queue */
 static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
-	/*
-	DBG_OUT("_uni_cell_qinit in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcellq) {
@@ -2534,9 +2431,6 @@ static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
 	pcellq->first		= NULL ;
 	pcellq->last		= NULL ;
 
-	/*
-	DBG_OUT("_uni_cell_qinit out\n") ;
-	*/
 	return 0 ;
 }
 /*----------------------------------------------------------------------*/
@@ -2546,9 +2440,6 @@ static uni_cell_q_t * _uni_cell_qalloc(void) {
 	
 	uni_cell_q_t * lp_cellq = NULL ;
 
-	/*
-	DBG_OUT("_uni_cell_qalloc in\n") ;
-	*/
 	lp_cellq = (uni_cell_q_t *) kmalloc(
 			sizeof(uni_cell_q_t),
 			GFP_ATOMIC) ;
@@ -2564,9 +2455,6 @@ static uni_cell_q_t * _uni_cell_qalloc(void) {
 		return NULL ;
 	}
 	
-	/*
-	DBG_OUT("_uni_cell_qalloc out\n") ;
-	*/
 	return lp_cellq ;
 }
 
@@ -2581,9 +2469,6 @@ static void _uni_cell_qfree(uni_cell_q_t *pcellq) {
 	uni_cell_t *	lp_cell 	= NULL ;
 	uni_cell_t *	lp_cellnxt 	= NULL ;
 	
-	/*
-	DBG_OUT("_uni_cell_qfree in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcellq) return ;
@@ -2601,9 +2486,6 @@ static void _uni_cell_qfree(uni_cell_q_t *pcellq) {
 	/* Free Queue */
 	kfree(pcellq) ;
 
-	/*
-	DBG_OUT("_uni_cell_qfree out\n") ;
-	*/
 }
 
 /*----------------------------------------------------------------------*/
@@ -2626,9 +2508,6 @@ static int _uni_cell_qpush(
 		uni_cell_t *	pcell,	/* IN: Cell to insert	*/
 		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
 ) {
-	/*
-	DBG_OUT("_uni_cell_qpush in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcell || !pcellq) {
@@ -2648,9 +2527,6 @@ static int _uni_cell_qpush(
 	}
 	pcellq->nbcells++ ;
 
-	/*
-	DBG_OUT("_uni_cell_qpush out\n") ;
-	*/
 	return 0 ;
 }
 
@@ -2665,9 +2541,6 @@ static uni_cell_t * _uni_cell_qpop(
 ) {
 	uni_cell_t * lp_cell = NULL ;
 	
-	/*
-	DBG_OUT("_uni_cell_qpop in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcellq) {
@@ -2683,9 +2556,6 @@ static uni_cell_t * _uni_cell_qpop(
 		pcellq->nbcells-- ;
 	}
 	
-	/*
-	DBG_OUT("_uni_cell_qpop out\n") ;
-	*/
 	return lp_cell ;
 }
 
@@ -2700,9 +2570,6 @@ static uni_cell_t * _uni_cell_qhead(
 ) {
 	uni_cell_t * lp_cell = NULL ;
 	
-	/*
-	DBG_OUT("_uni_cell_qhead in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcellq) {
@@ -2712,9 +2579,6 @@ static uni_cell_t * _uni_cell_qhead(
 
 	lp_cell = pcellq->first ;
 
-	/*
-	DBG_OUT("_uni_cell_qhead out\n") ;
-	*/
 	return lp_cell ;
 }
 
