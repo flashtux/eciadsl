@@ -34,8 +34,8 @@ static bool llc_encaps = 0;
 static bool vc_encaps = 0;
 static int device_got_set = 0;
 static int pppoatm_max_mtu, pppoatm_max_mru;
+static struct channel pppoatm_channel;
 
-struct channel pppoa_channel;
 static char *bad_options[] = {
 	"noaccomp", "-ac",
 	"default-asyncmap", "-am", "asyncmap", "-as", "escape",
@@ -62,6 +62,8 @@ static char *bad_options[] = {
 static int open_device_pppoatm(void);
 static int set_line_discipline_pppoatm(int fd);
 
+
+
 static int setdevname_pppoatm(const char *cp)
 {
 	struct sockaddr_atmpvc addr;
@@ -72,29 +74,31 @@ static int setdevname_pppoatm(const char *cp)
 		return 1;
 	}
 	info("PPPoATM setdevname_pppoatm");
+	info("cp = %s\n", cp);
 	memset(&addr, 0, sizeof addr);
 	if (text2atm(cp, (struct sockaddr *) &addr, sizeof(addr),
 	    T2A_PVC | T2A_NAME) < 0)
+	{
+		info("erreur openning atm socket\n");
 		return 0;
+	}
 	/*if (!dev_set_ok())
 		return -1;*/
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
 	strlcpy(devnam, cp, sizeof devnam);
 	devstat.st_mode = S_IFSOCK;
-	if(the_channel != &pppoa_channel) {
-		/*
-		char **a;
-		*/
-
-		the_channel = &pppoa_channel;
+	if(the_channel != &pppoatm_channel) {
 		info("registering channel\n");
-		/**for (a = bad_options; *a != NULL; a++)
-			remove_option(*a);*/
+		the_channel = &pppoatm_channel;
+		modem = 0;
+		lcp_wantoptions[0].neg_accompression = 0;
+		lcp_allowoptions[0].neg_accompression = 0;
+		lcp_wantoptions[0].neg_asyncmap = 0;
+		lcp_allowoptions[0].neg_asyncmap = 0;
+		lcp_wantoptions[0].neg_pcompression = 0;
 	}
 	info("PPPoATM setdevname_pppoatm - SUCCESS");
 	device_got_set = 1;
-	fd = open_device_pppoatm();
-	set_line_discipline_pppoatm(fd);
 	return 1;
 }
 
@@ -107,7 +111,11 @@ static int setspeed_pppoatm(const char *cp)
 
 static void options_for_pppoatm(void)
 {  
+	char buf[256];
+
 	info("option for pppoatm\n");
+	snprintf(buf,256, _PATH_ATMOPT "%s", devnam);
+	if(!options_from_file(buf, 0, 0, 1)) exit(EXIT_OPTION_ERROR);
 	return;
 }
 
@@ -237,8 +245,8 @@ void pppoatm_phase_change(void *opaque, int PHASE)
 	{
 		case PHASE_INITIALIZE:
 			info("Phase INITIALIZE\n");
-			fd = open_device_pppoatm();
-			set_line_discipline_pppoatm(fd);
+			/*fd = open_device_pppoatm();
+			set_line_discipline_pppoatm(fd);*/
 			break;
 		case PHASE_SERIALCONN:
 			info("Phase SERIALCONN\n");
@@ -297,40 +305,19 @@ void plugin_init(void)
 {
 	info("PPPoATM plugin_init");
 	add_options(my_options);
-	//add_notifier(&phasechange,pppoatm_phase_change,0);
-	/*add_devname_class(setdevname_pppoatm);
-	setspeed_hook = setspeed_pppoatm;
-	options_for_device_hook = options_for_pppoatm;*/
-	/*open_device_hook = open_device_pppoatm;
-	post_open_setup_hook = post_open_setup_pppoatm;
-	pre_close_restore_hook = pre_close_restore_pppoatm;
-	no_device_given_hook = no_device_given_pppoatm;
-	set_line_discipline_hook = set_line_discipline_pppoatm;
-	reset_line_discipline_hook = reset_line_discipline_pppoatm;
-	send_config_hook = send_config_pppoatm;
-	recv_config_hook = recv_config_pppoatm;
-	set_xaccm_hook = set_xaccm_pppoatm;
-	{
-		char **a;
-		for (a = bad_options; *a != NULL; a++)
-			remove_option(*a);
-	}*/
-	modem = 0;
-	lcp_wantoptions[0].neg_accompression = 0;
-	lcp_allowoptions[0].neg_accompression = 0;
-	lcp_wantoptions[0].neg_asyncmap = 0;
-	lcp_allowoptions[0].neg_asyncmap = 0;
-	lcp_wantoptions[0].neg_pcompression = 0;
+	/*add_notifier(&phasechange,pppoatm_phase_change,0);*/
 }
 
-struct channel pppoatm_channel = {
+static struct channel pppoatm_channel = {
 options: my_options,
 process_extra_options: &options_for_pppoatm,
 check_options: NULL,
 connect: &open_device_pppoatm,
+//connect: NULL,
 disconnect: NULL,
 establish_ppp: &set_line_discipline_pppoatm,
-disestablish_ppp: NULL ,
+//establish_ppp: NULL,
+disestablish_ppp: NULL,
 send_config: &send_config_pppoatm,
 recv_config: &recv_config_pppoatm,
 close: NULL,
