@@ -25,13 +25,12 @@ PRÉ-REQUIS
 		- votre "HUB USB controller" EN MODULE
 		- pas de module DABUSB
 	- support PPP (y compris le package pppd usermode >=2.4.0)
-- outils de développement standards (sources Linux dans /usr/src/linux,
-  outils GNU comme gcc>=2.91.66, GNU make, etc.)
-- un seul HUB ?
+- installation par les sources: outils de développement standards (sources
+  Linux dans /usr/src/linux, outils GNU comme gcc>=2.91.66, GNU make, etc.)
 - modem USB (avec puce GlobeSpan *seulement*)
 - bash (>=2.x.x)
-- facultatif : tcl/tk >= 8.x.x
-- droits root
+- facultatif : tcl/tk >= 8.x.x, perl
+- droits root (au moins pour l'installation)
 
 
 INSTALLATION À PARTIR DES SOURCES
