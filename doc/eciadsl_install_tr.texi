@@ -24,12 +24,12 @@
 @c \overfullrule=0pt
 @c end tex
 
-@documentlanguage en
+@documentlanguage tr
 
 @titlepage
 @title EciAdsl surucu - Kurulum kilavuzu
 @subtitle Free ADSL USB linux driver for Globespan based modems
-@subtitle EciAdsl icin  dokuman v0.8  - Mart, 09 2004
+@subtitle EciAdsl icin  dokuman v0.10 - Kas@'ym, 05 2004
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -141,7 +141,7 @@ root haklari (en azindan surucuyu kurabilmek icin)
 
 Eger varsayilan kerneli iceren en son Mandrake / RedHat surumune sahipseniz bu bolumu gecebilirsiniz.@*
 Dagitiminiza gore kernel icindeki bazi secenekler mevcut olmayabilir.
-Eger eci-doctor.sh kayip secenekler belirlerse, kernelinizi tekrar derlemeniz gerekebilir.@*@*
+Eger eciadsl-doctor kayip secenekler belirlerse, kernelinizi tekrar derlemeniz gerekebilir.@*@*
  @b{KESINLIKLE} bu secenekleri kernele koymalisiniz (``*''  ``kernel icinde'' icin,
 ``M''  ``module'' icin ):@*@*
 @t{USB support --->}@*
@@ -183,7 +183,7 @@ Eger eci-doctor.sh kayip secenekler belirlerse, kernelinizi tekrar derlemeniz ge
 
 @c ******************************* Kurulum *******************************
 
-@node Kurulum, KOnfigurasyon, Baslangic, Top
+@node Kurulum, Konfigurasyon, Baslangic, Top
 @chapter Kurulum
 @menu
 * dabusb nin kaldirilmasi::
@@ -210,8 +210,8 @@ uygulamalisiniz (bir parca zahmetli):
 @item
 Linux makinenizi modeminizle aciniz @b{takili degil}
 @item
-eciconf.sh veya eciconftxt.sh i kullanarak dabusb modulunu sisteminizden kaldirabilirsiniz.@*
-Ayrica direk olarak remove_dabusb komutunu kullanabilirsiniz (/usr/local/bin icinde varsayilan olarak).@*
+eciadsl-config-tk veya eciadsl-config-text i kullanarak dabusb modulunu sisteminizden kaldirabilirsiniz.@*
+Ayrica direk olarak eciadsl-remove-dabusb komutunu kullanabilirsiniz (/usr/local/bin icinde varsayilan olarak).@*
 Or, manually type the following command:@*
 @kbd{modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a}@*
 @end itemize
@@ -288,14 +288,14 @@ Sadece ne yaptiginizi biliyorsaniz --etc-prefix kullaniniz .@*
 @item
 Eger sisteminizde Tcl/Tk kurulu ise grafik konfigurasyon aracini 
 calistirabilirsiniz:@*
-@kbd{eciconf.sh}@*
+@kbd{eciadsl-config-tk}@*
 @*
 Kontrol etmeksizin tum parametreleri giriniz.
 `` synch .bin dosyasini degistirin''..@*
 
 @item
 Aksi takdirde, text mode konfigurasyonunu calistiriniz:@*
-@kbd{eciconftxt.sh}@*
+@kbd{eciadsl-config-text}@*
 Surucuyu konfigure etmek icin asagidak adimlari takip ediniz.
 
 @end itemize
@@ -336,7 +336,7 @@ Eger modeminiz listede yoksa, modem sayfasini kontrol ediniz:@*
 - Eger modeminiz ``belki desteklenebilir'' ise, detay icin gelistiricilere soru sorunuz.
 @xref{Yapimcilar / Destek}.@*
 @item Synch .bin dosyasi
-Bu secenegi yalnizca startmodem eszamanlilik sorunu yasarsa kullaniniz.@*
+Bu secenegi yalnizca eciadsl-start eszamanlilik sorunu yasarsa kullaniniz.@*
 @item PPP modu
 - Fransa kullanicilari icin, varsayilan PPP modu (VCM_RFC2364) olarak seciniz@*
 - Diger kullanicilar icin, servis saglayiciniza uyumlu ppp modunu seciniz.@*
@@ -359,19 +359,19 @@ Eger bilmiyorsaniz, bu secenegi bos birakiniz.
 @chapter Baglanti
 
 @menu
-* Startmodem::
+* Eciadsl-start::
 * Diger skriptler::
 @end menu
 
-@node Startmodem, Diger skriptler, Baglanti, Baglanti
-@section Startmodem
+@node Eciadsl-start, Diger skriptler, Baglanti, Baglanti
+@section Eciadsl-start
 
 Internete baglanabilmek icin, bu komutu root olarak kullanin:@*
-@kbd{startmodem | tee log.txt}@*
+@kbd{eciadsl-start | tee log.txt}@*
 
 @subsection Synch sorunu
 
-synch ile problem yasiyorsaniz (eci-load2 timeout/error or synch den sonra
+synch ile problem yasiyorsaniz (eciadsl-synch timeout/error or synch den sonra
 lcp zamanasimi), asagidaki talimatlari takip ediniz:
 
 @itemize @bullet
@@ -382,19 +382,19 @@ lcp zamanasimi), asagidaki talimatlari takip ediniz:
  /etc/eciadsl icine paketi aciniz (root olarak):@*
 @kbd{cd /etc/eciadsl && tar xvzf /path/eciadsl-synch_bin.tar.gz}
 @item
-eciconf.sh veya eciconftxt.sh i calistirin ve baska bir .bin dosyasi secin.
+eciadsl-config-tk veya eciadsl-config-text i calistirin ve baska bir .bin dosyasi secin.
 @item
 Modemi kapatiniz:  @kbd{modprobe -r usb-uhci} (veya usb-ohci) , modemi
 cikartarak/tekrar takarak  (USB kablosunu)<
 @item
-startmodem i tekrar calistirin.@*
+eciadsl-start i tekrar calistirin.@*
 Eger yine de synch sorunu yasarsaniz, ardindan baska bir synch .bin dosyasi deneyiniz.@*
 @b{Onemli:}  @b{TUM} synch .bin dosyalarini deneyebilirsiniz,  .bin dosyasinin yerine ve saglayisina bakmayiniz.@*
 Eger hicbir .bin calismazsa, bu durumda windows altinda kendi .bin dosyanizi olusturmalisiniz.
 @xref{Synch .bin olusturulmasi}.
 @end itemize
 
-startmodem in diger sorunlari icin lutfen, bu FAQ dosyasina bakiniz:@*
+eciadsl-start in diger sorunlari icin lutfen, bu FAQ dosyasina bakiniz:@*
 @uref{http://eciadsl.flashtux.org/faq.php?lang=en}
 
 @subsection PPPoE kullanicilari
@@ -403,21 +403,21 @@ Eger PPPoE kullaniyorsaniz, tap0 aracaligi ile ADSL modeminizle baglanti kurmak
 icin rp-pppoe  (http://www.roaringpenguin.com/pppoe) gibi bir PPPoE istemci konfigure 
 etmeli veya kullanmalisiniz.
 
-@node Diger skriptler, , Startmodem, Baglanti
+@node Diger skriptler, , Eciadsl-start, Baglanti
 @section Diger skriptler
 
-@subsection probe_device.sh
+@subsection eciadsl-probe-device
 
-startmodem modeminizi bulamazsa bu komutu kullaniniz.
+eciadsl-start modeminizi bulamazsa bu komutu kullaniniz.
 Bu skript modeminizin VID/PID durumuna bakar ve gosterir.
 Detay icin,lutfen bizimle iletisime geciniz. @xref{Yapimcilar / Destek}.
 
-@subsection eci-doctor.sh
+@subsection eciadsl-doctor
 
-Bu skripti ( @kbd{--usb-init} secenegi ile) eger startmodem ``Modem bulunamadi''
+Bu skripti ( @kbd{--usb-init} secenegi ile) eger eciadsl-start ``Modem bulunamadi''
 veya eszamanlilik sorunu gibi diger sorunlari yasarsa kullaniniz.
 
-@subsection probe_synch.sh
+@subsection eciadsl-probe-synch
 
 Eger sync sorunlarina sahipseniz, tum .bin dosyalarini otomatik olarak test etmek 
 icin bu skript i kullaniniz.
@@ -487,10 +487,10 @@ Setup.exe yi calistirin ve asagidaki talimatlari takip ediniz.@*
 @section USB Sniffer
 
 Buradan en son USB Sniffer paketini download ediniz ve kurunuz:@*
-@uref{http://benoit.papillault.free.fr/usbsnoop/index.php}@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/}@*
 
 Snoopy (USB sniffer) icin burada bir dokuman mevcuttur:@*
-@uref{http://benoit.papillault.free.fr/usbsnoop/doc.en.php}@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/doc.php}@*
 
 @node USB paketlerinin windows altinda izlenmesi, Linux altinda log .bin donusumu, USB Sniffer, Synch .bin olusturulmasi
 @section USB paketlerinin windows altinda izlenmesi
@@ -510,14 +510,14 @@ Linux altinda tekrar baslatiniz.
 usbsnoop log dosyasini iceren windows partisyonu veya nereye kopyalamak isterseniz o partisyonu
 mount ediniz.@*
 Bu komutu uygulayiniz:@*
-@kbd{eci_vendor_device.pl usbsnoop.log}@*
+@kbd{eciadsl-vendor-device.pl usbsnoop.log}@*
 Bu perl skripti log dosyasini kullanir ve yeni bir eci_vendor.bin dosyasi uretir
 (skript usermode paketinde mevcuttur).@*
 Bu komutu uygulayiniz:@*
 @kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
-ve daha sonra bu .bin dosyasini calistirmak icin eciconftxt.sh calistirilmalidir@*
+ve daha sonra bu .bin dosyasini calistirmak icin eciadsl-config-text calistirilmalidir@*
 @*
-startmodem i calistiriniz...@*
+eciadsl-start i calistiriniz...@*
 ...ve parmaklarinizi  birlestirin :-)
 
 

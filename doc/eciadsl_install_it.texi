@@ -28,7 +28,7 @@
 @titlepage
 @title Driver EciAdsl - Guida di installazione
 @subtitle Driver liberi ADSL USB Linux per modem basati su chipset Globespan
-@subtitle Documentazione per EciAdsl v0.8 - 09 Marzo 2004
+@subtitle Documentazione per EciAdsl v0.10 - 05 Novembre 2004
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -137,7 +137,7 @@ privilegi di root (almeno per installare il driver)
 Se hai l'ultima versione di Mandrake/Redhat con il kernel predefinito puoi
 saltare questo capitolo.@*
 A seconda della tua distribuzione, alcune opzioni potrebbero mancare nel tuo kernel.
-Se eci-doctor.sh dice che ci sono opzioni mancanti, hai bisogno di ricompilare il tuo kernel.@*@*
+Se eciadsl-doctor dice che ci sono opzioni mancanti, hai bisogno di ricompilare il tuo kernel.@*@*
 Tu @b{DEVI} includere queste opzioni (``*" va incluso ``nel kernel",
 ``M" va come ``modulo"):@*@*
 @t{USB support --->}@*
@@ -207,9 +207,9 @@ seguente metodo (un @`o alla larga):
 @item
 Fai partire la macchina con Linux con il modem @b{staccato}
 @item
-Puoi rimuovere il modulo dabusb dal tuo sistema usando eciconf.sh o
-eciconftxt.sh.@*
-Puoi anche utilizzare direttamente remove_dabusb (in /usr/local/bin di default).@*
+Puoi rimuovere il modulo dabusb dal tuo sistema usando eciadsl-config-tk o
+eciadsl-config-text.@*
+Puoi anche utilizzare direttamente eciadsl-remove-dabusb (in /usr/local/bin di default).@*
 O, manualmente inserire il seguente comando:@*
 @kbd{modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a}@*
 @end itemize
@@ -288,14 +288,14 @@ Vedi gli altri parametri usando './configure --help'.
 @item
 Se Tcl/Tk @`e installato sul tuo sistema, puoi eseguire
 lo strumento di configurazione grafico:@*
-@kbd{eciconf.sh}@*
+@kbd{eciadsl-config-tk}@*
 @*
 Inserisci tutti i parametri senza cliccare su
 ``Change synch .bin file''.@*
 
 @item
 Altrimenti, esegui la configurazione testuale:@*
-@kbd{eciconftxt.sh}@*
+@kbd{eciadsl-config-text}@*
 Segui i passaggi per configurare il driver.
 
 @end itemize
@@ -336,7 +336,7 @@ Se il tuo modem non @`e nella lista, controlla la pagina dei modem:@*
 - Se il tuo modem @`e ``probabilmente supportato'', chiedi agli sviluppatori
 per i dettagli. @xref{Autori / Supporto}.@*
 @item File di sincronizzazione .bin
-Seleziona questa opzione solo se startmodem fallisce la sincronizzazione.@*
+Seleziona questa opzione solo se eciadsl-start fallisce la sincronizzazione.@*
 @item Modalita' PPP
 - Per gli utenti francesi, scegli la modalita' PPP predefinita (VCM_RFC2364).@*
 - Per gli altri utenti, controlla la modalita' PPP approprieata con il tuo provider.@*
@@ -359,19 +359,19 @@ Se non lo sai, lascia questa opzione deselezionata.
 @chapter Connessione
 
 @menu
-* Startmodem::
+* Eciadsl-start::
 * Altri script::
 @end menu
 
-@node Startmodem, Altri script, Connessione, Connessione
-@section Startmodem
+@node Eciadsl-start, Altri script, Connessione, Connessione
+@section Eciadsl-start
 
 Per connetterti ad internet, usa il comando da root:@*
-@kbd{startmodem | tee log.txt}@*
+@kbd{eciadsl-start | tee log.txt}@*
 
 @subsection Problemi di sincronizzazione
 
-Se hai problemi di sincronizzazione (eci-load2 timeout/errore o lcp timeout
+Se hai problemi di sincronizzazione (eciadsl-synch timeout/errore o lcp timeout
 dopo la sincronizzazione), segui le istruzioni qui sotto:
 
 @itemize @bullet
@@ -382,12 +382,12 @@ Download .bin package there:@*
 Decomprimi il pacchetto in /etc/eciadsl (come root):@*
 @kbd{cd /etc/eciadsl && tar xvzf /path/eciadsl-synch_bin.tar.gz}
 @item
-Esegui eciconf.sh o eciconftxt.sh e scegli un altro file .bin
+Esegui eciadsl-config-tk o eciadsl-config-text e scegli un altro file .bin
 @item
 Spegni il modem: con @kbd{modprobe -r usb-uhci} (o usb-ohci), oppure
 scollegando/ricollegando il modem (cavo USB).
 @item
-Esegui startmodem di nuovo.@*
+Esegui eciadsl-start di nuovo.@*
 Se hai ancora problemi di sincronizzazione, prova un altro file .bin.@*
 @b{Importante:} puoi provare @b{TUTTI} i file .bin, non guardare il posto o
 il provider del .bin.@*
@@ -395,7 +395,7 @@ Se nessun .bin funziona, dovrai creare il tuo file. bin personalizzato sotto Win
 @xref{Creazione del .bin di sincronizzazione}.
 @end itemize
 
-Per altri problemi con startmodem, per favore guarda le FAQ:@*
+Per altri problemi con eciadsl-start, per favore guarda le FAQ:@*
 @uref{http://eciadsl.flashtux.org/faq.php?lang=it}
 
 @subsection Utenti PPPoE
@@ -404,21 +404,21 @@ Se stai usando PPPoE, devi configurare ed utilizzare un client standard PPPoE
 come rp-pppoe (http://www.roaringpenguin.com/pppoe) per connettere il tuo modem ADSL
 attraverso tap0.
 
-@node Altri script, , Startmodem, Connessione
+@node Altri script, , Eciadsl-start, Connessione
 @section Altri script
 
-@subsection probe_device.sh
+@subsection eciadsl-probe-device
 
-Usa questo script se startmodem non trova il tuo modem.
+Usa questo script se eciadsl-start non trova il tuo modem.
 Questo script guarda i VID/PID del tuo modem e li visualizza.
 Per i dettagli, per favore contattaci, @xref{Autori / Supporto}.
 
-@subsection eci-doctor.sh
+@subsection eciadsl-doctor
 
-Usa questo script (con opzione @kbd{--usb-init}) se startmodem fallisce con
+Usa questo script (con opzione @kbd{--usb-init}) se eciadsl-start fallisce con
 altri problemi oltre a ``Modem non trovato'' o di sincronizzazione.
 
-@subsection probe_synch.sh
+@subsection eciadsl-probe-synch
 
 Usa questo script per provare automaticamente tutti i file .bin, se hai problemi di sincronizzazione.
 
@@ -486,10 +486,10 @@ Lancia setup.exe e segui le istruzioni.@*
 @section Sniffer USB
 
 Scarica e installa l'ultima versione del pacchetto sniffer USB. Puoi trovarla qui:@*
-@uref{http://benoit.papillault.free.fr/usbsnoop/index.php}@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/}@*
 
 La documentazione per Snoopy (sniffer USB) @`e disponibile qui:@*
-@uref{http://benoit.papillault.free.fr/usbsnoop/doc.en.php}@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/doc.php}@*
 
 @node Sniffing di pacchetti USB sotto Windows, Conversione da log a .bin sotto Linux, Sniffer USB, Creazione del .bin di sincronizzazione
 @section Sniffing di pacchetti USB sotto Windows
@@ -509,14 +509,14 @@ Riavvia sotto Linux.
 Monta la partizione di windows contente il file usbsnoop.log e copialo
 dove vuoi.@*
 Esegui questo comando:@*
-@kbd{eci_vendor_device.pl usbsnoop.log}@*
+@kbd{eciadsl-vendor-device.pl usbsnoop.log}@*
 Questo script perl legge il file log e genera un nuovo file eci_vendor.bin
 (script fornito con il pacchetto usermode).@*
 Esegui questo comando:@*
 @kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
-quindi esegui eciconftxt.sh e usa questo.bin@*
+quindi esegui eciadsl-config-text e usa questo.bin@*
 @*
-Esegui startmodem...@*
+Esegui eciadsl-start...@*
 ...e incrocia le dita :-)
 
 
