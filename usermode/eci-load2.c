@@ -56,6 +56,12 @@ char* exec_filename;
 int shared_sem = -1;
 semunptr shared_sem_data;
 
+/*		Synchronisation variables	*/
+int sync_started = 0;
+int sync_pos =0;
+unsigned char sync_buf[13][2] = {{0x96, 0x01}, {0x9c, 0x01}, {0x9f, 0x01}, {0xfc, 0x02}, {0xfd, 0x01},
+												{0xb3, 0x01}, {0xa7, 0x03}, {0xc5, 0x01}, {0xa2, 0x03}, {0xce, 0x01}, 
+												{0x35, 0x02}, {0x00, 0x02}, {0xbe, 0x03}};
 /* just for testing without USB */
 /*#define TESTECI*/
 
@@ -229,7 +235,45 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
         }
 
 		if (ret == 16)
+		{
+/*
+ 		We look for a sequence in the ep int answer , 2  are known to be received.
+ 		in position 4 and 5 we must have :
+ 		f8 00, 96 01,9c 01, 9f 0, fc 02, fd 01, b3 0, a7 03, c5 01, a2 03, ce 01, 35 02, 00 02, be 03
+ 		or
+ 		f8 00,0d 01, 07 01, 96 01,9c 01, 9f 0, fc 02, fd 01, b3 0, a7 03, c5 01, a2 03, ce 01, 35 02, 00 02, be 03
+ 		
+ */	
+ 			if(sync_started>0)
+ 			{
+ 					if(sync_pos >1)
+ 					{
+ 						if(sync_buf[sync_pos][0] == lbuf[4] && sync_buf[sync_pos][1] == lbuf[5] )
+ 						{
+ 							sync_pos++; 							
+ 						}
+ 						else
+ 						{
+ 							printf("ECI load2: synchro is failling , need restart ???");
+ 						}
+ 					}
+ 					else
+ 					{
+ 						if(sync_buf[sync_pos][0] == lbuf[4] && sync_buf[sync_pos][1] == lbuf[5] )
+ 						{
+ 							sync_pos++; 							
+ 						}
+ 						else
+ 						{
+ 								if((lbuf[4] != 0x0d  && lbuf[4] != 0x07) || lbuf[5] != 0x01)
+ 								{
+ 									printf("ECI load2: synchro is failling , need restart ???");
+		 						}						
+ 						} 							
+ 					}
+ 			}		
 			pkt16_received = 1;
+		}
 
 		/* we consider that a 64 bytes packet means that the line is
 		   synchronized. So we stop. We wait first to have received
