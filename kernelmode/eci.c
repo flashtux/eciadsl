@@ -886,14 +886,12 @@ static int eci_usb_probe(struct usb_interface *interface,
 				ERR_OUT("out of memory\n");
 				goto erreure;
 			}
-#if(LINUX_VERSION_CODE  < KERNEL_VERSION(2,6,0))
 			if(usb_set_configuration(dev,1)<0) {
-				ERR_OUT("Can't set interface\n");
+				ERR_OUT("Can't set configuration\n");
 				goto erreure;
 			}
-#endif
 			if(usb_set_interface(dev,0,4)<0) {
-				ERR_OUT("Cant set configuration\n");
+				ERR_OUT("Cant set interface\n");
 				goto erreure;
 			}
 		/*
