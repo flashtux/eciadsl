@@ -647,6 +647,7 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 
 
 /*	structures	*/
+#define NBMAXCODES 20 /* int code buffer size */
 
 struct eci_instance 		/*	Private data for driver	*/
 {
@@ -657,7 +658,8 @@ struct eci_instance 		/*	Private data for driver	*/
 	int 			minor;
 	wait_queue_head_t 	eci_wait;	/*	no more used	*/
 	const unsigned char	*setup_packets; /* 	For init	*/
-	struct urb		*isourbs;	/*	For Iso transfer */
+	struct urb		*isourbs[ECI_NB_ISO_PACKET];
+						/*	For Iso transfer */
 	struct urb		*vendor_urb;	/*	For init and Answer 
 							to INT		*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
@@ -674,6 +676,16 @@ struct eci_instance 		/*	Private data for driver	*/
  	struct uni_cell_list	bulk_cells;	/* 	outgoing urb Q      */
 	struct tasklet_struct	bh_atm;		/*	outgoing datasBH    */
 	struct sk_buff_head	txq;		/*	outgoing datas Q    */
+	u16			match73,rep73;	/*	interrupt stuf	    */
+	u16			match53,rep53;	/*	byte for replacement*/	
+	int			ctrlcodecnt;	/*	control code counter*/
+	int			ctrlseqcnt;	/*	sequence number     */
+	int			cnt734d;	/*	specific code counter*/
+	int			cnt7341;	/*	specific code counter*/
+	int			cnt53;		/*	global code counter */
+	int			cnt73;		/*	global code counter */
+	u16			ctrlcodes[NBMAXCODES]; /* ctrl code buffer  */
+	
 	
 	
 	/* -- test -- */
@@ -817,8 +829,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		/*
 			send 20 Urbs to the iso EP
 		*/
-		out_instance->isourbs = 0;
-		for(eci_isourbcnt=0;eci_isourbcnt<20;eci_isourbcnt++)
+		//out_instance->isourbs = 0;
+		for(eci_isourbcnt=0;
+			eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++)
 		{
 			if(!(eciurb=usb_alloc_urb(ECI_NB_ISO_PACKET)))
 			{
@@ -835,8 +848,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
  					eci_isourbcnt);
 				return 0;
 			}
-			eciurb->next = out_instance->isourbs;
-			out_instance->isourbs = eciurb;
+			//eciurb->next = out_instance->isourbs;
+			out_instance->isourbs[eci_isourbcnt] = eciurb;
 			eciurb->dev = dev;
 			eciurb->context = out_instance;
 			eciurb->pipe = usb_rcvisocpipe(dev, ECI_ISO_PIPE);
@@ -852,18 +865,12 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 					ECI_ISO_PACKET_SIZE;
 				eciurb->iso_frame_desc[i].actual_length = 0 ;
 			}
+			if(usb_submit_urb(eciurb))
+			{
+				ERR_OUT("error couldn't send iso urbs\n");
+				return 0;
+			}
 		}
-		tmpurb = out_instance->isourbs;
-		while(tmpurb->next) tmpurb=tmpurb->next;
-		tmpurb->next = out_instance->isourbs;
-		if(usb_submit_urb(eciurb))
-		{
-			ERR_OUT("error couldn't send iso urbs\n");
-			return 0;
-		}
-		/*
-			Should reset the Iso EP and send 20 Urbs
-		*/
 		if(!(eciurb=usb_alloc_urb(0)))
 		{
 			ERR_OUT("Can't allocate int urb !\n");
@@ -1001,15 +1008,15 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 
 		usb_unlink_urb(eci_instances->interrupt_urb);
 		usb_free_urb(eci_instances->interrupt_urb);
-		urb=eci_instances->isourbs;
-		while(urb->next!=eci_instances->isourbs) urb=urb->next;
-		urb->next = 0;
-		while((urb = eci_instances->isourbs) != NULL)
+		//urb=eci_instances->isourbs;
+		//while(urb->next!=eci_instances->isourbs) urb=urb->next;
+		//urb->next = 0;
+		/*while((urb = eci_instances->isourbs) != NULL)
 		{
-			eci_instances->isourbs = urb->next;
+			//eci_instances->isourbs = urb->next;
 			usb_unlink_urb(urb);
 			usb_free_urb(urb);
-		}
+		}*/
 		DBG_OUT("disconnect : freeing instance %p\n", eci_instances);
 		kfree(eci_instances);
 		eci_instances=NULL;
@@ -1361,7 +1368,8 @@ static void eci_int_callback(struct urb *urb)
 		0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63 , 0x63 };
 	static unsigned char replace_b2[] = { 0x11, 0x11, 0x13, 0x13,
 		0x13, 0x13, 0x11, 0x11, 0x1, 0x1, 0x1, 0x01 };
-	static unsigned char eci_outbuf[34] = {
+	u16	ctrlcode;
+	unsigned char eci_outbuf[34] = {
 		0xff, 0xff, 
 		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc,
 		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc,
@@ -1404,28 +1412,135 @@ static void eci_int_callback(struct urb *urb)
 					eci_outbuf[i++];
 			for(i=0;i<15;i++)
 			{
-				b1 = in_buf[6+2*i+0];
-				b2 = in_buf[6+2*i+1];
-				if( b1 != 0x0c || b2 !=0x0c)
+				ctrlcode = (in_buf[6+2*i+0]<<8) | in_buf[6+2*i+1];
+				switch(ctrlcode)
 				{
-
-					if((b1 == 0x73) && (b2 == 0x11)) 
+				  case 0x0c0c:
+					break;
+				  case 0x7311:
+					if(instance->cnt73 == 5 )
 					{
-					  eci_int_count %= 12;
-					  b1 = replace_b1[eci_int_count];
-					  b2 = replace_b2[eci_int_count++];
-					  if(!eci_int_count)
+					  instance->cnt73 = 0;
+					  if(instance->ctrlcodecnt == 1 &&
+					    instance->ctrlcodes[1] == 0x7341)
+					      if(++instance->cnt7341 == 3)
+						   instance->rep73 = 0x730f;
+					}
+				  case 0x5311:
+					if(instance->cnt53 == 5 )
+					{
+					  instance->cnt53 = 0;
+					  if(instance->ctrlcodecnt == 1 &&
+					    instance->ctrlcodes[1] == 0x7341 &&
+					    instance->rep53 == 0xc339)
+					 	instance->rep53 = 0x4301;
+					}
+				default:
+				  if(instance->ctrlcodecnt >= 0)
+				  {
+					if(instance->ctrlcodes[
+					   instance->ctrlcodecnt] != ctrlcode)
+					{
+				/*	Too Many code , problem */
+					  if(instance->ctrlcodecnt ==
+						NBMAXCODES)
+					  		break;
+					  if(ctrlcode == 0xf301) /* RESET */
+						instance->ctrlcodecnt = 0;
+					  else
 					  {
-						replace_b2[8] =
-						replace_b2[9] =
-						replace_b2[10] =
-						replace_b2[11] = 0x53;
+					    instance->ctrlcodecnt++;
+					    instance->ctrlcodes[
+						instance->ctrlcodecnt] =
+								ctrlcode;
+					    instance->ctrlseqcnt = 1;
 					  }
 					}
-					instance->pooling_buffer[10 + 
-						outi++] = b1;
-					instance->pooling_buffer[10 + 
-						outi++] = b2;
+					else
+						instance->ctrlseqcnt++;
+				   }
+				   else
+				   {
+					instance->ctrlcodecnt++;
+					instance->ctrlcodes[
+					  instance->ctrlcodecnt] =
+								ctrlcode;
+					instance->ctrlseqcnt = 1;
+				   }
+				   if(instance->ctrlseqcnt == 1)
+				   {
+					switch(instance->ctrlcodecnt)
+					{
+					  case 0:
+						instance->rep53 = 0x4301;
+						instance->rep73 = 0x6301;
+						break;
+					  case 1:
+						switch(instance->ctrlcodes[0])
+						{
+						  case 0x734d:
+						    if(instance->cnt734d)
+						      instance->rep73 = 0xe30b;
+						    else
+						    {
+						      instance->rep73 =	0x630b;
+						      instance->cnt734d = 0;
+						    }
+						    break;
+						  case 0x7431:
+						    instance->cnt7341 = 0;
+						    instance->rep73 = 0x6301;
+						    instance->cnt73 = 0;
+						    instance->rep53 = 0xc339;
+						    instance->cnt53 = 0;
+						  default: /* Win a line ;) */
+						    break;
+						}
+					  case 2:
+						switch(instance->ctrlcodes[2])
+						{
+						  case 0xf34f:
+						    instance->rep73 = 0xe351;
+						  default: /* Win a line */
+						    break;
+						}
+					 }
+				    }
+				}
+			}
+			for(i=0;i<15;i++)
+			{
+				b1 = in_buf[6 + 2 * i + 0];  
+				b2 = in_buf[6 + 2 * i + 1];
+
+				if(b1 != 0x0c || b2 !=0x0c)
+				{
+					switch(b1)
+					{
+					  case 0x53:
+					    if( ((b1 <<8 ) | b2 ) == 
+						instance->match53)
+					    {
+						eci_outbuf[10 + outi] = 
+						     instance->rep53 >> 8;
+						eci_outbuf[10 + outi+1] =
+						     instance->rep53 & 0xf;
+					    }
+					    break;
+					  case 0x73:
+					    if( ((b1 <<8 ) | b2 ) == 
+						instance->match73)
+					    {
+						eci_outbuf[10 + outi] = 
+						     instance->rep73 >> 8;
+						eci_outbuf[10 + outi+1] =
+						     instance->rep73 & 0xf;
+					    }
+					    break;
+					  default: 
+					    break;
+					}
+					outi+=2;
 				}
 			}
 			if(outi)
@@ -1482,6 +1597,7 @@ static void eci_iso_callback(struct urb *urb)
 	spin_lock_bh(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
+		DBG_OUT("Data in iso packet \n");
 		for (i=0;i<ECI_NB_ISO_PACKET;i++)
 		{
 			if (!urb->iso_frame_desc[i].status &&
@@ -1577,6 +1693,7 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
+	usb_submit_urb(urb);
 	spin_unlock_bh(&instance->lock);	
 }
 
