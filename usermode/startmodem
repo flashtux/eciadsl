@@ -88,6 +88,7 @@ if [ -s "$CONF_DIR/eciadsl.conf" ]; then
 	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	pppoeci_options=`grep -E "^[ \t]*PPPOECI_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	synch_attempts=`grep -E "^[ \t]*SYNCH_ATTEMPTS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	preferred_usb_hub=`grep -E "^[ \t]*PREFERRED_USB_HUB[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 else
 	echo -e "\ncouldn't find $CONF_DIR/eciadsl.conf, default config assumed"
 fi
@@ -156,50 +157,68 @@ if [ $? -eq 0 ]; then
 	fi
 fi
 
-# try to locate UHCI controller
-grep -A 4 USB /proc/pci | grep I/O > /dev/null
-if [ $? -eq 0 ]; then
-	# ok, we have a UHCI controller, check if the linux driver is loaded
-    grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-    if [ $? -ne 0 ]; then
-        echo -e "\nloading UHCI support"
-		modprobe -l | grep usb-uhci > /dev/null
-		if [ $? -ne 0 ]; then
-			echo "warning: usb-uhci module doesn't exist"
-		else
-        	modprobe usb-uhci
-        	sleep 2
-    		lsmod | grep usb-uhci > /dev/null
+if [ -z "$preferred_usb_hub" ]
+then
+	# try to locate UHCI controller
+	grep -A 4 USB /proc/pci | grep I/O > /dev/null
+	if [ $? -eq 0 ]; then
+		# ok, we have a UHCI controller, check if the linux driver is loaded
+    	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+    	if [ $? -ne 0 ]; then
+        	echo -e "\nloading UHCI support"
+			modprobe -l | grep usb-uhci > /dev/null
 			if [ $? -ne 0 ]; then
-				echo "couldn't load usb-uhci module"
+				echo "warning: usb-uhci module doesn't exist"
 			else
-				echo "usb-uhci loaded successfully"
+        		modprobe usb-uhci
+        		sleep 2
+    			lsmod | grep usb-uhci > /dev/null
+				if [ $? -ne 0 ]; then
+					echo "couldn't load usb-uhci module"
+				else
+					echo "usb-uhci loaded successfully"
+				fi
 			fi
-		fi
-    fi
-fi
+    	fi
+	fi
 
-# try to locate OHCI controller
-grep -A 4 USB /proc/pci | grep memory > /dev/null
-if [ $? -eq 0 ]; then
-	# ok, we have a OHCI controller, check if the linux driver is loaded
-    grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-    if [ $? -ne 0 ]; then
-        echo -e "\nloading OHCI support"
-		modprobe -l | grep usb-ohci > /dev/null
-		if [ $? -ne 0 ]; then
-			echo "warning: usb-ohci module doesn't exist"
-		else
-	        modprobe usb-ohci
-	        sleep 2
-    		lsmod | grep usb-ohci > /dev/null
+	# try to locate OHCI controller
+	grep -A 4 USB /proc/pci | grep memory > /dev/null
+	if [ $? -eq 0 ]; then
+		# ok, we have a OHCI controller, check if the linux driver is loaded
+    	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+    	if [ $? -ne 0 ]; then
+        	echo -e "\nloading OHCI support"
+			modprobe -l | grep usb-ohci > /dev/null
 			if [ $? -ne 0 ]; then
-				echo "couldn't load usb-ohci module"
+				echo "warning: usb-ohci module doesn't exist"
 			else
-				echo "usb-ohci loaded successfully"
+	        	modprobe usb-ohci
+	        	sleep 2
+    			lsmod | grep usb-ohci > /dev/null
+				if [ $? -ne 0 ]; then
+					echo "couldn't load usb-ohci module"
+				else
+					echo "usb-ohci loaded successfully"
+				fi
 			fi
+    	fi
+	fi
+else
+    echo -e "\nloading USB HUB support ($preferred_usb_hub)"
+	modprobe -l | grep $preferred_usb_hub > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "warning: $preferred_usb_hub module doesn't exist"
+	else
+	    modprobe $preferred_usb_hub
+	    sleep 2
+    	lsmod | grep $preferred_usb_hub > /dev/null
+		if [ $? -ne 0 ]; then
+			echo "couldn't load $preferred_usb_hub module"
+		else
+			echo "$preferred_usb_hub loaded successfully"
 		fi
-    fi
+	fi
 fi
 
 case "$mode" in
@@ -366,7 +385,7 @@ then
 		echo "adding default route.."
 		route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+$DEV$" > /dev/null
 		if [ $? -ne 0 ]; then
-   			route add default $GW
+			route add default $GW
 			if [ $? -ne 0 ]; then
 				echo "failed to set default route to $DEV"
 			else
