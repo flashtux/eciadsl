@@ -129,13 +129,13 @@ case "$1" in
     modems="Select your modem"
     vid1pid1="*"
     vid2pid2="*"
-	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 1); do
 		modems="$modems|$LINE"
 	done
-	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 2); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 2-3 | tr -d "| "); do
 		vid1pid1="$vid1pid1|$LINE"
 	done
-	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 3); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 4-5 | tr -d "| "); do
 		vid2pid2="$vid2pid2|$LINE"
 	done
 	IFS="$OLDIFS"
@@ -275,7 +275,7 @@ case "$1" in
                 fi
             fi
         done
-       	pid1=""
+		pid1=""
 		if [ -n "$vid1" ]; then
         	choice_ok=0
         	while [ $choice_ok -eq 0 ]; do
