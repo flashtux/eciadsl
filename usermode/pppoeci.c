@@ -1113,17 +1113,6 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 				dataBlock=-1;
 				gs7070SetControl(gs, buf + i * 2);
 			}
-
-			/* this code need to be put into gs7070.c
-			if (w != 0x0c0c && w != 0x734d && w != 0x7311 && w != 0xf301
-				&& w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w != 0xf313
-				&& w != 0x7341)
-			{
-				snprintf(errText, ERR_BUFSIZE,
-						"synchro loss! w=%04x", w);
-				message(errText);
-				lost_synchro = 1;
-			}*/
 		}
 	}
 	if (dataBlock == 0)
