@@ -120,15 +120,7 @@ A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
 	If no error message is returned by the patch command, type the following
 	lines to make the source's patch:
 		patch -p1 < /path/to/n_hdlc.c.diff
-
-	Then, compile those modules for your kernel:
-		make menuconfig
-			Character devices --->
-			[*] Non-standard serial port support
-			<M> HDLC line discipline support
-			[*]Unix98 PTY support
-		make dep modules modules_install
-	or whatever command you use to compile and install the kernal modules
+	then jump to the kernel configuration question (below).
 
 
 Q:	My kernel is OK (N_HDLC patched or kernel >=2.4.18-pre3) but I still get
@@ -223,22 +215,11 @@ A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
 	LCP timeouts.
 
 
-Q:	I get these lines in /var/log/messages right when ppp attempts to raise:
-	ioctl(pppiocgflags): inappropriate ioctl for device
+Q:	I get these lines in /var/log/messages:
+	ioctl(PPPIOCGFLAGS): Inappropriate ioctl for device
+	Connexion failed
 
-A:	Upgrade your modutils package.
-
-	Upgrade your kernel, and add these modules if missing:
-		ppp_generic ppp_generic ppp_async ppp_synctty bsd_comp ppp_deflate
-
-	Add these following lines in your /etc/modules.conf if they are missing:
-		alias char-major-108 ppp_generic
-		alias /dev/ppp ppp_generic
-		alias tty-ldisc-3 ppp_async
-		alias tty-ldisc-14 ppp_synctty
-		alias ppp-compress-21 bsd_comp
-		alias ppp-compress-24 ppp_deflate
-		alias ppp-compress-26 ppp_deflate
+A:	Check your kernel config (below).
 
 	Upgrade your eciadsl driver version.
 
@@ -260,13 +241,17 @@ A:	Is your USB chipset an old VIA one? Some are known to be buggy and to have
 	when you use multiple USB device that sucks a lot of power (video devices,
 	hdd).
 
-Q:	ppp line sometimes goes down.
+Q:	PPP line sometimes goes down (modem hangup).
 
 A:	This may be due to high traffic on the line or to any provider problem/daily
-	disconnection.
-	Enable the persist option for pppd in /etc/ppp/peers/adsl (this requires N_HDLC
-	support in the kernel, see the N_HDLC related question above).
-	You may also 
+	disconnection (non-exhaustive list).
+
+	Enable the 'persist' option for pppd in /etc/ppp/peers/adsl (this requires
+	N_HDLC support in the kernel, see the kernel configuration related question
+	below).
+
+	You may also try using a third-party autoconnect script, and of course check
+	if your configuration has been properly set.
 
 
 Q:	Is this possible to launch startmodem at boot time?
@@ -286,11 +271,12 @@ Q:	I cannot connect under X11 whereas it works fine in console mode.
 A:	TODO
 
 
-Q:	How to configure kernel from the sources to get USB support?
+Q:	How to properly configure kernel from the sources to get USB/PPP/HDLC support?
 
 A:	Type the following commands:
 		cd /usr/src/linux
-		make menuconfig
+		make -s menuconfig
+			USB support --->
 			<M> Support for USB
 			[ ]   USB verbose debug messages
 			--- Miscellaneous USB options
@@ -303,18 +289,68 @@ A:	Type the following commands:
 			<M>   UHCI Alternate Driver (JE) support
 			<M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
 			..
-			--- USB Multimedia devices  																x x
+			--- USB Multimedia devices
 			..
-			< >   DABUSB driver 																		x x
-		make dep modules modules_install
-	or whatever command you use to compile and install the kernal or its modules
- 	You can enable all USB Host Controller Drivers but use the relevant one only!
-	DABUSB must ne disabled.
+			< >   DABUSB driver
+			..
+
+			Character devices --->
+			..
+			[*] Non-standard serial port support
+			<M>   HDLC line discipline support
+			..
+
+			Network device support --->
+			..
+			<M> PPP (point-to-point protocol) support
+			[ ]	PPP multilink support (EXPERIMENTAL)
+			<M>	PPP support for async serial ports
+			<M>	PPP support for sync tty ports
+			<M>	PPP Deflate compression
+			<M>	PPP BSD-Compress compression
+			< >	PPP over Ethernet (EXPERIMENTAL)
+			..
+		make -s dep modules modules_install && depmod -a
+	or whatever command you use to compile and install the kernal modules.
+	Also make -s bzImage if PPP or USB support was previously in kernel instead
+	of as modules!
+ 	You can enable all USB Host Controller Drivers but must use the relevant one
+	only!
+	DABUSB must be disabled.
+
+	Upgrade your modutils package.
+
+	Then you must see these available modules when you type modeprobe -l:
+		usbcore
+	and
+		usb-uhci or ush-ohci or uhci
+	and
+		ppp_generic ppp_async ppp_synctty bsd_comp ppp_deflate
+	and also
+		n_hdlc
+
+	Add these following lines in your /etc/modules.conf if they are missing:
+		alias char-major-108 ppp_generic
+		alias /dev/ppp ppp_generic
+		alias tty-ldisc-3 ppp_async
+		alias tty-ldisc-13 n_hdlc
+		alias tty-ldisc-14 ppp_synctty
+		alias ppp-compress-21 bsd_comp
+		alias ppp-compress-24 ppp_deflate
+		alias ppp-compress-26 ppp_deflate
+		alias char-major-180 usbcore
+	and
+		alias usb-hostadapter usb-uhci
+	or	alias usb-hostadapter usb-ohci
+	or	alias usb-hostadapter uhci
+	then
+		touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
 Q:	I get kernel panic/oops like: TODO
 
-A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd disconnect).
+A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd
+	disconnects).
 	TODO: other problems.
 
 
@@ -324,7 +360,27 @@ Q:	I get the message in /var/log/messages:
 A:	TODO
 
 
-Q:	I'm not from France, and get problems wich pppd (LCP problems maybe).
+Q:	I'm not from France, will the driver work with my modem and provider?
+
+A:	Verify that your modem is supported. If your modem isn't in the list of
+	the supported modem and is NOT in the list of UN-supported modem, ask
+	us for further help.
+
+	Think about checking which protocol you windows driver uses. If it's PPPoE
+	or other protocol/layers, it may be a problem since current driver version
+	may not support them until a further release.
+
+	You may also have problems if your provider doesn't need authentication or
+	provide DHCP services or any other exotic stuff.
+
+	Users from Belgium or Italy: get further info or specific patched
+	version from here:
+		http://www.prout.be/ECI/
+		http://www.hctechnews.org/
+
+
+Q:	I'm not from France, my modem is supported ans startmodem went OK, but I
+	get problems with pppd (LCP problems maybe).
 
 A:	Verify that you modem is supported and that the installation and
 	configuration went OK.
@@ -342,14 +398,4 @@ A:	Verify that you modem is supported and that the installation and
 	to the pppoeci invocation in /etc/ppp/peers/adsl.
 	It may worth trying the -alt 4 option too.
 
-	Think about checking which protocol you windows driver uses. If it's PPPoE
-	or other protocol/layers, it may be a problem since current driver version
-	may not support them until a further release.
-
-	You may also have problems if your provider doesn't need authentication or
-	provide DHCP services or any other exotic stuff.
-
-	Users from Belgium or Italy: get further info or specific patched
-	version from here:
-		http://www.prout.be/ECI/
-		http://www.hctechnews.org/
+	See also the previous question.
