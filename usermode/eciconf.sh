@@ -285,7 +285,7 @@ global .bloc2.listebin nom_bin_actuel
     if {$returncode != 0} {
     } else {
         foreach bin $bin_trouves {
-            if {![regexp "_firm_" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
+            if {![regexp "firmware" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
                 if {[string compare $bin $nom_bin_actuel] != 0} {
                     .bloc2.listebin.liste.contenu insert end $bin
                 }

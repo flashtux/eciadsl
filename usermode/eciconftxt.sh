@@ -75,7 +75,7 @@ case "$1" in
     fi
     for bin in $(find ${confdir} -name "*.bin"); do
         if [ -f "$bin" -a ! -L "$bin" ]; then
-            echo "$bin" | grep "firm_kit" >/dev/null 2>&1
+            echo "$bin" | grep "firmware" >/dev/null 2>&1
             if [ $? -ne 0 ]; then
                 fichiers_bin="${fichiers_bin}$bin|"
             fi
