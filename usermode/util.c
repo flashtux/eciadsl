@@ -145,20 +145,17 @@ void read_config_file(void)
 							if (strcmp(ptr, "FIRMWARE")==0)
 								strdup(&config.firmware, tmp);
 							else
-							if (strcmp(ptr, "PPPD_USER")==0)
-								;
-							else
-							if (strcmp(ptr, "STATICIP")==0)
-								;
-							else
-							if (strcmp(ptr, "GATEWAY")==0)
-								;
-							else
-							if (strcmp(ptr, "USE_DHCP")==0)
-								;
-							else
-								fprintf(stderr, "config: unrecognized entry %s at line %lu\n",
-													ptr, num);
+							if ((strcmp(ptr, "PPPD_USER")!=0)
+								&& (strcmp(ptr, "STATICIP")!=0)
+								&& (strcmp(ptr, "GATEWAY")!=0)
+								&& (strcmp(ptr, "USE_DHCP")!=0)
+								&& (strcmp(ptr, "SYNCH_ATTEMPTS")!=0)
+								&& (strcmp(ptr, "ECILOAD1_OPTIONS")!=0)
+								&& (strcmp(ptr, "ECILOAD2_OPTIONS")!=0)
+								&& (strcmp(ptr, "PPPOECI_OPTIONS")!=0))
+								fprintf(stderr,
+									"config: unrecognized entry %s at line %lu\n",
+									ptr, num);
 						}
 						tmp++;
 					}
