@@ -432,9 +432,12 @@ Q:	J'obtiens des lignes LCP timeout dans /var/log/messages puis un modem hangup
 		Connection terminated.
 
 --------------------------------------------------------------------------------
-R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ?
+R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ? Vérifiez que les
+	pré-requis sont tous OK (fichier README.fr).
 
-	Vérifiez votre version de pppd.
+	Bien souvent, il s'agit d'un problème relatif à la synchro. Essayez les
+	autres .bin de synchro que vous trouverez sur la page de download
+	officielle.
 
 	Regardez aussi la question 4.5, car les problèmes d'authentification
 	CHAP/PAP ne sont pas toujours affichés clairement par pppd.
@@ -922,23 +925,6 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 
 		Vous pouvez aussi lire les RFC1483 et RFC2364 qui décrivent ces
 		modes en détail.
-
-
-5.5
-================================================================================
-Q:	Je ne suis pas en France, mon modem est supporté et startmodem est OK, mais
-	j'ai des problèmes avec pppd (par exemple des problèmes LCP).
-
---------------------------------------------------------------------------------
-R:	Vérifiez que votre modem est supporté et que l'installation et la
-	configuration sont OK.
-
-	Mettez à jour votre driver eciadsl (possesseurs de la version 0.5 :
-	télécharger la dernière CVS)
-
-	Essayez d'autres .bin de synchronisation.
-
-	Regardez aussi la question 5.4.
 
 
 5.6

@@ -417,15 +417,17 @@ Q:	I get LCP timeout lines in /var/log/messages then a modem hangup
 		Connection terminated.
 
 --------------------------------------------------------------------------------
-A:	If your kernel really OK? N_HDLC support is OK? Check above!
+A:	If your kernel really OK? N_HDLC support is OK? Check the pre-requisites
+	first (see the README file).
 
-	Check your pppd version.
+	This may be a synch issue. Try the other synch .bin available at the
+	official download page.
 
 	See 4.5 also, because CHAP/PAP authentication problems are not always
 	verbosely reported by pppd.
 	Questions 4.6 to 4.9 may help too.
 
-	See also below questions related to international users (5.4, 5.5).
+	See also below questions related to international users (5.4).
 
 
 4.5
@@ -440,7 +442,8 @@ A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
 	This may be due to your provider too, wait for a few minutes/hours if you
 	still can't connect.
 
-	If these LCP timeouts don't affect your PPP connection, simply forget them.
+	If these LCP timeouts don't affect your PPP connection, simply forget them
+	or try another synch .bin.
 
 
 4.6
@@ -882,23 +885,6 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 
 		You can also read RFC1483 and RFC2364 which describe all theses
 		modes in detail.
-
-
-5.5
-================================================================================
-Q:	I'm not from France, my modem is supported and startmodem went OK, but I
-	get problems with pppd (LCP problems maybe).
-
---------------------------------------------------------------------------------
-A:	Verify that you modem is supported and that the installation and
-	configuration went OK.
-
-	Upgrade your eciadsl driver version (0.5 owners: get the 0.6 version or the
-	latest CVS).
-
-	Try other synch .bin.
-
-	See 5.4.
 
 
 5.6
