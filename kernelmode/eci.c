@@ -1944,7 +1944,7 @@ static int eci_atm_receive_cell(
 	{
 		tasklet_schedule(&pinstance->bh_iso);
 	}
-	_uni_cell_list_reset(plist);
+	//_uni_cell_list_reset(plist);
 	return 0 ;
 }
 
