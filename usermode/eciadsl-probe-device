@@ -195,10 +195,10 @@ echo "and that your system's USB support is properly configured"
 echo -e "\nUSB modem to probe must be UNinitialized, it will surely appear as an unknown"
 echo "device (because it is not initialized yet), for instance: ? (0547:2131)"
 
-ECILOAD1_OPTIONS=""
+FIRMWARE_OPTIONS=""
 if [ -f "$CONF_DIR/eciadsl.conf" ]; then
 	FIRMWARE=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	ECILOAD1_OPTIONS=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	FIRMWARE_OPTIONS=`grep -E "^[ \t]*FIRMWARE_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	echo -e "\nconfig read from $CONF_DIR/eciadsl.conf"
 else
 	echo -e "\ndefault config assumed"
@@ -251,7 +251,7 @@ fi
 if [ $TESTONLY -eq 0 ]
 then
 	echo -e "\nprobing, please wait.."
-	$BIN_DIR/eciadsl-firmware 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
+	$BIN_DIR/eciadsl-firmware $FIRMWARE_OPTIONS 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
 
 	# list USB devices
 	echo -e "\nyour USB devices now:"

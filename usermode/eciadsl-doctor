@@ -398,7 +398,7 @@ if [ $? -ne 0 ]; then
     cat <<EOF
 HDLC support is buggy, you should apply the HDLC patch to your kernel
 source. See the howto in the doc directory or on
-http://eciadsl.sourceforge.net/ in the Documentation section for
+http://eciadsl.flashtux.org/ in the Documentation section for
 further instructions.
 EOF
 else
@@ -410,8 +410,8 @@ if [ -s "$CONF_DIR/eciadsl.conf" ]; then
 	pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
 	vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
 	pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
-	eciload1_options=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	firmware_options=`grep -E "^[ \t]*FIRMWARE_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	synch_options=`grep -E "^[ \t]*SYNCH_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 else
 	echo -e "\ncouldn't find $CONF_DIR/eciadsl.conf, default config assumed"
 fi
@@ -426,13 +426,13 @@ grep "^P:  Vendor=$vid1 ProdID=$pid1" "${DEVICES}" > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
-	$BIN_DIR/eciadsl-firmware $eciload1_options
+	$BIN_DIR/eciadsl-firmware $firmware_options
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load EZ-USB firmware" ;
 		fatal ;
 	fi ;
 	echo "Loading the GlobeSpan firmware..." ;
-	$BIN_DIR/eciadsl-synch $eciload2_options
+	$BIN_DIR/eciadsl-synch $synch_options
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load GlobeSpan firmware" ;
 		fatal ;
