@@ -5,7 +5,7 @@
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
 Name:		eciadsl-usermode
 Version:	0.6
-Release:	1
+Release:	2
 License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
@@ -29,13 +29,13 @@ that handles the modem. A kernel module is under development.
 %build
 # compile executable
 	cd /usr/src/packages/BUILD/eciadsl-usermode-0.6
-	./configure --enable-rpm-maintainer-mode --prefix="$RPM_BUILD_ROOT/usr/local" --conf-prefix="$RPM_BUILD_ROOT"
-	make -s
+	./configure --enable-rpm-maintainer-mode
+	make -s ROOT="$RPM_BUILD_ROOT"
 
 %install
 	cd /usr/src/packages/BUILD/eciadsl-usermode-0.6
-	./configure --enable-rpm-maintainer-mode --prefix="$RPM_BUILD_ROOT/usr/local" --conf-prefix="$RPM_BUILD_ROOT"
-	make -s install
+	./configure --enable-rpm-maintainer-mode
+	make -s ROOT="$RPM_BUILD_ROOT" install
 
 %pre
 # pre-install script
@@ -95,6 +95,8 @@ that handles the modem. A kernel module is under development.
 	rm -rf %buildroot
 
 %changelog
+* Sun Jan 05 2003 wwp <subscript@free.fr> 0.6-2
+- Re-introduced ROOT for make invocation (fixes wrong relocation dir).
 * Sat Jan 04 2003 wwp <subscript@free.fr> 0.6-1
 - Updated for 0.6.
 * Mon Apr 29 2002 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.5-2
