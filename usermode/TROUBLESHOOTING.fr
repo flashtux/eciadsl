@@ -589,6 +589,90 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	cherchez-les sur google ou téléchargez l'archive cnx, disponible dans la
 	section "téléchargement" du site officiel eciadsl.
 
+<TRANSLATE>
+	Making it possible using init.d:
+
+	Pre-requisites:
+	 - ECIADSL driver installed and configured
+	 - the cnx package (auto reconnection script)
+	All this stuff is available at: http://eciadsl.flashtux.org/download.php
+
+
+	Mandrake or RedHat users: get rc.adsl.MDK from the cnx package.
+	SuSE users: get rc.adsl.SuSE from the cnx package.
+	Other systems: get rc.adsl.MDK from the cnx package, but it may be necessary
+	to adapt it to your system.
+
+
+	Copy the rc.adsl* file to /etc/init.d: cp rc.adsl /etc/init.d
+
+
+	Each rc*.d directory corresponds to an init level. For instance, init level
+	5 is the one that leads to a graphical login (this is default on most Linux
+	systems), so /etc/rc.d/rc5.d belongs to that level.
+
+	You will find more information about init levels:
+		man inittab
+	or look at your /etc/inittab file.
+
+	To know which default init level is reached at boot, find a line like the
+	following in /etc/inittab file:
+		id:5:initdefault:
+	Here, default level is 5.
+	Let's say we use init level 5 at boot.
+
+	You have to know that when your system enters an init level, it calls all
+	the	K* files from the last level, then call all the S* files from the new
+	level. All these K* and S* files are in /etc/rc.d/rc<init level>.d they
+	belong to.
+
+	Eash S* file is like this: Sxxyyyyy, where xx is a 2-digit number, and
+	yyyyy a service name (the name is human friendly, but you can set it as
+	anything you want).
+	All Sxxyyyyy files are called following the xx number (increasingly), then
+	by the service name (yyyyy, alphabetical increasing order).
+
+	For instance:
+		ls /etc/rc.d/rc5.d
+	shows
+		S01foo
+		S15bar
+		S99dummy
+		K10schtroumpf
+		K80barbatruc
+	(take care, it's only an example).
+	So when init level 5 in entered, it will call S01foo, S15bar then S99dummy.
+
+	When init level 5 is left, this is the same for K* files. But following the
+	system, they are called in the same order (by xx increasingly), or in a
+	reverse order (by xx decreasingly).
+
+	Now you know how all this stuff works, you can make the relevant links to
+	/etc/init.d in /etc/rc.d/rc5.d.
+
+		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+	or
+		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/S90adsl 
+		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/K90adsl 
+	following the rc.adsl file you use.
+
+	Before you create these links, ensure that the S90 is relevant, this means
+	that S90* will be called after all other network services.
+	Of course, verify that K90 is relevant too. According to some systems
+	(reverse kill order) this would be better to use K00, but simply think of
+	the best order to kill the connection.
+
+	Once all the symlinks are done, you can test it by rebooting your system.
+	You can also test it without rebooting: close your X11 session, open a
+	root session in console mode, then:
+		init 3
+	then
+		init 5.
+	Understood what it does? It means leaving init level 5 to init level 3, then
+	coming back to init level 5. The relevant S* and K* links will be called!
+</TRANSLATE>
+
 
 5.1
 ================================================================================
