@@ -3,7 +3,7 @@
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
 *     Author : Valette Jean-Sebastien <jean-sebastien.valette@libertysur.fr  *
-*              Eric Bardes  <eric.bardes@liberty.fr>                         *
+*              Eric Bardes  <email@fournisseur>                         *
 *                                                                            *
 *     Copyright : GPL                                                        *
 *                                                                            *
@@ -59,54 +59,16 @@
                     Debuging Stuf
 ***********************************************************************/
 
-#ifndef __FILE__
-#define __FILE__ "eci.c"
-#endif /* __FILE */
-
-#ifndef __LINE__
-#define __LINE__ 0
-#endif /* __LINE__ */
-
-#define MY_ERR	KERN_ERR	"E"
-#define MY_WARN	KERN_WARNING	"W"
-#define MY_DBG	KERN_DEBUG	"D"
-
-#ifdef __GNUC__
-
-/*
- * Use Extension of GNUC CPP for elypses
- */
-#define _PRINT_OUT(type, fmt, argz...) \
-	printk( \
-		type \
-	       	" %s:%d " fmt, \
-		__FILE__, \
-		__LINE__, \
-		##argz \
-	)
-
-#else
-
-/*
- * Use elypse as defined by ISO C standard
- */
-#define _PRINT_OUT(type, ...) \
-	printk( \
-		type \
-		" " __FILE__ ":__LINE__ " \
-		__VA_ARGS__ \
-	)
-
-#endif /* __GNUC__ */
-
-
 #define DEBUG 1
 #ifdef DEBUG
 
-#define DBG_OUT(...) _PRINT_OUT(MY_DBG, __VA_ARGS__)
+#define DBG_OUT(fmt, argz...) \
+	printk( \
+		KERN_DEBUG __FILE__ "" fmt, \
+		##argz \
+	)
 
-#define DUMP_BASE	8
-#define DUMP_LINES 	100
+#define DUMP_LINES 100
 #define DBG_RAW_OUT(txt, buff, size) \
 	_dumpk( \
 		txt, \
@@ -126,62 +88,60 @@ static void _dumpk(
 	unsigned char *	buffer,	/* IN: Buffer to dump	*/
 	size_t		size	/* IN: Buffer length	*/
 ) {
-	unsigned char	lv_hexa[DUMP_BASE * 3 + 1] ;
-	unsigned char	lv_ascii[DUMP_BASE + 1] ;
-	unsigned char	lv_fmt[20] ;
-	unsigned char	lv_format[(DUMP_BASE * 4 + 3) * DUMP_LINES + 1] ;
+	unsigned char	lv_format[sizeof(KERN_DEBUG) + (43 * DUMP_LINES) + 1] ; /* 43 = line size */
 	unsigned char *	lp_cur = lv_format ;
 	int 		lc_1 ;
 	int		lc_2 ;
-	int		lv_max = (size > DUMP_LINES * DUMP_BASE ? 
-					DUMP_LINES * DUMP_BASE : 
+	int		lv_max = (size > DUMP_LINES * 10 ? 
+					DUMP_LINES * 10 : 
 					size) ;
   
 	lv_format[0] = '\0' ;
-
-	sprintf(lv_fmt, "%%-%ds- %%s\n", DUMP_BASE * 3) ;
+	lp_cur += sprintf(lp_cur, "%s:", KERN_DEBUG);
 
 	/* Format the buffer */
-	for (lc_1=0 ; lc_1 < lv_max ; lc_1 += DUMP_BASE) {
-
-		unsigned char *	lp_curhexa 	= lv_hexa ;
-		unsigned char *	lp_curascii 	= lv_ascii ;
-		int		lv_szline ;
-
-		lv_hexa[0] 	= '\0' ;
-		lv_ascii[0]	= '\0' ;
-
+	for (lc_1=0 ; lc_1 < lv_max ; lc_1 += 10) {
+		
+		/* Print hexa */
 		for (
 			lc_2 = lc_1 ; 
-			((lc_2 < lv_max) && (lc_2 < lc_1 + DUMP_BASE)) ;
+			((lc_2 < lv_max) && (lc_2 < lc_1 + 10)) ;
 			lc_2++
 		) {
-			/* Print hexa */
-			sprintf(lp_curhexa, "%02x ", buffer[lc_2]) ;
-			lp_curhexa += 3 ; /* wrote 3 chars */
+			sprintf(lp_cur, "%02x ", buffer[lc_2]) ;
+			lp_cur 	+= 3 ; /* wrote 3 chars */
+		}
+		/* Print Padding */
+		for (;lc_2 < lc_1 + 10 ; lc_2++) {
+			sprintf(lp_cur, "   ");
+			lp_cur 	+= 3 ; /* wrote 3 chars */
+		}
 
-			/* Print ASCII */
+		/* Print separator */
+		sprintf(lp_cur, "- ") ;
+		lp_cur += 2 ;
+
+		/* Print ASCII */
+		for (
+				lc_2 = lc_1;
+				(lc_2 < lv_max) && (lc_2 < lc_1 + 10) ;
+				lc_2++
+		) {
 			sprintf(
-				lp_curascii++, 
+				lp_cur++, 
 				"%c",
 				((buffer[lc_2]>= ' ' && buffer[lc_2]<0x7F) ?
 					buffer[lc_2] :
 					'.')	
 			);
 		}
-
 		/* Add EOL */
-		lv_szline = sprintf(
-				lp_cur, 
-				lv_fmt,
-				lv_hexa,
-				lv_ascii) ;
-		lp_cur += lv_szline ;
+		sprintf(lp_cur++, "\n") ;
 	}
 
 	/* Print Dump */
 	printk(
-		KERN_DEBUG "D %s:%d %s [%d] %s\n%s\n",
+		KERN_DEBUG "D ECI_USB [%s:%d] : %s [%d] %s\n%s\n",
 		file,
 		line,
 		txt,
@@ -194,10 +154,10 @@ static void _dumpk(
 #else
 
 /* DBG_OUT absorb */
-#define DBG_OUT(...)
+#define DBG_OUT(X...)
 
 /* DBG_RAW_OUT absorb */
-#define DBG_RAW_OUT(...)
+#define DBG_RAW_OUT(X...)
 
 #endif
 
@@ -212,7 +172,6 @@ static void _dumpk(
 #define ECI_ISO_PIPE 0x88
 #define ECI_BULK_PIPE 0x02
 
-#define ECI_INT86_SIZE		64
 #define ECI_NB_ISO_PACKET 10
 #define ECI_ISO_PACKET_SIZE 448
 #define ECI_ISO_BUFFER_SIZE (ECI_ISO_PACKET_SIZE * ECI_NB_ISO_PACKET)
@@ -221,9 +180,17 @@ static void _dumpk(
                     Globals	
 ***********************************************************************/
 
-#define ERR_OUT(...) _PRINT_OUT(MY_ERR, __VA_ARGS__)
+#define ERR_OUT(fmt, argz...) \
+	printk ( \
+		KERN_ERR "E ECI_USB : " fmt, \
+		##argz \
+	)
 
-#define WRN_OUT(...) _PRINT_OUT(MY_WARN, __VA_ARGS__)
+#define WRN_OUT(fmt, argz...) \
+	printk ( \
+		KERN_WARNING "W ECI_USB : " fmt, \
+		##argz \
+	)
 
 static const char eci_drv_name[] =  "ECI HiFocus ADSL Modem";
 static const char eci_drv_label[] =  "ECI";
@@ -351,21 +318,22 @@ static int _uni_cell_format(
 	uni_cell_t *		/* OUT: Formated UNI cell	*/
 ) ;
 
-/* 
- * Get VPI from cell (-1 if error) 
- */
+/* Get VPI from cell */
 static int _uni_cell_getVpi(
-	uni_cell_t *		/* IN: the cell			*/
+	uni_cell_t *,		/* IN: the cell			*/
+	int *			/* OUT: VPI			*/
 ) ;
 
-/* Get VCI from cell (-1 if error) */
+/* Get VCI from cell */
 static int _uni_cell_getVci(
-	uni_cell_t *		/* IN: the cell			*/
+	uni_cell_t *,		/* IN: the cell			*/
+	int *			/* OUT: VCI			*/
 ) ;
 
-/* check if this is the last cell (true on error) */
-static bool _uni_cell_islast(
-	uni_cell_t *		/* in: the cell			*/
+/* check if this is the last cell */
+static int _uni_cell_islast(
+	uni_cell_t *,		/* in: the cell			*/
+	bool *			/* out: last cell flag		*/
 ) ;
 
 /* Get The Payload */
@@ -391,9 +359,9 @@ typedef struct uni_cell_q uni_cell_q_t ;
 /*-- C O N S T A N T S -------------------------------------------------*/
 /*-- V A R I A B L E S -------------------------------------------------*/
 
-static uni_cell_t *		gp_ucells	= NULL ;
+static uni_cell_q_t *		gp_unused_q 	= NULL ;
 
-static spinlock_t		gl_ucells_lock 	= SPIN_LOCK_UNLOCKED ;
+static spinlock_t		gl_uq_lock 	= SPIN_LOCK_UNLOCKED ;
 
 /*-- F U N C T I O N S -------------------------------------------------*/
 
@@ -418,78 +386,6 @@ static int _uni_cell_qpush(
 /* Pop an UNI Cell from Queue */
 static uni_cell_t * _uni_cell_qpop(uni_cell_q_t *) ;
 
-/* Get UNI Cell on head of Queue */
-static uni_cell_t * _uni_cell_qhead(uni_cell_q_t *) ;
-
-/*----------------------------------------------------------------------*/
-
-/*------------------------ A A L 5  F R A M E --------------------------*/
-
-/*-- M A C R O S -------------------------------------------------------*/
-/*-- T Y P E S ---------------------------------------------------------*/
-
-struct aal5 ;					/* forward declaration	*/
-typedef struct aal5 aal5_t ;
-
-struct aal5 {
-	bool		is_complete ;
-	bool		is_valid ;
-	int		vci ;
-	int		vpi ;
-
-	size_t		nbcells ;
-
-	uni_cell_t *	pccell ;
-	uni_cell_t *	plastcell ;
-	
-	uni_cell_t *	pthecells ;
-} ;
-
-/*-- C O N S T A N T S -------------------------------------------------*/
-/*-- V A R I A B L E S -------------------------------------------------*/
-/*-- F U N C T I O N S -------------------------------------------------*/
-
-/* Init a new AAL5 Frame */
-static int _aal5_init(aal5_t *) ;
-	
-/* Alloc a new AAL5 frame */
-static aal5_t * _aal5_alloc(void) ;
-
-/* Free an AAL5 frame */
-static void _aal5_free(aal5_t *) ;
-
-/* Reset an AAL5 frame */
-static void _aal5_clean(aal5_t *) ;
-
-/* Get VPI from AAL5 */
-static int _aal5_getVpi(
-	aal5_t *		/* IN: the frame		*/
-) ;
-
-/* Get VCI from AAL5 */
-static int _aal5_getVci(
-	aal5_t *		/* IN: the frame		*/
-) ;
-
-/* check if this is the frame is completed */
-static bool _aal5_iscomplete(
-	aal5_t *		/* IN: the frame		*/
-) ;
-
-/* check if this is the frame is valid */
-static bool _aal5_isvalid(
-	aal5_t *		/* IN: the frame		*/
-) ;
-
-/* Append a new cell */
-static int _aal5_add_cell(
-	aal5_t *,		/* IN: the frame		*/
-	uni_cell_t *		/* IN: the new cell		*/
-) ;
-
-/* Get Next Cell of the AAL5 frame */
-static uni_cell_t * _aal5_get_next(aal5_t *) ;
-
 
 /* -- Interface -- */
 static int eci_atm_open(struct atm_vcc *vcc,short vpi, int vci);
@@ -505,9 +401,8 @@ static int _eci_tx_aal5(
 ) ;
 static void _eci_bulk_callback(struct urb *) ;
 
-static int _eci_usb_send_urb(
-	struct eci_instance*,	/* IN: ref to mod info	*/
-	aal5_t*			/* IN: ref to AAL5 to send */
+static int _eci_usb_tx(
+	struct eci_instance *	/* IN: ref to mod info	*/
 ) ;
 
 /*
@@ -564,7 +459,6 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct atm_dev		*atm_dev;
 	int 			minor;
 	wait_queue_head_t 	eci_wait;	/*	no more used	*/
-	int			cur_setup_pkt ;	/*	For dbg		*/
 	const unsigned char	*setup_packets; /* 	For init	*/
 	struct urb		*isourbs;	/*	For Iso transfer */
 	struct urb		*vendor_urb;	/*	For init and Answer 
@@ -575,6 +469,9 @@ struct eci_instance 		/*	Private data for driver	*/
 
 
 	/* -- Transmission Elements -- */
+	spinlock_t		tx_q_lock ;
+	uni_cell_q_t *		ptx_q ;
+
 	spinlock_t		rx_q_lock ;
 	uni_cell_q_t *		prx_q ;
 };
@@ -598,6 +495,7 @@ struct usb_driver eci_usb_driver = {
 
 ***********************************************************************/
 
+
 static int __init eci_init(void)
 {	
 	int lv_res = 0 ;
@@ -605,6 +503,15 @@ static int __init eci_init(void)
 	/*	Must register driver and claim for hardware */
 	DBG_OUT("init module in\n");
 
+	/* Init UNI Cell unused list */
+	spin_lock(&gl_uq_lock) ;
+	gp_unused_q = _uni_cell_qalloc() ;
+	if (!gp_unused_q) {
+		ERR_OUT("Failed to init unused UNI cell list\n") ;
+		return -1 ;
+	}
+	spin_unlock(&gl_uq_lock) ;
+	
 	printk("ECI HiFocus ADSL Modem Driver loading\n");
 	lv_res = usb_register(&eci_usb_driver) ;
 
@@ -621,14 +528,9 @@ static void __exit eci_cleanup(void)
 	usb_deregister(&eci_usb_driver);
 
 	/* Free Unused UNI Cell List */
-	{
-		uni_cell_t * lp_cell = gp_ucells ;
-		while (lp_cell) {
-			gp_ucells = lp_cell->next ;
-			kfree(lp_cell) ;
-			lp_cell = gp_ucells ;
-		}
-	}
+	spin_lock(&gl_uq_lock) ;
+	if (gp_unused_q) _uni_cell_qfree(gp_unused_q) ;
+	spin_unlock(&gl_uq_lock) ;
 
 	DBG_OUT("cleanup out\n");
 	return;
@@ -659,20 +561,19 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	{
 		out_instance = kmalloc(sizeof(struct eci_instance), 
 							GFP_KERNEL);
-		if(!out_instance)
+		if(out_instance)
+		{
+			MOD_INC_USE_COUNT;
+			eci_instances=out_instance; 
+			out_instance->usb_wan_dev= dev;
+			out_instance->setup_packets = eci_init_setup_packets;
+			/*init_waitqueue_head(&out_instance->eci_wait);*/
+		}
+		else
 		{
 			ERR_OUT("out of memory\n");
 			return 0;
 		}
-
-		MOD_INC_USE_COUNT;
-		memset(out_instance, 0, sizeof(struct eci_instance)) ;
-		eci_instances=out_instance; 
-		out_instance->usb_wan_dev= dev;
-		out_instance->setup_packets = eci_init_setup_packets;
-		out_instance->cur_setup_pkt = 1 ;
-		/*init_waitqueue_head(&out_instance->eci_wait);*/
-
 		DBG_OUT("Setting configuration 1\n");
 		if(usb_set_configuration(dev,1)<0)
 		{
@@ -743,9 +644,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			return 0;
 		}
 	/*	interval tacken from cat /proc/bus/usb/devices values	*/
-		
 		out_instance->interrupt_urb = eciurb;
-		if(!(out_instance->interrupt_buffer=kmalloc(ECI_INT86_SIZE,GFP_KERNEL)))
+		if(!(out_instance->interrupt_buffer=kmalloc(64,GFP_KERNEL)))
 		{
 			ERR_OUT("Can't allocate int buffer\n");
 			return 0;
@@ -756,16 +656,15 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			return 0;
 		}
 		eciurb->setup_packet = eciurb->transfer_buffer  +34;	
-		DBG_OUT("interrupt buffer = %p\n", out_instance->interrupt_buffer);
+		DBG_OUT("interrupt buffer = %x\n", out_instance->interrupt_buffer);
 		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
-			out_instance->interrupt_buffer,ECI_INT86_SIZE,
+			out_instance->interrupt_buffer,64,
 			eci_ep_int_callback,out_instance,3);
 		if(usb_submit_urb(eciurb))
 		{
 			ERR_OUT("error couldn't send interrupt urb\n");
 			return 0;
 		}
-		DBG_OUT("INT URB %p sent\n", eciurb) ;
 		/*
 			Should reset the Iso EP and send 20 Urbs
 		*/
@@ -808,16 +707,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 #ifdef __USE_ATM__
 
 	DBG_OUT(" doing ATM\n");
-
-	/*
-	 * Init Queues
-	 */
-	out_instance->prx_q = _uni_cell_qalloc() ;
-	if (!out_instance->prx_q) {
-		ERR_OUT("Failed allocating RX Q\n") ;
-		return 0 ;
-	}
-
 	out_instance->atm_dev = atm_dev_register(
 			eci_drv_label,
 			&eci_atm_devops,
@@ -854,12 +743,6 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 #ifdef __USE_ATM__
 		DBG_OUT("disconnect : freeing atm_dev\n");
 		atm_dev_deregister(eci_instances->atm_dev);
-
-		/*
-		 * Free the IO Q
-		 */
-		_uni_cell_qfree(eci_instances->prx_q) ;
-
 #endif /* __USE_ATM__ */
 
 		DBG_OUT("disconnect : freeing int urb\n");
@@ -886,10 +769,11 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 };
 
 
+
 int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf)
 {
-	DBG_OUT("eci_usb_ioctl in\n");
-	DBG_OUT("eci_usb_ioctl out\n");
+	DBG_OUT("eci_usb_close in\n");
+	DBG_OUT("eci_usb_close out\n");
 	return -1;
 };
 
@@ -1056,38 +940,31 @@ static void _eci_send_init_urb(struct urb *eciurb)
 	unsigned char *setuppacket;
 	unsigned int pipe;
 	int size;
+
 	
 	instance = eciurb->context;
-
-	/* Check if setup blocs available */
-	if (instance->setup_packets[0]) {
-	
-		DBG_OUT(
-			"Manage Setup Packet Bloc [%d]\n",
-			instance->cur_setup_pkt );
-
-		setuppacket = eciurb->transfer_buffer +  (64 * 1024) - 8;
+	if(instance->setup_packets[0])
+	{
+		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
 		memcpy(setuppacket, instance->setup_packets,8);
 		size = (instance->setup_packets[7] << 8 ) |
 				instance->setup_packets[6];
 		DBG_RAW_OUT("Setup Packet", setuppacket, 8) ;
-		/*
-			If write URB then read the buffer and
-			set endpoint else just set enpoint
-		*/
+			/*
+				If write URB then read the buffer and
+				set endpoint else just set enpoint
+			*/
 		if(setuppacket[0] & 0x80)
 		{
 			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
-			DBG_OUT("read urb\n") ;
+			DBG_OUT("Read URB\n");
 		}
 		else
 		{
 			memcpy(eciurb->transfer_buffer, 
 				instance->setup_packets+8,size);
-			DBG_OUT("Write URB)\n") ;
-			/*
-			DBG_RAW_OUT("Packet data: ", eciurb->transfer_buffer, size);
-			*/
+			DBG_OUT("Write URB\n");
+			DBG_RAW_OUT("Buffer : ", eciurb->transfer_buffer, size);
 			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
 		}
 		FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
@@ -1100,14 +977,12 @@ static void _eci_send_init_urb(struct urb *eciurb)
 			ERR_OUT("error couldn't send init urb\n");
 			return;
 		}
-		DBG_OUT("URB %p Sent \n", eciurb);
-		instance->cur_setup_pkt++ ;
+		DBG_OUT("URB Sent \n");
 		instance->setup_packets += 
 			(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
 	}
 	else
 	{	/*	gotta free urb and buffer !	*/
-		DBG_OUT("no more setup blocs:free urb\n") ;
 		kfree(eciurb->transfer_buffer);
 		eciurb->transfer_buffer = 0;
 	}
@@ -1129,7 +1004,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
 	/* unused: struct usb_device	*dev; */
-	/* unused: int size; */
+	int size;
 	/* unused: int i; */
 	/* unused: unsigned char *buffer; */
 
@@ -1143,7 +1018,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 */
 
 	if(urb->status)
-		ERR_OUT("Urb %p with status %d\n" , urb, urb->status);
+		ERR_OUT("Urb with status %d\n" , urb->status);
 	else
 	{
 		/*	Check For datarecived and wanted data length */
@@ -1154,7 +1029,6 @@ static void eci_init_vendor_callback(struct urb *urb)
 				urb->actual_length) ;
 
 #ifdef DEBUG
-		/*
 		if ((urb->setup_packet[0] & 0x80))
 		{
 			size = ((instance->setup_packets[7]<<8) | 
@@ -1164,7 +1038,6 @@ static void eci_init_vendor_callback(struct urb *urb)
 					(char *) urb->transfer_buffer,
 					size) ;
 		}
-		*/
 #endif	/*	DEBUG	*/
 		if ( !((urb->setup_packet[0] & 0x40) == 0x40 && urb->setup_packet[1]== 0xdc
 			&&((urb->setup_packet[3] * 256 + urb->setup_packet[2])== 0x00) && 
@@ -1177,7 +1050,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 			_eci_send_init_urb(instance->vendor_urb);
 		}
 #ifdef DEBUG
-		else 
+		else
 			DBG_OUT("Waiting for data on 0x86 endpoint\n");
 #endif /* DEBUG */
 	}
@@ -1203,7 +1076,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 static void eci_ep_int_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
-	/* unused: struct urb *eci_vendor; */
+	struct urb *eci_vendor;
 	int i; 		/*loop counter	*/
 	int outi = 0; 
 	unsigned char *in_buf, b1, b2;
@@ -1225,7 +1098,7 @@ static void eci_ep_int_callback(struct urb *urb)
 	instance = (struct eci_instance *) urb->context;
 	if(urb->actual_length)
 	{
-		if(urb->actual_length!=ECI_INT86_SIZE)
+		if(urb->actual_length!=64)
 		{	/*		Synchronisation 
 					Check Data returned by int urb
 					and send Next Vendor
@@ -1233,10 +1106,6 @@ static void eci_ep_int_callback(struct urb *urb)
 			DBG_OUT(
 				"EP INT received %d bytes\n",
 				urb->actual_length);
-			DBG_RAW_OUT(
-					"EP INT data", 
-					urb->transfer_buffer, 
-					urb->actual_length) ;
 			DBG_OUT("Calling _eci_send_init_urb from Int \n");
 			_eci_send_init_urb(instance->vendor_urb);
 		}
@@ -1291,11 +1160,10 @@ static void eci_ep_int_callback(struct urb *urb)
 					sizeof(eci_outbuf), HZ);
 			}
 			DBG_OUT("EP INT received 64 bytes\n");
+			DBG_RAW_OUT("EP INT datas :",in_buf, 64); 
 		}
 	}
-	/*
 	DBG_OUT("Int callBack out\n");
-	*/
 }
 
 static void eci_iso_callback(struct urb *urb)
@@ -1303,9 +1171,10 @@ static void eci_iso_callback(struct urb *urb)
 	struct eci_instance *instance;
 	int i;
 
-	if (!urb->status && urb->actual_length) {
+	if (!urb->status) {
 		for (i=0;i<ECI_NB_ISO_PACKET;i++) {
-			if (urb->iso_frame_desc[i].actual_length) {
+			if (!urb->iso_frame_desc[i].status &&
+					urb->iso_frame_desc[i].actual_length) {
 				DBG_OUT("Data available in frame [%d]\n", i) ;
 				DBG_RAW_OUT(
 					"received data", 
@@ -1329,13 +1198,12 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
 	/*
-	DBG_OUT("ISO URB %p sent\n", urb) ;
 	DBG_OUT("Iso Callback Exit\n");
 	*/
 }
 
-static int _eci_make_aal5(
-		aal5_t * 		paal5,
+static int _eci_tx_enqueue(
+		struct eci_instance * 	pinstance,
 		int			vpi,
 		int			vci,
 		bool			islast,
@@ -1345,10 +1213,10 @@ static int _eci_make_aal5(
 	uni_cell_t *	lp_cell	= NULL ;
 	int		lv_rc	= 0 ;
 
-	DBG_OUT("_eci_make_aal5 in\n") ;
+	DBG_OUT("_eci_tx_enqueue in\n") ;
 
 	/* Check Interface */
-	if (!paal5 || !szdata || !pdata) {
+	if (!pinstance || !szdata || !pdata) {
 		ERR_OUT("Interface Error\n") ;
 		return -EINVAL ;
 	}
@@ -1373,16 +1241,19 @@ static int _eci_make_aal5(
 		return lv_rc ;
 	}
 
-	/* Add new cell to AAL5 frame */
-	lv_rc = _aal5_add_cell(
-			paal5,
-			lp_cell) ;
+	/* Add new cell to TX queue */
+	spin_lock(&pinstance->tx_q_lock) ;
+	lv_rc = _uni_cell_qpush(
+			lp_cell,
+			pinstance->ptx_q) ;
+	spin_unlock(&pinstance->tx_q_lock) ;
+
 	if (lv_rc) {
-		ERR_OUT("_aal5_add_cell failed\n") ;
+		ERR_OUT("_uni_cell_qpush failed on TX queue\n") ;
 		return lv_rc ;
 	}
 
-	DBG_OUT("_eci_make_aal5 out\n") ;
+	DBG_OUT("_eci_tx_enqueue out\n") ;
 	return lv_rc ;
 
 }
@@ -1406,7 +1277,6 @@ static int _eci_tx_aal5(
 	u32		lv_crc32	= 0 ;
 	int		lc_1 		= 0 ;
 	int		lv_rc 		= 0 ;
-	aal5_t 		lv_aal5 ;
 	
 	/* Check Interface */
 	if (!pinstance || !pskb || !pskb->len || !pskb->data) {
@@ -1420,11 +1290,6 @@ static int _eci_tx_aal5(
 	if (lv_szdata > ((2^16) - 1)) {
 		ERR_OUT("data to long to be hold in aal5 frame\n") ;
 		return -EINVAL ;
-	}
-
-	if (_aal5_init(&lv_aal5)) {
-		ERR_OUT("Failed to init new AAL5 frame\n") ;
-		return -1 ;
 	}
 
 	/*
@@ -1466,16 +1331,15 @@ static int _eci_tx_aal5(
 	while (lv_szdata > ATM_CELL_PAYLOAD) {
 		
 		/* Enqueue slice */
-		lv_rc = _eci_make_aal5(
-				&lv_aal5,
+		lv_rc = _eci_tx_enqueue(
+				pinstance,
 				vpi,
 				vci,
 				false,
 				ATM_CELL_PAYLOAD,
 				lp_data) ;
 		if (lv_rc) {
-			ERR_OUT("_eci_make_aal5 failed\n") ;
-			_aal5_clean(&lv_aal5) ;
+			ERR_OUT("_eci_tx_enqueue failed\n") ;
 			return lv_rc ;
 		}
 		lp_data += ATM_CELL_PAYLOAD ;
@@ -1491,16 +1355,15 @@ static int _eci_tx_aal5(
 	if (lv_szdata > (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER)) {
 
 		/* Enqueue this before last slice */
-		lv_rc = _eci_make_aal5(
-				&lv_aal5,
+		lv_rc = _eci_tx_enqueue(
+				pinstance,
 				vpi,
 				vci,
 				false,
 				lv_szdata,
 				lp_data) ;
 		if (lv_rc) {
-			ERR_OUT("_eci_make_aal5 failed on last cell\n") ;
-			_aal5_clean(&lv_aal5) ;
+			ERR_OUT("_eci_tx_enqueue failed on last cell\n") ;
 			return lv_rc ;
 		}
 	} else {
@@ -1509,26 +1372,19 @@ static int _eci_tx_aal5(
 	}
 
 	/* Manage the last cell */
-	lv_rc = _eci_make_aal5(
-			&lv_aal5,
+	lv_rc = _eci_tx_enqueue(
+			pinstance,
 			vpi,
 			vci,
 			true,
 			ATM_CELL_PAYLOAD,
 			lv_aal5trl) ;
 	if (lv_rc) {
-		ERR_OUT("_eci_make_aal5 failed on last cell\n") ;
-		_aal5_clean(&lv_aal5) ;
+		ERR_OUT("_eci_tx_enqueue failed on last cell\n") ;
 		return lv_rc ;
 	}
 
-	lv_rc = _eci_usb_send_urb(pinstance, &lv_aal5) ;
-	if (lv_rc)
-		ERR_OUT("_eci_usb_send_urb failed\n") ;
-		
-	_aal5_clean(&lv_aal5) ;
-
-	return lv_rc ;
+	return 0 ;
 }
 
 /*----------------------------------------------------------------------
@@ -1538,83 +1394,99 @@ static int _eci_tx_aal5(
  * Here the Bulk payload is 64 bytes so we pad to FF
  *
  */
-static int _eci_usb_send_urb(
-	struct eci_instance *	pinstance,	/* IN: ref to mod info	*/
-	aal5_t *		paal5		/* IN: AAL5 to send	*/
+static int _eci_usb_tx(
+	struct eci_instance *	pinstance	/* IN: ref to mod info	*/
 ) {
 	int		lv_rc		= 0 ;
+	int		lc_1		= 0 ;
 	struct urb *	lp_eciurb 	= NULL ;
+	size_t		lv_szbuffer	= 0 ;
+	const size_t	lc_szcell	= sizeof(uni_cell_t) ;
 	byte *		lp_buffer	= NULL ;
-	uni_cell_t *	lp_cell		= NULL ;
-	const size_t	lc_szcell	= ATM_CELL_HDR + ATM_CELL_PAYLOAD ;		
+	byte *		lp_cur		= NULL ;
+
 
 	DBG_OUT("_eci_usb_tx in\n") ;
 	
 	/* Check Interface */
-	if (!pinstance || !paal5 || !_aal5_iscomplete(paal5)) {
+	if (!pinstance) {
 		ERR_OUT("Interface Error\n") ;
 		return -EINVAL ;
 	}
 
-	/* Send all cells in tx q */
-	while ((lp_cell = _aal5_get_next(paal5))) {
-		/*
-		 * Encapsulate the cells into Bulk data buffer
-		 *
-		 */
-		lp_buffer = (byte*) kmalloc(lc_szcell, GFP_KERNEL) ;
-		if (!lp_buffer) {
-			ERR_OUT("not enought memory to send the cell\n") ;
-			/* we continue to empty the queue */
-			continue ;
-		}
+	/*
+	 * Map the cells into Bulk data buffer
+	 *
+	 * The bulk buffer will be fragmented 
+	 * in USB layer by uhci
+	 *
+	 * TODO : retreive the size ok bulk payload
+	 * 	from device info
+	 *
+	 */
+	//lv_szbuffer = 64 * nbcells ;
 
-		memcpy(
-			lp_buffer, 
-			_uni_cell_getPayload(lp_cell), 
-			lc_szcell) ;
-
-
-		/* Alloc the new URB */
-		lp_eciurb = usb_alloc_urb(0) ;
-		if (!lp_eciurb) {
-			ERR_OUT("Not enought Memory for iso urb") ;
-			kfree(lp_buffer) ;
-			/* we continue to empty the queue */
-			continue ;
-
-		}
-
-		/* Init the New URB */
-		FILL_BULK_URB(
-				lp_eciurb,
-				pinstance->usb_wan_dev,
-				usb_sndbulkpipe(
-					pinstance->usb_wan_dev, 
-					ECI_BULK_PIPE),
-				lp_buffer,
-				lc_szcell,
-				_eci_bulk_callback,
-				pinstance
-		) ;
-
-		/* Submit the new URB to the USB host */
-
-		lv_rc = usb_submit_urb(lp_eciurb) ;
-		if (lv_rc) {
-			/*
-			 * lv_rc == -6 == -ENXIO
-			 * This error means that this urb is already queued
-			 * It should be ignored ???
-			 */
-			ERR_OUT("usb_submit_urb failed [%d]\n", lv_rc) ;
-			usb_free_urb(lp_eciurb) ;
-			kfree(lp_buffer) ;
-			/* we continue to empty the queue */
-			continue ;
-		}
-		DBG_OUT("Bulk URB %p sent\n", lp_eciurb) ;
+	/* Alloc mem for the buffer to link in URB */
+	/*
+	lp_buffer = (unsigned char*) kmalloc(
+			lv_szbuffer,
+			GFP_KERNEL) ;
+	if (!lp_buffer) {
+		ERR_OUT("Not enought Memory for uni cells") ;
+		return -ENOMEM ;
 	}
+	*/
+/*
+	lp_cur = lp_buffer ;
+	for (lc_1 = 0 ; lc_1 < nbcells ; lc_1++) {
+		memcpy(lp_cur, pcells[lc_1], lc_szcell) ;
+		memset(lp_cur + lc_szcell, 0xff, 64 - lc_szcell) ;
+		lp_cur += 64 ;
+	}
+*/
+	DBG_RAW_OUT("URB buffer ready to forward", lp_buffer, lv_szbuffer) ;
+
+	/* Alloc the new URB */
+	/*
+	lp_eciurb = usb_alloc_urb(0) ;
+	if (!lp_eciurb) {
+		ERR_OUT("Not enought Memory for iso urb") ;
+		kfree(lp_buffer) ;
+		return -ENOMEM ;
+	}
+	*/
+
+	/* Init the New URB */
+	/*
+	FILL_BULK_URB(
+			lp_eciurb,
+			pinstance->usb_wan_dev,
+			usb_sndbulkpipe(
+				pinstance->usb_wan_dev, 
+				ECI_BULK_PIPE),
+			lp_buffer,
+			lv_szbuffer,
+			_eci_bulk_callback,
+			pinstance
+	) ;
+	*/
+
+	/* Submit the new URB to the USB host */
+
+//	lv_rc = usb_submit_urb(lp_eciurb) ;
+//	if (lv_rc) {
+		/*
+		 * lv_rc == -6 == -ENXIO
+		 * This error means that this urb is already queued
+		 * It should be ignored ???
+		 */
+	/*
+		ERR_OUT("usb_submit_urb failed [%d]\n", lv_rc) ;
+	       usb_free_urb(lp_eciurb) ;
+	       kfree(lp_buffer) ;
+	       return lv_rc ;
+	}
+	*/
 	
 	DBG_OUT("_eci_usb_tx out\n") ;
 	return 0 ;
@@ -1633,81 +1505,6 @@ static int _eci_usb_rx(
 	DBG_OUT("_eci_usb_rx out\n") ;
 	return lv_rc ;
 }
-
-/*----------------------------------------------------------------------
- * 
- * Send data to ATM
- *
- */
-static int _eci_rx_aal5(
-		struct eci_instance * pinstance
-) {
-	uni_cell_t *		lp_cellfirst	= NULL ;
-	uni_cell_t *		lp_cellprv	= NULL ;
-	uni_cell_t *		lp_cell		= NULL ;
-	bool			lf_last 	= false ;
-	int			lv_vpi ;
-	int			lv_vci ;
-	int			lv_crc ;
-	size_t			lv_size 	= 0 ;
-	struct sk_buff *	lp_skb		= NULL ;
-
-	/* Check Interface */
-	if (!pinstance) return -EINVAL ;
-
-	/*
-	 * Get the Cells that constitute a full AAL5 frame
-	 */
-	lp_cellfirst		= 
-		lp_cell 	= 
-		lp_cellprv 	= _uni_cell_qpop(pinstance->prx_q) ;
-	if (!lp_cell) {
-		ERR_OUT("Empty rx q\n") ;
-		return -EINVAL ;
-	}
-	lv_size += ATM_CELL_PAYLOAD ;
-	lv_crc = _calc_crc(
-			_uni_cell_getPayload(lp_cell) + ATM_CELL_HDR,
-			ATM_CELL_PAYLOAD,
-			-1) ;
-	
-	while (lp_cell && !(lf_last = _uni_cell_islast(lp_cell))) {
-
-		lp_cellprv->next	= lp_cell ;
-		lp_cellprv 		= lp_cell ;
-		lp_cell 		= _uni_cell_qpop(pinstance->prx_q) ;
-
-		lv_size 		+= ATM_CELL_PAYLOAD ;
-		lv_crc = ~ _calc_crc(
-				_uni_cell_getPayload(lp_cell) + ATM_CELL_HDR,
-				ATM_CELL_PAYLOAD,
-				lv_crc) ;
-	}
-
-	if (!lp_cell || !lf_last) {
-		/* Something goes wrong */
-		ERR_OUT("failed to browse the AAL5 frame\n") ;
-		lp_cell = lp_cellfirst ;
-		while ((lp_cellprv = lp_cell)) {
-			lp_cell = lp_cellprv->next ;
-			_uni_cell_free(lp_cellprv) ;
-		}
-		return -EINVAL ;
-	}
-
-	/*
-	 * Compare CRC
-	 */
-	
-	/* TODO ... */
-
-	return 0 ;
-
-	
-	
-
-}
-
 /*----------------------------------------------------------------------
  * 
  * Callback to handle BULK urb completion
@@ -1715,8 +1512,6 @@ static int _eci_rx_aal5(
  *
  */
 static void _eci_bulk_callback(struct urb *purbsent) {
-	char * lp_buf = NULL ;
-
 	DBG_OUT("_eci_bulk_callback in \n") ;
 
 	/* Check Interface */
@@ -1725,14 +1520,14 @@ static void _eci_bulk_callback(struct urb *purbsent) {
 		return ;
 	}
 	
-	lp_buf = purbsent->transfer_buffer ;
+	usb_unlink_urb(purbsent) ;
+
+	/* Free transfert buffer */
+	if (purbsent->transfer_buffer)
+		kfree(purbsent->transfer_buffer) ;
 
 	/* Free urb */
 	usb_free_urb(purbsent) ;
-
-	/* Free transfert buffer */
-	if (lp_buf)
-		kfree(lp_buf) ;
 
 	DBG_OUT("_eci_bulk_callback out\n") ;
 }
@@ -1850,21 +1645,12 @@ static uni_cell_t * _uni_cell_alloc(void) {
 	
 	uni_cell_t *lp_cell = NULL ;
 	
-	/*
 	DBG_OUT("_uni_cell_alloc in\n") ;
-	*/
 
 	/* Try to Retreive one from unused list */
-	/*
-	spin_lock(&gl_ucells_lock) ;
-	*/
-	
-	if ((lp_cell = gp_ucells) != NULL)
-		gp_ucells = lp_cell->next ;
-	
-	/*
-	spin_unlock(&gl_ucells_lock) ;
-	*/
+	spin_lock(&gl_uq_lock) ;
+	lp_cell = _uni_cell_qpop(gp_unused_q) ;
+	spin_unlock(&gl_uq_lock) ;
 
 	if (!lp_cell) {
 
@@ -1882,9 +1668,7 @@ static uni_cell_t * _uni_cell_alloc(void) {
 		}
 	}
 
-	/*
 	DBG_OUT("_uni_cell_alloc out\n") ;
-	*/
 	return lp_cell ;
 }
 
@@ -1897,22 +1681,25 @@ static uni_cell_t * _uni_cell_alloc(void) {
 static void _uni_cell_free(
 		uni_cell_t * pcell
 ) {
-	/*
+	int lv_rc = 0 ;
+	
 	DBG_OUT("_uni_cell_free in\n") ;
-	*/
 	if (pcell) {
-		/*
-		spin_lock(&gl_ucells_lock) ;
-		*/
-		pcell->next 	= gp_ucells ;
-		gp_ucells 	= pcell ;
-		/*
-		spin_unlock(&gl_ucells_lock) ;
-		*/
+		if (!gp_unused_q) {
+			DBG_OUT("Unused List does not exist\n") ;
+			kfree(pcell) ;
+		} else {
+			spin_lock(&gl_uq_lock) ;
+			lv_rc = _uni_cell_qpush(pcell, gp_unused_q) ;
+			if (lv_rc) {
+				/* Failed to insert it so free memory */
+				ERR_OUT("Failed to keep cell : free it\n") ;
+				kfree(pcell) ;
+			}
+			spin_unlock(&gl_uq_lock) ;
+		} 
 	}
-	/*
 	DBG_OUT("_uni_cell_free out\n") ;
-	*/
 }
 
 /*----------------------------------------------------------------------*/
@@ -1929,9 +1716,7 @@ static int _uni_cell_format(
 	int		lv_padd	= 0 ;
 	byte *		lp_cell	= NULL ;
 
-	/*
 	DBG_OUT("_uni_cell_format in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!size || !pdata || !pcell || (size > ATM_CELL_PAYLOAD)) {
@@ -1991,9 +1776,7 @@ static int _uni_cell_format(
 	if ((lv_padd = ATM_CELL_PAYLOAD - size) > 0)
 		memset(lp_cell + size, 0, lv_padd) ;
 
-	/*
 	DBG_OUT("_uni_cell_format out\n") ;
-	*/
 	return 0 ;
 }
 
@@ -2001,84 +1784,73 @@ static int _uni_cell_format(
 
 /* Get VPI from cell */
 static int _uni_cell_getVpi(
-		uni_cell_t *		pcell	/* IN: the cell		*/
+		uni_cell_t *		pcell,	/* IN: the cell		*/
+		int *			pvpi	/* OUT: VPI		*/
 ) {
-	byte * 	lp_raw = NULL ;
-	int	lv_vpi ;
+	byte * lp_raw = NULL ;
 
-	/*
 	DBG_OUT("_uni_cell_getVpi in\n") ;
-	*/
 
 	/* Check Interface */
-	if (!pcell) {
+	if (!pcell || !pvpi) {
 		ERR_OUT("Interface Error\n") ;
-		return -1 ;
+		return -EINVAL ;
 	}
 
 	lp_raw = pcell->raw ;
 
-	lv_vpi = ((0x0f & lp_raw[0]) << 4) | (lp_raw[1] >> 4) ;
+	*pvpi = ((0x0f & lp_raw[0]) << 4) | (lp_raw[1] >> 4) ;
 
-	/*
 	DBG_OUT("_uni_cell_getVpi out\n") ;
-	*/
-	return lv_vpi ;
+	return 0 ;
 }
 
 /*----------------------------------------------------------------------*/
 
 /* Get VCI from cell */
 static int _uni_cell_getVci(
-		uni_cell_t *		pcell	/* IN: the cell		*/
+		uni_cell_t *		pcell,	/* IN: the cell		*/
+		int *			pvci	/* OUT: VCI		*/
 ) {
 	byte *	lp_raw = NULL ;
-	int	lv_vci ;
 	
-	/*
 	DBG_OUT("_uni_cell_getVci in\n") ;
-	*/
 
 	/* Check Interface */
-	if (!pcell) {
+	if (!pcell || !pvci) {
 		ERR_OUT("Interface Error\n") ;
-		return -1 ;
+		return -EINVAL ;
 	}
 
 	lp_raw = pcell->raw ;
 	
-	lv_vci = 
+	*pvci = 
 		((((0x0f & lp_raw[1]) << 4) | (lp_raw[2] >> 4)) << 8) |
 	       	( ((0x0f & lp_raw[2]) << 4) | (lp_raw[3] >> 4)) ;
 
-	/*
 	DBG_OUT("_uni_cell_getVci out\n") ;
-	*/
-	return lv_vci ;
+	return 0 ;
 }
 
 /*----------------------------------------------------------------------*/
 
 /* check if this is the last cell */
-static bool _uni_cell_islast(
-		uni_cell_t *		pcell	/* IN: the cell		*/
+static int _uni_cell_islast(
+		uni_cell_t *		pcell,	/* IN: the cell		*/
+		bool *			pislast	/* OUT: last cell flag	*/
 ) {
-	bool lv_res ;
-	/*
 	DBG_OUT("_uni_cell_islast in\n") ;
-	*/
+
 	/* check interface */
-	if (!pcell) {
+	if (!pcell || !pislast) {
 		ERR_OUT("interface error\n") ;
-		return true ;
+		return -EINVAL ;
 	}
 
-	lv_res = ((pcell->raw[3] & 0x02) == 0x02) ;
+	*pislast = ((pcell->raw[3] & 0x02) == 0x02) ;
 
-	/*
 	DBG_OUT("_uni_cell_islast out\n") ;
-	*/
-	return lv_res ;
+	return 0 ;
 }
 
 /*----------------------------------------------------------------------*/
@@ -2087,9 +1859,7 @@ static bool _uni_cell_islast(
 static byte * _uni_cell_getPayload(
 		uni_cell_t *		pcell	/* in: the cell		*/
 ) {
-	/*
 	DBG_OUT("_uni_cell_getPayload in\n") ;
-	*/
 
 	/* check interface */
 	if (!pcell) {
@@ -2097,9 +1867,7 @@ static byte * _uni_cell_getPayload(
 		return NULL ;
 	}
 
-	/*
 	DBG_OUT("_uni_cell_getPayload out\n") ;
-	*/
 	return &(pcell->raw[0]) ;
 }
 
@@ -2115,9 +1883,7 @@ static byte * _uni_cell_getPayload(
 
 /* Init a queue */
 static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
-	/*
 	DBG_OUT("_uni_cell_qinit in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcellq) {
@@ -2129,9 +1895,7 @@ static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
 	pcellq->first		= NULL ;
 	pcellq->last		= NULL ;
 
-	/*
 	DBG_OUT("_uni_cell_qinit out\n") ;
-	*/
 	return 0 ;
 }
 /*----------------------------------------------------------------------*/
@@ -2141,9 +1905,7 @@ static uni_cell_q_t * _uni_cell_qalloc(void) {
 	
 	uni_cell_q_t * lp_cellq = NULL ;
 
-	/*
 	DBG_OUT("_uni_cell_qalloc in\n") ;
-	*/
 	lp_cellq = (uni_cell_q_t *) kmalloc(
 			sizeof(uni_cell_q_t),
 			GFP_KERNEL) ;
@@ -2159,9 +1921,7 @@ static uni_cell_q_t * _uni_cell_qalloc(void) {
 		return NULL ;
 	}
 	
-	/*
 	DBG_OUT("_uni_cell_qalloc out\n") ;
-	*/
 	return lp_cellq ;
 }
 
@@ -2182,17 +1942,34 @@ static void _uni_cell_qfree(uni_cell_q_t *pcellq) {
 	if (!pcellq) return ;
 
 	/*
-	 * Free each cells of the queue
+	 * Check If the queue is the Unused Cells List
+	 * 	if it is not : store the Cells in unused List
+	 * 	else free also each Cells
 	 */
-	lp_cell = pcellq->first ;
-	while (lp_cell) {
-		lp_cellnxt	= lp_cell->next ;
-		_uni_cell_free(lp_cell) ;
-		lp_cell		= lp_cellnxt ;
-	}
+	if (!gp_unused_q || (pcellq == gp_unused_q)) {
+		/* Free each cells */
+		lp_cell = pcellq->first ;
+		while (lp_cell) {
+			lp_cellnxt	= lp_cell->next ;
+			_uni_cell_free(lp_cell) ;
+			lp_cell		= lp_cellnxt ;
+		}
+		pcellq->first 		= NULL ;
+		pcellq->last		= NULL ;
+		pcellq->nbcells		= 0 ;
+	} else {
+		/* Move cells into unused */
+		spin_lock(&gl_uq_lock) ;
+		
+		pcellq->last->next 	= gp_unused_q->first ;
+		gp_unused_q->first 	= pcellq->first ;
+		gp_unused_q->nbcells 	+= pcellq->nbcells ;
 
-	/* Free Queue */
-	kfree(pcellq) ;
+		spin_unlock(&gl_uq_lock) ;
+
+		/* Free Queue */
+		kfree(pcellq) ;
+	}
 
 	DBG_OUT("_uni_cell_qfree out\n") ;
 }
@@ -2217,9 +1994,7 @@ static int _uni_cell_qpush(
 		uni_cell_t *	pcell,	/* IN: Cell to insert	*/
 		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
 ) {
-	/*
 	DBG_OUT("_uni_cell_qpush in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcell || !pcellq) {
@@ -2239,9 +2014,7 @@ static int _uni_cell_qpush(
 	}
 	pcellq->nbcells++ ;
 
-	/*
 	DBG_OUT("_uni_cell_qpush out\n") ;
-	*/
 	return 0 ;
 }
 
@@ -2254,11 +2027,9 @@ static int _uni_cell_qpush(
 static uni_cell_t * _uni_cell_qpop(
 		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
 ) {
-	uni_cell_t *	lp_cell = NULL ;
-
-	/*
+	uni_cell_t * lp_cell = NULL ;
+	
 	DBG_OUT("_uni_cell_qpop in\n") ;
-	*/
 
 	/* Check Interface */
 	if (!pcellq) {
@@ -2273,216 +2044,7 @@ static uni_cell_t * _uni_cell_qpop(
 		lp_cell->next 	= NULL ;
 		pcellq->nbcells-- ;
 	}
-	
-	/*
-	DBG_OUT("_uni_cell_qpop out\n") ;
-	*/
+		
+	DBG_OUT("_uni_cell_qpush out\n") ;
 	return lp_cell ;
 }
-
-/*----------------------------------------------------------------------*/
-
-/*
- * Get the UNI Cell on head Queue :
- * 	return NULL when empty or invalid queue
- */
-static uni_cell_t * _uni_cell_qhead(
-		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
-) {
-	uni_cell_t * lp_cell = NULL ;
-	
-	/*
-	DBG_OUT("_uni_cell_qhead in\n") ;
-	*/
-
-	/* Check Interface */
-	if (!pcellq) {
-		ERR_OUT("Interface Error\n") ;
-		return NULL ;
-	}
-
-	lp_cell = pcellq->first ;
-
-	/*
-	DBG_OUT("_uni_cell_qhead out\n") ;
-	*/
-	return lp_cell ;
-}
-
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-/*----------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------
- 			AAL5 FRAME ABSTRACTION
-  ----------------------------------------------------------------------*/
-
-/*----------------------------------------------------------------------*/
-
-/* Init a new AAL5 Frame */
-static int _aal5_init(aal5_t * paal5) {
-	
-	if (!paal5) return -EINVAL ;
-
-	paal5->is_complete	= false ;
-	paal5->is_valid		= false ;
-	paal5->vci		= -1 ;
-	paal5->vpi		= -1 ;
-	paal5->nbcells		= 0 ;
-	paal5->pccell		= NULL ;
-	paal5->plastcell	= NULL ;
-	paal5->pthecells	= NULL ;
-
-	return 0 ;
-}
-	
-	
-/*----------------------------------------------------------------------*/
-
-/* Alloc a new AAL5 frame */
-static aal5_t * _aal5_alloc(void) {
-	aal5_t * lp_aal5 = NULL ;
-
-	lp_aal5 = kmalloc(sizeof(aal5_t), GFP_KERNEL) ;
-	if (lp_aal5) return NULL ;
-	
-	if (_aal5_init(lp_aal5)) {
-	       kfree(lp_aal5) ;
-	       return NULL ;
-	}
-
-	return lp_aal5 ;
-}
-
-/*----------------------------------------------------------------------*/
-
-/* Free an AAL5 frame */
-static void _aal5_free(aal5_t *paal5) {
-	uni_cell_t *	lp_cell = NULL ;
-	
-	if (!paal5) return ;
-
-	/*
-	 * Free all Cells
-	 */
-	while ((lp_cell = paal5->pthecells)) {
-		paal5->pthecells = lp_cell->next ;
-		_uni_cell_free(lp_cell) ;
-	}
-
-	kfree(paal5) ;
-
-}	
-
-/*----------------------------------------------------------------------*/
-
-/* Reset a AA5 frame */
-static void _aal5_clean(aal5_t *paal5) {
-	uni_cell_t *	lp_cell = NULL ;
-
-	if (!paal5) return ;
-
-	/*
-	 * Free all Cells
-	 */
-	while ((lp_cell = paal5->pthecells)) {
-		paal5->pthecells = lp_cell->next ;
-		_uni_cell_free(lp_cell) ;
-	}
-
-	_aal5_init(paal5) ;
-}
-
-/*----------------------------------------------------------------------*/
-
-/* Get VPI from AAL5 */
-static int _aal5_getVpi(
-	aal5_t * paal5			/* IN: the frame		*/
-) {
-	if (!paal5 || !paal5->is_valid) return -1 ;
-	return paal5->vpi ;
-}
-
-/*----------------------------------------------------------------------*/
-
-/* Get VCI from AAL5 */
-static int _aal5_getVci(
-	aal5_t * paal5			/* IN: the frame		*/
-) {
-	if (!paal5 || !paal5->is_valid) return -1 ;
-	return paal5->vci ;
-}
-
-/*----------------------------------------------------------------------*/
-
-/* check if this is the frame is completed */
-static bool _aal5_iscomplete(
-	aal5_t * paal5			/* IN: the frame		*/
-) {
-	return (paal5 ? paal5->is_complete : false) ;
-}	
-
-/*----------------------------------------------------------------------*/
-
-/* check if this is the frame is valid */
-static bool _aal5_isvalid(
-	aal5_t * paal5			/* IN: the frame		*/
-) {
-	return (paal5 && paal5->is_complete ? paal5->is_valid : false) ;
-}
-
-/*----------------------------------------------------------------------*/
-
-/* Append a new cell */
-static int _aal5_add_cell(
-	aal5_t *	paal5,		/* IN: the frame		*/
-	uni_cell_t *	pcell		/* IN: the new cell		*/
-) {
-	if (!paal5 || !pcell || paal5->is_complete)
-		return -EINVAL ;
-
-	pcell->next = NULL ;
-
-	if (!paal5->plastcell) {
-		paal5->pthecells 	= pcell ; 
-		paal5->vpi		= _uni_cell_getVpi(pcell) ;
-		paal5->vci		= _uni_cell_getVci(pcell) ;
-	} else {
-		if ((_uni_cell_getVpi(pcell) != paal5->vpi) ||
-				(_uni_cell_getVci(pcell) != paal5->vci))
-			return -EINVAL ;
-		paal5->plastcell->next	= pcell ;
-	}
-	paal5->plastcell = pcell ;
-	
-	paal5->nbcells++ ;
-	paal5->is_complete = _uni_cell_islast(pcell) ;
-
-	return 0 ;
-}
-
-/*----------------------------------------------------------------------*/
-
-/* Get Next Cell of the AAL5 frame */
-static uni_cell_t * _aal5_get_next(aal5_t *paal5) {
-	
-	uni_cell_t * lp_cell ;
-	
-	if (!paal5 || !paal5->is_complete)
-		return NULL ;
-
-	if (!paal5->pccell) {
-		/* First time */
-		paal5->pccell = paal5->pthecells ;
-		lp_cell = paal5->pccell ;
-	} else if ((lp_cell = paal5->pccell->next)) {
-		/* Not the last yet */
-		paal5->pccell = lp_cell ;
-	}
-
-	return lp_cell ;
-
-}
-
-/*----------------------------------------------------------------------*/
-
