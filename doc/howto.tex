@@ -12,6 +12,20 @@
 % pour passer en html :
 %
 % latex2html howto.tex
+%
+% sur une seule page :
+%
+% latex2html -split 0 -show_section_numbers howto howto.tex
+%
+% pour passer en texte :
+%
+% lynx -dump howto.html > howt.txt
+% 
+% note : avant de passer en ascii, il est préférable de faire :
+% 
+% latex2html -ascii_mode -show_section_numbers -split 0 howto howto.tex
+%
+
 
 
 
@@ -251,6 +265,7 @@ CA NE MARCHE PAS :
 		127.0.0.0   &    0.0.0.0    &     255.0.0.0   &    U  &   0  &    0    &    0 &lo\\
 		0.0.0.0    &     212.194.0.1  &   0.0.0.0    &     UG  &  0  &    0    &    0 &ppp0\\
 		\end{tabular}
+		
 		La derniere ligne est importante, c'est la GATEWAY par defaut qui vous fais sortir
 		sur Internet...
 
@@ -269,15 +284,15 @@ CA NE MARCHE PAS :
 		DE-Commentez les 2 dernieres lignes :
 	
         	lcp-echo-interval 600 \\
-	        lcp-echo-failure 10
+	        lcp-echo-failure 10\par
 
 	Cas 2 : vous avez un probleme d'authentification (PPP ne le dit pas toujours explicitement)
 
-		Corrigez vos scripts :
+		Corrigez vos scripts :\\
 		
-			/etc/ppp/peers/adsl\\
+			\textit{/etc/ppp/peers/adsl}\\
 			et\\
-			/etc/ppp/chap-secrets (wanadoo) ou /etc/ppp/pap-secrets (club-internet)
+			\textit{/etc/ppp/chap-secrets} (wanadoo) ou \textit{/etc/ppp/pap-secrets} (club-internet)\par
 
 		=> retour aux chapitres : 3.2.1 et 3.2.2
 	
@@ -310,6 +325,13 @@ CA NE MARCHE PAS :
 	Pour relancer le driver, nous vous conseillons de repartir du début en débranchant et en rebranchant le modem, il faut ensuite refaire :
 	\textit{./startmodem}
 	
+\subsection{Passer la patate (Debian patato) en kernel 2.4}
+	C'est vrai que c'est un peu hors sujet mais ça peux aider ceux qui veulent tester le driver.
+	vous trouverez la documentation pour faire ceci a ces adresses : 
+	
+	http://fs.tum.de/~bunk/kernel-24.html
+
+	Bonne upgrade !
 
 \section{Contacts}
 
