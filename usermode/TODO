@@ -1,29 +1,39 @@
-Benoit PAPILLAULT, 30/04/2002
+Usermode TODO list (pending tasks):
 
-Packaging:
+Sorted according to priority (the upper in the list, the prior):
 
-- copy the GPL header in all source file
-- add a COPYING file
-- make a .rpm & .deb package
+* done
++ currently in development
+- pending
 
-Functionnality:
+0.6:
+* merging of pending patches (LCP timeouts, LLC/LLC_SNAP, eci-load* timeout detection, oliverthered*)
+* fix: problems with USB 2.0 HUBs (ehci-hdc)
+* synch_bin in repository
+* ANSIC89 compliance
+* eciconftxt.sh
+* probe_device.sh
++ add auto modes to probe_device.sh
++ synch bin auto selection (config time only)
+- packaging: ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
+  modify scripts
++ eciadsl.sf.net update
 
-- make a separate, clean & portable libpusb
-- make a separate, clean & portable libatm
-- handle several modems (with the same vid/pid)
-- display the modem MAC or EEPROM content
-- make a GPL firmware, to resolve the DMT/CAP modulation issues
-- closer examination of synchronisation (need experiments, see JoKer case
-	& jeanseb comment in eci_vendor_device.pl)
-- rewrite USB code to avoid ISO (use BULK instead)
+0.7:
+- URB cleaning on decnx (prevents kernel oops)
+- fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
+- code clean up & normalization
+- submit driver to GNU/Linux distro managers
 
-Script:
+0.x:
+- PPPoE implementation (patch from flynux/prout.be)
+- 1483b and 1483r implementations? (cannot find RFCs!?)
 
-- add adsl-start, adsl-stop & adsl-status scripts
+0.y:
+- check and merge bsd 0.5 port
+- submit driver to *BSD distro managers
 
-Support:
-
-- make a separate FAQ
-- check for cvs $Id$
-- add the doc in the rpm package
-- improve eci-doctor.sh to automatically detect CHAP or PAP use
+1.0:
+- auto*stuff (autoconf/make)
+- new USB implementation (benoit)
+- ?

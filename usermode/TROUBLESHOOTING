@@ -1,0 +1,342 @@
+TROUBLESHOOTING FAQ
+===================
+
+
+INTENTED AUDIENCE
+=================
+
+	ECI ADSL USB modem (up to version 0.6) users.
+
+
+PRE-REQUISITES
+==============
+
+	- a running GNU/Linux system (x86 architecture) with standard tools
+	  (MDK9/RH8/exotic ones may have (solvable) problems, BSD and other
+	  systems are not supported yet)
+	- USB 1.1 hardware support
+	- kernel 2.4.x (>=2.4.18-pre3 or < 2.4.18-pre3 + N_HDLC patch to get
+	  automatic pppd reconnection feature working, recommanded)
+		- USB support (as modules):
+			- USB support
+			- USB preliminary fs
+			- your HUB USB controller AS MODULE
+		- PPP support (including usermode ppp package >=2.4.0)
+	- standard development packages (linux sources in /usr/src/linux,
+	  gcc >=2.91.66, GNU make, etc.)
+	- single hardware HUB?
+	- USB/ethernet modem (Globe Span chipset *only*)
+	- optional: tcl/tk >= 8.x.x
+	- root privileges
+
+
+WHERE TO GET SUPPORT
+====================
+
+	Support, packages (driver and optional synch .bin) and documentation:
+		- IRC: openprojects.net, #eci
+		- HTML documentation, forum, user mailing list and development team:
+		  http://eciadsl.sf.net or http://eciadsl.flashtux.org
+	We provide support in both french and english language.
+
+
+PROVIDE US THESE INFO
+=====================
+
+	- kernel version (see: uname -a or cat /proc/version)? Tell us the kernel
+	  is your distro's one or compiled from the sources
+	- Linux distribution
+	- pppd version (see: pppd --version)
+	- moutils version (see: lsmod --version)
+	- USB Controller (HUB) model (see: lspci|grep USB)
+	- eciadsl driver version (VERSION file if it exist for > 0.5,
+	  else the package name or CVS date) and:
+		- you windows driver info if you use it (and also the modulation
+		  type that your provider supports)
+		- the synch .bin you've tried
+	- USB/ethernet modem model
+	- you location (country/state/region/town), your provider
+	- your Linux experience level (for instance: newbie, average, confirmed,
+	  experienced, guru)
+
+
+FREQUENTLY ASKED QUESTIONS AND SOME COMMON TROUBLES
+===================================================
+
+
+Q:	I don't know if my modem is supported:
+
+A:	See the pre-requisites.
+
+	Check here: http://eciadsl.flashtux.org/modems.php.
+	
+	Launch eciconf or eci-doctor, if they report errors, try to launch
+	probe_device.sh	to check your modem compatibility.
+
+
+Q:	startmodem, or eciconf report me an unsupported modem!
+
+A:	See the previous question.
+
+
+Q:	startmodem or eciconf output say:
+	/proc/bus/usb: No such file or directory
+
+A:	Check your system's USB configuration. This may be due to a lack of
+	devusbfs support in kernel configuration. If kernel has support for it,
+	try to mount it using:
+		mount -t usbdevfs none /proc/bus/usb
+	This can be set in your /etc/fstab for automounting at boot time.
+
+
+Q:	eciconf reports me that the DABUSB module is loaded!
+	TODO: dabusb leads to wich problems?
+
+A:	Disable/remove the dabusb module:
+		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
+	Then
+		depmod.a
+	If this kernel has been compiled by hand, don't forget to remove dabusb
+	support from the kernel configuration too.
+
+
+Q:	eciconf reports me:
+	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
+	and/or I see this in /var/log/messages:
+		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
+		[many times]
+		LCP: timeout sending Config-Requests
+		Connection terminated.
+
+A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
+
+	If you want to use the 'persist' option of pppd to reconnect automatically
+	when disconnected, then you will have to patch your kernel or use a kernel
+	>= 2.4.18-pre3. You can find the patch n_hdlc.c.diff in the drivers' archive
+	of the Speedtouch modem : http://speedtouch.sourceforge.net/.
+	These are the instruction of how to use it:
+		cd /usr/src/linux
+		patch -p1 --dry-run < /path/to/n_hdlc.c.diff
+
+	If no error message is returned by the patch command, type the following
+	lines to make the source's patch:
+		patch -p1 < /path/to/n_hdlc.c.diff
+
+	Then, compile those modules for your kernel:
+		make menuconfig
+			Character devices --->
+			[*] Non-standard serial port support
+			<M> HDLC line discipline support
+			[*]Unix98 PTY support
+		make dep modules modules_install
+	or whatever command you use to compile and install the kernal modules
+
+
+Q:	My kernel is OK (N_HDLC patched or kernel >=2.4.18-pre3) but I still get
+	I get LCP timeout lines in /var/log/messages then a modem hangup
+	(and eventually another problem more between both) like this:
+	sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
+	[many times]
+	LCP: timeout sending Config-Requests
+
+A:	If your kernel really OK? Check above!
+
+	Check your kernel/pppd version.
+
+	See next question also, because CHAP/PAP authentication problems are not
+	always verbosely shown.
+
+
+Q:	/var/log/messages shows CHAP or PAP failures.
+
+A:	Check for bad PAP/CHAP authentication report in /var/log/messages.
+	If so, check your /etc/ppp/pap-secrets
+	or /etc/ppp/chap-secrets files. Entries must be like this:
+		"username" * "userpassword" *
+	Try to configure these using eciconf.
+
+
+Q:	startmodem stucks at block xxx
+
+A:	Follow the pre-requisites.
+
+	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
+
+	Try other synch .bin.
+
+
+Q:	startmodem went OK, but I still cannot use Internet access?
+
+A:	See previous question.
+
+	If you can ping an IP but cannot ping a hostname, check at your
+	/etc/resolv.conf file, it must include your provider's DNS IP.
+	For instance (french wanadoo ones):
+		nameserver 193.252.19.3
+		nameserver 193.252.19.4
+
+	If you still cannot access a hostname using nslookup, try this and
+	report us the output:
+	- route -n or netstat -rn
+
+	  Kernel IP routing table
+	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+	  80.14.50.1      0.0.0.0         255.255.255.255 UH       40 0          0 ppp0
+	* 10.0.0.0        0.0.0.0         255.255.255.0   U        40 0          0 eth0
+	* 127.0.0.0       0.0.0.0         255.0.0.0       U        40 0          0 lo
+	  0.0.0.0         80.14.50.1      0.0.0.0         UG       40 0          0 ppp0
+
+	  The lines with a leading * are optional, your eth local network should
+	  differ from 10.0.0.0 if you have one.
+	  The UG line must appear, this indicate the default route to the gateway.
+
+	- ifconfig ppp0
+
+	  ppp0    Link encap:Point-to-Point Protocol  
+       		  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
+       		  UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+       		  RX packets:80951 errors:0 dropped:0 overruns:0 frame:0
+       		  TX packets:85395 errors:0 dropped:0 overruns:0 carrier:0
+       	  	collisions:0 txqueuelen:3 
+
+	  IPs and some other values will be different from the ones above.
+
+	If ppp0 interface is not up, check for error lines in
+	/var/log/messages or /var/log/ppp.
+
+	If the default route (UG) is set to eth0, remove it:
+		route del default -net eth0
+
+	If the default route is NOT set to ppp0 even if ppp0 is up:
+		route add default dev ppp0
+
+
+Q:	Sometimes I see some LCP timeouts in /var/log/messages, but my connection
+	is still up or it doesn't disconnect every time.
+
+A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
+	or to slightly increase the values if uncommented.
+
+	This may be due to your provider too, wait a few minutes/hours if you still
+	can connect, and if this doesn't close you connection, simply forget those
+	LCP timeouts.
+
+
+Q:	I get these lines in /var/log/messages right when ppp attempts to raise:
+	ioctl(pppiocgflags): inappropriate ioctl for device
+
+A:	Upgrade your modutils package.
+
+	Upgrade your kernel, and add these modules if missing:
+		ppp_generic ppp_generic ppp_async ppp_synctty bsd_comp ppp_deflate
+
+	Add these following lines in your /etc/modules.conf if they are missing:
+		alias char-major-108 ppp_generic
+		alias /dev/ppp ppp_generic
+		alias tty-ldisc-3 ppp_async
+		alias tty-ldisc-14 ppp_synctty
+		alias ppp-compress-21 bsd_comp
+		alias ppp-compress-24 ppp_deflate
+		alias ppp-compress-26 ppp_deflate
+
+	Upgrade your eciadsl driver version.
+
+	Try another synch .bin.
+
+
+Q:	I get some "USB timeout" lines in /var/log/messages.
+
+A:	Try to uncomment the MTU line in /etc/ppp/peers/adsl.
+
+
+Q:	I get modem hangups but my problems doesn't match the previous questions.
+
+A:	Is your USB chipset an old VIA one? Some are known to be buggy and to have
+	problems regarding to USB power supply. If you modem is now OFF (no power),
+	this is your case.
+
+	On some systems (bugger USB chipset or old processors), this may happen
+	when you use multiple USB device that sucks a lot of power (video devices,
+	hdd).
+
+Q:	ppp line sometimes goes down.
+
+A:	This may be due to high traffic on the line or to any provider problem/daily
+	disconnection.
+	Enable the persist option for pppd in /etc/ppp/peers/adsl (this requires N_HDLC
+	support in the kernel, see the N_HDLC related question above).
+	You may also 
+
+
+Q:	Is this possible to launch startmodem at boot time?
+
+A:	Yes it is, using init.d. Some pre-configured scripts/configurations are
+	available, ask us for them of check the cnx package available from the
+	download sections at the offcial eciadsl websites.
+
+
+Q:	I cannot connect in console mode whereas it works fine under X11.
+
+A:	TODO
+
+
+Q:	I cannot connect under X11 whereas it works fine in console mode.
+
+A:	TODO
+
+
+Q:	How to configure kernel from the sources to get USB support?
+
+A:	Type the following commands:
+		cd /usr/src/linux
+		make menuconfig
+			<M> Support for USB
+			[ ]   USB verbose debug messages
+			--- Miscellaneous USB options
+			[*]   Preliminary USB device filesystem
+			[ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)
+			[ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)
+			--- USB Host Controller Drivers
+			< >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)
+			<M>   UHCI (Intel PIIX4, VIA, ...) support
+			<M>   UHCI Alternate Driver (JE) support
+			<M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
+			..
+			--- USB Multimedia devices  																x x
+			..
+			< >   DABUSB driver 																		x x
+		make dep modules modules_install
+	or whatever command you use to compile and install the kernal or its modules
+ 	You can enable all USB Host Controller Drivers but use the relevant one only!
+	DABUSB must ne disabled.
+
+
+Q:	TODO: which problem? (foreign users with other PPP encapsulations/layers)
+
+A:	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
+
+	Try other synch .bin.
+
+	Use -mode and/or -alt 4 in the pppoeci invocation in /etc/ppp/peers/adsl.
+
+
+Q:	I get kernel oops like
+
+A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd disconnect).
+	TODO: other problems.
+
+
+Q:	I get the message in /var/log/messages:
+	kernel: usb-uhci.c: ENXIO 80000880, flags 0, urb c5205d60, burb c2ad1120
+
+A:	TODO
+
+
+Q:	TODO: italian or belgian patched version?
+
+A:	TODO
+
+
+Q:	TODO: foreigners: windows driver use PPPoE or DHCP or noauth?
+
+A:	TODO
