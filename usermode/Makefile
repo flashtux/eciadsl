@@ -10,7 +10,7 @@ SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh prob
 			remove_dabusb makeconfig eci_vendor_device.pl eci_data.pl eci_uc.pl
 DOCS	= README INSTALL TROUBLESHOOTING README.fr INSTALL.fr TROUBLESHOOTING.fr BUGS TODO
 
-TMP_DIR = /tmp/inst
+TMP_DIR = $(ROOT)/tmp/inst
 TMP_FILE = Makefile.tmp
 
 all: check ${TARGETS} ${SCRIPTS}
@@ -57,40 +57,40 @@ install_no_system_fixes: all install_dirs install_scripts install_docs uninstall
 install_scripts:
 # patch scripts with useful pathes, use sed filter for perl, tcl and shell scripts
 # filtered files are in $(TMP_DIR) then installed to $(BIN_DIR)
-	$(INSTALL_DIR) $(ROOT)$(TMP_DIR)
+	$(INSTALL_DIR) $(TMP_DIR)
 	@bindir=$$(echo "$(BIN_DIR)" | sed "s/\//\\\\\//g"); \
 	etcdir=$$(echo "$(ETC_DIR)" | sed "s/\//\\\\\//g"); \
 	confdir=$$(echo "$(CONF_DIR)" | sed "s/\//\\\\\//g"); \
 	pppddir=$$(echo "$(PPPD_DIR)" | sed "s/\//\\\\\//g"); \
 	version=$$(echo "$(PRODUCT_VERSION)" | sed "s/\//\\\\\//g"); \
-	echo "s/set BIN_DIR .\+/set BIN_DIR \"$$bindir\"/" > $(ROOT)$(TMP_DIR)/tcl.sed; \
-	echo "s/set ETC_DIR .\+/set ETC_DIR \"$$etcdir\"/" >> $(ROOT)$(TMP_DIR)/tcl.sed; \
-	echo "s/set CONF_DIR .\+/set CONF_DIR \"$$confdir\"/" >> $(ROOT)$(TMP_DIR)/tcl.sed; \
-	echo "s/set PPPD_DIR .\+/set PPPD_DIR \"$$pppddir\"/" >> $(ROOT)$(TMP_DIR)/tcl.sed; \
-	echo "s/set VERSION .\+/set VERSION \"$$version\"/" >> $(ROOT)$(TMP_DIR)/tcl.sed; \
-	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$bindir\";/" > $(ROOT)$(TMP_DIR)/pl.sed; \
-	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$etcdir\";/" >> $(ROOT)$(TMP_DIR)/pl.sed; \
-	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$confdir\";/" >> $(ROOT)$(TMP_DIR)/pl.sed; \
-	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$pppddir\";/" >> $(ROOT)$(TMP_DIR)/pl.sed; \
-	echo "s/\$$VERSION =.\+/\$$VERSION = \"$$version\";/" >> $(ROOT)$(TMP_DIR)/pl.sed; \
-	echo "s/BIN_DIR=.\+/BIN_DIR=\"$$bindir\"/" > $(ROOT)$(TMP_DIR)/sh.sed; \
-	echo "s/ETC_DIR=.\+/ETC_DIR=\"$$etcdir\"/" >> $(ROOT)$(TMP_DIR)/sh.sed; \
-	echo "s/CONF_DIR=.\+/CONF_DIR=\"$$confdir\"/" >> $(ROOT)$(TMP_DIR)/sh.sed; \
-	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$pppddir\"/" >> $(ROOT)$(TMP_DIR)/sh.sed; \
-	echo "s/VERSION=.\+/VERSION=\"$$version\"/" >> $(ROOT)$(TMP_DIR)/sh.sed;
+	echo "s/set BIN_DIR .\+/set BIN_DIR \"$$bindir\"/" > $(TMP_DIR)/tcl.sed; \
+	echo "s/set ETC_DIR .\+/set ETC_DIR \"$$etcdir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set CONF_DIR .\+/set CONF_DIR \"$$confdir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set PPPD_DIR .\+/set PPPD_DIR \"$$pppddir\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/set VERSION .\+/set VERSION \"$$version\"/" >> $(TMP_DIR)/tcl.sed; \
+	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$bindir\";/" > $(TMP_DIR)/pl.sed; \
+	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$etcdir\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$confdir\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$pppddir\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$VERSION =.\+/\$$VERSION = \"$$version\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/BIN_DIR=.\+/BIN_DIR=\"$$bindir\"/" > $(TMP_DIR)/sh.sed; \
+	echo "s/ETC_DIR=.\+/ETC_DIR=\"$$etcdir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/CONF_DIR=.\+/CONF_DIR=\"$$confdir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$pppddir\"/" >> $(TMP_DIR)/sh.sed; \
+	echo "s/VERSION=.\+/VERSION=\"$$version\"/" >> $(TMP_DIR)/sh.sed;
 	@for FILE in $(SCRIPTS); do \
 		head -50 $$FILE | grep -E "^exec wish" > /dev/null; \
 		if [ $$? -eq 0 ]; then \
-			sed -f $(ROOT)$(TMP_DIR)/tcl.sed $$FILE > $(ROOT)$(TMP_DIR)/$$FILE; \
+			sed -f $(TMP_DIR)/tcl.sed $$FILE > $(TMP_DIR)/$$FILE; \
 		else \
 			head -1 $$FILE | grep -E "/bin/perl" > /dev/null; \
 			if [ $$? -eq 0 ]; then \
-				sed -f $(ROOT)$(TMP_DIR)/pl.sed $$FILE > $(ROOT)$(TMP_DIR)/$$FILE; \
+				sed -f $(TMP_DIR)/pl.sed $$FILE > $(TMP_DIR)/$$FILE; \
 			else \
-				sed -f $(ROOT)$(TMP_DIR)/sh.sed $$FILE > $(ROOT)$(TMP_DIR)/$$FILE; \
+				sed -f $(TMP_DIR)/sh.sed $$FILE > $(TMP_DIR)/$$FILE; \
 			fi; \
 		fi; \
-		$(INSTALL_EXEC) $(ROOT)$(TMP_DIR)/$$FILE $(ROOT)$(BIN_DIR); \
+		$(INSTALL_EXEC) $(TMP_DIR)/$$FILE $(BIN_DIR); \
 	done
 	$(MAKE) externdistclean
 
@@ -116,13 +116,13 @@ clean:
 distclean: clean externdistclean
 	$(RM) Makefile.config config.h
 	@for FILE in $(SCRIPTS); do \
-		$(RM) $(ROOT)$(TMP_DIR)/$$FILE; \
+		$(RM) $(TMP_DIR)/$$FILE; \
 	done
 	@./configure --clean
 
 externdistclean:
-	$(RM) $(ROOT)$(TMP_DIR)/*.sed
-	$(RM) -r $(ROOT)$(TMP_DIR)
+	$(RM) $(TMP_DIR)/*.sed
+	$(RM) -r $(TMP_DIR)
 
 modules_conf:
 # check/set ppp_generic, ppp_synctty and n_hdlc aliases in /etc/modules.conf
