@@ -57,6 +57,11 @@
 #10 0x4002ccbe in __libc_start_main () from /lib/libc.so.6
 
     04/12/2001 : malloc() has been removed in this file.
+
+	22/12/2001 : remove the #undef N_HDLC. N_HDLC is needed!!! if you don't
+	use it, you will have severe upload problems. You may need to recompile
+    the n_hdlc kernel module and apply a patch (the instructions are the
+	same for the speedtouch drivers => http://speedtouch.sourceforge.net/)
 */
 
 #include <stdio.h>
@@ -1161,7 +1166,6 @@ int main(int argc, char *argv[])
 	*/
 
 	if(isatty(fdin)) {
-#undef N_HDLC	
 #ifdef N_HDLC
 		int disc = N_HDLC;
 
