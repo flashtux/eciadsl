@@ -667,7 +667,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	by the service name (yyyyy, alphabetical increasing order).
 
 	For instance:
-		>l s /etc/rc.d/rc5.d
+		> ls /etc/rc.d/rc5.d
 	shows
 		S01foo
 		S15bar
@@ -960,7 +960,7 @@ A:	A BSD port of the driver is under development.
 Q:	Can I use this driver under GNU/Hurd, Darwin, QNX or BeOS or other systems?
 
 --------------------------------------------------------------------------------
-A:	The driver is known to be running on many GNU/Linux systemsm, but also on
+A:	The driver is known to be running on many GNU/Linux systems, but also on
 	*BSD (work under progress) other non-Linux kernel based systems are not
 	supported. 
 
