@@ -43,6 +43,7 @@
 #include <linux/atm.h>
 #include <linux/atmdev.h>
 #include <asm/byteorder.h>
+#include <asm/uaccess.h>
 
 #include <linux/spinlock.h>
 
@@ -351,6 +352,16 @@ static inline byte * _uni_cell_getPayload(
 	uni_cell_t *		/* in: the cell			*/
 ) ;
 
+/* Set HEC of header */
+static void _uni_cell_setHEC(
+	uni_cell_t *		/* in: the cell			*/
+) ;
+
+/* Check HEC of header */
+static bool _uni_cell_chkHEC(
+	byte *			/* in: raw cell data		*/
+) ;
+
 /*----------------------------------------------------------------------*/
 
 /*--------------------- U N I  C E L L  Q U E U E ----------------------*/
@@ -554,7 +565,7 @@ static uni_cell_t * _aal5_get_next(aal5_t *) ;
 /* -- Interface -- */
 static int eci_atm_open(struct atm_vcc *vcc,short vpi, int vci);
 static void eci_atm_close(struct atm_vcc *vcc);
-static int eci_atm_ioctl(struct atm_dev *vcc,unsigned int cmd, void *arg);
+static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg);
 static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb);
 
 /* -- Private Functions -- */
@@ -584,7 +595,7 @@ static const struct atmdev_ops eci_atm_devops =
 	open: 	eci_atm_open,
 	send: 	eci_atm_send,
 	close: 	eci_atm_close,
-	ioctl:	NULL /* eci_atm_ioctl */
+	ioctl:	eci_atm_ioctl
 };
 #endif /* __USE_ATM__ */
 
@@ -946,6 +957,7 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf)
 {
 	DBG_OUT("eci_usb_ioctl in\n");
+	DBG_OUT("code : %d\n", code) ;
 	DBG_OUT("eci_usb_ioctl out\n");
 	return -1;
 };
@@ -1024,11 +1036,22 @@ static void eci_atm_close(struct atm_vcc *vcc)
 };
 
 /*----------------------------------------------------------------------*/
-static int eci_atm_ioctl(struct atm_dev *vcc,unsigned int cmd, void *arg)
+static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
 {
+	int lv_res = -EINVAL ;
+
 	DBG_OUT("eci_atm_ioctl in\n");
+	switch (cmd) {
+		case ATM_QUERYLOOP:
+			lv_res = put_user(ATM_LM_NONE, (int*)arg) ? -EFAULT : 0;
+			break ;
+		default:
+			DBG_OUT("not supported IOCTL[%u]\n", cmd) ;
+			lv_res =  -ENOIOCTLCMD;
+			break ;
+	}
 	DBG_OUT("eci_atm_ioctl out\n");
-	return -1;
+	return lv_res ;
 };
 
 /*----------------------------------------------------------------------*/
@@ -1993,6 +2016,12 @@ static uni_cell_t * _uni_cell_fromRaw(
 		return NULL ;
 	}
 
+	/* Check raw cell header */
+	if (!_uni_cell_chkHEC(buffer)) {
+		ERR_OUT("Corrupted header\n") ;
+		return NULL ;
+	}
+	
 	/* Alloc new cell */
 	lp_cell = _uni_cell_alloc() ;
 	if (!lp_cell) {
@@ -2095,13 +2124,15 @@ static int _uni_cell_format(
 	 * HEC : Header Error Control 
 	 * 	= header 8 bit CRC polynomial x^8+x^2+x+1
 	 *
-	 * N.B : It seems that 0 for HEC works
 	 */
 	lp_cell[0] = (byte) ((0x0000)			| (vpi >> 4)) ;
 	lp_cell[1] = (byte) ((vpi << 4)			| (vci >> 12)) ;
 	lp_cell[2] = (byte) (vci >> 4) ;
 	lp_cell[3] = (byte) (((vci & 0x0f) << 4)	| (islast ? 0x02 : 0x00)) ; 
 	lp_cell[4] = (byte) (0x0000) ;
+
+	/* Fill HEC */
+	_uni_cell_setHEC(pcell) ;
 
 	/* Fill the Payload */
 	lp_cell += ATM_CELL_HDR ;
@@ -2223,6 +2254,143 @@ static inline byte * _uni_cell_getPayload(
 	DBG_OUT("_uni_cell_getPayload out\n") ;
 	*/
 	return &(pcell->raw[0]) + ATM_CELL_HDR ;
+}
+
+/*----------------------------------------------------------------------*/
+
+#define COSET_LEADER (unsigned int) 0x055	/* x^6 + x^4 + x^2 + 1  */
+
+/* Array of CRC codes for HEC */
+static unsigned char _syndrome_table[] = {
+	0x00, 0x07, 0x0e, 0x09, 0x1c, 0x1b, 0x12, 0x15,
+	0x38, 0x3f, 0x36, 0x31, 0x24, 0x23, 0x2a, 0x2d,
+	0x70, 0x77, 0x7e, 0x79, 0x6c, 0x6b, 0x62, 0x65,
+	0x48, 0x4f, 0x46, 0x41, 0x54, 0x53, 0x5a, 0x5d,
+	0xe0, 0xe7, 0xee, 0xe9, 0xfc, 0xfb, 0xf2, 0xf5,
+	0xd8, 0xdf, 0xd6, 0xd1, 0xc4, 0xc3, 0xca, 0xcd,
+	0x90, 0x97, 0x9e, 0x99, 0x8c, 0x8b, 0x82, 0x85,
+	0xa8, 0xaf, 0xa6, 0xa1, 0xb4, 0xb3, 0xba, 0xbd,
+	0xc7, 0xc0, 0xc9, 0xce, 0xdb, 0xdc, 0xd5, 0xd2,
+	0xff, 0xf8, 0xf1, 0xf6, 0xe3, 0xe4, 0xed, 0xea,
+	0xb7, 0xb0, 0xb9, 0xbe, 0xab, 0xac, 0xa5, 0xa2,
+	0x8f, 0x88, 0x81, 0x86, 0x93, 0x94, 0x9d, 0x9a,
+	0x27, 0x20, 0x29, 0x2e, 0x3b, 0x3c, 0x35, 0x32,
+	0x1f, 0x18, 0x11, 0x16, 0x03, 0x04, 0x0d, 0x0a,
+	0x57, 0x50, 0x59, 0x5e, 0x4b, 0x4c, 0x45, 0x42,
+	0x6f, 0x68, 0x61, 0x66, 0x73, 0x74, 0x7d, 0x7a,
+	0x89, 0x8e, 0x87, 0x80, 0x95, 0x92, 0x9b, 0x9c,
+	0xb1, 0xb6, 0xbf, 0xb8, 0xad, 0xaa, 0xa3, 0xa4,
+	0xf9, 0xfe, 0xf7, 0xf0, 0xe5, 0xe2, 0xeb, 0xec,
+	0xc1, 0xc6, 0xcf, 0xc8, 0xdd, 0xda, 0xd3, 0xd4,
+	0x69, 0x6e, 0x67, 0x60, 0x75, 0x72, 0x7b, 0x7c,
+	0x51, 0x56, 0x5f, 0x58, 0x4d, 0x4a, 0x43, 0x44,
+	0x19, 0x1e, 0x17, 0x10, 0x05, 0x02, 0x0b, 0x0c,
+	0x21, 0x26, 0x2f, 0x28, 0x3d, 0x3a, 0x33, 0x34,
+	0x4e, 0x49, 0x40, 0x47, 0x52, 0x55, 0x5c, 0x5b,
+	0x76, 0x71, 0x78, 0x7f, 0x6a, 0x6d, 0x64, 0x63,
+	0x3e, 0x39, 0x30, 0x37, 0x22, 0x25, 0x2c, 0x2b,
+	0x06, 0x01, 0x08, 0x0f, 0x1a, 0x1d, 0x14, 0x13,
+	0xae, 0xa9, 0xa0, 0xa7, 0xb2, 0xb5, 0xbc, 0xbb,
+	0x96, 0x91, 0x98, 0x9f, 0x8a, 0x8d, 0x84, 0x83,
+	0xde, 0xd9, 0xd0, 0xd7, 0xc2, 0xc5, 0xcc, 0xcb,
+	0xe6, 0xe1, 0xe8, 0xef, 0xfa, 0xfd, 0xf4, 0xf3
+} ;
+
+/* Error position in the header */
+static int _err_pos[] = {
+	-128,   39,   38,  128,   37,  128,  128,   31,
+	  36,  128,  128,    8,  128,  128,   30,  128,
+	  35,  128,  128,  128,  128,   23,    7,  128,
+	 128,  128,  128,  128,   29,  128,  128,  128,
+	  34,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,   22,  128,    6,  128,  128,  128,
+	 128,    0,  128,  128,  128,  128,  128,  128,
+	  28,  128,  128,  128,  128,  128,  128,  128,
+	  33,  128,  128,   10,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	 128,   12,  128,  128,   21,  128,  128,   19,
+	   5,  128,  128,   17,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,    3,
+	 128,  128,  128,   15,  128,  128,  128,  128,
+	  27,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	  32,  128,  128,  128,  128,  128,    9,  128,
+	 128,   24,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,    1,  128,  128,  128,  128,
+	 128,  128,   11,  128,  128,  128,  128,  128,
+	  20,  128,  128,   13,  128,  128,   18,  128,
+	   4,  128,  128,  128,  128,  128,   16,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,   25,
+	 128,  128,  128,  128,  128,  128,    2,  128,
+	 128,  128,  128,  128,  128,  128,   14,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	  26,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128,
+	 128,  128,  128,  128,  128,  128,  128,  128 
+} ;
+
+/* Set HEC of header */
+static void _uni_cell_setHEC(
+	uni_cell_t *	pcell	/* in: the cell			*/
+) {
+	byte	lv_accum = 0 ;
+	int	i ;
+
+	/* check interface */
+	if (!pcell) {
+		ERR_OUT("Interface error\n") ;
+		return ;
+	}
+
+	for (i = 0; i < 4; i++)
+		lv_accum = _syndrome_table[ lv_accum ^ pcell->raw[i] ] ;
+	pcell->raw[4] = lv_accum ^ COSET_LEADER ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Check HEC of header */
+static bool _uni_cell_chkHEC(
+	byte *	raw			/* in: raw cell data		*/
+) {
+	byte	lv_syndrome ;
+	int	i ;
+	int	lv_err_pos ;
+
+	/* check interface */
+	if (!raw) {
+		ERR_OUT("Interface error\n") ;
+		return false ;
+	}
+
+	/* Compute header HEC */
+	lv_syndrome = 0;
+	for (i = 0; i < 4; i++)
+		lv_syndrome = _syndrome_table[ lv_syndrome ^ raw[i] ] ;
+	lv_syndrome ^= raw[4] ^ COSET_LEADER ;
+
+	lv_err_pos = _err_pos[lv_syndrome] ;
+
+	if (lv_err_pos < 0)
+	{
+		return true ;
+	}
+	else if (lv_err_pos < 40)
+	{
+		raw[lv_err_pos / 8] ^= (0x80 >> (lv_err_pos % 8));
+		DBG_OUT(
+			"Error corrected in cell header for bit [%d]\n",
+			lv_err_pos) ;
+		return true ;
+	}
+	else
+	{
+		ERR_OUT("Uncorrectible error in cell header\n") ;
+		return false ;
+	}
 }
 
 /*----------------------------------------------------------------------*/
@@ -3023,11 +3191,44 @@ static int _aal5_add_cell(
 	} else {
 		paal5->is_complete = true ;
 		
-		/* check given length */
+		/* compute final crc */
+		paal5->_crc 	= ~ _calc_crc(
+					pcell->raw + ATM_CELL_HDR,
+					ATM_CELL_PAYLOAD - 4,
+					paal5->_crc) ;
+
+		/* get given length */
 		lv_length = (pcell->raw[ATM_CELL_SZ - 6] << 8)
 			+ (pcell->raw[ATM_CELL_SZ - 5]) ;
 		lv_length = (lv_length + 8 + 
 				ATM_CELL_PAYLOAD - 1) / ATM_CELL_PAYLOAD ;
+		
+		/* get given CRC */
+		lv_crc =  ((pcell->raw[ATM_CELL_SZ - 4] << 24)	& 0xff000000)
+			+ ((pcell->raw[ATM_CELL_SZ - 3] << 16)	& 0x00ff0000)
+			+ ((pcell->raw[ATM_CELL_SZ - 2] << 8 )	& 0x0000ff00)
+			+ ((pcell->raw[ATM_CELL_SZ - 1])	& 0x000000ff);
+
+		/* compare to given crc */
+		if (lv_crc != paal5->_crc) {
+			ERR_OUT("Invalid crc field in trailer\n") ;
+#ifdef DEBUG
+			if (lv_length > (paal5->nbcells + 1)) {
+				DBG_OUT("We have [%d/%d] cells,"
+						"may miss data",
+						paal5->nbcells + 1,
+						lv_length) ;
+			} else if (lv_length < (paal5->nbcells + 1)) {
+				DBG_OUT("We have [%d/%d] cells,"
+						"may have too much data",
+						paal5->nbcells + 1,
+						lv_length) ;
+			}
+#endif /* DEBUG */
+			return -EINVAL ;
+		}
+		
+		/* check given length */
 		if (lv_length != (paal5->nbcells + 1)) {
 			ERR_OUT("Invalid length field in trailer\n") ;
  			DBG_OUT(
@@ -3037,22 +3238,6 @@ static int _aal5_add_cell(
 			return -EINVAL ;
 		}
 
-		/* compute final crc */
-		paal5->_crc 	= ~ _calc_crc(
-					pcell->raw + ATM_CELL_HDR,
-					ATM_CELL_PAYLOAD - 4,
-					paal5->_crc) ;
-
-		/* compare to given crc */
-		lv_crc =  ((pcell->raw[ATM_CELL_SZ - 4] << 24)	& 0xff000000)
-			+ ((pcell->raw[ATM_CELL_SZ - 3] << 16)	& 0x00ff0000)
-			+ ((pcell->raw[ATM_CELL_SZ - 2] << 8 )	& 0x0000ff00)
-			+ ((pcell->raw[ATM_CELL_SZ - 1])	& 0x000000ff);
-
-		if (lv_crc != paal5->_crc) {
-			ERR_OUT("Invalid crc field in trailer\n") ;
-			return -EINVAL ;
-		}
 		paal5->is_valid = true ;
 	}
 
