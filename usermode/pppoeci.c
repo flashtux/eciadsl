@@ -82,6 +82,7 @@
                      - update max_frame_header_len if necessary 
 */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -108,46 +109,50 @@
 
 #define PPP_BUF_SIZE 64*1024
 
-typedef enum {
-  VCM_RFC2364=0, // must be the first element since (frame_type==0) must mean no encapsulation
-  LLC_RFC2364=1,
-  LLC_SNAP_RFC1483=2,  // flynux's patch
-  modes_count=3
+typedef enum
+{
+	VCM_RFC2364=0, /* must be the first element since (frame_type==0) must mean no encapsulation */
+	LLC_RFC2364=1,
+	LLC_SNAP_RFC1483=2,  /* flynux's patch */
+	modes_count=3
 } encapsulation_mode;
 
-int frame_type=VCM_RFC2364; // defaults to VC Multiplexed PPP (no encapsulation) 
+int frame_type=VCM_RFC2364; /* defaults to VC Multiplexed PPP (no encapsulation) */
 
-const char *mode_name[]={
-  "VCM_RFC2364",
-  "LLC_RFC2364",
-  "LLC_SNAP_RFC1483"
+const char *mode_name[]=
+{
+	"VCM_RFC2364",
+	"LLC_RFC2364",
+	"LLC_SNAP_RFC1483"
 };
 
 #ifdef USE_BIG_ENDIAN
-  #define HDLC_HEADER (short)0xff03
+#define HDLC_HEADER (short)0xff03
 #else
-  #define HDLC_HEADER (short)0x03ff
+#define HDLC_HEADER (short)0x03ff
 #endif
 
-const unsigned char *frame_header[]={
-  "",                                        // VCM_RFC2364 
-  "\xfe\xfe\x03\xcf",                        // LLC_RFC2364
-  "\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00" // LLC_SNAP_RFC1483
+const char *frame_header[]=
+{
+	"",                                        /* VCM_RFC2364 */
+	"\xfe\xfe\x03\xcf",                        /* LLC_RFC2364 */
+	"\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00" /* LLC_SNAP_RFC1483 */
 };
 
 #define max_frame_header_len 10
-const size_t frame_header_len[]={
-  0, // VCM_RFC2364
-  4, // LLC_RFC2364
-  10 // LLC_SNAP_RFC1483
+const size_t frame_header_len[]=
+{
+	0, /* VCM_RFC2364 */
+	4, /* LLC_RFC2364 */
+	10 /* LLC_SNAP_RFC1483 */
 };
 
-//#define CHECK_FRAME_HEADER 1  // just overload i suppose..
+/* #define CHECK_FRAME_HEADER 1  // just overload i suppose.. */
 
 /* main program error codes (must be returned as negative ints) */
 typedef enum
 {
-	ERR_NONE=0,
+	ERR_NONE = 0,
 	ERR_USAGE,
 	ERR_SIGTERM,
 	ERR_OPEN_LOGFILE,
@@ -160,14 +165,14 @@ typedef enum
 	ERR_PUSB_OPEN_EP_DATA_OUT,
 	ERR_PUSB_INIT_EP_INT,
 	ERR_PUSB_INIT_EP_DATA_INT,
-        ERR_WRONG_FRAME_HEADER
+	ERR_WRONG_FRAME_HEADER
 } error_codes;
 
 #define ERR_BUFSIZE (1024 - 1)
 char errText[ERR_BUFSIZE + 1];
 
 #define PAD_SIZE 11
-/*	For debugin only */
+/*	For debugging only */
 void dump_urb(char *buffer, int size);
 
 /* for ident(1) command */
@@ -185,8 +190,8 @@ static const char id[] = "@(#) $Id$";
 #define PKT_NB 10
 
 /* ATM level : adapt according your ADSL provider settings */
-int my_vpi = -1;
-int my_vci = -1;
+unsigned int my_vpi = 0xffff;
+unsigned int my_vci = 0xffff;
 
 unsigned int vendor = 0;
 unsigned int product = 0;
@@ -200,9 +205,9 @@ int pusb_set_interface_alt = 0;
 /* PPP level : DO NOT MODIFY */
 #define syncHDLC 1
 #ifdef syncHDLC
-  #define synclen 2
+#define synclen 2
 #else
-  #define synclen 0
+#define synclen 0
 #endif
 
 /* global parameters */
@@ -216,13 +221,13 @@ pid_t this_process;		/* always the current process pid */
 /* predeclarations */
 
 int aal5_read(unsigned char *cell_buf, size_t count,
-			  unsigned int vpi, unsigned int vci, unsigned int pti, int fdout);
+				unsigned int vpi, unsigned int vci,
+				unsigned int pti, int fdout);
 
 /*
  * variable that will be used in several function
  *   => so global
  */
-
 
 int gfdout;
 int g_fdin;
@@ -300,8 +305,7 @@ unsigned long crc32tab[256] =
 	0xBCB4666DL, 0xB8757BDAL, 0xB5365D03L, 0xB1F740B4L
 };
 
-unsigned int
-calc_crc(unsigned char *mem, int len, unsigned int initial)
+unsigned int calc_crc(unsigned char *mem, int len, unsigned int initial)
 {
 	unsigned int crc;
 
@@ -318,8 +322,7 @@ calc_crc(unsigned char *mem, int len, unsigned int initial)
  * the line printed is not \n terminated
  */
 
-void
-print_time(void)
+void print_time(void)
 {
 	struct timeval tv;
 
@@ -341,17 +344,16 @@ void fatal_error(const error_codes err, const char* text)
 }
 
 #define PRINTCHAR(X) \
-			if ((X) >= ' ' && (X) < 0x7f) \
-				printf("%c", (X)); \
-			/* \
-			else if ((X) == '\r' || (X) == '\n' || (X) == '\t' || (X) == '\b')  \
-				printf("%c", (X)); \
-			*/ \
-			else \
-				printf(".");
+	if ((X) >= ' ' && (X) < 0x7f) \
+		printf("%c", (X)); \
+	/* \
+	else if ((X) == '\r' || (X) == '\n' || (X) == '\t' || (X) == '\b')  \
+		printf("%c", (X)); \
+	*/ \
+	else \
+		printf(".");
 
-void
-dump(unsigned char *buf, int len)
+void dump(unsigned char *buf, int len)
 {
 	int i, j;
 
@@ -377,22 +379,22 @@ dump(unsigned char *buf, int len)
  * 0 should indicates that pppd exited (not tested).
  */
 
-int
-ppp_read(int fd, unsigned char **buf, int *n)
+int ppp_read(int fd, unsigned char **buf, int *n)
 {
 	/*
 	 * we must handle HDLC framing, since this is what pppd
 	 * sends to us. I use some code from rp-pppoe
 	 */
 
-        static unsigned char frame_buf[max_frame_header_len+PPP_BUF_SIZE];
+	static unsigned char frame_buf[max_frame_header_len+PPP_BUF_SIZE];
+	static unsigned char *ppp_buf;
+
 	int r;
-        static unsigned char *ppp_buf;
-        
-        if (frame_type)
-          ppp_buf=frame_buf+frame_header_len[frame_type]-synclen;
-        else
-          ppp_buf=frame_buf;
+
+	if (frame_type)
+		ppp_buf=frame_buf+frame_header_len[frame_type]-synclen;
+	else
+		ppp_buf=frame_buf;
 
 	for (;;)
 	{
@@ -439,24 +441,25 @@ ppp_read(int fd, unsigned char **buf, int *n)
 				message(errText);
 				continue;
 			}
-                        
-                        if (frame_type)
-						{
-                          unsigned char *s;
-                          int i;
-                          int l;
-                          l=frame_header_len[frame_type];
-                          s=(unsigned char*)frame_header[frame_type];
-                          for (i=0;l--;++i)
-                            frame_buf[i]=s[i];
-			  *buf=frame_buf;
-			  *n = r - synclen + frame_header_len[frame_type];
-                        }
-						else
-						{
-                          *buf=frame_buf + synclen;
-			  *n = r - synclen;
-                        }
+
+			if (frame_type)
+			{
+				unsigned char *s;
+				int i;
+				int l;
+
+				l = frame_header_len[frame_type];
+				s = (unsigned char*)frame_header[frame_type];
+				for (i = 0; l--; ++i)
+					frame_buf[i] = s[i];
+				*buf = frame_buf;
+				*n = r - synclen + frame_header_len[frame_type];
+			}
+			else
+			{
+				*buf = frame_buf + synclen;
+				*n = r - synclen;
+			}
 			return(*n);
 		}
 		else
@@ -468,43 +471,44 @@ ppp_read(int fd, unsigned char **buf, int *n)
 
 #define NOBUF_RETRIES 5
 
-int
-ppp_write(int fd, unsigned char *buf, int n)
+int ppp_write(int fd, unsigned char *buf, int n)
 {
 	static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE];
-	int r;
 	static int errs = 0;
+
+	int r;
 	int retries;
 
 	if (syncHDLC)
 	{
 		*(short*)ppp_buf=HDLC_HEADER;
 
-                if (frame_type)
-				{
+		if (frame_type)
+		{
 #ifdef CHECK_FRAME_HEADER 
-                  int l;
-                  int i=0;
-                  for ( l=frame_header_len[frame_type] ; l-- ; ++i )
-				  {
-                    if (((unsigned char*)frame_header[frame_type])[i] != ((unsigned char*)buf)[i])
+			int l;
+			int i = 0;
+
+			for (l = frame_header_len[frame_type]; l--; ++i)
+			{
+				if (((unsigned char*)frame_header[frame_type])[i] != ((unsigned char*)buf)[i])
+				{
+					if (verbose)
 					{
-                      if (verbose)
-					  {
-                        snprintf(errText, ERR_WRONG_FRAME_HEADER,
-                                   "wrong frame header:");
-                        message(errText);
-                        dump(buf, n);
-                      }
-                      return(0); // drop the packet 
-                    }
-                  }
+						snprintf(errText, ERR_WRONG_FRAME_HEADER,
+								"wrong frame header:");
+								message(errText);
+						dump(buf, n);
+					}
+					return(0); /* drop the packet */
+				}
+			}
 #endif
-                  n-=frame_header_len[frame_type];
-                  memcpy(ppp_buf + synclen, buf + frame_header_len[frame_type], n);
-                }
-				else
-                  memcpy(ppp_buf + synclen, buf, n);
+			n -= frame_header_len[frame_type];
+			memcpy(ppp_buf + synclen, buf + frame_header_len[frame_type], n);
+		}
+		else
+			memcpy(ppp_buf + synclen, buf, n);
                 
 		if (verbose > 1)
 		{
@@ -567,10 +571,8 @@ ppp_write(int fd, unsigned char *buf, int n)
  * an AAL5 frame.
  */
 
-int
-cell_read(unsigned char *cellbuf, size_t count, int fdout)
+int cell_read(unsigned char *cellbuf, size_t count, int fdout)
 {
-
 	unsigned int vpi, vci, pti;
 
 	/* decoding & printing of the cell */
@@ -582,12 +584,9 @@ cell_read(unsigned char *cellbuf, size_t count, int fdout)
 	return(aal5_read(cellbuf + CELL_HDR, CELL_DATA, vpi, vci, pti, fdout));
 }
 
-int
-cell_write(unsigned char *cellbuf,
-			 unsigned char *buf, int n,
+int cell_write(unsigned char *cellbuf, unsigned char *buf, int n,
 			 unsigned int vpi, unsigned int vci, unsigned int pti)
 {
-
 	unsigned char gfc = 0;
 	unsigned char hec = 0x00; /* change to the value used in the Windows driver */
 
@@ -617,11 +616,9 @@ cell_write(unsigned char *cellbuf,
  * (0 otherwise)
  */
 
-int
-aal5_read(unsigned char *cell_buf, size_t count,
+int aal5_read(unsigned char *cell_buf, size_t count,
 		unsigned int vpi, unsigned int vci, unsigned int pti, int fdout)
 {
-
 	static unsigned char buf[64 * 1024];
 	static int len = 0;
 
@@ -727,8 +724,7 @@ aal5_read(unsigned char *cell_buf, size_t count,
  * with its layer.
  */
 
-int
-aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
+int aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 {
 	/* add the trailer */
 	int total_len = 48 * ((n + 8 + CELL_DATA - 1) / 48);
@@ -822,12 +818,12 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 }
 /* returns -1 in case of errors */
 
-int
-decode_usb_pkt(unsigned char *buf, int len)
+int decode_usb_pkt(unsigned char *buf, int len)
 {
-	int r;
 	static unsigned char rbuf [64 * 1024];
 	static int rlen = 0;
+
+	int r;
 	int pos;
 
 	/* debug message */
@@ -874,40 +870,38 @@ decode_usb_pkt(unsigned char *buf, int len)
 	return(0);
 }
 
-void
-version(void)
+void version(void)
 {
 	fprintf(stderr, "pppoeci version $Name$ (built on %s %s)\n", __DATE__, __TIME__);
 	exit(ERR_NONE);
 }
 
-void
-usage(const int return_an_error)
+void usage(const int return_an_error)
 /* if 'error' is 0, usage() hasn't to quit with an <0 error code */
 {
 
 
 	fprintf(stderr,	"pppoeci version $Name$\n"
 					"usage:\n"
-					"  pppoeci [switches..] -vpi num -vci num -vendor hex -product hex\n"
-					"switches:\n"
+					"  pppoeci [switches..] -vpi num -vci num -vendor hex -product hex\n");
+	fprintf(stderr,	"switches:\n"
 					"  -alt num        : force the use of an alternate method to set USB interface\n"
                                         "  -mode <name>    : PPP encapsulation method (LLC_RFC2364 or LLC_SNAP_RFC1483)\n"
 					"  -v              : defines the verbosity level [0-2] (enables logging)\n"
 					"  -f              : defines the log filename to use (default " LOG_FILE ")\n"
 					"  --help          : this message\n"
 					"  --version       : displays the version number then exit\n"
-					"\n"
-					"The vpi and vci are numerical values. They define the vpi.vci that\n"
+					"\n");
+	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci that\n"
 					"your provider is using (for instance: 8.35 for France, 0.38 for UK).\n"
-					"\n"
-					"The vendor and product are hexadecimal values (4-digit max with a leading 0x)\n"
+					"\n");
+	fprintf(stderr,	"The vendor and product are hexadecimal values (4-digit max with a leading 0x)\n"
 					"They define the vendor ID and product ID (for instance: 0x0915/0x8000 for\n"
 					"an ECI Telecom USB ADSL Wan Modem).\n"
-                                        "\n"
-                                        "The encapsulation mode may change depending on the country/provider/modem.\n"
-                                        "If you experience LCP requests timeout at connect time, try another one\n"
-                                        "(eg: LLC_RFC2364 for switzerland). The default is VC Multiplexed PPP (none)\n\n");
+					"\n");
+	fprintf(stderr,	"The encapsulation mode may change depending on the country/provider/modem.\n"
+					"If you experience LCP requests timeout at connect time, try another one\n"
+					"(eg: LLC_RFC2364 for switzerland). The default is VC Multiplexed PPP (none)\n\n");
 	exit(return_an_error?ERR_USAGE:ERR_NONE);
 }
 
@@ -926,6 +920,7 @@ int init_ep_int(pusb_endpoint_t ep_int)
 
 #define NB_PKT_EP_INT 64
 	static unsigned char buf[NB_PKT_EP_INT][0x40];
+
 	int i, ret;
 
 	for (i = 0; i < NB_PKT_EP_INT; i++)
@@ -951,6 +946,7 @@ int init_ep_int(pusb_endpoint_t ep_int)
 int init_ep_data_in(pusb_endpoint_t ep_data_in)
 {
 	static unsigned char buf[NB_PKT_EP_DATA_IN][MAX_EP_SIZE * PKT_NB];
+
 	int i, ret;
 
 	for (i = 0; i < NB_PKT_EP_DATA_IN; i++)
@@ -978,26 +974,25 @@ void replace_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount){
 	*/
 
 	static int count = 0;
-	
 	static unsigned char replace_b1[] =
 	{
 		0x73, 0x73, 0x63, 0x63, 0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63, 0x63
 	};
-
 	static unsigned char replace_b2[] =
 	{
 		0x11, 0x11, 0x01, 0x01,0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
 	};
-	if(resetcount>=2){
-		count=0;
-	}
+
+	if (resetcount >= 2)
+		count = 0;
 	*b1 = replace_b1[count];
 	*b2 = replace_b2[count];
 
 	count = (count + 1) % 12;
 
-//if (count == 0)
-//		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
+/*	if (count == 0)
+		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
+*/
 }
 
 
@@ -1014,31 +1009,28 @@ void replace53_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount)
 	{
 		0x53, 0x53, 0x43, 0x43, 0x43, 0x43, 0x53, 0x53, 0x43, 0x43, 0x43, 0x43
 	};
-
 	static unsigned char replace_b2[] =
 	{
 		0x11, 0x11, 0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
 	};
-if(resetcount>=2){
-	count=0;
-}
+
+	if (resetcount >= 2)
+		count = 0;
 	*b1 = replace_b1[count];
 	*b2 = replace_b2[count];
 
 	count = (count + 1) % 12;
 
-//	if (count == 0)
-//replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
+/*	if (count == 0)
+		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
+*/
 }
-
-
-
-
-
 
 
 void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 {
+	static int lost_synchro = 0;
+
 	unsigned char outbuf[40] =
 	{
 		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
@@ -1047,11 +1039,10 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
 		0x0c, 0x0c
 	};
-
 	int i, outi = 0;
-	static int lost_synchro = 0;
-int replace73reset=0;
-int replace53reset=0;
+	int replace73reset = 0;
+	int replace53reset = 0;
+
 	if (verbose > 1)
 	{
 		snprintf(errText, ERR_BUFSIZE,
@@ -1060,32 +1051,30 @@ int replace53reset=0;
 		dump(buf, size);
 	}
 
-if (!lost_synchro || 1)
+	if (!lost_synchro || 1)
 	{
-	        replace73reset=0;
-		replace53reset=0;
+		replace73reset = 0;
+		replace53reset = 0;
 		for (i = 3; i < 18; i++)
 		{
 			unsigned short w = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
 
-if(w==0x7311){
-	replace73reset++;
-}else{
-	replace73reset=0;
-}
-if(w==0x5311){
-	replace53reset++;
-}else{
-	replace53reset=0;
-}
-			
-//responses are as follows
-//73 11 -> 63 13 && 63 01 && 73 11
-//53 11 -> 53 11 && 43 01
-//everything else -> it's self
+			if (w == 0x7311)
+				replace73reset++;
+			else
+				replace73reset = 0;
+			if (w == 0x5311)
+				replace53reset++;
+			else
+				replace53reset = 0;
 
-if (w != 0x0c0c &&
-				w != 0x734d && w != 0x7311 && w != 0xf301 && w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w!=0xf313 && w!=0x7341) //also 73 41 
+			/* responses are as follows
+			   73 11 -> 63 13 && 63 01 && 73 11
+			   53 11 -> 53 11 && 43 01
+			   everything else -> it's self
+			*/
+			if (w != 0x0c0c && w != 0x734d && w != 0x7311 && w != 0xf301
+				&& w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w!=0xf313 && w!=0x7341) /* also 73 41 */
 			{
 
 				snprintf(errText, ERR_BUFSIZE,
@@ -1316,7 +1305,7 @@ void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 	message("end of handle_ep_data_out");
 }
 
-void * fn_handle_ep_data_out(void * ignored)
+void* fn_handle_ep_data_out(void* ignored)
 {
 	handle_ep_data_out(ep_data_out, g_fdin);
 
@@ -1353,12 +1342,12 @@ void get_signed_value(const char* param, int* var)
 		*var = value;
 }
 
-void get_hexa_value(const char* param, int* var)
+void get_hexa_value(const char* param, unsigned int* var)
 {
-	int value;
+	unsigned int value;
 	char* chk;
 
-	value = (unsigned int) strtoul(param, &chk, 0);
+	value = strtoul(param, &chk, 0);
 	if (! *chk)
 		*var = value;
 }
@@ -1398,28 +1387,28 @@ int main(int argc, char *argv[])
 		}
 		else
 			if ((strcmp(argv[i], "-mode") == 0) && (i + 1 < argc))
-            {
-			   int j;
-               char *mode;
+			{
+				int j;
+				char *mode;
 
-               mode=argv[++i];
-               j=-1;
-               while (++j<modes_count)
-		       {
-                  if (!strcasecmp(mode,mode_name[j]))
-				  {
-                     frame_type=j;
-                     break;
-                  }
-               }
-               if (frame_type!=j)
+				mode=argv[++i];
+				j=-1;
+				while (++j<modes_count)
+				{
+					if (!strcasecmp(mode,mode_name[j]))
+					{
+						frame_type=j;
+						break;
+					}
+				}
+				if (frame_type!=j)
 					usage(1);
-            }
-            else
-				usage(1);
+			}
+			else
+			usage(1);
 	}
 
-	if (my_vci < 0 || my_vpi < 0
+	if (my_vci == 0xffff || my_vpi == 0xffff
 		|| verbose < 0 || verbose > 2
 		|| vendor == 0 || product == 0
 		|| pusb_set_interface_alt < 0)

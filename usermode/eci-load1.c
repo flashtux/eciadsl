@@ -132,8 +132,10 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
   a bug when eci-load1 is launch by initlog (like in boot script).
 */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/signal.h>

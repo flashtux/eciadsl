@@ -11,8 +11,8 @@
 # 15/02/2002 suggestion from Dumas Patrice <dumas@centre-cired.fr>
 #   added ETCDIR, prefix and binprefix
 
-CFLAGS += -Wall -g
-LDFLAGS += -g -Wall -lpthread
+CFLAGS += -Wall -ansi -pedantic
+LDFLAGS += -ansi -pedantic -Wall -lpthread
 
 # you can define ROOT by "make ROOT=/tmp" else it defaults to /
 ROOT ?= /

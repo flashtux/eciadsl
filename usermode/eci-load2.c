@@ -22,6 +22,7 @@
   a bug when eci-load2 is launch by initlog (like in boot script).
 */
 
+#define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

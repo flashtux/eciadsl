@@ -25,6 +25,7 @@
 #include <errno.h>
 #include <string.h>
 
+#include <linux/limits.h>
 #include <linux/usb.h>
 #include <linux/usbdevice_fs.h>
 #include <asm/page.h>
@@ -378,13 +379,13 @@ int pusb_endpoint_write(pusb_endpoint_t ep,
 		return pusb_endpoint_rw_no_timeout(
 				ep->fd,
 				ep->ep | USB_DIR_OUT,
-				(unsigned char*) buf,	// Not supposed to be filled
+				(unsigned char*) buf,	/* Not supposed to be filled */
 				size);
 	
 	return pusb_endpoint_rw(
 			ep->fd,
 			ep->ep | USB_DIR_OUT,
-			(unsigned char*)buf,	// Not supposed to be filled
+			(unsigned char*)buf,	/* Not supposed to be filled */
 			size,
 			timeout);
 }
@@ -578,7 +579,7 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 		offset = 0;
 		for (i=0;i<purb->number_of_packets && i<MAXBUFFER;i++)
 		{
-			urb->buf[i] = purb->buffer + offset;
+			urb->buf[i] = (unsigned char*)purb->buffer + offset;
 			urb->buf_size[i] = purb->iso_frame_desc[i].actual_length;
 /*
 			printf("size [%d] = %p / %d\n",i,urb->buf[i], urb->buf_size[i]);
