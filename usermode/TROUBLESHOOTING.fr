@@ -1,1 +1,638 @@
-Pas encore mis à jour/traduit!
+TROUBLESHOOTING FAQ
+===================
+
+
+PUBLIC CONCERNE
+===============
+
+	Utilisateurs du modem ECI ADSL USB (jusqu'à la version 0.6).
+
+
+PRE-REQUIS
+==========
+
+	- un système GNU/Linux (architecture x86) avec les outils standards
+	  (les MDK9/RH8/très récente/exotique peuvent avoir des problèmes (résolvables), BSD
+	  et autres systèmes ne sont pas encore officiellement supportés).
+	- support matériel USB 1.1
+	- noyau Linux 2.4.x (>=2.4.18-pre3 ou <2.4.18-pre3+patch N_HDLC
+      pour avoir la reconnection automatique pppd, ce qui est
+      recommandé)
+		- support USB support (sous forme de modules):
+			- support USB
+			- "USB preliminary fs"
+			- votre "HUB USB controller" EN MODULE
+			- pas de module DABUSB
+		- support PPP (y compris le package ppp usermode >=2.4.0)
+	- outils de développement standards (sources Linux dans /usr/src/linux,
+	  outils GNU comme gcc>=2.91.66, GNU make, etc.)
+	- un seul HUB ?
+	- modem USB (avec puce GlobeSpan *seuleument*)
+	- bash (>=2.x.x)
+	- facultatif: tcl/tk >= 8.x.x
+	- droits root
+
+
+COMMENT OBTENIR DE L'AIDE
+=========================
+
+	Support, packages (driver et .bin optionnels) et documentation:
+		- IRC: openprojects.net, canal #eci
+		- http://eciadsl.sf.net ou http://eciadsl.flashtux.org
+		  (documentation, forum, liste de diffusion pour utilisateurs, etc.)
+		  
+	Nous assurons un support en français et anglais.
+
+
+INFOS A NOUS COMMUNIQUER
+========================
+
+	- version du noyau (tapez: `uname -a` ou `cat /proc/version`). Dites-nous si
+	  le noyau est de votre distribution ou si vous l'avez compilé depuis les sources
+	- distribution Linux
+	- version de pppd (tapez: `pppd --version`)
+	- version de modutils (tapez: `lsmod --version`)
+	- modèle du controleur USB (HUB) (tapez: `lspci|grep USB`)
+	- version du driver eciadsl (regardez le fichier VERSION s'il existe pour version >0.5,
+	  sinon le nom du package ou la date du CVS) et :
+		- les informations sur votre driver Windows si vous l'utilisez
+          (at aussi le type de modulation que votre fournisseur supporte)
+		- les .bin de synchronisation que vous avez essayés
+	- votre modem (fabricant/modèle)
+	- votre position géographique (pays/département/ville), votre fournisseur d'accès
+	- votre niveau d'expérience (par exemple: débutant, quelques notions, confirmé,
+	  expérimenté, gourou)
+
+Cela nous aidera grandement si vous nous fournissez toutes ces infos. Capturez aussi la sortie
+des outils du driver que vous avez lancés (script de configuration ou startmodem),
+et donnez nous aussi votre /var/log/messages, /var/log/dmesg si disponible, la sortie0
+de `lsmod` et de `cat /proc/bus/usb/devices`.
+
+Si vous nous contactez depuis Windows, et si votre partition Linux (ext2 ou ext3 seulement)
+est sur la même machine, utilisez explore2fs pour lire les fichiers directement depuis votre
+partition Linux, au lieu de rebooter Linux à chaque fois pour récupérer un fichier !
+explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
+
+
+QUESTIONS FREQUEMMENT POSEES ET PROBLEMS COURANTS
+=================================================
+
+Avant lisez ceci :
+la liste suivante de questions/réponses n'est *pas* exhaustive.
+Il est donc possible que vous ne trouviez pas de question/réponse correspondant
+à votre problème.
+Lisez les quand même SVP, elles peuvent vous aider à corriger votre problème.
+Et même si votre problème est mentionné ci-dessous, il est possible que la réponse
+ne vous aide pas à corriger le problème. Alors contactez-nous, nous essaierons de
+vous aider et de trouver une solution.
+
+
+================================================================================
+Q:	Je ne sais pas si mon modem est supporté.
+
+--------------------------------------------------------------------------------
+R:	Vérifiez les pré-requis.
+
+	Vérifiez ici: http://eciadsl.flashtux.org/modems.php.
+	
+	Installez la dernière version du driver, lancez alors startmodem ou eci-doctor.sh,
+	s'ils affichent des erreurs, essayez de lancer probe_device.sh pour vérifier la
+	compatibilité avec votre modem. Si vous avez un doute, contactez-nous !
+
+
+================================================================================
+Q:	startmodem ou eci-doctor.sh signale un modem non supporté !
+
+--------------------------------------------------------------------------------
+R:	Voir la question précédente.
+
+	Voir aussi la question sur le module dabusb, si dabusb est chargé,
+	vous ne pourrez pas utilisé votre modem avec le driver.
+
+
+================================================================================
+Q:	startmodem ou eci-doctor.sh affiche :
+	/proc/bus/usb: No such file or directory
+
+--------------------------------------------------------------------------------
+R:	Vérifiez votre configuration USB. Cela pourrait être du à l'absence de support
+	usbdevfs dans la configuration de votre noyau. Si le noyau l'inclut, essayez
+	de le monter en tapant :
+		mount -t usbdevfs none /proc/bus/usb
+	Ceci peut être mis dans votre /etc/fstab pour le monter automatiquement au boot,
+	ajoutez cette ligne:
+		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
+
+
+================================================================================
+Q:	eci-doctor.sh m'indique que le module DABUSB est chargé, ou startmodem 
+    dit que avoir trouvé dabusb, mais je ne peux pas l'enlever !
+
+--------------------------------------------------------------------------------
+R:	Vous pouvez supprimer le module dabusb de votre système en utilisant eciconf.sh.
+
+	Vous pouvez aussi directement appeler remove_dabusb.
+
+	Ou, manuellement, débranchez votre modem, et tapez les commandes suivantes :
+		modprobe -r dabusb
+		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
+		depmod -a
+
+	Si le module ne peut pas être déchargé, essayer d'entrer en mode init 1 (fermez toutes
+	les applications, allez en mode console, logguez vous en root et tapez `init 1`,
+	et lancez enfin remove_dabusb).
+
+	Si le noyau a été compilé à la main, n'oubliez ps de retirer dabusb de la configuration
+	du noyau.
+
+
+================================================================================
+Q:	Pas moyen de supprimer dabusb ! A chaque démarrage, il est de nouveau chargé !
+
+--------------------------------------------------------------------------------
+R:	Voir la question précédente, utilisez la méthode manuelle.
+
+
+================================================================================
+Q:	J'essaie de supprimer le module dabusb, mais j'obtiens toujours :
+	dabusb: Device or resource busy
+
+--------------------------------------------------------------------------------
+R:	Voir la question précédente.
+
+
+================================================================================
+Q:	Mon modem semble initialisé au démarrage, les LEDs clignotent ou sont fixes.
+	Cela signifie-t-il que mon modem est supporté et que je n'ai pas besoin
+	d'installer le driver?
+
+--------------------------------------------------------------------------------
+R:	Non ! Ceci n'est pas bon.
+	Le coupable est le module dabusb. Voir la question précédente.
+
+
+================================================================================
+Q:	eci-doctor.sh affiche :
+	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
+
+--------------------------------------------------------------------------------
+R:	Suivez les pré-requis, lisez la documentation sur le problème N_HDLC.
+
+	Si vous voulez utiliser l'option 'persist' de pppd pour vous reconnecter
+	automatiquement en cas de déconnection du fournisseur, alors vous devez patcher
+	votre noyau ou utiliser un noyau >=2.4.18-pre3.
+	Vous pouvez trouver le patch n_hdlc.c.diff dans l'archive du driver pour le modem
+	Speedtouch ici : http://speedtouch.sourceforge.net/.
+	Les instructions pour l'installer sont les suivantes :
+		cd /usr/src/linux
+		patch -p1 --dry-run < /path/to/n_hdlc.c.diff
+
+	S'il n'y a pas de message d'erreur renvoyé par la commande patch, tapez la commande
+	suivante pour applique le patch sur les sources :
+		patch -p1 < /path/to/n_hdlc.c.diff
+	et regardez la question sur la configuration du noyau (ci-dessous).
+
+
+================================================================================
+Q:	startmodem affiche : ECI-load1: timeout
+
+--------------------------------------------------------------------------------
+R:	Votre modem n'est probablement pas supporté, lisez cette FAQ depuis
+	le début.
+
+
+================================================================================
+Q:	startmodem affiche : ECI-load2: timeout
+
+--------------------------------------------------------------------------------
+R:	Voir la question suivante.
+
+
+================================================================================
+Q:	startmodem s'arrête au bloc xxx
+
+--------------------------------------------------------------------------------
+R:	Suivez les pré-requis.
+
+	Téléchargez une version plus récente du driver (utilisateurs de la 0.5 : prenez la dernière CVS)
+
+	Essayez d'autres .bin de synchronisation (.bin disponibles sur le site).
+
+
+================================================================================
+Q:	startmodem est OK, mais je ne peux toujorus pas surfer sur Internet ?
+
+--------------------------------------------------------------------------------
+R:	Voir la question précédente.
+
+	Si vous pouvez pinger une IP mais pas un nom de machine, vérifiez votre fichier
+	/etc/resolv.conf, il doit inclure les IP des DNS de votre fournisseur.
+	Par exemple (DNS pour Wanadoo en France) :
+		nameserver 193.252.19.3
+		nameserver 193.252.19.4
+	Vous pouvez modifier les DNS avec eciconf.sh.
+
+	Si vous ne pouvez toujours pas atteindre un nom de machine avec nslookup, essayez
+	les commandes suivantes et envoyez-nous la sortie :
+	- route -n (ou netstat -rn)
+
+	  Kernel IP routing table
+	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+	* 80.14.50.1      0.0.0.0         255.255.255.255 UH       40 0          0 ppp0
+	* 10.0.0.0        0.0.0.0         255.255.255.0   U        40 0          0 eth0
+	* 127.0.0.0       0.0.0.0         255.0.0.0       U        40 0          0 lo
+	  0.0.0.0         80.14.50.1      0.0.0.0         UG       40 0          0 ppp0
+
+	  Les lignes avec un * devant sont optionnelles, votre réseau local eth doit différer
+	  de 10.0.0.0 (si vous en avez un).
+	  La ligne UG doit apparaître, cela indique la route par défaut vers le gateway.
+
+	- ifconfig ppp0
+
+	  ppp0    Link encap:Point-to-Point Protocol  
+			  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
+			  UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+			  RX packets:80951 errors:0 dropped:0 overruns:0 frame:0
+			  TX packets:85395 errors:0 dropped:0 overruns:0 carrier:0
+			  collisions:0 txqueuelen:3 
+
+	  Les IP et les autres valeurs peuvent différer de celles présentées ci-dessus.
+
+	Si l'interface ppp0 n'est pas active, regardez s'il y a des erreurs dans
+    /var/log/messages ou /var/log/ppp après avoir lancé startmodem.
+
+	Si la route par défaut (UG) est eth0, supprimez-là :
+		route del default -net eth0
+	ou supprimez la ligne passerelle ("gateway") de votre /etc/sysconfig/network,
+	ou désactivez votre réseau LAN avant de lancer startmodem.
+
+	Si votre route par défaut n'est PAS ppp0 bien que ppp soit actif :
+		route add default dev ppp0
+
+
+================================================================================
+Q:	J'obtiens des lignes LCP timeout dans /var/log/messages puis un Modem hangup
+	(et éventuellement un autre problème entre les deux) :
+		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
+		..
+		LCP: timeout sending Config-Requests
+		Connection terminated.
+
+--------------------------------------------------------------------------------
+R:	Votre noyau est-il vraiment OK ? Le support N_HDLC est OK ?
+
+	Vérifiez votre version de pppd.
+
+	Regardez aussi la question suivante, car des problèmes d'authentification
+    CHAP/PAP ne sont pas toujours affichés clairement par pppd.
+
+	Regardez ci-dessous les questions concernant les utilisateurs hors de France.
+
+
+================================================================================
+Q:	/var/log/messages affiche des erreurs CHAP ou PAP.
+
+--------------------------------------------------------------------------------
+R:	Vérifiez votre fichier /etc/ppp/pap-secrets	ou /etc/ppp/chap-secrets.
+	La ligne doit être comme ceci :
+		"username" * "userpassword" *
+	Vous pouvez configurer ceci en utilisant eciconf.
+
+
+================================================================================
+Q:	Je vois parfois des LCP timeouts dans /var/log/messages, mais ma connection
+	est toujours active ou ça ne me déconnecte pas à chaque fois.
+
+--------------------------------------------------------------------------------
+R:	Essayez de décommenter les deux lignes sur les LCP dans /etc/ppp/peers/adsl,
+	et augmentez peut-etre fortement les valeurs.
+
+	Ceci peut aussi être du à votre fournisseur d'accès, attendez quelques
+    minutes/heures si vous ne pouvez toujours pas vous connecter.
+	Si les LCP timeouts ne perturbent pas votre connection PPP, alors oubliez-les.
+
+
+================================================================================
+Q:	J'obtiens ces lignes dans /var/log/messages:
+	ioctl(PPPIOCGFLAGS): Inappropriate ioctl for device
+	Connexion failed
+
+--------------------------------------------------------------------------------
+R:	Varifiez votre configuration du noyau (ci-dessous).
+
+	Mettez à jour votre driver EciAdsl.
+
+	Essayez un autre .bin de synchronisation.
+
+	Ceci peut arriver quand le l'appel de pppoeci dans le fichier /etc/ppp/peers/adsl
+	est erroné (peut-être parce que le fichier a été édité à la main ?).
+	Par exemple, l'utilisation de "-vendor 0915" est erronée. La syntaxe correcte est
+	"-vendor 0x0915". Utilisez eciconf.sh pour configurer correctement le driver !
+
+
+================================================================================
+Q:	J'obtiens des lignes "USB timeout" dans /var/log/messages.
+
+--------------------------------------------------------------------------------
+R:	Essayez de décommenter la ligne MTU dans le fichier /etc/ppp/peers/adsl.
+
+
+================================================================================
+Q:	La ligne PPP tombe parfois (modem hangup).
+
+--------------------------------------------------------------------------------
+R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du fournisseur ou
+	encore à la déconnection journalière impliquée par le fournisseur (liste non exhaustive).
+
+	Activez l'option 'persist' pour pppd dans le fichier /etc/ppp/peers/adsl (ceci
+	requiert le support N_HDLC dans le noyau, regardez la question concernant la
+	configuration du noyau ci-dessous).
+
+	Vous pouvez aussi utiliser un script de reconnection automatique, et biensur
+	vérifier que votre configuration est OK.
+
+
+================================================================================
+Q:	J'obtiens des modem hangups mais mon problème n'est pas référencé dans les questions
+	précédentes, ou mon modem s'éteint !
+
+--------------------------------------------------------------------------------
+R:	Votre chipser USB est-il un VIA ? Certains sont connus pour être buggés et causent
+	des problèmes pour l'alimentation USB. Si votre modem s'éteint, vous êtes
+	dans ce cas.
+
+	Sur certains systèmes (chipset USB buggé ou vieux processeur), ceci peut arriver
+	lorsque vous utilisez plusieurs périphériques USB qui consomment beaucoup d'énergie
+	(périphériques vidéo, disque dur).
+
+	<A FAIRE: ajouter d'autres cas du modem hangup>
+
+
+================================================================================
+Q:	Je vois d'étranges caractères dans le terminal/console après que startmodem soit
+	fini, et je n'obtiens pas de connection PPP :
+	Connect Modem ...
+	~ÿ}#À!}!}!} }4}"}&} } } } }%}&øïpÆ}
+
+--------------------------------------------------------------------------------
+R:	Vous n'avez pas bu, pppd ne peut pas communiquer avec pppoeci (composant du driver)
+	et cela provient soit d'une mauvaise version de pppd, soit d'une mauvaise configuration
+	de pppd dans le noyau, ou parce que vous utilisez le driver sur un système qui ne le
+	supporte pas.
+	Vérifiez aussi votre fichier /etc/ppp/peers/adsl file. Il se peut que appel de pppoeci
+	soit erroné, ou bien le fichier n'existe pas du tout (ou est vide).
+
+
+================================================================================
+Q:	Est-il possible de lancer startmodem au démarrage de Linux ?
+
+--------------------------------------------------------------------------------
+R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les utilisateurs
+	Debian. Certains scripts pré-configurés sont disponibles, cherchez-les sur google
+	ou téléchargez l'archive cnx, disponible dans la section Téléchargement du site
+	officiel eciadsl.
+
+
+================================================================================
+Q:	Je ne peux pas me connecter en console alors que cela fonctionne bien sous X11.
+
+--------------------------------------------------------------------------------
+R:	<A FAIRE: essayer d'expliquer pourquoi on ne sait pas (encore)>
+
+
+================================================================================
+Q:	Je ne peux pas me connecter sous X11 alors que cela fonctionne bien en console.
+
+--------------------------------------------------------------------------------
+R:	<A FAIRE: essayer d'expliquer pourquoi on ne sait pas (encore)>
+
+
+================================================================================
+Q:	Comment configurer correctement le noyau depuis les sources pour inclure le
+	support USB/PPP/N_HDLC ?
+
+--------------------------------------------------------------------------------
+R:	Tapez les commandes suivantes :
+		cd /usr/src/linux
+		make -s menuconfig
+
+		  USB support --->
+		  <M> Support for USB
+		  [ ]   USB verbose debug messages
+		  --- Miscellaneous USB options
+		  [*]   Preliminary USB device filesystem
+		  [ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)
+		  [ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)
+		  --- USB Host Controller Drivers
+		  < >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)
+		  <M>   UHCI (Intel PIIX4, VIA, ...) support
+		  <M>   UHCI Alternate Driver (JE) support
+		  <M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
+		  ..
+		  --- USB Multimedia devices
+		  ..
+		  < >   DABUSB driver
+		  ..
+
+		  Character devices --->
+		  ..
+		  [*] Non-standard serial port support
+		  <M>   HDLC line discipline support
+		  ..
+
+		  Network device support --->
+		  ..
+		  <M> PPP (point-to-point protocol) support
+		  [ ]	PPP multilink support (EXPERIMENTAL)
+		  <M>	PPP support for async serial ports
+		  <M>	PPP support for sync tty ports
+		  <M>	PPP Deflate compression
+		  <M>	PPP BSD-Compress compression
+		  < >	PPP over Ethernet (EXPERIMENTAL)
+		 ..
+
+		make -s dep modules modules_install && depmod -a
+
+	ou la commande que vous utilisez habituellement pour compiler et installer les modules du noyau.
+	Faites aussi un make -s bzImage si le support PPP ou USB était dans le noyau au lieu d'être
+	en modules !
+ 	Vous pouvez compiler tous les modules de controleurs USB mais vous devez impérativement n'utiliser
+	que celui qui correspond à votre matériel !
+	DABUSB doit être désactivé.
+
+	Mettez à jour modutils.
+
+	Vous devez alors voir les modules suivants quand vous tapez modeprobe -l:
+		usbcore
+	et
+		usb-uhci ou ush-ohci ou uhci
+	et
+		ppp_generic ppp_async ppp_synctty bsd_comp ppp_deflate
+	et aussi
+		n_hdlc
+
+	Ajoutez ces lignes dans votre /etc/modules.conf si elles n'y sont pas déjà :
+		alias char-major-108 ppp_generic
+		alias /dev/ppp ppp_generic
+		alias tty-ldisc-3 ppp_async
+		alias tty-ldisc-13 n_hdlc
+		alias tty-ldisc-14 ppp_synctty
+		alias ppp-compress-21 bsd_comp
+		alias ppp-compress-24 ppp_deflate
+		alias ppp-compress-26 ppp_deflate
+		alias char-major-180 usbcore
+	et
+		alias usb-hostadapter usb-uhci
+	ou	alias usb-hostadapter usb-ohci
+	ou	alias usb-hostadapter uhci
+	et enfin tapez :
+		touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+
+
+================================================================================
+Q:	J'obtiens un kernel panic/oops comme ceci :
+	<A FAIRE: insérer un exemple de kernel panic>
+
+--------------------------------------------------------------------------------
+R:	Attendez la version eciadsl 0.7 (il semblerait que le driver ne purge pas
+	correctement les URBs an cas de déconnexion).
+	
+	<A FAIRE: décrire les autres problèmes : instabilité OHCI, bugs USB du noyau>
+
+
+================================================================================
+Q:	J'obtiens ce message dans /var/log/messages:
+	kernel: usb-uhci.c: ENXIO 80000880, flags 0, urb c5205d60, burb c2ad1120
+
+--------------------------------------------------------------------------------
+R:	<A FAIRE: décrire les problèmes avec les "endpoints" URB>
+
+
+================================================================================
+Q:	Je ne suis pas en France, le driver fonctionnera-t-il avec mon modem et mon fournisseur ?
+
+--------------------------------------------------------------------------------
+R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste des
+	modems supportés et qu'il n'est PAS dans la liste des NON supportés, demandez-nous
+	pour plus d'aide.
+
+	Regardez quel protocole est utilisé dans votre driver Windows. S'il s'agit de PPPoE
+	ou d'un autre protocole/couche, il se peut que la version actuelle du driver ne le
+	supporte pas encore. Attendre une future version officielle (regardez la versin
+	CVS de toutes façons).
+
+	Vous pouvez aussi rencontrer des problèmes si votre fournisseur ne nécessite pas d'authentification,
+	s'il fournit des services DHCP ou d'adresse IP fixe, ou tout autre fonctionnalité exotique.
+
+	Les utilisateurs de Belgique ou d'Italie : regardez les sites suivants pour des patchs
+	spacifiques :
+		http://www.prout.be/ECI/
+		http://www.hctechnews.org/
+
+
+================================================================================
+Q:	Je ne suis pas en France, mon modem est supporté et startmodem est OK, mais
+	j'ai des problèmes avec pppd (par exemple des problèmes LCP).
+
+--------------------------------------------------------------------------------
+R:	Vérifiez que votre modem est supporté et que l'installation et la configuration
+	sont OK.
+
+	Mettez à jour votre driver eciadsl (possesseurs de la version 0.5 : télécharger la dernière CVS)
+
+	Essayez d'autre .bin de synchronisation.
+
+	Regardez les précédentes questions.
+	
+	Vous pouvez aussi utiliser ces options pour l'appel de pppoeci dans le fichier
+	/etc/ppp/peers/adsl:
+		-mode VCM_RFC2364
+	ou	-mode LLC_RFC2364
+	ou	-mode LLC_SNAP_RFC1483
+
+	Vous pouvez aussi essayer l'option -alt 4.
+
+	Regardez aussi la question précédente.
+
+
+================================================================================
+Q:	J'ai plusieurs HUB USB ou plusieurs périphériques USB. Cela pose-t-il un problème ?
+
+--------------------------------------------------------------------------------
+R:	Peut-être. Si vous n'arrivez pas à initialiser votre modem, essayez de désactiver
+	tous les UHBs USB additionnels. Nous avons une expérience limitée sur ce
+	sujet
+	
+	Beaucoup d'utilisateurs ont des webcams, souris ou autres périphériques en plus du modem USB,
+	tous fonctionnant en même temps. Cela n'exclue toutefois pas des problèmes avec des périphériques
+	USB. Parfois l'ordre des périphériques USB sur les ports peut poser un problème
+	(à vérifier).
+
+
+================================================================================
+Q:	probe_device.sh me montre mes VID1/PID1 qui sont les mêmes que VID2/VID2,
+	est-ce normal ?
+
+--------------------------------------------------------------------------------
+R:	Vous devez débrancher/rebrancher le modem avant de lancer probe_device.sh.
+	Lisez SVP l'avertissement qu'affiche ce script.
+
+
+================================================================================
+Q:	En revenant sous Windows après Linux, je ne peux plus utiliser mon modem et je
+	dois réinstaller le driver Windows pour qu'il fonctionne à nouveau.
+
+--------------------------------------------------------------------------------
+R:	Déchargez tous les modules USB relatifs à votre modem avant de quitter Linux.
+	Ceci peut être fait automatiquement, grâce au gestionnaire USB de votre distribution
+	Linux, ou en utilisant init.d (pour info: les commandes pre-remove et post-remove dans /etc/modules.conf
+    peuvent servir à automatiquement enlever des modules associés à un module oté par modprobe, consultez le man modules.conf)
+
+	Si cela ne fonctionne toujours pas, vous devez débrancher manuellement le modem,
+	attendre quelques secondes qu'il se réinitialise, et le rebrancher. Vous pouvez alors
+	l'utiliser sous Windows.
+
+	<A FAIRE: problèmes non vérifiés avec ericsson et usermode 0.5>
+
+
+================================================================================
+Q:	Puis-je utiliser ce driver sous *BSD?
+
+--------------------------------------------------------------------------------
+R:	Un portage de la version 0.5 est disponible en ligne.
+	Pas officiellement supportée !
+
+
+================================================================================
+Q:	Puis-je utiliser ce driver sous GNU/Hurd, Darwin, QNX, BeOS ou d'autres systèmes ?
+
+--------------------------------------------------------------------------------
+R:	Non.
+
+
+================================================================================
+Q:	eciconf.sh s'arrêtre immédiatement en affichant :
+	wish: command not found
+
+--------------------------------------------------------------------------------
+R:	Installez tcl/tk, ou lancez eciconftxt.sh.
+
+
+================================================================================
+Q:	Après quelques minutes d'accès à Internet, plus rien ne semble fonctionner.
+	Plus de ping IP, ni d'accès http ou de nslookup.
+
+--------------------------------------------------------------------------------
+R:	Souvent le cas sur les distributions récentes (MDK9, Slackware 8.1 et RH8).
+	Il s'agirait d'un problème de réseau ou de firewall (à vérifier).
+
+
+================================================================================
+Q:	./configure échoue et renvoie des erreurs :-\
+
+--------------------------------------------------------------------------------
+R:	Envoyez-nous SVP la sortie du ./configure.
+	Regardez quelles options pourraient vous aider (voir ./configure --help).
+	Par exemple, vous aurez à utiliser --skip-gcc-check si ./configure échoue en
+	cherchant gcc ou en vérifiant sa version alors que gcc est installé et dans votre $PATH.
+	Cette erreur peut survenir sur certains systèmes qui incluent une version modifiée de gcc.
