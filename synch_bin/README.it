@@ -140,13 +140,14 @@ Lista dei file Synch .bin disponibili:
 	synch41.bin (generato in UK, provider Etisalat, Multimode)
 	synch42.bin (generato in Italia/Iglesias, provider Tin.it, G.DMT)
 	synch43.bin (generato in Australia/Perth, provider Arachnet, G.DMT)
-	synch44.bin (generato in France/Kremlin Bicetre, 9online, T1.413)
-	synch45.bin (generato in Italia/Padova, Tin.it, G.DMT)
-	synch46.bin (generato in Belgio/Wavre, Skynet, tipo di modulazione sconosciuta)
-	synch47.bin (generato in France/Palaiseau, Club Internet, T1.413)
-	synch48.bin (generato in France/Gouzangrez, Tele2, T1.413)
-	synch49.bin (generato in Svizzera/Bern, Sunrise, Multimode)
-	synch50.bin (generato in France/Domont, Club Internet, T1.413)
+	synch44.bin (generato in France/Kremlin Bicetre, provider 9online, T1.413)
+	synch45.bin (generato in Italia/Padova, provider Tin.it, G.DMT)
+	synch46.bin (generato in Belgio/Wavre, provider Skynet, tipo di modulazione sconosciuta)
+	synch47.bin (generato in France/Palaiseau, provider Club Internet, T1.413)
+	synch48.bin (generato in France/Gouzangrez, provider Tele2, T1.413)
+	synch49.bin (generato in Svizzera/Bern, provider Sunrise, Multimode)
+	synch50.bin (generato in France/Domont, provider Club Internet, T1.413)
+	synch51.bin (generato in Svizzera, provider Netstream, T1.413)
 
 Se hai generato il tuo .bin file sei pregato di spedircelo con alcune
 informazioni riguardo la localit… ed il provider.
