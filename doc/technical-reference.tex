@@ -1,0 +1,149 @@
+\documentclass[a4paper,12pt]{article}
+% \usepackage{babel}
+\usepackage{html}
+% \usepackage[latin1]{inputenc}
+% \baselineskip=16pt
+
+\title{\huge{Technical Reference of the ECI ADSL modem}}
+\author{Benoit PAPILLAULT}
+
+\begin{document}
+\pagenumbering{arabic}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+This documents aims at documenting the hardware part of the ECI ADSL
+modem, without any consideration of operating system in mind.
+
+The basic design of this modem is made of 2 chips:
+\begin{itemize}
+\item a Cypress EZ-USB chip which is responsible for the USB interface
+connected to the computer (via the USB bus).
+\item a GlobeSpan chip which is responsible of handling the ADSL part
+\end{itemize}
+
+We will try to document those chips and some others. This documents
+will also list some useful links found on the Internet
+
+\section{Cypress EZ-USB}
+
+The exact reference is :
+\begin{verbatim}
+     CYPRESS
+  EZ-USB (TM)
+  AN2131QC
+    0103
+ENY2984 KOREA
+\end{verbatim}
+
+It has the following features:
+\begin{itemize}
+\item USB Bus Specification version 1.1
+\item UTOPIA Level I v1.0 and Level II v2.01 support
+\item +3.3-volt, 80-pin PQFP
+\end{itemize}
+
+Official links are :
+\begin{itemize}
+\item Summary :
+\htmladdnormallink{http://www.cypress.com/products/datasheet.cfm?partnum=AN2131QC}{http://www.cypress.com/products/datasheet.cfm?partnum=AN2131QC}
+\item Datasheet (PDF) :
+\htmladdnormallink{http://www.cypress.com/cfuploads/img/products/AN2131SC.pdf}{http://www.cypress.com/cfuploads/img/products/AN2131SC.pdf}
+\item EZ-USB IO Ports (PDF) :
+\htmladdnormallink{http://www.cypress.com/cfuploads/support/app\_notes/EZUSB\_IO\_Ports.pdf}{http://www.cypress.com/cfuploads/support/app\_notes/EZUSB\_IO\_Ports.pdf}
+\item Software SPI Implementation on EZ-USB (PDF) :
+\htmladdnormallink{http://www.cypress.com/cfuploads/support/app\_notes/Software\_SPI\_Implementation.pdf}{http://www.cypress.com/cfuploads/support/app\_notes/Software\_SPI\_Implementation.pdf}
+\end{itemize}
+
+Basically, it's an enhanced 8151 with 8K of memory, running at 24Mhz.
+
+Links :
+\begin{itemize}
+\item 8051 Tutorial :
+\htmladdnormallink{http://8052.com/tut8051.phtml}{http://8052.com/tut8051.phtml}
+\end{itemize}
+
+\section{Globespan GS7070 ADSL DMT Modem and ATM Framer}
+
+The exact reference is :
+\begin{verbatim}
+GS7070-174-008D A2
+\end{verbatim}
+
+Official link to the GlobeSpan site : \htmladdnormallink{http://www.globespan.net/products/ticpe.html}{http://www.globespan.net/products/ticpe.html}
+
+From the link \htmladdnormallink{http://www.asi-tec.com/php/sklep.php?go=opisprod\&do=spec\_dsl100u\_pl}{http://www.asi-tec.com/php/sklep.php?go=opisprod\&do=spec\_dsl100u\_pl}, we learn :
+\begin{itemize}
+\item ANSI T1.413 Issue 2 category 1 \& 2 standard DMT modem with
+embedded ATM Framer
+\item Standard Utopia Level I and Level II ATM Interfaces
+\item DMT Modulation up to maximum of 256 tones (14 bits)
+\item ADSL/ATM cell-specific Framing and Deframing
+\item Performs DMT Modulation, Demodulation, Reed-Solomon Encoding,
+Bit Interleaving, and 4D Trellis Cod
+\end{itemize}
+
+
+
+\section{GlobeSpan GT3180 ADSL ANALOG FRONT-END}
+
+The exact reference is :
+\begin{verbatim}
+GT3180-01-A
+   0041S
+ 92802741
+\end{verbatim}
+
+From the same link as above, we learn:
+\begin{itemize}
+\item Integrated Analog Front End (AFE) for ADSL
+\item Differential Analog Input/Output
+\item 3.3-volt \& 5-volt supplies, 100-pin TQFP
+\end{itemize}
+
+\section{Cypress \#2}
+
+The exact reference (U602) is :
+\begin{verbatim}
+CY7C1399-15ZC
+0110 F 04
+609369
+\end{verbatim}
+
+CY1399-15Z 32K x 8 3.3V Static RAM 15ns.
+\begin{itemize}
+
+\item
+\htmladdnormallink{http://www.cypress.com/products/datasheet.cfm?partnum=CY7C1399\%2D15ZCTQ}{http://www.cypress.com/products/datasheet.cfm?partnum=CY7C1399\%2D15ZCTQ}
+\item
+\htmladdnormallink{http://www.mespek.com/p\_sram2001compact.pdf}{http://www.mespek.com/p\_sram2001compact.pdf}
+\end{itemize}
+
+\section{Other}
+
+The exact reference is :
+\begin{verbatim}
+LCX
+573
+PPXX
+\end{verbatim}
+
+\section{Links}
+
+\subsection{8051 tools}
+
+Here are some links:
+\begin{itemize}
+\item 8051 Disassembler :
+\htmladdnormallink{http://wuarchive.wustl.edu/aminet/dirs/aminet/dev/cross/8051.lha}{http://wuarchive.wustl.edu/aminet/dirs/aminet/dev/cross/8051.lha}
+\item 8051 C Compiler :
+\htmladdnormallink{http://sdcc.sourceforge.net/}{http://sdcc.sourceforge.net/}
+\end{itemize}
+
+\end{document}
+
+
