@@ -122,6 +122,7 @@ Available Synch .bin files list:
 	synch24.bin (generated in Peru, provider Telefonica del Peru, unknown modulation type)
 	synch25.bin (generated in France, Saint-Cloud, provider Wanadoo)
 	synch26.bin (generated in Italy/Carmagnola/Torino, provider Telecom (Alice))
+	synch27.bin (generated in Italy, provider Alice Telecom Italia "Mantova")
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
