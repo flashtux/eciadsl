@@ -47,7 +47,7 @@ install: all check-char-major-108 check-tty-ldisc-14 check-tty-ldisc-13 \
 	install -d $(binprefix)
 	install startmodem eci-load1 eci-load2 pppoeci eci-doctor.sh \
 		check-hdlc check-hdlc-bug eciconf.sh remove_dabusb makeconfig \
-		$(binprefix)
+		eciconftxt.sh $(binprefix)
 # copy configuration files to /etc/eciadsl
 	install -d $(ETCDIR)/eciadsl
 	install adsl $(ETCDIR)/eciadsl/adsl-skel
@@ -111,6 +111,7 @@ uninstall:
 	$(RM) $(binprefix)/check-hdlc
 	$(RM) $(binprefix)/check-hdlc-bug
 	$(RM) $(binprefix)/eciconf.sh
+	$(RM) $(binprefix)/eciconftxt.sh
 	$(RM) $(binprefix)/remove_dabusb
 	$(RM) $(binprefix)/makeconfig
 	$(RM) $(ETCDIR)/eciadsl/adsl-skel
