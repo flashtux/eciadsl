@@ -1623,60 +1623,7 @@ static void eci_bulk_callback(struct urb *urb)
 /**********************************************************************
 		END USB CODE
 *************************************************************************/
-static int _eci_make_aal5(
-		aal5_t * 		paal5,
-		int			vpi,
-		int			vci,
-		bool			islast,
-		size_t			szdata,
-		byte *			pdata
-) {
-	uni_cell_t *	lp_cell	= NULL ;
-	int		lv_rc	= 0 ;
 
-	DBG_OUT("_eci_make_aal5 in\n") ;
-
-	/* Check Interface */
-	if (!paal5 || !szdata || !pdata) {
-		ERR_OUT("Interface Error\n") ;
-		return -EINVAL ;
-	}
-
-	/* Alloc new cell */
-	lp_cell = _uni_cell_alloc() ;
-	if (!lp_cell) {
-		ERR_OUT("Not enought memory\n") ;
-		return -ENOMEM ;
-	}
-		
-	/* Format it */
-	lv_rc = _uni_cell_format(
-			vpi,
-			vci,
-			islast,
-			szdata,
-			pdata,
-			lp_cell) ;
-	if (lv_rc) {
-		ERR_OUT("_uni_cell_format failed\n") ;
-		_uni_cell_free(lp_cell) ;
-		return lv_rc ;
-	}
-
-	/* Add new cell to AAL5 frame */
-	lv_rc = _aal5_add_cell(
-			paal5,
-			lp_cell) ;
-	if (lv_rc) {
-		ERR_OUT("_aal5_add_cell failed\n") ;
-		_uni_cell_free(lp_cell) ;
-		return lv_rc ;
-	}
-
-	DBG_OUT("_eci_make_aal5 out\n") ;
-	return 0 ;
-
-}
 /*----------------------------------------------------------------------
  *
  * Complete the AAL5 frame received from ATM layer
