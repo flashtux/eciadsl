@@ -277,6 +277,11 @@ A:	Check your kernel config (below).
 
 	Try another synch .bin.
 
+	This can happen when the invocation of pppoeci in the /etc/ppp/peers/adsl
+	file is corrupted or wrong (probably because it has been edited by hand?).
+	For instance, the use of "-vendor 0915" is wrong. The exact syntax is
+	"-vendor 0x0915". Use eciconf.sh to properly configure the driver!
+
 
 ================================================================================
 Q:	I get some "USB timeout" lines in /var/log/messages.
