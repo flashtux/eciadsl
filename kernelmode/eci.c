@@ -713,8 +713,7 @@ struct usb_driver eci_usb_driver = {
 ***********************************************************************/
 
 
-static int __init eci_init(void)
-{	
+static int __init eci_init(void) {	
 	int lv_res = 0 ;
 
 	/*	Must register driver and claim for hardware */
@@ -730,82 +729,67 @@ static int __init eci_init(void)
 /*
 		free all allocated ressource for this instance
 */
-static int eci_cleanup(struct eci_instance *i)
-{
+static int eci_cleanup(struct eci_instance *i) {
 	int cnt;
 
-	if(i->atm_dev)
-	{
+	if(i->atm_dev) 	{
 		atm_dev_deregister(i->atm_dev);
 		i->atm_dev = 0;
 	}
-
-	if(i->setup_packets)
-	{
+	if(i->setup_packets) 	{
 	}
-	for(cnt = 0 ; cnt< ECI_NB_ISO_PACKET;cnt ++)
-		if(i->isourbs[cnt])
-		{
-		}
-	if(i->vendor_urb)
-	{
+	for(cnt = 0 ; cnt< ECI_NB_ISO_PACKET;cnt ++) 
+			if(i->isourbs[cnt]) 		{
+		    }
+	if(i->vendor_urb) 	{
 	}
-	if(i->interrupt_urb)
-	{
+	if(i->interrupt_urb) 	{
 		usb_unlink_urb(i->interrupt_urb);
 		usb_free_urb(i->interrupt_urb);
 		i->interrupt_urb = 0;
 	}
-	if(i->bulk_urb)
-	{
+	if(i->bulk_urb) {
 		usb_unlink_urb(i->bulk_urb);
 		usb_free_urb(i->bulk_urb);
 		i->bulk_urb = 0;
 	}
-	if(i->interrupt_buffer)
-	{
+	if(i->interrupt_buffer) 	{
 		kfree(i->interrupt_buffer);
 		i->interrupt_buffer = 0;
 	}
-	if(i->pooling_buffer)
-	{
+	if(i->pooling_buffer) 	{
 		kfree(i->pooling_buffer);
 		i->pooling_buffer = 0;
 	}
 	_uni_cell_list_free(&i->iso_cells);
 	_uni_cell_list_free(&i->bulk_cells);
 	//skb_free(i->txq);
-	if(i->pcurvcc)
-	{
+	if(i->pcurvcc) 	{
 	}
-	if(i->pbklogaal5)
-	{
+	if(i->pbklogaal5) 	{
 		_aal5_free(i->pbklogaal5);
 		i->pbklogaal5 = 0;
 	}
 	return 0;
 }
 
-static void __exit eci_exit(void)
-{
+static void __exit eci_exit(void) {
+	uni_cell_t * lp_cell = gp_ucells ;
+		
 	usb_deregister(&eci_usb_driver);
 
 	/* Free Unused UNI Cell List */
-	{
-		uni_cell_t * lp_cell = gp_ucells ;
-		while (lp_cell) {
+	while (lp_cell) {
 			gp_ucells = lp_cell->next ;
 			kfree(lp_cell) ;
 			lp_cell = gp_ucells ;
-		}
 	}
 
 	return;
 };
 	
 void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
-	const struct usb_device_id *id)
-{
+	const struct usb_device_id *id) {
 	struct eci_instance *out_instance= NULL;
 	struct urb *eciurb, *tmpurb;
 	/* unused : int dir; */
@@ -822,84 +806,65 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	then claim for wan usb device
 	
 ************************************************/
-	for(i=0;i<ECI_NB_MODEMS;i++)
-	{
+	for(i=0;i<ECI_NB_MODEMS;i++) 	{
 		if(eci_usb_deviceids[i].idVendor == dev->descriptor.idVendor
 			&& eci_usb_deviceids[i].idProduct == 
-				dev->descriptor.idProduct)
-		{
-			pid = eci_usb_deviceids[i].idProduct;
-			vid = eci_usb_deviceids[i].idVendor;
-			break;
+				dev->descriptor.idProduct) 		{
+					pid = eci_usb_deviceids[i].idProduct;
+					vid = eci_usb_deviceids[i].idVendor;
+					break;
 		}
 	}
 
 	if(dev->descriptor.bDeviceClass == USB_CLASS_VENDOR_SPEC &&
 	   dev->descriptor.idVendor == vid &&
-	   dev->descriptor.idProduct == pid )
-	{
-		out_instance = kmalloc(sizeof(struct eci_instance), 
+	   dev->descriptor.idProduct == pid )	{
+			out_instance = kmalloc(sizeof(struct eci_instance), 
 							GFP_KERNEL);
-		if(out_instance)
-		{
-			memset(out_instance, 0, sizeof(struct eci_instance));
-			eci_instances=out_instance; 
-			spin_lock_init(&out_instance->lock);
-			out_instance->usb_wan_dev= dev;
-			out_instance->setup_packets = eci_init_setup_packets;
-			out_instance->iso_celbuf_pos = 0 ;
-			out_instance->bh_iso.func = eci_bh_iso ;
-			out_instance->bh_iso.data = (unsigned long) 
-							out_instance ;
-		 	if(_uni_cell_list_init(&out_instance->iso_cells))
-			{
-				ERR_OUT("Cant init Bulk list\n");
+			if(out_instance) {
+				memset(out_instance, 0, sizeof(struct eci_instance));
+				eci_instances=out_instance; 
+				spin_lock_init(&out_instance->lock);
+				out_instance->usb_wan_dev= dev;
+				out_instance->setup_packets = eci_init_setup_packets;
+				out_instance->iso_celbuf_pos = 0 ;
+				out_instance->bh_iso.func = eci_bh_iso ;
+				out_instance->bh_iso.data = (unsigned long)  out_instance ;
+			 	if(_uni_cell_list_init(&out_instance->iso_cells)) {
+					ERR_OUT("Cant init Bulk list\n");
+					goto erreure;
+				}
+				out_instance->bh_bulk.func = eci_bh_bulk;
+				out_instance->bh_bulk.data = (unsigned long) out_instance ;
+			 	if(_uni_cell_list_init(&out_instance->bulk_cells)) {
+					ERR_OUT("Cant init Bulk list\n");
+					goto erreure;
+				}
+			} else {
+				ERR_OUT("out of memory\n");
 				goto erreure;
 			}
-			out_instance->bh_bulk.func = eci_bh_bulk;
-			out_instance->bh_bulk.data = (unsigned long) 
-							out_instance ;
-		 	if(_uni_cell_list_init(&out_instance->bulk_cells))
-			{
-				ERR_OUT("Cant init Bulk list\n");
+			if(usb_set_configuration(dev,1)<0) {
+				ERR_OUT("Can't set interface\n");
 				goto erreure;
 			}
-		}
-		else
-		{
-			ERR_OUT("out of memory\n");
-			goto erreure;
-		}
-		if(usb_set_configuration(dev,1)<0)
-		{
-			ERR_OUT("Can't set interface\n");
-			goto erreure;
-		}
-		if(usb_set_interface(dev,0,4)<0)
-		{
-			ERR_OUT("Cant set configuration\n");
-			goto erreure;
-		}
+			if(usb_set_interface(dev,0,4)<0) {
+				ERR_OUT("Cant set configuration\n");
+				goto erreure;
+			}
 		/*
 			send 20 Urbs to the iso EP
 		*/
 		for(eci_isourbcnt=0;
-			eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++)
-		{
-			if(!(eciurb=usb_alloc_urb(ECI_NB_ISO_PACKET)))
-			{
-				ERR_OUT(
-					"not enought memory for iso urb %d\n",
- 					eci_isourbcnt);
-				goto erreure;
-			}
-			if(!(eciurb->transfer_buffer=kmalloc(
-					ECI_ISO_BUFFER_SIZE, GFP_KERNEL)))
-			{
-				ERR_OUT(
-					"not enought memory for iso buffer %d\n",
- 					eci_isourbcnt);
-				goto erreure;
+			eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++) {
+				if(!(eciurb=usb_alloc_urb(ECI_NB_ISO_PACKET))) {
+					ERR_OUT(	"not enought memory for iso urb %d\n", eci_isourbcnt);
+					goto erreure;
+				}
+			if(!(eciurb->transfer_buffer=kmalloc(	ECI_ISO_BUFFER_SIZE, 
+				GFP_KERNEL))) {
+					ERR_OUT(	"not enought memory for iso buffer %d\n", eci_isourbcnt);
+					goto erreure;
 			}
 			out_instance->isourbs[eci_isourbcnt] = eciurb;
 			eciurb->dev = dev;
@@ -909,34 +874,29 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			eciurb->number_of_packets = ECI_NB_ISO_PACKET;
 			eciurb->complete = eci_iso_callback;
 			eciurb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE;
-			for(i=0;i < ECI_NB_ISO_PACKET; i ++)
-			{
+			for(i=0;i < ECI_NB_ISO_PACKET; i ++) {
 				eciurb->iso_frame_desc[i].offset = 
 					i * ECI_ISO_PACKET_SIZE;
 				eciurb->iso_frame_desc[i].length = 
 					ECI_ISO_PACKET_SIZE;
 				eciurb->iso_frame_desc[i].actual_length = 0 ;
 			}
-			if(usb_submit_urb(eciurb))
-			{
+			if(usb_submit_urb(eciurb)) {
 				ERR_OUT("error couldn't send iso urbs\n");
 				goto erreure;
 			}
 		}
-		if(!(eciurb=usb_alloc_urb(0)))
-		{
+		if(!(eciurb=usb_alloc_urb(0))) {
 			ERR_OUT("Can't allocate int urb !\n");
 			goto erreure;
 		}
 	/*	interval tacken from cat /proc/bus/usb/devices values	*/
 		out_instance->interrupt_urb = eciurb;
-		if(!(out_instance->interrupt_buffer=kmalloc(64,GFP_KERNEL)))
-		{
+		if(!(out_instance->interrupt_buffer=kmalloc(64,GFP_KERNEL))) {
 			ERR_OUT("Can't allocate int buffer\n");
 			goto erreure;
 		}
-		if(!(out_instance->pooling_buffer = kmalloc(34+8, GFP_KERNEL)))
-		{
+		if(!(out_instance->pooling_buffer = kmalloc(34+8, GFP_KERNEL))) {
 			ERR_OUT("Can't alloc buffer for interrupt polling\n");
 			goto erreure;
 		}
@@ -945,16 +905,14 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
 			out_instance->interrupt_buffer,64,
 			eci_int_callback,out_instance,3);
-		if(usb_submit_urb(eciurb))
-		{
+		if(usb_submit_urb(eciurb)) {
 			ERR_OUT("error couldn't send interrupt urb\n");
 			goto erreure;
 		}
 		/*
 			Allocate bulk urb	
 		*/
-		if(!(out_instance->bulk_urb = usb_alloc_urb(0)))
-		{
+		if(!(out_instance->bulk_urb = usb_alloc_urb(0))) 	{
 			ERR_OUT("Can't alloacate bulk URB\n");
 			goto erreure;
 		}
@@ -962,10 +920,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			Allocate bulk urb transfert buffer
 		*/
 		if(!(out_instance->bulk_urb->transfer_buffer=kmalloc(
-				ECI_ISO_BUFFER_SIZE, GFP_KERNEL)))
-		{
-			ERR_OUT("not enought memory for bulk buffer\n");
-			goto erreure;
+				ECI_ISO_BUFFER_SIZE, GFP_KERNEL))) {
+					ERR_OUT("not enought memory for bulk buffer\n");
+					goto erreure;
 		}
 		/*	
 			Now bulk URB AVAILABLE
@@ -978,8 +935,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			First allocate the urb struct
 		*/
 		eciurb=usb_alloc_urb(0);
-		if(!eciurb)
-		{
+		if(!eciurb) {
 			ERR_OUT("Can't allocate urb\n");
 			goto erreure;
 		};
@@ -988,8 +944,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			Next allocate buffer for data transmition.
 			Last 8 byte will be reserved for setupackets
 		*/
-		if(!(eciurb->transfer_buffer = kmalloc((64*1024), GFP_KERNEL)))
-		{
+		if(!(eciurb->transfer_buffer = kmalloc((64*1024), GFP_KERNEL))) {
 			ERR_OUT(" out of memory\n");
 			goto erreure;
 		};
@@ -1000,9 +955,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		out_instance->vendor_urb = eciurb;
 		_eci_send_init_urb(eciurb);
 	
-	}	
-	else
-	{
+	} else {
 		ERR_OUT("Probleme finding modem !\n");
 		DBG_OUT("vid,pid  = %02x,%02x, should be %02x,%02x\n",
 			vid,pid ,
@@ -1021,21 +974,15 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	out_instance->pcurvcc 		= NULL ;
 	out_instance->pbklogaal5	= NULL ;
 
-	out_instance->atm_dev = atm_dev_register(
-			eci_drv_label,
-			&eci_atm_devops,
-			-1,
-			NULL) ;
-	if(out_instance->atm_dev)
-	{
+	out_instance->atm_dev = atm_dev_register(eci_drv_label,	&eci_atm_devops,
+			-1,NULL) ;
+	if(out_instance->atm_dev)	{
 		out_instance->atm_dev->dev_data = (void *)out_instance;
 		out_instance->atm_dev->ci_range.vpi_bits = ATM_CI_MAX;
 		out_instance->atm_dev->ci_range.vci_bits = ATM_CI_MAX;
 		out_instance->atm_dev->link_rate = 640*1024/8/53;
 /*	Further ATM DEVICE Should be initialize here	*/
-	}	
-	else
-	{
+	} else {
 		ERR_OUT("Can't init ATM device\n");
 		goto erreure;
 	}
@@ -1045,20 +992,17 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	
 	return out_instance;
 erreure:
-	if(out_instance)
-	{
+	if(out_instance) 	{
 		eci_cleanup(out_instance);
 		kfree(out_instance);
 	}
 	return 0;
 };
 
-void eci_usb_disconnect(struct usb_device *dev, void *p)
-{
+void eci_usb_disconnect(struct usb_device *dev, void *p) {
 	struct urb *urb;
 	
-	if(eci_instances)
-	{
+	if(eci_instances) {
 #ifdef __USE_ATM__
 		atm_dev_deregister(eci_instances->atm_dev);
 		if (eci_instances->pbklogaal5)
@@ -1071,13 +1015,11 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 		kfree(eci_instances);
 		eci_instances=NULL;
 	}
-
 };
 
 
 
-int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf)
-{
+int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf) {
 	DBG_OUT("eci_usb_ioctl in\n");
 	DBG_OUT("code : %d\n", code) ;
 	DBG_OUT("eci_usb_ioctl out\n");
@@ -1092,8 +1034,7 @@ int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf)
 #ifdef __USE_ATM__
 
 /*----------------------------------------------------------------------*/
-static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
-{
+static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci) {
 	int lv_rc ;
 	
 	DBG_OUT("eci_atm_open in [%hd.%d]\n", vpi, vci);
@@ -1109,10 +1050,7 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 	/*
 	 * Check that a context don't exists already
 	 */
-	lv_rc = atm_find_ci(
-			vcc,
-			&vpi,
-			&vci) ;
+	lv_rc = atm_find_ci(vcc, &vpi, &vci) ;
 	if (lv_rc != 0) {
 		ERR_OUT("atm_find_ci failed [%d]", lv_rc) ;
 		return lv_rc ;
@@ -1125,31 +1063,25 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 	vcc->vci = vci ;
 
 	clear_bit(ATM_VF_READY,&vcc->flags); /* just in case ... */
-
 	/* Check QOS type */
 	if (vcc->qos.aal != ATM_AAL5) {
 		WRN_OUT("not implemented frame type [%d]\n", vcc->qos.aal) ;
 		return -EINVAL ;
 	}
-
 	/* Indicate we're done! */
 	set_bit(ATM_VF_READY, &vcc->flags);
-
 	/* test */
 	((struct eci_instance*)vcc->dev->dev_data)->pcurvcc = vcc ;
 	/*	
 	 * TODO: allow more than one VCC.
 	 */
 	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->vccs = vcc;
-	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->last = vcc;
-	
-	
+	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->last = vcc;	
 	return 0;
 };
 
 /*----------------------------------------------------------------------*/
-static void eci_atm_close(struct atm_vcc *vcc)
-{
+static void eci_atm_close(struct atm_vcc *vcc) {
 	struct eci_instance * lp_instance = 
 		(struct eci_instance*)vcc->dev->dev_data ;
 	lp_instance->pcurvcc = NULL ;
@@ -1165,8 +1097,7 @@ static void eci_atm_close(struct atm_vcc *vcc)
 };
 
 /*----------------------------------------------------------------------*/
-static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
-{
+static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg) {
 	int lv_res = -EINVAL ;
 
 	switch (cmd) {
@@ -1182,8 +1113,7 @@ static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
 };
 
 /*----------------------------------------------------------------------*/
-static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
-{
+static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb) {
 	struct eci_instance *	lp_outinst	= NULL ;
 	int			lv_rc		= 0 ;
 
@@ -1195,17 +1125,14 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 		ERR_OUT("Invalid Socket Buffer\n") ;
 		return -EINVAL;
 	}
-
 	if (!vcc) {
 		ERR_OUT("Invalid VCC\n") ;
 		/* Free the socket buffer */
 		dev_kfree_skb(skb) ;
 		return -EINVAL ;
-	}
-		
+	}	
 	/* Get private data */
 	lp_outinst = GET_PRIV(vcc->dev) ;
-
 	if (!lp_outinst) {
 		FREE_SKB(vcc, skb) ;
 		atomic_inc(&vcc->stats->tx_err) ;
@@ -1235,8 +1162,6 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 		FREE_SKB(vcc, skb) ;
 		break ;
 	}
-
-
 	return lv_rc ;
 };
 
@@ -1255,7 +1180,6 @@ static void eci_bh_atm (unsigned long param) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
 		goto out;
 	}
-	
 	/*
 	 * 	Allow  more than one VCC
 	 * 	Probleme with eci_tx_all5 param, gotta change it to struct atm_vcc *
@@ -1294,18 +1218,14 @@ out:
 
 *******************************************************************************/
 
-static void _eci_send_init_urb(struct urb *eciurb)
-{
-
+static void _eci_send_init_urb(struct urb *eciurb) {
 	struct eci_instance *instance;
 	unsigned char *setuppacket;
 	unsigned int pipe;
 	int size;
-
-	
+		
 	instance = eciurb->context;
-	if(instance->setup_packets[0])
-	{
+	if(instance->setup_packets[0]) {
 		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
 		memcpy(setuppacket, instance->setup_packets,8);
 		size = (instance->setup_packets[7] << 8 ) |
@@ -1314,35 +1234,26 @@ static void _eci_send_init_urb(struct urb *eciurb)
 				If write URB then read the buffer and
 				set endpoint else just set enpoint
 			*/
-		if(setuppacket[0] & 0x80)
-		{
+		if(setuppacket[0] & 0x80) {
 			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
-		}
-		else
-		{
-			memcpy(eciurb->transfer_buffer, 
-				instance->setup_packets+8,size);
+		} else {
+			memcpy(eciurb->transfer_buffer, instance->setup_packets+8,size);
 			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
 		}
 		FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
-			setuppacket, eciurb->transfer_buffer, 
-			size, eci_init_vendor_callback,
+			setuppacket, eciurb->transfer_buffer, size, eci_init_vendor_callback,
 			instance);
-		if(usb_submit_urb(eciurb))
-		{
+		if(usb_submit_urb(eciurb)) {
 			ERR_OUT("error couldn't send init urb\n");
 			return;
 		}
 		instance->setup_packets += 
 			(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
-	}
-	else
-	{	/*	gotta free urb and buffer !	*/
+	} else {	/*	gotta free urb and buffer !	*/
 		kfree(eciurb->transfer_buffer);
 		eciurb->transfer_buffer = 0;
 	}
 }
-
 /*
 		This one is called to handle the modem sync.
 
@@ -1355,40 +1266,31 @@ static void _eci_send_init_urb(struct urb *eciurb)
 		30 11 2001
 
 */
-static void eci_init_vendor_callback(struct urb *urb)
-{
+static void eci_init_vendor_callback(struct urb *urb) {
 	struct eci_instance *instance;
 	int size;
 
 	instance = (struct eci_instance *) urb->context;
 	spin_lock_bh(&instance->lock);
-
 /*
 	If urb status is set warn about it, else do what we gotta do
 */
-
 	if(urb->status)
 		ERR_OUT("Urb with status %d\n" , urb->status);
-	else
-	{
+	else {
 		/*	Check For datarecived and wanted data length */
 		if( urb->actual_length != urb->transfer_buffer_length )
-			WRN_OUT(
-				"expecting %d, got %d\n",
-				urb->transfer_buffer_length, 
+			WRN_OUT( "expecting %d, got %d\n", urb->transfer_buffer_length, 
 				urb->actual_length) ;
-
 #ifdef DEBUG
-		if ((urb->setup_packet[0] & 0x80))
-		{
+		if ((urb->setup_packet[0] & 0x80)) {
 			size = ((instance->setup_packets[7]<<8) | 
 					instance->setup_packets[6]);
 		}
 #endif	/*	DEBUG	*/
 		if ( !((urb->setup_packet[0] & 0x40) == 0x40 && urb->setup_packet[1]== 0xdc
 			&&((urb->setup_packet[3] * 256 + urb->setup_packet[2])== 0x00) && 
-			((urb->setup_packet[5] * 25 + urb->setup_packet[4]) == 0x00)))
-		{
+			((urb->setup_packet[5] * 25 + urb->setup_packet[4]) == 0x00))) {
 			/*	
 				sould send next VENDOR URB
 			*/
@@ -1401,17 +1303,12 @@ static void eci_init_vendor_callback(struct urb *urb)
 /*
 	Null call back for control urbs
 */
-static void eci_control_callback(struct urb *urb)
-{
-
+static void eci_control_callback(struct urb *urb) {
 	kfree(urb->context);
 	return;
 }
-
 /*
-
 	Handle The interrupt stuff
-
 	if 
 		data length == 32 we are after initialization state
 	else 
@@ -1421,11 +1318,8 @@ static void eci_control_callback(struct urb *urb)
 	Valette Jean-Sebastien 
 
 	30 11 2001
-	
-
 */
-static void eci_int_callback(struct urb *urb)
-{
+static void eci_int_callback(struct urb *urb) {
 	struct eci_instance *instance;
 	int i; 		/*loop counter	*/
 	int outi = 0; 
@@ -1447,26 +1341,19 @@ static void eci_int_callback(struct urb *urb)
 
 	instance = (struct eci_instance *) urb->context;
 	spin_lock_bh(&instance->lock);
-	if(urb->actual_length)
-	{
-		if(urb->actual_length!=64)
-		{	/*		Synchronisation 
+	if(urb->actual_length) {
+		if(urb->actual_length!=64){
+			/*		Synchronisation 
 					Check Data returned by int urb
 					and send Next Vendor
 			*/
-			DBG_OUT(
-				"EP INT received %d bytes\n",
-				urb->actual_length);
+			DBG_OUT( "EP INT received %d bytes\n",	urb->actual_length);
 			DBG_OUT("Calling _eci_send_init_urb from Int \n");
 			DBG_RAW_OUT("Int buffer\n",urb->transfer_buffer,urb->actual_length);
 			_eci_send_init_urb(instance->vendor_urb);
-		}
-		else
-		{
+		} else {
 /*	
-	
 	Already synchronized just answer	
-
 	Here what we do :
 		Send the received buffer exept for 0x7311 which is
 		replaced by 0x6313, 0x6301, 0x6313 , 0x6353 ...
@@ -1478,131 +1365,99 @@ static void eci_int_callback(struct urb *urb)
 			for(i=0; i<34;) 
 				instance->pooling_buffer[i] = 
 					eci_outbuf[i++];
-			for(i=0;i<15;i++)
-			{
+			for(i=0;i<15;i++) 	{
 				ctrlcode = (in_buf[6+2*i+0]<<8) | in_buf[6+2*i+1];
-				switch(ctrlcode)
-				{
-				  case 0x0c0c:
-					break;
-				  case 0x7311:
-					if(instance->cnt73 == 5 )
-					{
-					  instance->cnt73 = 0;
-					  if(instance->ctrlcodecnt == 1 &&
-					    instance->ctrlcodes[1] == 0x7341)
-					      if(++instance->cnt7341 == 3)
-						   instance->rep73 = 0x730f;
-					}
-				  case 0x5311:
-					if(instance->cnt53 == 5 )
-					{
-					  instance->cnt53 = 0;
-					  if(instance->ctrlcodecnt == 1 &&
-					    instance->ctrlcodes[1] == 0x7341 &&
-					    instance->rep53 == 0xc339)
-					 	instance->rep53 = 0x4301;
-					}
-				default:
-				  if(instance->ctrlcodecnt >= 0)
-				  {
-					if(instance->ctrlcodes[
-					   instance->ctrlcodecnt] != ctrlcode)
-					{
-				/*	Too Many code , problem */
-					  if(instance->ctrlcodecnt ==
-						NBMAXCODES)
-					  		break;
-					  if(ctrlcode == 0xf301) /* RESET */
-						instance->ctrlcodecnt = 0;
-					  else
-					  {
-					    instance->ctrlcodecnt++;
-					    instance->ctrlcodes[
-						instance->ctrlcodecnt] =
-								ctrlcode;
-					    instance->ctrlseqcnt = 1;
-					  }
-					}
-					else
-						instance->ctrlseqcnt++;
-				   }
-				   else
-				   {
-					instance->ctrlcodecnt++;
-					instance->ctrlcodes[
-					  instance->ctrlcodecnt] =
-								ctrlcode;
-					instance->ctrlseqcnt = 1;
-				   }
-				   if(instance->ctrlseqcnt == 1)
-				   {
-					switch(instance->ctrlcodecnt)
-					{
-					  case 0:
-						instance->rep53 = 0x4301;
-						instance->rep73 = 0x6301;
-						break;
-					  case 1:
-						switch(instance->ctrlcodes[0])
-						{
-						  case 0x734d:
-						    if(instance->cnt734d)
-						      instance->rep73 = 0xe30b;
-						    else
-						    {
-						      instance->rep73 =	0x630b;
-						      instance->cnt734d = 0;
-						    }
-						    break;
-						  case 0x7431:
-						    instance->cnt7341 = 0;
-						    instance->rep73 = 0x6301;
-						    instance->cnt73 = 0;
-						    instance->rep53 = 0xc339;
-						    instance->cnt53 = 0;
-						  default: /* Win a line ;) */
-						    break;
+				switch(ctrlcode) {
+						case 0x0c0c:
+							break;
+						case 0x7311:
+							if(instance->cnt73 == 5 ) {
+								  instance->cnt73 = 0;
+					 		if(instance->ctrlcodecnt == 1 &&
+					    		instance->ctrlcodes[1] == 0x7341)
+								      if(++instance->cnt7341 == 3)
+										   instance->rep73 = 0x730f;
 						}
-					  case 2:
-						switch(instance->ctrlcodes[2])
-						{
-						  case 0xf34f:
-						    instance->rep73 = 0xe351;
-						  default: /* Win a line */
-						    break;
-						}
-					 }
+						case 0x5311:
+							if(instance->cnt53 == 5 ) {
+							  instance->cnt53 = 0;
+							  if(instance->ctrlcodecnt == 1 &&
+								    instance->ctrlcodes[1] == 0x7341 &&
+					    			instance->rep53 == 0xc339)
+					 				instance->rep53 = 0x4301;
+							}
+						default:
+				  			if(instance->ctrlcodecnt >= 0) {
+								if(instance->ctrlcodes[instance->ctrlcodecnt] != ctrlcode) {
+								/*	Too Many code , problem */
+									  if(instance->ctrlcodecnt == NBMAXCODES)
+									  		break;
+									  if(ctrlcode == 0xf301) /* RESET */
+											instance->ctrlcodecnt = 0;
+									  else {
+										    instance->ctrlcodecnt++;
+										    instance->ctrlcodes[instance->ctrlcodecnt] = ctrlcode;
+										    instance->ctrlseqcnt = 1;
+					  				}
+								} else
+									instance->ctrlseqcnt++;
+				   			} else {
+								instance->ctrlcodecnt++;
+								instance->ctrlcodes[instance->ctrlcodecnt] = ctrlcode;
+								instance->ctrlseqcnt = 1;
+						   }
+						   if(instance->ctrlseqcnt == 1) {
+								switch(instance->ctrlcodecnt) {
+									case 0:
+										instance->rep53 = 0x4301;
+										instance->rep73 = 0x6301;
+										break;
+					  				case 1:
+										switch(instance->ctrlcodes[0]) {
+										  case 0x734d:
+											    if(instance->cnt734d)
+											    	instance->rep73 = 0xe30b;
+												else {
+													instance->rep73 =	0x630b;
+													instance->cnt734d = 0;
+												}
+										break;
+										case 0x7431:
+										    instance->cnt7341 = 0;
+										    instance->rep73 = 0x6301;
+										    instance->cnt73 = 0;
+										    instance->rep53 = 0xc339;
+										    instance->cnt53 = 0;
+										default: /* Win a line ;) */
+										    break;
+										}
+					  				case 2:
+										switch(instance->ctrlcodes[2]) {
+											case 0xf34f:
+											    instance->rep73 = 0xe351;
+												default: /* Win a line */
+													break;
+										}
+							 	}
 				    }
 				}
 			}
-			for(i=0;i<15;i++)
-			{
+			for(i=0;i<15;i++)	{
 				b1 = in_buf[6 + 2 * i + 0];  
 				b2 = in_buf[6 + 2 * i + 1];
 
-				if(b1 != 0x0c || b2 !=0x0c)
-				{
-					switch(b1)
-					{
+				if(b1 != 0x0c || b2 !=0x0c)	{
+					switch(b1)	{
 					  case 0x53:
-					    if( ((b1 <<8 ) | b2 ) == 
-						instance->match53)
-					    {
-						eci_outbuf[10 + outi] = 
-						     instance->rep53 >> 8;
-						eci_outbuf[10 + outi+1] =
-						     instance->rep53 & 0xf;
+					    if( ((b1 <<8 ) | b2 ) ==  instance->match53) {
+							eci_outbuf[10 + outi] = instance->rep53 >> 8;
+							eci_outbuf[10 + outi+1] = instance->rep53 & 0xf;
 					    }
 					    break;
 					  case 0x73:
-					    if( ((b1 <<8 ) | b2 ) == 
-						instance->match73)
-					    {
-						eci_outbuf[10 + outi] = 
-						     instance->rep73 >> 8;
-						eci_outbuf[10 + outi+1] =
-						     instance->rep73 & 0xf;
+					    if( ((b1 <<8 ) | b2 ) == instance->match73)  {
+							eci_outbuf[10 + outi] =  instance->rep73 >> 8;
+							eci_outbuf[10 + outi+1] = instance->rep73 & 0xf;
 					    }
 					    break;
 					  default: 
@@ -1611,29 +1466,22 @@ static void eci_int_callback(struct urb *urb)
 					outi+=2;
 				}
 			}
-			if(outi)
-			{
+			if(outi)	{
 /*				usb_control_msg(instance->usb_wan_dev, 
 					usb_pipecontrol(0), 0xdd, 0x40, 0xc02,
 				 	0x580 , eci_outbuf, 
 					sizeof(eci_outbuf), HZ);*/
-				dr = kmalloc(sizeof(struct usb_ctrlrequest),
-						GFP_ATOMIC);
-				if(dr)
-				{
+				dr = kmalloc(sizeof(struct usb_ctrlrequest), GFP_ATOMIC);
+				if(dr) {
 					dr->bRequestType = 0x40;
 					dr->bRequest = 0xdd;
 					dr->wValue = cpu_to_le16(0xc02);
 					dr->wIndex = cpu_to_le16(0x580);
-					dr->wLength = cpu_to_le16(
-							sizeof(eci_outbuf));
+					dr->wLength = cpu_to_le16(sizeof(eci_outbuf));
 					FILL_CONTROL_URB(instance->vendor_urb,
-						instance->usb_wan_dev,
-						usb_pipecontrol(0),
-						(unsigned char*) &dr,
-						eci_outbuf,
-						sizeof(eci_outbuf),
-						eci_control_callback,dr);
+						instance->usb_wan_dev, usb_pipecontrol(0),
+						(unsigned char*) &dr,	eci_outbuf,
+						sizeof(eci_outbuf),	eci_control_callback,dr);
 					usb_submit_urb(instance->vendor_urb);
 				}
 			}
@@ -1642,8 +1490,7 @@ static void eci_int_callback(struct urb *urb)
 	spin_unlock_bh(&instance->lock);
 }
 
-static void eci_bh_iso(unsigned long instance)
-{
+static void eci_bh_iso(unsigned long instance)  {
 	int flags;
 
 	spin_lock_irqsave(&(((struct eci_instance *)instance)->lock), flags);
@@ -1652,8 +1499,7 @@ static void eci_bh_iso(unsigned long instance)
 	spin_unlock_irqrestore(&(((struct eci_instance *)instance)->lock), flags);
 }
 
-static void eci_iso_callback(struct urb *urb)
-{
+static void eci_iso_callback(struct urb *urb) {
 	struct eci_instance 	*instance;	/* Driver private structre */
 	int 			i;		/* Frame Counter	*/
  	int 			pos;		/* Buffer curent pos counter */
@@ -1663,73 +1509,43 @@ static void eci_iso_callback(struct urb *urb)
 
 	instance = (struct eci_instance *)urb->context;
 	spin_lock_bh(&instance->lock);
-	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
-	{
+	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length) {
 		DBG_OUT("Data in iso packet \n");
-		for (i=0;i<ECI_NB_ISO_PACKET;i++)
-		{
-			if (!urb->iso_frame_desc[i].status &&
-				 urb->iso_frame_desc[i].actual_length)
-			{
-				if(instance->iso_celbuf_pos)
-				{
+		for (i=0;i<ECI_NB_ISO_PACKET;i++) {
+			if (!urb->iso_frame_desc[i].status && 
+				 urb->iso_frame_desc[i].actual_length)	{
+				if(instance->iso_celbuf_pos)	{
 					pos = ATM_CELL_SZ - instance->iso_celbuf_pos;
-					memcpy(instance->iso_celbuf + 
-					       instance->iso_celbuf_pos,
-						urb->transfer_buffer +
-						urb->iso_frame_desc[i].offset, 
-						pos) ;
-					if(!(cell = _uni_cell_fromRaw(
-						 ATM_CELL_SZ,
-						 instance->iso_celbuf)))
-					{
-				 	  ERR_OUT(
-					  "not enough memory for new cell\n");
-					}
-					else 
-					{
-						if(_uni_cell_list_append(
-							&instance->iso_cells, cell))
-						{
-						    ERR_OUT(
-				 		"Couldn't queue One cell\n");
+					memcpy(instance->iso_celbuf + instance->iso_celbuf_pos,
+						urb->transfer_buffer + urb->iso_frame_desc[i].offset, pos) ;
+					if(!(cell = _uni_cell_fromRaw( ATM_CELL_SZ,
+						 instance->iso_celbuf)))	{
+				 	  ERR_OUT( "not enough memory for new cell\n");
+					} else {
+						if(_uni_cell_list_append(&instance->iso_cells, cell))	{
+						    ERR_OUT("Couldn't queue One cell\n");
 						    _uni_cell_free(cell);
-						}
-						else
+						}	else
 					 	    received = -1;
 					}
-				}
-				else
-				{
+				} else {
 					pos = 0 ;
 				}
-				for(buf=urb->transfer_buffer +
-					urb->iso_frame_desc[i].offset;
-					pos + ATM_CELL_SZ <=
-					urb->iso_frame_desc[i].actual_length;
-					pos+=ATM_CELL_SZ)
-				{
-					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
-						buf + pos);
-					if (!cell)
-					{
-						ERR_OUT(
-					   "not enough mem for new cell\n") ;
-					}
-					else 
-					 if(_uni_cell_list_append(
-							&instance->iso_cells,cell))
-					 {
+				for(buf=urb->transfer_buffer + urb->iso_frame_desc[i].offset;
+					pos + ATM_CELL_SZ <=urb->iso_frame_desc[i].actual_length;
+					pos+=ATM_CELL_SZ) {
+						cell = _uni_cell_fromRaw(ATM_CELL_SZ, buf + pos);
+					if (!cell) {
+						ERR_OUT( "not enough mem for new cell\n") ;
+					} else 
+						if(_uni_cell_list_append(&instance->iso_cells,cell)) {
 					   ERR_OUT("Couldn't queue One cell\n");
 					   _uni_cell_free(cell);
-					 }
-					 else
+					 }	 else
 					   received = -1;
 				}
-				if((instance->iso_celbuf_pos = 
-					urb->iso_frame_desc[i].actual_length - 
-					pos))
-				{
+				if((instance->iso_celbuf_pos = urb->iso_frame_desc[i].actual_length - 
+					pos)) {
 					DBG_OUT("Saving data for next frame\n");
 					memcpy(instance->iso_celbuf, buf +pos,
 						instance->iso_celbuf_pos);
@@ -1743,8 +1559,7 @@ static void eci_iso_callback(struct urb *urb)
 					urb->iso_frame_desc[i].status);
 		}
 	}
-	if(received)
-	{
+	if(received) {
 		tasklet_schedule (&instance->bh_iso);
 	}
 					
@@ -1755,8 +1570,7 @@ static void eci_iso_callback(struct urb *urb)
 	urb->number_of_packets = ECI_NB_ISO_PACKET;
 	urb->complete = eci_iso_callback;
 	urb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE;
-	for(i=0;i < ECI_NB_ISO_PACKET; i ++)
-	{
+	for(i=0;i < ECI_NB_ISO_PACKET; i ++) {
 		urb->iso_frame_desc[i].offset = i * ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
@@ -1766,25 +1580,20 @@ static void eci_iso_callback(struct urb *urb)
 }
 
 static int eci_usb_send_urb(struct eci_instance *instance, 
-			struct uni_cell_list *cells)
-{
+	struct uni_cell_list *cells) {
 	int ret;
 
-	if((ret=_uni_cell_list_cat(&instance->bulk_cells, cells)))
-	{
+	if((ret=_uni_cell_list_cat(&instance->bulk_cells, cells))) {
 		ERR_OUT("Can't concat cell list, droping cells\n");
 		DBG_OUT("Eci_usb_send_urb : ret = %d\n", ret);
 		return ret;
-	}
-	else
-	{
+	}	else 	{
 		tasklet_schedule(&instance->bh_bulk);
 		return 0;
 	} 
 }
 
-static void eci_bh_bulk(unsigned long pinstance)
-{
+static void eci_bh_bulk(unsigned long pinstance) {
 	unsigned	char *buf;	/* urb buffer			*/
 	int		i;		/* loop counter			*/
 	int		buflen;		/* urb buffer len		*/
@@ -1796,66 +1605,54 @@ static void eci_bh_bulk(unsigned long pinstance)
 
 	instance = (struct eci_instance *)pinstance;
 	spin_lock_irqsave(&instance->lock , flags);
-	if(instance->bulkisfree)
-	{
-	buflen = ECI_BULK_BUFFER_SIZE;
-	urb = instance->bulk_urb;	
-	buf = urb->transfer_buffer;
-	bufpos = 0;
- 	while(bufpos < (ECI_BULK_BUFFER_SIZE) && 
- 		(cell = _uni_cell_list_extract(&instance->bulk_cells)))
-	{
- 		if(cell && cell->raw)
-		{
-			memcpy(buf + bufpos, cell->raw, ATM_CELL_SZ);
-			for(i=53; i < 64; i++) buf[bufpos + i] = 0xff;
-			bufpos += 64;
-			_uni_cell_free(cell) ;
-		}
-		else
-		{
-			if (cell) _uni_cell_free(cell) ;
-			break;
-		}
+	if(instance->bulkisfree)	{
+		buflen = ECI_BULK_BUFFER_SIZE;
+		urb = instance->bulk_urb;	
+		buf = urb->transfer_buffer;
+		bufpos = 0;
+	 	while(bufpos < (ECI_BULK_BUFFER_SIZE) && 
+ 			(cell = _uni_cell_list_extract(&instance->bulk_cells))) {
+		 		if(cell && cell->raw) {
+					memcpy(buf + bufpos, cell->raw, ATM_CELL_SZ);
+					for(i=53; i < 64; i++) buf[bufpos + i] = 0xff;
+					bufpos += 64;
+					_uni_cell_free(cell) ;
+				} else {
+					if (cell) _uni_cell_free(cell) ;
+					break;
+				}
 		/*if(_uni_cell_list_crs_next(&cell)) break;*/
-	}
-	FILL_BULK_URB(urb, instance->usb_wan_dev, 
-		usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
-		buf, bufpos, eci_bulk_callback, instance);
-	if(usb_submit_urb(urb))
-	{
+		}
+		FILL_BULK_URB(urb, instance->usb_wan_dev, 
+			usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
+			buf, bufpos, eci_bulk_callback, instance);
+		if(usb_submit_urb(urb))	{
 	/*
 		TODO:	Put the cells back in list on error
 			need antother way handling cells and
 			list 
 	*/
-		ERR_OUT("Can't submit bulk urb\n");
-	}
-	else
-		instance->bulkisfree = 0;
+				ERR_OUT("Can't submit bulk urb\n");
+		} else
+			instance->bulkisfree = 0;
 	}
 	spin_unlock_irqrestore(&instance->lock, flags);
 	return;	
 }
 
-static void eci_bulk_callback(struct urb *urb)
-{
+static void eci_bulk_callback(struct urb *urb) {
 	struct eci_instance *instance;
 
 	if (!urb) return ;/*	????	*/
-	if(urb->status)
-	{
+	if(urb->status) {
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
 	instance = (struct eci_instance *)urb->context;
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
-	if(_uni_cell_list_nbcells(&instance->bulk_cells))
-	{
+	if(_uni_cell_list_nbcells(&instance->bulk_cells)) {
 		tasklet_schedule(&instance->bh_bulk);
-	}
-	else
-	{
+	} else {
 		/*	Schedule ATM in case of pending data
 			as many schedule may have been canceled
 			by one call to bh_atm	*/
@@ -2032,6 +1829,8 @@ static int _eci_rx_aal5(
 	int			lv_vci ;
 	size_t			lv_size ;
 	struct sk_buff *	lp_skb		= NULL ;
+	struct sock *s;
+	struct atm_vcc *vcc;
 	byte *			lp_data		= NULL ;
 
 	/* Check Interface */
@@ -2046,9 +1845,8 @@ static int _eci_rx_aal5(
 	}
 
 	lv_size = _aal5_getSize(paal5) ;
-	
 	/* Alloc SKB */
-	lp_skb = atm_alloc_charge(pinstance->atm_dev->vccs, lv_size, GFP_ATOMIC);
+	lp_skb = atm_alloc_charge(vcc, lv_size, GFP_ATOMIC);
 	if (!lp_skb) {
 		ERR_OUT("not enought mem for new skb\n") ;
 		return -ENOMEM ;
