@@ -7,14 +7,17 @@
 # 02/02/2002: added the permission check for check-hdlc & check-hdlc-bug
 # 07/02/2002: added check on the pppd output. added the CVS Id.
 
-# CVS $Id$
-# Tag $Name$
+# CVS $Id: eci-doctor.sh,v 1.29 2003/10/10 07:24:49 papillau Exp $
+# Tag $Name:  $
 
 # 16/02/2002 Benoit PAPILLAULT
 #   Check for an existing pppd and display its version
 
 # 26/02/2002 Benoit PAPILLAULT
 #   Added the 'nopersist' flag for diagnostic purpose.
+
+# 22/04/2004 FlashCode <flashcode@flashtux.org>
+# Renamed script: eci-doctor.sh -> eciadsl-doctor
 
 # <CONFIG>
 ETC_DIR="/etc"
@@ -250,11 +253,11 @@ fi
 echo "/dev/ppp is OK" ;
 
 # check for the HDLC support
-"$BIN_DIR/check-hdlc"
+"$BIN_DIR/eciadsl-check-hdlc"
 if [ $? -ne 0 ]; then
 	echo "HDLC support is missing... trying to load" ;
 	modprobe n_hdlc ;
-	./check-hdlc ;
+	./eciadsl-check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: failed to load" ;
 		echo "You should check your kernel config with: cd /usr/src/linux ; make menuconfig" ;
@@ -264,13 +267,13 @@ if [ $? -ne 0 ]; then
 	fi
 # here, HDLC support is OK, but maybe some alias are missing
 	modprobe -r n_hdlc ;
-	./check-hdlc ;
+	./eciadsl-check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: alias is missing... trying to add" ;
 		echo "alias tty-ldisc-13 n_hdlc" >> "$ETC_DIR/modules.conf" ;
 		depmod -a ;
 # checking again
-		./check-hdlc ;
+		./eciadsl-check-hdlc ;
 		if [ $? -ne 0 ]; then
 			echo "HDLC support: adding alias does not work" ;
 			fatal;
@@ -285,7 +288,7 @@ else
 fi
 
 # check for the HDLC bug
-"$BIN_DIR/check-hdlc-bug" > /dev/null 2>&1
+"$BIN_DIR/eciadsl-check-hdlc-bug" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
 	echo "HDLC support is buggy, you should apply the HDLC patch to your \
 kernel source. See the howto in the doc directory or on \
@@ -316,13 +319,13 @@ grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
-	$BIN_DIR/eci-load1 $eciload1_options
+	$BIN_DIR/eciadsl-firmware $eciload1_options
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load EZ-USB firmware" ;
 		fatal ;
 	fi ;
 	echo "Loading the GlobeSpan firmware..." ;
-	$BIN_DIR/eci-load2 $eciload2_options
+	$BIN_DIR/eciadsl-synch $eciload2_options
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load GlobeSpan firmware" ;
 		fatal ;
@@ -507,7 +510,7 @@ fi
 # check for /var/log or /tmp partitions full (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
 # check for $ETC_DIR/resolv.conf validity (TODO)
-# check for an already running pppd & pppoeci, while no ppp0 (TODO)
+# check for an already running pppd & eciadsl-pppoeci, while no ppp0 (TODO)
 # check for $PPPD_DIR/pap-secrets too (TODO)
 # check for either pap-secrets or chap-secrets, how? (TODO)
 
