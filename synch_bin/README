@@ -16,8 +16,7 @@ If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
 
 Installation :
-- driver version <= 0.5:
-  replace each occurrence of "/etc/eciadsl/eci_wan3.bin" with the .bin filename you use
-  in the startmodem script
+- driver version <= 0.5: replace each occurrence of "/etc/eciadsl/eci_wan3.bin" with the
+  .bin filename you use in the startmodem script
 - driver version > 0.5 : launch eciconftxt.sh or eciconf.sh then follow the interactive
   instructions.
