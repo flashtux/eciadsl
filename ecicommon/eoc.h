@@ -24,7 +24,7 @@
 #define EOC_ADDRESS_ATU_R 0x0000
 #define EOC_ADDRESS_ATU_C 0x0003
 
-#define EOC_OPCODE(x)		((x & (0xFF << 5)) | ((x >> 7 ) & 1))
+#define EOC_OPCODE(x)		(x & (0xFF << 5))
 #define EOC_OPCODE_HOLD		(0x01 << 5)
 #define EOC_OPCODE_RTN		(0xf0 << 5)
 #define EOC_OPCODE_SLFTST	(0x02 << 5)
