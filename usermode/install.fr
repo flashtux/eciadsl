@@ -1,7 +1,0 @@
-
-Lancez les commandes make puis make intall.
-Editez le fichier /etc/ppp/peers/adsl pour renseigner le nom d'utlisateur et 
-les vpi, vci.
-Rajoutez un ligne du genre 'tonlogin * tonpass *' dans /etc/ppp/chap-secrets (gardez les '*')
-C'est tout :)
-Vous pouvez utiliser le script startmodem pour initialiser votre connexion.

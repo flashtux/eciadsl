@@ -16,6 +16,13 @@
 # 26/02/2002 Benoit PAPILLAULT
 #   Added the 'nopersist' flag for diagnostic purpose.
 
+# <CONFIG>
+ETC_DIR=/etc
+CONF_DIR=/etc/eciadsl
+BIN_DIR=/usr/local/bin
+PPPD_DIR=/etc/ppp
+# </CONFIG>
+
 # cd to the directory where the 'doctor' is.
 cd `dirname $0`
 
@@ -261,7 +268,7 @@ if [ $? -ne 0 ]; then
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: alias is missing... trying to add" ;
-		echo "alias tty-ldisc-13 n_hdlc" >> /etc/modules.conf ;
+		echo "alias tty-ldisc-13 n_hdlc" >> $(ETC_DIR)/modules.conf ;
 		depmod -a ;
 # checking again
 		./check-hdlc ;
@@ -296,12 +303,12 @@ else
 	echo "HDLC support is OK (no bug)" ;
 fi
 
-if [ -e /etc/eciadsl/vidpid ]; then
-    vid1=`cat /etc/eciadsl/vidpid | cut -f1 -d' '` ;
-    pid1=`cat /etc/eciadsl/vidpid | cut -f2 -d' '` ;
-    vid2=`cat /etc/eciadsl/vidpid | cut -f3 -d' '` ;
-    pid2=`cat /etc/eciadsl/vidpid | cut -f4 -d' '` ;
-    echo "vid/pid read from /etc/eciadsl/vidpid: $vid1/$pid1 $vid2/$pid2" ;
+if [ -e $CONF_DIR/vidpid ]; then
+    vid1=`cat $CONF_DIR/vidpid | cut -f1 -d' '` ;
+    pid1=`cat $CONF_DIR/vidpid | cut -f2 -d' '` ;
+    vid2=`cat $CONF_DIR/vidpid | cut -f3 -d' '` ;
+    pid2=`cat $CONF_DIR/vidpid | cut -f4 -d' '` ;
+    echo "vid/pid read from $CONF_DIR/vidpid: $vid1/$pid1 $vid2/$pid2" ;
 else
     vid1="0547" ;
     pid1="2131" ;
@@ -315,28 +322,28 @@ grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
-	/usr/local/bin/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/firmware.bin
+	$BIN_DIR/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 $CONF_DIR/firmware.bin
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load EZ-USB firmware" ;
 		fatal ;
 	fi ;
 	echo "Loading the GlobeSpan firmware..." ;
-	/usr/local/bin/eci-load2 0x$vid2 0x$pid2 /etc/eciadsl/synch.bin
+	$BIN_DIR/eci-load2 0x$vid2 0x$pid2 $CONF_DIR/synch.bin
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load GlobeSpan firmware" ;
 		fatal ;
 	fi ;
 fi
 
-# check for the /etc/ppp/peers/adsl file (if the user is using another name,
+# check for the $PPPD_DIR/peers/adsl file (if the user is using another name,
 # he knows what he's doing and does not need this script).
 
-if [ ! -f /etc/ppp/peers/adsl ]; then
-	echo "No /etc/ppp/peers/adsl: did you install the ECI driver?" ;
+if [ ! -f $PPPD_DIR/peers/adsl ]; then
+	echo "No $PPPD_DIR/peers/adsl: did you install the ECI driver?" ;
 	fatal;
 fi
 
-# Note: user option (either in /etc/ppp/peers/adsl or /etc/ppp/chap-secrets)
+# Note: user option (either in $PPPD_DIR/peers/adsl or $PPPD_DIR/chap-secrets)
 # can be :
 # user TheUser
 # user "TheUser"
@@ -344,9 +351,9 @@ fi
 
 # check for an existing user param. The actual user param may be
 # within "" or not.
-user=`grep "^user" /etc/ppp/peers/adsl | awk '{print $2}'`
+user=`grep "^user" $PPPD_DIR/peers/adsl | awk '{print $2}'`
 if [ "$user" = "" ]; then
-	echo "Option 'user' if missing from /etc/ppp/peers/adsl: Fatal" ;
+	echo "Option 'user' if missing from $PPPD_DIR/peers/adsl: Fatal" ;
 	fatal ;
 fi
 
@@ -360,23 +367,23 @@ if [ "$n" != "" ]; then
 	user=$n;
 fi
 
-# check that the user param is the same is /etc/ppp/peers/adsl and
-# /etc/ppp/chap-secrets
+# check that the user param is the same is $PPPD_DIR/peers/adsl and
+# $PPPD_DIR/chap-secrets
 
-grep "^$user[ \t]*" /etc/ppp/chap-secrets > /dev/null
+grep "^$user[ \t]*" $PPPD_DIR/chap-secrets > /dev/null
 if [ $? -ne 0 ]; then
-	grep "^'$user'[ \t]*" /etc/ppp/chap-secrets > /dev/null
+	grep "^'$user'[ \t]*" $PPPD_DIR/chap-secrets > /dev/null
 	if [ $? -ne 0 ]; then
-		grep "^\"$user\"[ \t]*" /etc/ppp/chap-secrets > /dev/null
+		grep "^\"$user\"[ \t]*" $PPPD_DIR/chap-secrets > /dev/null
 		if [ $? -ne 0 ]; then
-			echo "/etc/ppp/chap-secrets: no password for $user" ;
+			echo "$PPPD_DIR/chap-secrets: no password for $user" ;
 			echo "Give me the password for $user:"
 			read pwd
-			echo "$user * $pwd *" >> /etc/ppp/chap-secrets
+			echo "$user * $pwd *" >> $PPPD_DIR/chap-secrets
 		fi
 	fi
 else
-	echo "/etc/ppp/chap-secrets is OK" ;
+	echo "$PPPD_DIR/chap-secrets is OK" ;
 fi
 
 # check for the Globespan chip
@@ -401,16 +408,16 @@ if [ "$ppp_version" != "2.4.0" -a "$ppp_version" != "2.4.1" ]; then
 fi
 echo "You are using pppd version $ppp_version$msg" ;
 
-# check for an existing /etc/ppp/options file
-if [ -f /etc/ppp/options ]; then
-	echo "You have an /etc/ppp/options file. Options in this file may conflict with" ;
-	echo "options from /etc/ppp/peers/adsl. We suggest to remove this file or make a";
+# check for an existing $PPPD_DIR/options file
+if [ -f $PPPD_DIR/options ]; then
+	echo "You have an $PPPD_DIR/options file. Options in this file may conflict with" ;
+	echo "options from $PPPD_DIR/peers/adsl. We suggest to remove this file or make a";
 	echo "backup copy." ;
-	grep "^nodetach" /etc/ppp/options > /dev/null
+	grep "^nodetach" $PPPD_DIR/options > /dev/null
 	if [ $? -eq 0 ]; then
-		echo "Removing 'nodetach' option from /etc/ppp/options..." ;
-		grep -v "^nodetach" /etc/ppp/options > /tmp/options
-		mv /tmp/options /etc/ppp/options
+		echo "Removing 'nodetach' option from $PPPD_DIR/options..." ;
+		grep -v "^nodetach" $PPPD_DIR/options > /tmp/options
+		mv /tmp/options $PPPD_DIR/options
 	fi
 fi
 
@@ -433,21 +440,21 @@ if [ "$PPP" = "" ]; then
 		# check for no response from PPP
 		grep 'LCP: timeout sending Config-Requests' /tmp/ppp.log > /dev/null
 		if [ $? -eq 0 ]; then
-			echo "PPP connection failed: check your vci & vpi parameters in /etc/ppp/peers/adsl and check for USB errors in /var/log/messages" ;
+			echo "PPP connection failed: check your vci & vpi parameters in $PPPD_DIR/peers/adsl and check for USB errors in /var/log/messages" ;
 			rm /tmp/ppp.log
 			fatal;
 		fi
 		# check for invalid password
 		grep 'CHAP authentication failed' /tmp/ppp.log > /dev/null
 		if [ $? -eq 0 ]; then
-			echo "CHAP authentication failed: check your user in /etc/ppp/peers/adsl and the matching password in /etc/ppp/chap-secrets" ;
+			echo "CHAP authentication failed: check your user in $PPPD_DIR/peers/adsl and the matching password in $PPPD_DIR/chap-secrets" ;
 			rm /tmp/ppp.log
 			fatal;
 		fi
 		# check for "sent [LCP ConfRej id=0xa5 <auth chap MD5>]"
 		grep 'sent \[LCP ConfRej' /tmp/ppp.log | grep '<auth chap MD5>' > /dev/null
 		if [ $? -eq 0 ]; then
-			echo "Password for user $user is missing in /etc/ppp/chap-secrets";
+			echo "Password for user $user is missing in $PPPD_DIR/chap-secrets";
 			rm /tmp/ppp.log
 			fatal;
 		fi
@@ -505,9 +512,9 @@ fi
 
 # check for /var/log or /tmp partitions full (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
-# check for /etc/resolv.conf validity (TODO)
+# check for $(ETC_DIR)/resolv.conf validity (TODO)
 # check for an already running pppd & pppoeci, while no ppp0 (TODO)
-# check for /etc/ppp/pap-secrets too (TODO)
+# check for $PPPD_DIR/pap-secrets too (TODO)
 # check for either pap-secrets or chap-secrets, how? (TODO)
 
 echo "Everything is OK" ;

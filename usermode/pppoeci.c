@@ -644,7 +644,7 @@ int aal5_read(unsigned char *cell_buf, size_t count,
 	 * copying the cell's content to our buffer
 	 */
 
-	if (len + CELL_DATA < sizeof(buf))
+	if ((unsigned int)(len + CELL_DATA) < sizeof(buf))
 	{
 		memcpy(buf + len, cell_buf, CELL_DATA);
 		len += CELL_DATA;
@@ -837,7 +837,7 @@ int decode_usb_pkt(unsigned char *buf, int len)
 
 	/* add the received buf to our buf, if possible */
 
-	if (rlen + len < sizeof(rbuf))
+	if ((unsigned int)(rlen + len) < sizeof(rbuf))
 	{
 		memcpy(rbuf + rlen, buf, len);
 		rlen += len;
@@ -868,41 +868,6 @@ int decode_usb_pkt(unsigned char *buf, int len)
 		memcpy(rbuf, rbuf + pos, rlen);
 
 	return(0);
-}
-
-void version(void)
-{
-	fprintf(stderr, "pppoeci version $Name$ (built on %s %s)\n", __DATE__, __TIME__);
-	exit(ERR_NONE);
-}
-
-void usage(const int return_an_error)
-/* if 'error' is 0, usage() hasn't to quit with an <0 error code */
-{
-
-
-	fprintf(stderr,	"pppoeci version $Name$\n"
-					"usage:\n"
-					"  pppoeci [switches..] -vpi num -vci num -vendor hex -product hex\n");
-	fprintf(stderr,	"switches:\n"
-					"  -alt num        : force the use of an alternate method to set USB interface\n"
-                                        "  -mode <name>    : PPP encapsulation method (LLC_RFC2364 or LLC_SNAP_RFC1483)\n"
-					"  -v              : defines the verbosity level [0-2] (enables logging)\n"
-					"  -f              : defines the log filename to use (default " LOG_FILE ")\n"
-					"  --help          : this message\n"
-					"  --version       : displays the version number then exit\n"
-					"\n");
-	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci that\n"
-					"your provider is using (for instance: 8.35 for France, 0.38 for UK).\n"
-					"\n");
-	fprintf(stderr,	"The vendor and product are hexadecimal values (4-digit max with a leading 0x)\n"
-					"They define the vendor ID and product ID (for instance: 0x0915/0x8000 for\n"
-					"an ECI Telecom USB ADSL Wan Modem).\n"
-					"\n");
-	fprintf(stderr,	"The encapsulation mode may change depending on the country/provider/modem.\n"
-					"If you experience LCP requests timeout at connect time, try another one\n"
-					"(eg: LLC_RFC2364 for switzerland). The default is VC Multiplexed PPP (none)\n\n");
-	exit(return_an_error?ERR_USAGE:ERR_NONE);
 }
 
 /*
@@ -1117,7 +1082,7 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 			   From what is found in our log, this never happen.
 			*/
 
-			if (10 + outi >= sizeof(outbuf))
+			if ((unsigned int)(10 + outi) >= sizeof(outbuf))
 			{
 				message("warning: outbuf is too small");
 				dump(buf, size);
@@ -1315,6 +1280,42 @@ void* fn_handle_ep_data_out(void* ignored)
 	return(NULL);
 }
 
+void version(const int full)
+{
+	printf(PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n");
+	if (full)
+		printf("%s\n", id);
+	_exit(ERR_NONE);
+}
+
+void usage(const int ret)
+/* if 'error' is 0, usage() hasn't to quit with an <0 error code */
+{
+
+
+	fprintf(stderr,	"usage:\n"
+					"       pppoeci [<switch>..] -vpi num -vci num -vendor hex -product hex\n");
+	fprintf(stderr,	"switches:\n"
+					"       -alt <num>           force the use of an alternate method to set USB interface\n"
+                    "       -mode <name>         PPP encapsulation method (LLC_RFC2364 or LLC_SNAP_RFC1483)\n"
+					"       -v or --verbosity    defines the verbosity level [0-2] (enables logging)\n"
+					"       -f or --logfile      defines the log filename to use (default " LOG_FILE ")\n"
+					"       -h or --help         this message\n"
+					"       -V or --version      displays the version number then exit\n"
+					"\n");
+	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci that\n"
+					"your provider is using (for instance: 8.35 for France, 0.38 for UK).\n"
+					"\n");
+	fprintf(stderr,	"The vendor and product are hexadecimal values (4-digit max with a leading 0x)\n"
+					"They define the vendor ID and product ID (for instance: 0x0915/0x8000 for\n"
+					"an ECI Telecom USB ADSL Wan Modem).\n"
+					"\n");
+	fprintf(stderr,	"The encapsulation mode may change depending on the country/provider/modem.\n"
+					"If you experience LCP requests timeout at connect time, try another one\n"
+					"(eg: LLC_RFC2364 for switzerland). The default is VC Multiplexed PPP (none)\n\n");
+	_exit(ret);
+}
+
 void sig_term(int sig)
 {
 	snprintf(errText, ERR_BUFSIZE,
@@ -1363,23 +1364,34 @@ int main(int argc, char *argv[])
 
 	for (i = 1; i < argc; i++)
 	{
-		if (strcmp(argv[i], "-v") == 0 && i + 1 < argc)
+		if (((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbosity") == 0) ) && (i + 1 < argc))
 			get_signed_value(argv[++i], &verbose);
-		else if (strcmp(argv[i], "-vpi") == 0 && i + 1 < argc)
+		else
+		if ((strcmp(argv[i], "-vpi") == 0) && (i + 1 < argc))
 			get_unsigned_value(argv[++i], &my_vpi);
-		else if (strcmp(argv[i], "-vci") == 0 && i + 1 < argc)
+		else
+		if ((strcmp(argv[i], "-vci") == 0) && (i + 1 < argc))
 			get_unsigned_value(argv[++i], &my_vci);
-		else if (strcmp(argv[i], "-vendor") == 0 && i + 1 < argc)
+		else
+		if ((strcmp(argv[i], "-vendor") == 0) && (i + 1 < argc))
 			get_hexa_value(argv[++i], &vendor);
-		else if (strcmp(argv[i], "-product") == 0 && i + 1 < argc)
+		else
+		if ((strcmp(argv[i], "-product") == 0 )&& (i + 1 < argc))
 			get_hexa_value(argv[++i], &product);
-		else if (strcmp(argv[i], "-alt") == 0)
+		else
+		if ((strcmp(argv[i], "-alt") == 0) && (i + 1 < argc))
 			get_signed_value(argv[++i], &pusb_set_interface_alt);
-		else if (strcmp(argv[i], "--version") == 0)
-			version();
-		else if (strcmp(argv[i], "--help") == 0)
-			usage(0);
-		else if (strcmp(argv[i], "-f") == 0 && i + 1 < argc)
+		else
+		if ((strcmp(argv[i], "--version") == 0) || (strcmp(argv[i], "-V") == 0))
+			version(0);
+		else
+		if (strcmp(argv[i], "--full-version") == 0)
+			version(1);
+		else
+		if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0))
+			usage(ERR_NONE);
+		else
+		if (((strcmp(argv[i], "-f") == 0) || (strcmp(argv[i], "--logfile") == 0) ) && (i + 1 < argc))
 		{
 			logfile = argv[++i];
 			if (!verbose)
@@ -1402,17 +1414,17 @@ int main(int argc, char *argv[])
 					}
 				}
 				if (frame_type!=j)
-					usage(1);
+					usage(-1);
 			}
 			else
-			usage(1);
+			usage(-1);
 	}
 
 	if (my_vci == 0xffff || my_vpi == 0xffff
 		|| verbose < 0 || verbose > 2
 		|| vendor == 0 || product == 0
 		|| pusb_set_interface_alt < 0)
-		usage(1);
+		usage(-1);
 
 	if (verbose)
 		fprintf(stderr, "Using:\n"

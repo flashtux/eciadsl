@@ -15,8 +15,11 @@ Sorted according to priority (the upper in the list, the prior):
 * probe_device.sh
 + add auto modes to probe_device.sh
 + synch bin auto selection (config time only)
-- packaging: ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
++ packaging: ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
   modify scripts
+  - fix ETC_DIR use (separate installtion and syst configuration uses)
+  - updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
+  - some more checks in ./configure (see TODO inside)
 + eciadsl.sf.net update
 
 0.7:

@@ -1,0 +1,62 @@
+COMPILATION
+===========
+
+Taper
+	./configure
+puis
+	make
+
+
+Taper ./configure --help pour voir la liste des options disponibles. Si le
+driver doit être installé dans un autre répertoire que celui par défaut
+(/usr/local), utiliser l'option --prefix, par exemple :
+	./configure --prefix=/opt
+Les fichiers de configuration du drivers peuvent eux aussi être installés
+ailleurs que dans le répertoire par défaut (/etc). Utiliser pour cela l'option
+--etc-prefix, comme par exemple:
+	./configure --etc-prefix=/opt
+Attention, pour l'instant, le --etc-prefix est utilisé pour définir où stocker
+les fichiers de configuration du driver, mais aussi pour accéder à ceux de
+pppd et à la configuration globale du système! N'utiliser donc --etc-prefix
+qu'en sachant exactement ce que cela implique.
+
+
+INSTALLATION
+============
+
+Sous root, lancer
+	make install
+
+
+CONFIGURATION
+=============
+
+Toujours sous root:
+ - sous X11, ouvrir un terminal et lancer eciconf.sh (il est nécessaire que
+   tcl/tk soit installé au préalable)
+ - en mode console, lancer eciconftxt.sh
+
+En cas de problème, utiliser eci-doctor.sh et consulter le fichier
+TROUBLESHOOTING.fr avant de crier à l'aide :-)
+
+S'il est nécessaire d'éditer la configuration du driver manuellement: les
+fichiers de configurations sont installés dans /etc/eciadsl (ou dans
+/opt/etc/eciadsl si vous avez lancé, par exemple, ./configure --etc-prefix=/opt).
+Voir aussi /etc/ppp/peers/asdl pour la configuration de pppd en rapport avec
+le driver, et dans /etc/ppp/chap-secrets, par exemple, si le FAI utilise le
+protocole CHAP pour l'authentification.
+
+
+UTILISATION
+===========
+
+Lancer startmodem (sous root).
+
+
+DÉSINSTALLATION
+===============
+
+A partir du répertoire des sources:
+	make uninstall
+et éventuellement
+	make distclean

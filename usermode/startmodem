@@ -4,8 +4,12 @@
 # Creation : 06/12/2001
 # Licence  : GPL
 
+# 23/10/2002 wwp:
+# removed ugly hardcoded pathes, used new scheme.
+
 # 21/10/2002 wwp:
 # default .bin is synch01.bin now, /etc/eciadsl/synch.bin is a symlink to this one!
+# removed ugly modutils uses, added some delays.
 
 # 03/02/2002: added a sleep 2 after loading USB controller driver, as suggested
 # by Sebastien YAPO <sebastien.yapo@free.fr>.
@@ -27,24 +31,12 @@
 #   to change your .bin file, run eciconf or type this command :
 #     rm /etc/eciadsl/eci_wan.bin && ln -s /path/your.bin /etc/eciadsl/eci_wan.bin
 
-PATH=/bin:/sbin:/usr/bin:/usr/sbin
-
-#
-#   Ugly stuff to check for eci-load? location.
-#   If not in path assume it is in /usr/local/bin
-#
-export ECILOAD1
-ECILOAD1=`which eci-load1`
-if [ -f $ECILOAD1 ]; then
-    ECILOAD1=/usr/local/bin/eci-load1
-    echo "test : $ECILOAD1"
-fi
-
-
-ECILOAD2=`which eci-load2`
-if [ -f $ECILOAD2 ]; then
-    ECILOAD2=/usr/local/bin/eci-load2
-fi
+# <CONFIG>
+BIN_DIR="/usr/local/bin"
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+PPPD_DIR="/etc/ppp"
+# </CONFIG>
 
 if [ ! -d /proc/bus/usb ]; then
     echo "Loading support for USB"
@@ -52,12 +44,12 @@ if [ ! -d /proc/bus/usb ]; then
 	sleep 1
 fi
 
-if [ -e /etc/eciadsl/vidpid ]; then
-    vid1=`cat /etc/eciadsl/vidpid | cut -f1 -d' '`
-    pid1=`cat /etc/eciadsl/vidpid | cut -f2 -d' '`
-    vid2=`cat /etc/eciadsl/vidpid | cut -f3 -d' '`
-    pid2=`cat /etc/eciadsl/vidpid | cut -f4 -d' '`
-    echo "vid/pid read from /etc/eciadsl/vidpid: $vid1/$pid1 $vid2/$pid2"
+if [ -f $CONF_DIR/vidpid ]; then
+    vid1=`cat $CONF_DIR/vidpid | cut -f1 -d' '`
+    pid1=`cat $CONF_DIR/vidpid | cut -f2 -d' '`
+    vid2=`cat $CONF_DIR/vidpid | cut -f3 -d' '`
+    pid2=`cat $CONF_DIR/vidpid | cut -f4 -d' '`
+    echo "vid/pid read from $CONF_DIR/vidpid: $vid1/$pid1 $vid2/$pid2"
 else
     vid1="0547"
     pid1="2131"
@@ -72,12 +64,12 @@ if [ ! -f /proc/bus/usb/devices ]; then
 fi
 
 #verify if dabusb is loaded
-lsmod|grep dabusb > /dev/null
-if [ $? == "0" ]; then
+lsmod | grep dabusb > /dev/null
+if [ $? -eq 0 ]; then
     echo "Dabusb seems to be present trying to remove it..."
     modprobe -r dabusb
 	sleep 1
-    lsmod|grep dabusb > /dev/null
+    lsmod | grep dabusb > /dev/null
 	if [ $? == "0" ]; then
 		echo "Couldn't remove dabusb try rmmod dabusb manually"
 	else
@@ -86,13 +78,13 @@ if [ $? == "0" ]; then
 fi
 
 #verify if ehci-hcd is loaded
-lsmod|grep ehci-hcd > /dev/null
-if [ $? == "0" ]; then
+lsmod | grep ehci-hcd > /dev/null
+if [ $? -eq 0 ]; then
     echo "ehci-hcd seems to be present trying to remove it..."
     modprobe -r ehci-hcd
 	sleep 1
-    lsmod|grep ehci-hcd > /dev/null
-	if [ $? == "0" ]; then
+    lsmod | grep ehci-hcd > /dev/null
+	if [ $? -eq 0 ]; then
 		echo "Couldn't remove ehci-hcd try rmmod ehci-hcd manually"
 	else
 		echo "Removed ehci-hcd successfully"
@@ -127,17 +119,17 @@ echo "Init modem ..."
 
 # check for the EZ-USB chips. If it's not there, maybe the firmware is
 # already loaded ... so continue.
-if [ $# != "4" ]; then
+if [ $# -ne 4 ]; then
 	grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 else
 	grep "^P:  Vendor=$1 ProdID=$2" /proc/bus/usb/devices > /dev/null
 fi
 if [ $? -eq 0 ]; then
     echo "  Load Firmware ..."
-    if [ $# != "4" ]; then
-        $ECILOAD1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/firmware.bin
+    if [ $# -ne 4 ]; then
+        $(BIN_DIR)/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 $CONF_DIR/firmware.bin
     else
-        $ECILOAD1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/firmware.bin
+        $(BIN_DIR)/eci-load1 0x$1 0x$2 0x$3 0x$4 $CONF_DIR/firmware.bin
     fi
     if [ $? -ne 0 ]; then
         echo "Failed to load firmware"
@@ -146,7 +138,7 @@ if [ $? -eq 0 ]; then
     echo "  ... Load Firmware OK"
 fi
 
-if [ $# != "4" ]; then
+if [ $# -ne 4 ]; then
 grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
 else
 grep "^P:  Vendor=$3 ProdID=$4" /proc/bus/usb/devices > /dev/null
@@ -157,10 +149,10 @@ if [ $? -ne 0 ]; then
 fi
 
 echo "  Setup modem ..."
-if [ $# != "4" ]; then
-    $ECILOAD2 0x$vid2 0x$pid2 /etc/eciadsl/synch.bin
+if [ $# -ne 4 ]; then
+    $(BIN_DIR)/eci-load2 0x$vid2 0x$pid2 $CONF_DIR/synch.bin
 else
-    $ECILOAD2 0x$3 0x$4 /etc/eciadsl/synch.bin
+    $(BIN_DIR)/eci-load2 0x$3 0x$4 $CONF_DIR/synch.bin
 fi
 if [ $? -ne 0 ] ; then
     echo "Failed to setup the modem"

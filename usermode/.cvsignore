@@ -1,0 +1,10 @@
+Makefile.config
+config.h
+configure.*
+eci-load1
+eci-load2
+pppoeci
+check-hdlc
+check-hdlc-bug
+inst
+dist

@@ -15,6 +15,39 @@
 #ifndef MODEM_H
 #define MODEM_H
 
+#include "config.h"
+
+#ifndef PRODUCT_ID
+#error "PRODUCT_ID must be defined"
+#endif
+
+#ifndef PRODUCT_NAME
+#error "PRODUCT_NAME must be defined"
+#endif
+
+#ifndef PRODUCT_VERSION
+#error "PRODUCT_VERSION must be defined"
+#endif
+
+#ifndef ETC_PATH
+#error "ETC_PATH must be defined"
+#endif
+
+#ifndef ETC_DIR
+#error "ETC_DIR must be defined"
+#endif
+
+/*
+#define AND &&
+#define OR ||
+#define NOT !
+#define NOP {;}
+#define true 1
+#define false 0
+#define MAX(X,Y) ((X)>(Y)?(X):(Y))
+#define MIN(X,Y) ((X)<(Y)?(X):(Y))
+*/
+
 /* Vendor/ProdID for "ECI Telecom USB ADSL Loader" */
 #define EZUSB_NAME    "EZUSB USB ADSL Loader"
 #define EZUSB_VENDOR  0x0547 /* 0x0547 */

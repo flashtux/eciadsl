@@ -24,6 +24,13 @@
 # CVS $Id$
 # Tag $Name$
 
+# <CONFIG>
+$BIN_DIR = "/usr/local/bin"
+$ETC_DIR = "/etc"
+$CONF_DIR = "/etc/eciadsl"
+$PPPD_DIR = "/etc/ppp"
+# </CONFIG>
+
 $active = 0;
 
 open BIN, ">firmware.bin";

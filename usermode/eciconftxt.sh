@@ -12,9 +12,13 @@
 # Licence  : GPL
 #
 
-# target "etc" directory (useful for testing this script)
-# TODO: here confdir must be set to PREFIX_CONF/eciadsl by ./configure
-confdir=/etc/eciadsl
+# <CONFIG>
+BIN_DIR="/usr/local/bin"
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+PPPD_DIR="/etc/ppp"
+# </CONFIG>
+
 tmpbin=/tmp/binfile.tmp
 
 if [ $UID -ne 0 ]; then
@@ -65,18 +69,18 @@ case "$1" in
 "@bin@")
     fichiers_bin="Select your .bin file for sync|"
     echo
-    find ${confdir} -type f -o -type l -name "*.bin" 2>/dev/null | grep "bin" >/dev/null 2>&1
+    find ${CONF_DIR} -type f -o -type l -name "*.bin" 2>/dev/null | grep "bin" >/dev/null 2>&1
     if [ $? -ne 0 ]; then
-        echo "WARNING: no .bin file found in ${confdir} or subdirectories"
+        echo "WARNING: no .bin file found in ${CONF_DIR} or subdirectories"
         echo "Please check your driver installation !"
         echo "Skipping .bin selection..."
         > $tmpbin
         exit 255
     fi
-    for bin in $(find ${confdir} -type f -name "*.bin"); do
+    for bin in $(find ${CONF_DIR} -type f -name "*.bin"); do
 		case "$bin" in
 		*firmware*)	;;
-		*)			test "$bin" != "${confdir}/synch.bin" && fichiers_bin="${fichiers_bin}$bin|";;
+		*)			test "$bin" != "${CONF_DIR}/synch.bin" && fichiers_bin="${fichiers_bin}$bin|";;
 		esac
     done
     $0 @menu@ "$fichiers_bin"
@@ -102,7 +106,7 @@ case "$1" in
     echo -e "At any time, press Ctrl+C to quit this script without saving modifications.\n"
     echo -e "Tip: you can run eciconftxt.sh with a .bin file as parameter to change\nyour .bin quickly.\n"
 
-    if [ ! -d $confdir ]; then
+    if [ ! -d $CONF_DIR ]; then
         echo -e "Config directory not found !\n"
         exit 1
     fi
@@ -276,7 +280,7 @@ case "$1" in
         echo "ERROR: .bin file \"$1\" is a symbolic link !"
         exit 1
     fi
-	synch_bin_link="${confdir}/synch.bin"
+	synch_bin_link="${CONF_DIR}/synch.bin"
     echo -n "Modifying .bin link ($synch_bin_link -> $1)..."
     rm -f "$synch_bin_link" >/dev/null
     ln -sf "$1" "$synch_bin_link"

@@ -23,9 +23,12 @@
 # \
 exec wish "$0" "$@" & exit 0
 
-set PREFIX "/usr/local"
-set BIN_DIR "$PREFIX/bin"
+# <CONFIG>
+set BIN_DIR "/usr/local/bin"
+set ETC_DIR "/etc"
 set CONF_DIR "/etc/eciadsl"
+set PPPD_DIR "/etc/ppp"
+# </CONFIG>
 
 set titre_fenetre "ECI Linux driver configuration v0.6-pre3"
 
@@ -108,7 +111,7 @@ frame .bloc1.fai
 
 frame .bloc1.fai.majdns
 checkbutton .bloc1.fai.majdns.checkbox -text { Update provider DNS :} -command {invert_majdns} -relief groove -background "#ffcc99" -width 28 -variable majdns -offvalue "non" -onvalue "oui" -selectcolor blue
-bind .bloc1.fai.majdns.checkbox <Enter> {pushstate "Check this box if you want to update your DNS (/etc/resolv.conf)"}
+bind .bloc1.fai.majdns.checkbox <Enter> {pushstate "Check this box if you want to update your DNS ($ETC_DIR/resolv.conf)"}
 bind .bloc1.fai.majdns.checkbox <Leave> {popstate}
 pack .bloc1.fai.majdns.checkbox -side left
 set majdns "oui"
@@ -559,6 +562,8 @@ global majdns
         .bloc1.fai.ligne4.pipexuk configure -state normal -selectcolor blue
         .bloc1.fai.ligne5.bluewin configure -state normal -selectcolor blue
         .bloc1.fai.ligne5.belgacom configure -state normal -selectcolor blue
+        .bloc1.fai.ligne6.bezeq configure -state normal -selectcolor blue
+        .bloc1.fai.ligne6.unlisted configure -state normal -selectcolor blue
         .bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
         .bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
         .bloc1.fai.dns1.labeldns configure -foreground black
@@ -574,6 +579,8 @@ global majdns
         .bloc1.fai.ligne4.pipexuk configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne5.bluewin configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne5.belgacom configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne6.bezeq configure -state disabled -selectcolor darkgray
+        .bloc1.fai.ligne6.unlisted configure -state disabled -selectcolor darkgray
         .bloc1.fai.dns1.entry configure -state disabled -foreground darkgray -background lightgray
         .bloc1.fai.dns2.entry configure -state disabled -foreground darkgray -background lightgray
         .bloc1.fai.dns1.labeldns configure -foreground darkgray

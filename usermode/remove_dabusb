@@ -12,6 +12,13 @@
 # *                                                                      *
 # ************************************************************************
 
+# <CONFIG>
+BIN_DIR="/usr/local/bin"
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+PPPD_DIR="/etc/ppp"
+# </CONFIG>
+
 lsmod | grep dabusb
 if [ $? -ne 0 ]; then
     echo "dabusb not present - nothing to do !"

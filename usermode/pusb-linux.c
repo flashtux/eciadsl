@@ -359,7 +359,7 @@ int pusb_endpoint_rw(int fd,int ep,unsigned char * buf,int size,int timeout)
 		
 		received += ret;
     }
-	while (ret==bulk.len && size>0);
+	while (ret==(int)bulk.len && size>0);
 	
 	return received;
 }

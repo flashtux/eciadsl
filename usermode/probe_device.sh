@@ -144,10 +144,16 @@ function get_manufacturer()
 	IFS=$OLDIFS
 }
 
+# <CONFIG>
+BIN_DIR="/usr/local/bin"
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+PPPD_DIR="/etc/ppp"
+# </CONFIG>
 
 BASE=${0##*/}
-BIN=eci-load1
-FIRMWARE=/etc/eciadsl/firmware.bin
+BIN=$BIN_DIR/eci-load1
+FIRMWARE=$CONF_DIR/firmware.bin
 DEVICES=/proc/bus/usb/devices
 VID1_TABLE=""
 VID2_TABLE=""

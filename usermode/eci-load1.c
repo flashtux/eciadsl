@@ -351,14 +351,23 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 	return 1;
 }
 
-void usage()
+void version(const int full)
 {
-	printf("eci-load1 version $Name$\n");
+	printf(PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n");
+	if (full)
+		printf("%s\n", id);
+	_exit(0);
+}
+
+void usage(const int ret)
+{
 	printf("usage:\n");
-	printf("       eci-load1 [-v] [1stVID 1stPID 2ndVID 2ndPID] firmware.bin\n");
+	printf("       eci-load1 [<switch>..] [VID1 PID1 VID2 PID2] firmware.bin\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
-	_exit(-1);
+	printf("       -h or --help      show this help message then exit\n");
+	printf("       -V or --version   show version information then exit\n");
+	_exit(ret);
 }
 
 void sigtimeout()
@@ -383,10 +392,21 @@ int main(int argc, char *argv[])
 	/* parse command line options */
 
 	for (i=1, j=1; i<argc; i++)
-		if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--version") == 0))
+	{
+		if ((strcmp(argv[i], "-V") == 0) || (strcmp(argv[i], "--version") == 0))
+			version(0);
+		else
+		if (strcmp(argv[i], "--full-version") == 0)
+			version(1);
+		else
+		if ((strcmp(argv[i], "-h") == 0) || (strcmp(argv[i], "--help") == 0))
+			usage(0);
+		else
+		if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbose") == 0))
 			option_verbose = 1;
 		else
 			argv[j++] = argv[i];
+	}
 	argc = j;
 
 	/* parse remaining command line arguments */
@@ -408,7 +428,7 @@ int main(int argc, char *argv[])
 		pid2 = strtoul(argv[4], NULL, 0);
 	}
 	else
-		usage();
+		usage(-1);
 
 	signal(SIGALRM, sigtimeout);
 	alarm(ECILOAD_TIMEOUT);

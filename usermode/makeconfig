@@ -26,7 +26,12 @@
 # target "etc" directory (useful for testing this script)
 #
 
-base_etc=/etc
+# <CONFIG>
+BIN_DIR="/usr/local/bin"
+ETC_DIR="/etc"
+CONF_DIR="/etc/eciadsl"
+PPPD_DIR="/etc/ppp"
+# </CONFIG>
 
 #
 # check parameters :
@@ -54,7 +59,7 @@ fi
 #
 
 if [ $4 != 0 ]; then
-    nomresolv=${base_etc}/resolv.conf
+    nomresolv=${ETC_DIR}/resolv.conf
     if [ -s $nomresolv ]; then
         nombak="${nomresolv}.bak"
         numero=0
@@ -79,7 +84,7 @@ fi
 
 for auth in "chap" "pap"
 {
-    nomsecret=${base_etc}/ppp/${auth}-secrets
+    nomsecret=${ETC_DIR}/ppp/${auth}-secrets
     if [ -s $nomsecret ]; then
         nombak="${nomsecret}.bak"
         numero=0
@@ -112,7 +117,7 @@ pid1=`echo $8 | cut -c 5-8`
 vid2=`echo $9 | cut -c 1-4`
 pid2=`echo $9 | cut -c 5-8`
 
-nomadsl=${base_etc}/ppp/peers/adsl
+nomadsl=${ETC_DIR}/ppp/peers/adsl
 if [ -s $nomadsl ]; then
     nombak="${nomadsl}.bak"
     numero=0
@@ -185,8 +190,8 @@ fi
 # create vidpid file
 #
 
-echo -n "Creating ${base_etc}/eciadsl/vidpid..."
-echo "$vid1 $pid1 $vid2 $pid2" >${base_etc}/eciadsl/vidpid
+echo -n "Creating ${ETC_DIR}/eciadsl/vidpid..."
+echo "$vid1 $pid1 $vid2 $pid2" >${ETC_DIR}/eciadsl/vidpid
 echo "ok"
 
 #
@@ -194,8 +199,8 @@ echo "ok"
 #
 
 if [ $# -eq 10 ]; then
-    echo -n "Modifying .bin link (${base_etc}/eciadsl/synch.bin -> ${10})..."
-    rm ${base_etc}/eciadsl/synch.bin >/dev/null
-    ln -s ${10} ${base_etc}/eciadsl/synch.bin
+    echo -n "Modifying .bin link (${ETC_DIR}/eciadsl/synch.bin -> ${10})..."
+    rm ${ETC_DIR}/eciadsl/synch.bin >/dev/null
+    ln -s ${10} ${ETC_DIR}/eciadsl/synch.bin
     echo "ok"
 fi
