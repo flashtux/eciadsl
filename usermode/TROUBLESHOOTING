@@ -66,7 +66,7 @@ PROVIDE US THESE INFO
 It may help a lot if you come and see us with these info. Also get the output of
 the tools from the package you have launched (configure scripts or startmodem),
 also provide us your /var/log/messages, /var/log/dmesg if available, the output
-of lsmod and your /proc/bus/usb/devices file.
+of `lsmod` and of `cat /proc/bus/usb/devices`.
 
 If you contact us from Windows, and if your Linux partition (ext2 or ext3 only)
 is on the same machine, use explore2fs to get the files directly from your Linux
@@ -168,6 +168,7 @@ Q:	My modem seems initialized at boot, the LEDs are flashing or fixed. Do this
 
 --------------------------------------------------------------------------------
 A:	No! This is not friendly at all.
+	That's because of the dabusb module. See the previous question.
 
 
 ================================================================================
@@ -190,35 +191,6 @@ A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
 	lines to make the source's patch:
 		patch -p1 < /path/to/n_hdlc.c.diff
 	then jump to the kernel configuration question (below).
-
-
-================================================================================
-Q:	I get LCP timeout lines in /var/log/messages then a modem hangup
-	(and eventually another problem more between both) like this:
-		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
-		..
-		LCP: timeout sending Config-Requests
-		Connection terminated.
-
---------------------------------------------------------------------------------
-A:	If your kernel really OK? N_HDLC support is OK? Check above!
-
-	Check your pppd version.
-
-	Jump to then next question also, because CHAP/PAP authentication problems
-	are not always verbosely reported by pppd.
-
-	See also below questions related to international users.
-
-
-================================================================================
-Q:	/var/log/messages shows CHAP or PAP failures.
-
---------------------------------------------------------------------------------
-A:	Check your /etc/ppp/pap-secrets	or /etc/ppp/chap-secrets files. Entries must
-	be like this:
-		"username" * "userpassword" *
-	You can configure this using eciconf.
 
 
 ================================================================================
@@ -296,6 +268,35 @@ A:	Jump to the previous question.
 
 	If the default route is NOT set to ppp0 even if ppp0 is up:
 		route add default dev ppp0
+
+
+================================================================================
+Q:	I get LCP timeout lines in /var/log/messages then a modem hangup
+	(and eventually another problem more between both) like this:
+		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
+		..
+		LCP: timeout sending Config-Requests
+		Connection terminated.
+
+--------------------------------------------------------------------------------
+A:	If your kernel really OK? N_HDLC support is OK? Check above!
+
+	Check your pppd version.
+
+	Jump to then next question also, because CHAP/PAP authentication problems
+	are not always verbosely reported by pppd.
+
+	See also below questions related to international users.
+
+
+================================================================================
+Q:	/var/log/messages shows CHAP or PAP failures.
+
+--------------------------------------------------------------------------------
+A:	Check your /etc/ppp/pap-secrets	or /etc/ppp/chap-secrets files. Entries must
+	be like this:
+		"username" * "userpassword" *
+	You can configure this using eciconf.
 
 
 ================================================================================
