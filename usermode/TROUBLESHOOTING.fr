@@ -106,16 +106,15 @@ Q:	startmodem ou eci-doctor.sh signale un modem non supporté !
 --------------------------------------------------------------------------------
 R:	Voir la question précédente.
 
-<ENG
-	If your plugged modem isn't showed in /proc/bus/usb/devices, look at
-	/var/log/messages. If you see such lines appearing during the last boot:
+	Si votre modem branché n'est pas visible dans /proc/bus/usb/devices, regardez
+	dans /var/log/messages. Si vous voyez ces lignes apparaître durant le boot :
 		kernel: usb_control/bulk_msg: timeout
 		kernel: usb.c: USB device not accepting new address=2 (error=-110)
-	there's a problem between you hardware/BIOS/kernel config. It may worth
-	disabling APIC support in kernel or at boot time, but it may come from other
-	IRQ conflicts between hardware devices, or some other kernel configuration
-	issue.
->
+	alors il y a un problème entre votre matériel/BIOS/config noyau. Vous pouvez
+	désactiver le support APIC dans le noyau ou au boot, mais cela peut venir
+	de conflits IRQ entre les périphériques, ou d'un autre problème de configuration
+	du noyau.
+
 	Voir aussi la question sur le module dabusb. Si dabusb est chargé, vous ne
 	pourrez pas utiliser votre modem avec le driver.
 
@@ -289,26 +288,23 @@ R:	Voir la question précédente.
 	Si votre route par défaut n'est PAS ppp0 bien que ppp0 soit actif :
 		route add default dev ppp0
 
-<ENG
-	This may be a firewall issue. Try to disable your firewall, if this works
-	now, you have to adjust your firewall's settings.
-	Mandrake 9 users: if you see lines like the following in your
+	Cela peut etre un problème de firewall. Essayez de désactiver le firewall, si ça marche
+	ensuite, vous devez juste changer les paramètres du firewall.
+	Utilisateurs Mandrake 9 : si vous voyez des lignes comme celle-ci dans votre fichier
 	/var/log/messages:
 		Shorewall:INPUT:REJECT:IN=ppp0 ....
-	then you can be sure that it's a firewall issue.
->
+	alors il s'agit d'un problème de firewall.
 
 
-<ENG
 ================================================================================
-Q:	I got disconnected after a while, pppd's persist options seems to work but I
-	cannot access to anything on Internet.
+Q:	Je suis déconnecté au bout d'un moment, l'option persist de pppd semble
+	fonctionner mais je ne peux rien accéder sur Internet.
 
 --------------------------------------------------------------------------------
-A:	Do you know that pppd calls /etc/ppp/ip-down when it got desconnected and
-	ip-up once reconnected? Maybe your distro's default ip-down restores basic
-	network route table or removes the DNS in /etc/resolv.conf?
->
+R:	Savez-vous que pppd appelle /etc/ppp/ip-down quand il y a une déconnection
+	et ip-up lors de la reconnection ? Peut-être que le script ip-down de votre distribution
+	restaure la route réseau ou supprime les DNS dans le fichier /etc/resolv.conf ?
+
 
 ================================================================================
 Q:	Après quelques minutes d'accès à Internet, plus rien ne semble fonctionner.
@@ -550,16 +546,14 @@ Q:	J'obtiens ce message dans /var/log/messages:
 R:	<A FAIRE: décrire les problèmes avec les "endpoints" URB>
 
 
-<ENG
 ================================================================================
-Q:	eci-doctor.sh says:
+Q:	eci-doctor.sh affiche :
 	Modem hangup
 	Connection terminated.
 	... usb_control/bulk_msg: timeout
 
 --------------------------------------------------------------------------------
-A:	<TODO: I don't remember why eheh>
->
+R:	<A FAIRE: Je ne me rappelle pourquoi eheh>
 
 
 ================================================================================
@@ -612,15 +606,13 @@ R:	Vérifiez que votre modem est supporté et que l'installation et la configurati
 	Regardez aussi la question précédente.
 
 
-<ENG
 ===============================================================================
-Q:	Can I use my USB modem with a USB2.0 HUB?
+Q:	Puis-je utiliser mon modem USB avec un HUB USB2.0 ?
 
 --------------------------------------------------------------------------------
-A:	We encountered problems when the modem is plugged to USB 2.0 HUB, which is
-	not supported. In most case, USB2.0 HUB module has to be unloaded. That's
-	why startmodem now unload ehci-hcd module when it founds it loaded.
->
+R:	Nous avons rencontré des problèmes quand le modem est branché sur un HUB USB2.0, ce qui
+	n'est pas supporté. Dans la plupart des cas, le module pour le HUB USB2.0 doit être retiré.
+	C'est pourqioi startmodem décharge désormais le module ehci-hcd si celui-ci est chargé.
 
 
 ================================================================================
@@ -710,13 +702,11 @@ R:	Envoyez-nous SVP la sortie du ./configure.
 	(Debian par exemple).
 
 
-<ENG
 ================================================================================
-Q:	I get the following error when I run `make` or `make install`:
+Q:	J'obtiens l'erreur suivante lorsque je fais un `make` ou `make install`:
 	Makefile:1: Makefile.config: No such file or directory
 	make: *** No rule to make target `Makefile.config'.  Stop.
 
 --------------------------------------------------------------------------------
-A:	Did you run `./configure`? you should have!
-	(>=0.6-pre4 only)
->
+R:	Avez-vous lancé `./configure` ? Vous devriez !
+	(version >=0.6-pre4 seulement)
