@@ -602,6 +602,16 @@ A:	Check your routing table: typing `route -n` as root. If no UG line is found
 	countries in Asia.
 
 
+4.16
+================================================================================
+Q:	Startmodem says:
+	eci-load2: failed to create shared semaphore: No space left on device
+
+--------------------------------------------------------------------------------
+A:	That's a bug introduced in version 0.6. It should be fixed in version higher
+	than 0.7. Please upgrade with cvs or any version > 0.7.
+
+
 5.0
 ================================================================================
 Q:	Is it possible to launch startmodem at boot time?

@@ -109,6 +109,45 @@ R:	Voir la question 1.4.
 	automatiquement, vous ne pourrez pas utiliser votre modem avec le driver.
 
 
+1.6
+================================================================================
+Q:	Je ne connais pas les adresses IP des DNS de mon provider.
+
+--------------------------------------------------------------------------------
+A:	La plupart des utilisateurs en ont en effet besoin (ce n'est pas le cas de
+	ceux qui utilisent DHCP pour obtenir une IP de leur provider par exemple),
+	et si vous ne trouvez sur le site de votre provider ou sur les papiers que
+	celui-ci vous a envoyé, ou encore dans la config MS Windows un fois installé
+	un éventuel CD de connexion, sachez qu'il existe des moyens de les obtenir!
+	En voici un, sous Linux:
+
+		host -n dn <le nom de domaine de votre provider>
+
+	Cela vous donne une liste de noms de DNS. Vous pouvez alors faire un ping
+	sur quelques un d'entre eux afin d'en obtenir l'adress IP.
+
+	Par exemple:
+		> host -t ns clix.com
+		clix.com. name server ns4.dnsmanaged.com.
+		clix.com. name server ns1.dnsmanaged.com.
+		clix.com. name server ns7.dnsmanaged.com.
+		clix.com. name server ns6.dnsmanaged.com.
+
+		> ping -c 1 -q ns4.dnsmanaged.com
+		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) bytes of
+		data.
+		--- ns4.dnsmanaged.com ping statistics ---
+		1 packets transmitted, 1 received, 0% loss, time 0ms
+		rtt min/avg/max/mdev = 169.466/169.466/169.466/0.000 ms
+
+	L'IP de ce ns4.dnsmanaged.com est 192.31.80.34.
+	Répétez la commande ping sur un autre nom de DNS, et vous aurez au moins
+	2 IP de DNS utilisables :-).
+	Si l'outil de configuration du driver ECIADSL ne vous permet pas de
+	sélectionner votre provider, choisissez 'Other' et tapez alors 2 adresses
+	IP.
+
+
 2.0
 ================================================================================
 Q:	startmodem ou eci-doctor.sh affiche :
@@ -584,6 +623,18 @@ A:	Vérifiez que vous avez bien une ligne UG (route par défaut) en tapant sous
 	
 	Note: des problèmes de ce type ont été rapportés par des utilisateurs
 	finlandais, suédois ou de certains pays d'Asie.
+
+
+4.16
+================================================================================
+Q:	Startmodem me dit:
+	eci-load2: failed to create shared semaphore: No space left on device
+
+--------------------------------------------------------------------------------
+A:	Il s'agit d'un bug introduit dans la version 0.6, qui est sensé être corrigé
+	depuis les versions supérieures à la version 7.0.
+	Téléchargez donc une version plus récente que la 7.0 (ou le cvs), et
+	installez-la.
 
 
 5.0
