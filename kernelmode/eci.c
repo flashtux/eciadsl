@@ -1121,7 +1121,7 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	int			lv_rc		= 0 ;
 
 	struct sk_buff		*lp_newskb = NULL;
-	unsigned long		flags;
+	/* unsigned long		flags; */
 	
 	DBG_OUT("eci_atm_send in\n");
 
@@ -1206,6 +1206,7 @@ static void eci_bh_atm (unsigned long param) {
 	int flags;
 	
 	DBG_OUT("eci_bh_atm IN\n") ;
+	DBG_OUT("Locking Instance\n");
 	spin_lock_irqsave(&lp_instance->lock, flags);
 	if (!(lp_vcc = lp_instance->pcurvcc)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
@@ -1224,6 +1225,7 @@ static void eci_bh_atm (unsigned long param) {
 		}
 		dev_kfree_skb (lp_skb);
 	}
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
 	DBG_OUT("eci_bh_atm OUT\n") ;
 }
@@ -1261,7 +1263,6 @@ static void _eci_send_init_urb(struct urb *eciurb)
 		memcpy(setuppacket, instance->setup_packets,8);
 		size = (instance->setup_packets[7] << 8 ) |
 				instance->setup_packets[6];
-		DBG_RAW_OUT("Setup Packet", setuppacket, 8) ;
 			/*
 				If write URB then read the buffer and
 				set endpoint else just set enpoint
@@ -1269,27 +1270,22 @@ static void _eci_send_init_urb(struct urb *eciurb)
 		if(setuppacket[0] & 0x80)
 		{
 			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
-			DBG_OUT("Read URB\n");
 		}
 		else
 		{
 			memcpy(eciurb->transfer_buffer, 
 				instance->setup_packets+8,size);
-			DBG_OUT("Write URB\n");
-			DBG_RAW_OUT("Buffer : ", eciurb->transfer_buffer, size);
 			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
 		}
 		FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
 			setuppacket, eciurb->transfer_buffer, 
 			size, eci_init_vendor_callback,
 			instance);
-		DBG_OUT("Sending URB\n");
 		if(usb_submit_urb(eciurb))
 		{
 			ERR_OUT("error couldn't send init urb\n");
 			return;
 		}
-		DBG_OUT("URB Sent \n");
 		instance->setup_packets += 
 			(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
 	}
@@ -1317,8 +1313,8 @@ static void eci_init_vendor_callback(struct urb *urb)
 	struct eci_instance *instance;
 	int size;
 
-	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
+	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 
 /*
@@ -1341,10 +1337,6 @@ static void eci_init_vendor_callback(struct urb *urb)
 		{
 			size = ((instance->setup_packets[7]<<8) | 
 					instance->setup_packets[6]);
-			DBG_RAW_OUT(
-					"Buffer:",
-					(char *) urb->transfer_buffer,
-					size) ;
 		}
 #endif	/*	DEBUG	*/
 		if ( !((urb->setup_packet[0] & 0x40) == 0x40 && urb->setup_packet[1]== 0xdc
@@ -1354,16 +1346,11 @@ static void eci_init_vendor_callback(struct urb *urb)
 			/*	
 				sould send next VENDOR URB
 			*/
-			DBG_OUT("Calling _eci_send_init_urb from Vendor \n");
 			_eci_send_init_urb(instance->vendor_urb);
 		}
-#ifdef DEBUG
-		else
-			DBG_OUT("Waiting for data on 0x86 endpoint\n");
-#endif /* DEBUG */
 	}
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_bh(&instance->lock);
-	DBG_OUT("Vendor callBack out\n");
 }
 
 /*
@@ -1404,6 +1391,7 @@ static void eci_int_callback(struct urb *urb)
 
 	/*	DBG_OUT("Int callBack in\n"); Too much debug info	*/
 	instance = (struct eci_instance *) urb->context;
+	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 	if(urb->actual_length)
 	{
@@ -1468,10 +1456,9 @@ static void eci_int_callback(struct urb *urb)
 				 	0x580 , eci_outbuf, 
 					sizeof(eci_outbuf), HZ);
 			}
-			/*DBG_OUT("EP INT received 64 bytes\n"); 
-			DBG_RAW_OUT("EP INT datas :",in_buf, 64); */
 		}
 	}
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_bh(&instance->lock);
 	/*	DBG_OUT("Int callBack out\n");	*/
 }
@@ -1480,9 +1467,11 @@ static void eci_bh_iso(unsigned long instance)
 {
 	int flags;
 
+	DBG_OUT("Locking Instance\n");
 	spin_lock_irqsave(&(((struct eci_instance *)instance)->lock), flags);
  	eci_atm_receive_cell(((struct eci_instance *)instance),
 		&(((struct eci_instance *)instance)->iso_cells));
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&(((struct eci_instance *)instance)->lock), flags);
 }
 
@@ -1496,6 +1485,7 @@ static void eci_iso_callback(struct urb *urb)
 	int 			received = 0;	/* boolean for cell in frames */
 
 	instance = (struct eci_instance *)urb->context;
+	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
@@ -1506,11 +1496,11 @@ static void eci_iso_callback(struct urb *urb)
 			{
 
 				DBG_OUT("Data available in frame [%d]\n", i) ;
-				DBG_RAW_OUT(
+				/*DBG_RAW_OUT(
 					"received data", 
 					urb->transfer_buffer +
 						urb->iso_frame_desc[i].offset,
-					urb->iso_frame_desc[i].actual_length);
+					urb->iso_frame_desc[i].actual_length);*/
 				if(instance->iso_celbuf_pos)
 				{
 					pos = ATM_CELL_SZ - instance->iso_celbuf_pos;
@@ -1602,6 +1592,7 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_bh(&instance->lock);
 	/*
 	DBG_OUT("Iso Callback Exit\n");
@@ -1639,6 +1630,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 
 	DBG_OUT("eci_bh_bulk IN\n") ;
 	instance = (struct eci_instance *)pinstance;
+	DBG_OUT("Locking Instance\n");
 	spin_lock_irqsave(&instance->lock , flags);
 	if(instance->bulkisfree)
 	{
@@ -1665,7 +1657,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 		}
 		/*if(_uni_cell_list_crs_next(&cell)) break;*/
 	}
-	DBG_RAW_OUT("new bulk",buf,bufpos);
+	//DBG_RAW_OUT("new bulk",buf,bufpos);
 	FILL_BULK_URB(urb, instance->usb_wan_dev, 
 		usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 		buf, bufpos, eci_bulk_callback, instance);
@@ -1681,6 +1673,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 	else
 		instance->bulkisfree = 0;
 	}
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&instance->lock, flags);
 	DBG_OUT("eci_bh_bulk OUT\n") ;
 	return;	
@@ -1697,6 +1690,7 @@ static void eci_bulk_callback(struct urb *urb)
 	}
 	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
 	instance = (struct eci_instance *)urb->context;
+	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
 	if(_uni_cell_list_nbcells(&instance->bulk_cells))
@@ -1705,6 +1699,7 @@ static void eci_bulk_callback(struct urb *urb)
 			_uni_cell_list_nbcells(&instance->bulk_cells));
 		tasklet_schedule(&instance->bh_bulk);
 	}
+	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_bh(&instance->lock);
 }
 /**********************************************************************
@@ -1729,6 +1724,7 @@ static int _eci_tx_aal5(
 	int		lv_nbsent ;
 	uni_cell_list_t 	lv_list ;
 	
+	DBG_OUT("_eci_tx_aal5 IN\n");
 	/* Check Interface */
 	if (!pinstance || !pskb) {
 		ERR_OUT("Interface Error\n") ;
@@ -1768,6 +1764,7 @@ static int _eci_tx_aal5(
 	_uni_cell_list_reset(&lv_list) ;
 
 
+	DBG_OUT("_eci_tx_aal5 OUT\n");
 	return lv_rc ;
 }
 
@@ -1798,6 +1795,7 @@ static int eci_atm_receive_cell(
  	aal5_t *		lp_aal5 	= NULL ;
 	int			lv_rc ;
 	
+	DBG_OUT("eci_atm_receive_cell IN\n");
 	/* Check Interface */
 	if (!pinstance || !plist)
 		return -EINVAL ;
@@ -1870,6 +1868,7 @@ static int eci_atm_receive_cell(
  	}
 	//_uni_cell_list_free(plist) ;
 	_uni_cell_list_reset(plist);
+	DBG_OUT("eci_atm_receive_cell IN\n");
 	return 0 ;
 }
 
