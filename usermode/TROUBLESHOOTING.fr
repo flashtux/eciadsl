@@ -132,7 +132,17 @@ Q:	eci-doctor.sh m'indique que le module DABUSB est chargé, ou startmodem
 	dit que avoir trouvé dabusb, mais je ne peux pas l'enlever !
 
 --------------------------------------------------------------------------------
-R:	Démarrez votre machine Linux avec votre modem *DÉBRANCHÉ* puis:
+R:	A priori, hotplug est le coupable. Il détecte votre modem comme étant un
+	périphérique audio, et charge le module dabusb afin d'activer le support
+	pour ce périphérique.
+	Si /etc/hotplug/blacklist est présent, éditez-le et ajoutez-y une ligne
+	contenant le mot 'dabusb' (sans les quotes). Redémarrez Linux. 
+
+	Si vous ne pouvez pas trouver ce fichier alors que hotplug est bien
+	installé et activé, il doit y avoir d'autres moyens de le configurer.
+	Le cas échéant, appliquez la méthode suivante (c'est bourrin mais bon):
+
+	Démarrez votre machine Linux avec votre modem *DÉBRANCHÉ* puis:
 
 	Vous pouvez supprimer le module dabusb de votre système en utilisant
 	eciconf.sh ou eciconftxt.sh.

@@ -65,7 +65,7 @@ Comment obtenir de l'aide :
 		- IRC : irc.freenode.net, canal #eci
 		- http://eciadsl.flashtux.org
 		  (documentation, forum, liste de diffusion pour utilisateurs, etc.)
-		  
+
 	Nous assurons un support en français et anglais.
 
 
