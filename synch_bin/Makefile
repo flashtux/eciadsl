@@ -11,4 +11,4 @@ check_md5sum:
 	done
 
 clear_md5sum:
-	rm -f *.md5
+	$(RM) *.md5
