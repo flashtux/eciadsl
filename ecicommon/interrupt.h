@@ -29,6 +29,18 @@
 #define INT_BUFFER_LEN (INT_MAXPIPE_SIZE *2)
 #define INT_MIN_BUFFER_SIZE 8
 
+union ep_int_buf {
+	unsigned char raw[INT_BUFFER_LEN];
+	struct {
+		unsigned char ep_int_status; /*	0xf0	-- 0*/
+		unsigned char ep_int_counter; /* incremented at 
+										each urb, some may be missed -- 1*/
+		unsigned char unknown1[2];	/* 2 unknown bytes  -- 2 -- 3*/
+		unsigned char eoc[36];		/* 36 byte eoc buffer -- 4 -- 39*/
+		unsigned char unknown2[34];	/* 2 unknown bytes  -- 40 -- 63*/
+	}buffer;
+};
+
 
 int parse_interrupt_buffer(unsigned char *buffer,  int buffer_size,
 								unsigned char *resp, int *resp_size,

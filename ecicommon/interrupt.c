@@ -20,7 +20,7 @@
 
 #include "interrupt.h"
 
-static unsigned char interrupt_buffer[INT_BUFFER_LEN];
+static union ep_int_buf interrupt_buffer;
 
 static int interrupt_buffer_pos = 0;
 
@@ -39,11 +39,11 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 	int max_resp_size;
 	
 	max_resp_size = *resp_size;
-	if(buffer_size == INT_MAXPIPE_SIZE)	{
+	if((buffer_size == INT_MAXPIPE_SIZE) && (buffer[0] == 0xf0))	{
 		if(interrupt_buffer_pos == 0) {
-			memcpy (&(interrupt_buffer[0]), buffer, INT_MAXPIPE_SIZE);
+			memcpy (&(interrupt_buffer.raw[0]), buffer, INT_MAXPIPE_SIZE);
 		} else {
-			memcpy (&(interrupt_buffer[INT_MAXPIPE_SIZE]), 
+			memcpy (&(interrupt_buffer.raw[INT_MAXPIPE_SIZE]), 
 			                                buffer, INT_MAXPIPE_SIZE);
 /*	TODO : Handle the buffer !!!! */
 		}

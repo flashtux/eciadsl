@@ -22,5 +22,5 @@
 
 struct gs707x_dsp {
 	unsigned char next_state;	/*	Next state for download operation */
-	unsigned char is_ready;		/* Is th dsp OK ?	*/
+	unsigned char is_ready;		/* Is the dsp OK ?	*/
 };
