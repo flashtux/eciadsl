@@ -1362,16 +1362,28 @@ static void eci_iso_callback(struct urb *urb)
 					urb->transfer_buffer +
 						urb->iso_frame_desc[i].offset,
 					urb->iso_frame_desc[i].actual_length);
+				/*
+				 * Not usefull due to previous test
  				if(urb->iso_frame_desc[i].actual_length)
+				 * Do nothing
  				  for(pos=0, buf=urb->transfer_buffer + 
  				    urb->iso_frame_desc[i].offset;
  				    pos+=ATM_CELL_SZ; pos < 
  			 	    urb->iso_frame_desc[i].actual_length);
+				 * Fellow my replacement
+				 */
+ 				  for(pos=0, buf=urb->transfer_buffer + 
+ 				    urb->iso_frame_desc[i].offset;
+ 				    pos < 
+ 			 	    urb->iso_frame_desc[i].actual_length;
+ 				    pos+=ATM_CELL_SZ)
  				  {
  					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
 						buf + pos);
+					/* Done in previous statement
  					memcpy(cell->raw, buf + pos,
  						ATM_CELL_SZ);
+					*/
  					if(_uni_cell_list_append(cells, cell))
  					{
  					  ERR_OUT("Couldn't queue One cell\n");
@@ -1408,7 +1420,7 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 			struct uni_cell_list *cells)
 {
 	int 		ret;		/* counter			*/
-	int 		nbcell;		/* cellcount expected		*/
+	/*not used:int 		nbcell;*/	/* cellcount expected		*/
 	unsigned	char *buf;	/* urb buffer			*/
 	int		buflen;		/* urb buffer len		*/
 	int		bufpos;		/* position in urb buffer	*/
@@ -1455,10 +1467,13 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 	if(usb_submit_urb(urb))
 	{
 		ERR_OUT("Can't submit bulk urb\n");
+		usb_free_urb(urb);
 		kfree(buf);
 		return(0);
 	}
+	/* Incorrect place (not sent yet)
 	usb_free_urb(urb);
+	*/
 	return(ret);	
 }
 
@@ -1627,7 +1642,7 @@ static int eci_atm_receive_cell(
 		do {
 			lp_cell = _uni_cell_list_extract(plist) ;
 			if (!lp_cell) {
-				ERR_OUT("COuld not get more cell\n") ;
+				DBG_OUT("No more cell\n") ;
 				goto end;
 			}
 
