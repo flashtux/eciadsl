@@ -238,10 +238,10 @@ else
 	exit 1
 fi
 
-type $BIN_DIR/eci-load1 > /dev/null 2>&1
+type $BIN_DIR/eciadsl-firmware > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	echo -e "\ncannot find $BIN_DIR/eci-load1 in \$PATH, test mode assumed"
+	echo -e "\ncannot find $BIN_DIR/eciadsl-firmware in \$PATH, test mode assumed"
 	let RET+=1
 #	let TESTONLY=1
 fi
@@ -249,7 +249,7 @@ fi
 if [ $TESTONLY -eq 0 ]
 then
 	echo -e "\nprobing, please wait.."
-	$BIN_DIR/eci-load1 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
+	$BIN_DIR/eciadsl-firmware 0x$VID1 0x$PID1 0xDEAD 0xFACE $FIRMWARE > /dev/null 2>&1
 
 	# list USB devices
 	echo -e "\nyour USB devices now:"
