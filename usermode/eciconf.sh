@@ -33,7 +33,7 @@ set PPPD_DIR "/etc/ppp"
 set VERSION ""
 # </CONFIG>
 
-set titre_fenetre "ECI Linux driver configuration v0.6-rc3"
+set titre_fenetre "ECI Linux driver configuration v$VERSION"
 
 wm title . $titre_fenetre
 
