@@ -7,6 +7,10 @@
 % - add the beginning of the document: \usepackage{html}
 % - to add a link \htmladdnormallink{text}{URL}
 
+% 15/02/2002 Benoit PAPILLAULT
+%   change the name log by log.txt to be easier to send as an attachement
+%   to an email. (.txt is automatically recognize).
+
 % CVS $Id$
 % Tag $Name$
 
@@ -34,7 +38,8 @@
 Ce document s'adresse à tous les possesseurs du modem ADSL ECI USB
 voulant l'utiliser sous Linux. Vous trouverez la dernière version de
 ce documents sur le site :
-\htmladdnormallink{http://eciadsl.sourceforge.net/}{http://eciadsl.sourceforge.net/}.
+\htmladdnormallink{http://eciadsl.sourceforge.net/}{http://eciadsl.sourceforge.net/},
+section Documentation.
 
 \subsection{Conventions}
 
@@ -44,20 +49,67 @@ et les commandes à exécuter en root sont précédées de \#.
 
 \section{Configuration requise}
 
-    Assurez vous d'abord que vous possédez un noyau Linux 
-    de version supérieure ou égale à 2.4.7-10
+%    Assurez vous d'abord que vous possédez un noyau Linux 
+%    de version supérieure ou égale à 2.4.7-10
+
+\subsection{Distributions}
 
     Distributions où le driver fonctionne : 
-    \begin {itemize}
+    \begin{itemize}
     \item   Mandrake Linux 8.1 (noyau 2.4.8-26mk)
     \item   Redhat Linux 7.2 (noyau 2.4.7-10)
     \end{itemize}
     
     Distributions où le driver ne fonctionne pas :
-    \begin {itemize}
+    \begin{itemize}
     \item   Redhat Linux 7.1 (noyau 2.4.2-2)
     \end{itemize}
-    
+
+\subsection{Noyaux}
+
+Pour obtenir la version de votre noyau:
+\begin{verbatim}
+$ uname -r
+\end{verbatim}
+
+    Liste des noyaux testés (en utilisant la version CVS dont le tag est ``release-test'') :
+
+    \begin{itemize}
+    \item kernel 2.4.0 : ok [usb-uhci]
+    \item kernel 2.4.1 : ok [usb-uhci]
+    \item kernel 2.4.2 : ok [usb-uhci]
+    \item kernel 2.4.3 : ok [usb-uhci]
+    \item kernel 2.4.4 : ok [usb-uhci]
+    \item kernel 2.4.5 : ok [usb-uhci]
+    \item kernel 2.4.6 : ok [usb-uhci]
+    \item kernel 2.4.7 : ok [usb-uhci]
+    \item kernel 2.4.8 : ok [usb-uhci]
+    \item kernel 2.4.9 : ok [usb-uhci]
+    \item kernel 2.4.10 : kernel panic process\_iso [usb-uhci] , ok [uhci]
+    \item kernel 2.4.12 : ok [usb-uhci]
+    \item kernel 2.4.13 : ok [usb-uhci]
+    \item kernel 2.4.14 : ok [usb-uhci]
+    \item kernel 2.4.15 : ok [usb-uhci]
+    \item kernel 2.4.16 : ok [usb-uhci]
+    \item kernel 2.4.17 : ok [usb-uhci]
+    \item kernel 2.5.0 : ok [usb-uhci]
+    \end{itemize}
+
+D'autres noyaux sont en cours de test.
+
+\subsection{pppd}
+
+Pour obtenir la version de pppd:
+\begin{verbatim}
+$ pppd -V
+\end{verbatim}
+
+Liste des versions testées:
+\begin{itemize}
+\item pppd 2.4.0
+\item pppd 2.4.1
+\end{itemize}
+
     Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
     avec une autre distribution ou avec un noyau plus ancien,
     n'hésitez pas à nous contacter.
@@ -138,7 +190,7 @@ $ make clean dep modules
 \label{cha:peers}
 
 Il vient avec l'archive \textit{usermode.tgz} et se place avec le make
-install Il doit ressembler à ça :
+install. Il doit ressembler à ça :
 
 \begin{verbatim}
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
@@ -235,7 +287,7 @@ Pour club-internet :& \textit{ votre\_login@clubadsl1 * votre\_password *}\\
 C'est très simple, le script startmodem s'occupe de tout ou presque:
 
 \begin{verbatim}
-$ startmodem | tee log
+$ /usr/local/bin/startmodem | tee log.txt
 \end{verbatim}
 
 ÇA NE MARCHE PAS : Si vous ne surfez pas après l'une de ces 3
@@ -285,8 +337,8 @@ Everything is OK
 \end{verbatim}
 
 Avant de contacter la liste de diffusion ou qui que ce soit, lisez ce
-qui suit. Sinon, n'oubliez pas de joindre le fichier log obtenu lors
-du lancement de startmodem.
+qui suit. Sinon, n'oubliez pas de joindre le fichier \textit{log.txt}
+obtenu lors du lancement de startmodem.
 
 A remplir : cela dépend de tout le monde : décrivez vos problèmes et
 les solutions que vous avez trouve sur la liste de diffusion
