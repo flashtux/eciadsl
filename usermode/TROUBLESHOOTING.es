@@ -690,7 +690,8 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 
 
 	Copie el archivo rc.adsl a /etc/init.d:
-		>cp rc.adsl /etc/init.d
+		> cp rc.adsl /etc/init.d
+		> chmod +x /etc/init.d/rc.adsl
 	(el archivo rc.adsl se proporciona con la versión >= 0.7 (o CVS))
 
 	Para Debian, simplemente digite como root:

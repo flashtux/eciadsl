@@ -573,7 +573,9 @@ R:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 	 - sorgenti di ECIADSL, ottenibile all'indirizzo:
 	   http://eciadsl.flashtux.org/download.php
 
-	Copia il file rc.adsl in /etc/init.d: 'cp rc.adsl /etc/init.d'
+	Copia il file rc.adsl in /etc/init.d:
+		> cp rc.adsl /etc/init.d
+		> chmod +x /etc/init.d/rc.adsl
 	(il file rc.adsl è disponibile nella versione >= 0.7 (o in CVS))
 
 	Per Debian basta eseguire da root: 'update-rc.d rc.adsl defaults 15'

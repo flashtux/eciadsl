@@ -708,6 +708,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 
 	Copier le fichier rc.adsl vers /etc/init.d :
 		> cp rc.adsl /etc/init.d
+		> chmod +x /etc/init.d/rc.adsl
 	(le fichier rc.adsl est fourni avec les versions >= 0.7 (ou CVS))
 
 	Sous Debian, tapez simplement en root : update-rc.d rc.adsl defaults 15
