@@ -62,6 +62,9 @@
 	use it, you will have severe upload problems. You may need to recompile
     the n_hdlc kernel module and apply a patch (the instructions are the
 	same for the speedtouch drivers => http://speedtouch.sourceforge.net/)
+
+	26/12/2001 : Change the code around the select() loop. Timeout has been
+	set to 1ms (previously 0.5ms).
 */
 
 #include <stdio.h>
@@ -1002,15 +1005,18 @@ handle_endpoint_02(pusb_endpoint_t epdata, int fdin,pusb_endpoint_t ep_data_in, 
 
 	for(;;)
 	{
-
-/*  	  print_time(); */
-/*  	  printf("starting select\n"); */
-/*  	  printf("fdin %d epint %d epdata %d maxfd %d\n",fdin,ep_data_in->fd,ep_int->fd,maxfd); */
 	  FD_ZERO(&inf);
 	  FD_SET(fdin,&inf);
 	  // Consider that tv is reseted by select
 	  tv.tv_sec = 0;
-	  tv.tv_usec = 500; // 1/2 s ???
+	  tv.tv_usec = 1000; /* 1ms */
+
+	  /*
+		Benoit PAPILLAULT : The timeout is 1ms, USB is scheluded at 1ms
+		rate. So we check for completed URB at this rate too. Note that
+		the sig_rtmin() function should be called even if the select()
+		returns without reaching the timeout.
+	  */
 
 	  // The usb fd does not seem to work in select... too bad !!!
 	  // FD_SET(ep_int->fd,&inf); 
@@ -1018,23 +1024,30 @@ handle_endpoint_02(pusb_endpoint_t epdata, int fdin,pusb_endpoint_t ep_data_in, 
 	  // FD_SET(ep_data_in->fd,&inf);
 
 	  select_rv = select(maxfd, &inf, NULL, NULL, &tv);
-	  if (select_rv > 0) {
+	  if (select_rv > 0)
+	  {
 	    n = ppp_read(fdin, &buf, &n);
 
 	    if(n <= 0)
 	      {
-		printf("ppp_read=%d\n",n);
-		break;
+			  printf("ppp_read=%d\n",n);
+			  break;
 	      }
 	    
 	    r = aal5_write(epdata, buf, n);
 	    
 	    if(r < 0)
-	      {
-		printf("aal5_write=%d\n",r);
-		break;
-	      }
+		{
+			printf("aal5_write=%d\n",r);
+			break;
+		}
 	  }
+	  else if (select_rv < 0)
+	  {
+		  /* probably pppd is terminating ... */
+		  break;
+	  }
+
 	  sig_rtmin(32);
 	}
 }
