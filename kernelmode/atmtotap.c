@@ -189,18 +189,23 @@ int main(int argc, char **argv)
 	char path_to_dev[20];
 	int arg=0;
 	size_t tmp;
+	short no_vpi=1;
+	short no_vci=1;
+	short no_dev=1;
 	
 	for (i = 1; i < argc; i++)
 	{
 		if ((strcmp(argv[i], "-vpi") == 0) && (i + 1 < argc))
 		{
 			get_unsigned_value(argv[++i], &my_vpi);
+			no_vpi=0;
 		}
 		else
 		{
 			if ((strcmp(argv[i], "-vci") == 0) && (i + 1 < argc))
 			{
 				get_unsigned_value(argv[++i], &my_vci);
+				no_vci=0;
 			}
 			else
 			{
@@ -211,6 +216,7 @@ int main(int argc, char **argv)
 					{
 						strcpy(path_to_dev,argv[++i]);
 						arg++;
+						no_dev=0;
 					}
 					else
 					{
@@ -241,10 +247,20 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	if(argc!=7)
+	if(no_vpi)
 	{
-		fprintf(stderr,"wrong number of arguments\n");
-		usage(-1);
+		/* default value - same as in france */
+		my_vpi=8;
+	}
+	if(no_vci)
+	{
+		/* default value - same as in france */
+		my_vci=35;
+	}
+	if(no_dev)
+	{
+		/* default value - should be ok for most distributions */
+		strcpy(path_to_dev,"/dev/net/tun");
 	}
 	if(!(datas.fdtap =  tap_open("tap0",path_to_dev)))
 	{
