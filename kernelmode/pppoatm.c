@@ -73,10 +73,10 @@ static int setdevname_pppoatm(const char *cp)
 	struct sockaddr_atmpvc addr;
 	int fd;
 	extern struct stat devstat;
-	if (device_got_set) {
+	/*if (device_got_set) {
 		info("device already set");
 		return 1;
-	}
+	}*/
 	info("PPPoATM setdevname_pppoatm");
 	info("cp = %s\n", cp);
 	memset(&addr, 0, sizeof addr);
@@ -90,7 +90,7 @@ static int setdevname_pppoatm(const char *cp)
 		return -1;*/
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
 	strlcpy(devnam, cp, sizeof devnam);
-	info("devnam = %s\n", devnam);
+	info("devnam = %s", devnam);
 	devstat.st_mode = S_IFSOCK;
 	if(the_channel != &pppoatm_channel) {
 		info("registering channel\n");
@@ -133,6 +133,10 @@ static void no_device_given_pppoatm(void)
 }
 
 
+static void close_device_pppoatm(void)
+{
+	return;
+}
 static int open_device_pppoatm(void)
 {
 	int fd;
@@ -164,6 +168,7 @@ static int open_device_pppoatm(void)
 	    sizeof(struct sockaddr_atmpvc)))
 		fatal("connect(%s): %m", devnam);
 	pppoatm_max_mtu = lcp_allowoptions[0].mru;
+	info("pppoatm_max_mtu = %d", pppoatm_max_mtu );
 	pppoatm_max_mru = lcp_wantoptions[0].mru;
 	return fd;
 }
@@ -195,6 +200,7 @@ static int set_line_discipline_pppoatm(int fd)
 	struct atm_backend_ppp be;
 	int x;
 	int index;
+	int flags;
 	be.backend_num = ATM_BACKEND_PPP;
 
 	info("set line dicipline pppoatm\n");
@@ -211,20 +217,24 @@ static int set_line_discipline_pppoatm(int fd)
 		error("Couldn't get channel number: %m");
 		goto set_disc_err;
 	}
-	dblog("using channel %d", index);
-	fd = open("/dev/ppp", O_RDWR);
-	if(ioctl(fd, PPPIOCATTCHAN,&index) == -1)
+	info("using channel %d", index);
+	dev_fd = open("/dev/ppp", O_RDWR);
+	if(ioctl(dev_fd, PPPIOCATTCHAN,&index) == -1)
 	{
 		error("Couldn't attach channel number: %d", index);
-		goto set_disc_err;
+		goto set_disc_err_close;
 	}
+	flags = fcntl(dev_fd, F_GETFL);
+	if(flags == -1 || fcntl(dev_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+		warn("Couldn't set /dev/pp (channel) to non block: %m");
 	ifunit = req_unit;
-	x = ioctl( fd, PPPIOCNEWUNIT, &ifunit);
+	info("ifunit = %d", ifunit);
+	/*x = ioctl( dev_fd, PPPIOCNEWUNIT, &ifunit);
 	if(x<0 && req_unit >= 0 && errno == EEXIST)
 	{
 		warn("Couldn't allocate PPP unit %d as it is already in use");
 		ifunit = -1;
-		x = ioctl( fd, PPPIOCNEWUNIT, &ifunit);
+		x = ioctl( dev_fd, PPPIOCNEWUNIT, &ifunit);
 	}
 	if(x < 0)
 	{
@@ -236,8 +246,7 @@ static int set_line_discipline_pppoatm(int fd)
 	{
 		error("Couoldn't attach to PPP unit %d: %m", ifunit);
 		goto set_disc_err_close;
-	}
-	dev_fd = fd;
+	}*/
 	return fd ;
 
 set_disc_err_close:
@@ -371,7 +380,7 @@ options: my_options,
 process_extra_options: &options_for_pppoatm,
 check_options: NULL,
 connect: &open_device_pppoatm,
-disconnect: NULL,
+disconnect: &close_device_pppoatm,
 establish_ppp: &set_line_discipline_pppoatm,
 disestablish_ppp: &reset_line_discipline_pppoatm,
 send_config: &send_config_pppoatm,
