@@ -14,7 +14,7 @@ Sorted according to priority (the upper in the list, the prior):
 * eciconftxt.sh
 * probe_device.sh
 + add auto modes to probe_device.sh
-+? synch bin auto selection (config time only)
+* synch bin auto selection (config time only)
 + packaging:
   * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
     modify scripts
@@ -40,6 +40,7 @@ Sorted according to priority (the upper in the list, the prior):
 * fix EICON problems with 0.6-preX
 * add doc about connecting using startmodem at boot
 - -mode selection (protocol) using eciconf*
+- complete translations
 
 
 0.7:
@@ -63,4 +64,5 @@ Sorted according to priority (the upper in the list, the prior):
 1.0:
 - auto*stuff (autoconf/make)
 - new USB implementation (benoit)
+- hotplug/usbmgr integration?
 - ?
