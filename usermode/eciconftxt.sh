@@ -98,9 +98,9 @@ case "$1" in
     servers_dns1="*|193.252.19.3|194.117.200.15|212.30.96.108|194.6.128.3|212.83.128.3|212.216.112.112|195.130.224.18|158.43.240.4|195.186.1.111|195.238.2.21|192.115.106.11|0.0.0.0|"
     servers_dns2="*|193.252.19.4|194.117.200.10|213.203.124.146|194.6.128.4|212.83.128.4|212.216.172.62|195.130.225.129|158.43.240.3|195.186.4.111|195.238.2.22|192.115.106.10|0.0.0.0|"
 
-    modems="Select your modem|ECI Hifocus/B-Focus|Eicon Diva|Ericsson hm120dp|Aztech 100U|Fujitsu FDX310|US Robotics 8500|Webpower Ipmdatacom|BT Voyager|Wisecom ad80usg or EA100|Xentrix USB|Zyxel Prestige 630-41|Topcom Webr@cer 850|Siemens Santis|GVC BB039|Digicom MichelAngelo USB|Askey USB-ADSL Modem|Archtek UGW-8000|Cypress Globespan ADSL USB G7000"
-    vid1pid1="*|05472131|071dac81|08ea00c9|05090801|0e600101|0baf00e6|09150001|16900203|09150001|0e600100|05472131|09150001|09150001|09150001|05472131|16900205|09150001|09150001"
-    vid2pid2="*|09158000|0915ac82|091500ca|09150802|09150102|091500e7|09150002|09150204|09150002|09150101|09158000|09150002|09150002|09150002|09158000|09150206|09150002|09150002"
+    modems="Select your modem|ECI Hifocus/B-Focus|Eicon Diva|Ericsson hm120dp|Aztech 100U|Fujitsu FDX310|US Robotics 8500|Webpower Ipmdatacom|BT Voyager|Wisecom ad80usg or EA100|Xentrix USB|Zyxel Prestige 630-41|Topcom Webr@cer 850|Siemens Santis|GVC BB039|Digicom MichelAngelo USB|Askey USB-ADSL Modem|Archtek UGW-8000|Cypress Globespan ADSL USB G7000|Other"
+    vid1pid1="*|05472131|071dac81|08ea00c9|05090801|0e600101|0baf00e6|09150001|16900203|09150001|0e600100|05472131|09150001|09150001|09150001|05472131|16900205|09150001|09150001|00000000"
+    vid2pid2="*|09158000|0915ac82|091500ca|09150802|09150102|091500e7|09150002|09150204|09150002|09150101|09158000|09150002|09150002|09150002|09158000|09150206|09150002|09150002|00000000"
 
     echo -e "\n***** Welcome to Eci Adsl Linux driver configuration *****\n"
     echo -e "At any time, press Ctrl+C to quit this script without saving modifications.\n"
@@ -218,7 +218,78 @@ case "$1" in
 		ret=$?
 		test $ret -eq 255 && exit 1
         modem=$(expr $ret + 1)
-        
+
+        echo
+        echo "If your modem was not listed (or if you want to overwrite defaults),"
+        echo "you can enter your own VID1/PID1/VID2/PID2 (use probe_device.sh to"
+		echo "get them :"
+        vid1=""
+        choice_ok=0
+        while [ $choice_ok -eq 0 ]; do
+            echo -n "VID1 (4-digit hexadecimal) : "
+            read vid1
+            if [ -z "$vid1" ]; then
+                choice_ok=1
+            else
+                echo $vid1 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    choice_ok=1
+                else
+                    echo "Invalid VID1. Please enter it again."
+                fi
+            fi
+        done
+        pid1=""
+        choice_ok=0
+        while [ $choice_ok -eq 0 ]; do
+            echo -n "PID1 (4-digit hexadecimal) : "
+            read pid1
+            if [ -z "$pid1" ]; then
+                choice_ok=1
+            else
+                echo $pid1 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    choice_ok=1
+                else
+                    echo "Invalid PID1. Please enter it again."
+                fi
+            fi
+        done
+        vid2=""
+        choice_ok=0
+        while [ $choice_ok -eq 0 ]; do
+            echo -n "VID2 (4-digit hexadecimal) : "
+            read vid2
+            if [ -z "$vid2" ]; then
+                choice_ok=1
+            else
+                echo $vid2 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    choice_ok=1
+                else
+                    echo "Invalid VID2. Please enter it again."
+                fi
+            fi
+        done
+        pid2=""
+        choice_ok=0
+        while [ $choice_ok -eq 0 ]; do
+            echo -n "PID2 (4-digit hexadecimal) : "
+            read pid2
+            if [ -z "$pid2" ]; then
+                choice_ok=1
+            else
+                echo $pid2 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                if [ $? -eq 0 ]; then
+                    choice_ok=1
+                else
+                    echo "Invalid PID2. Please enter it again."
+                fi
+            fi
+        done
+		vid1pid1="$vid1$pid1"
+		vid2pid2="$vid2$pid2"
+
         $0 @bin@
 		ret=$?
         binfile=$(cat $tmpbin)
