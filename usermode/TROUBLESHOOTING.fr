@@ -987,7 +987,7 @@ Q:	Quand je lance sudo startmodem, j'ai cette erreur:
 	nice: pppd: Aucun fichier ou répertoire de ce type
 
 --------------------------------------------------------------------------------
-A:	Dans la console ou dans un terminal, sous root, tapez:
+R:	Dans la console ou dans un terminal, sous root, tapez:
 		PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
 	Si cela fonctionne, ajoutez la ligne suivante au ~/.bashrc ou au ~/.profile
