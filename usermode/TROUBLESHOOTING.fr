@@ -573,7 +573,7 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste 
 	s'il fournit des services DHCP ou d'adresse IP fixe, ou tout autre fonctionnalité exotique.
 
 	Les utilisateurs de Belgique ou d'Italie : regardez les sites suivants pour des patchs
-	spacifiques :
+	spécifiques :
 		http://www.prout.be/ECI/
 		http://www.hctechnews.org/
 
