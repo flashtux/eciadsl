@@ -393,6 +393,26 @@ R:	Voir la question 4.0.
 	alors il s'agit d'un problème de firewall.
 
 
+4.1.1
+================================================================================
+Q:	ppp0 semble OK (à le voir dans /var/log/message et dans la sortie de
+	startmodem) mais startmodem dit néanmoins "no ppp0 device found" après un
+	court instant.
+
+	Ce problème peut aussi être rencontré pour les utilisateurs de tap0 ou
+	de tun0.
+
+--------------------------------------------------------------------------------
+A:	Ce problème peut provenir de l'absence du package net-tools sur votre
+	système, ou d'une configuration incomplète pour l'utilisateur qui lance
+	startmodem (habituellement root).
+	En effet, startmodem nécessite `route` et `ifconfig` (en général installer
+	net-tools est pertinent). Mais aussi que /sbin soit dans la variable
+	d'environnement PATH de l'utilisateur.
+	Selon le système, il faut ajouter /sbin, /usr/sbin ou /usr/local/sbin (ou
+	les trois) au PATH dans le fichier profile de l'utilisateur.
+
+
 4.2
 ================================================================================
 Q:	Je suis déconnecté au bout d'un moment, l'option persist de pppd semble
@@ -469,7 +489,7 @@ A:	Vérifiez vos fichiers PAP et/ou CHAP (/etc/ppp/pap-secrets et
 	Voir aussi: Q 4.4.
 
 
-44.5
+4.5
 ================================================================================
 Q:	Je vois parfois des LCP timeouts dans /var/log/messages, mais ma connexion
 	est toujours active ou ça ne me déconnecte pas à chaque fois.

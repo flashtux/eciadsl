@@ -381,6 +381,22 @@ A:	See 4.0.
 	then you can be sure that it's a firewall issue.
 
 
+4.1.1
+================================================================================
+Q:	ppp0 seems up (in /var/log/message and startmodem's output) but startmodem
+	still says "no ppp0 device found" after a while.
+
+	The problem could be encountered as well if your configuration requires
+	tap0 or tun0 instead of ppp0.
+
+--------------------------------------------------------------------------------
+A:	This may happen is net-tools package is not installed or not properly
+	configured for the user that runs startmodem (usually root).
+	startmodem needs `route` and `ifconfig` from this package and also /sbin to
+	be somewhere in the user's PATH. Following the system, you may need /sbin or
+	/usr/sbin or /usr/local/sbin or both, please check.
+
+
 4.2
 ================================================================================
 Q:	I got disconnected after a while, pppd's persist options seems to work but I
