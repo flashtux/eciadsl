@@ -207,16 +207,16 @@ int main(int argc, char **argv)
 				if ((strcmp(argv[i], "-d") == 0) && ( i+1 < argc))
 				{
 					tmp=strlen(argv[i+1]);
-					/*if((tmp>0) && (tmp<6))
+					if((tmp>0) && (tmp<21))
 					{
 						strcpy(path_to_dev,argv[++i]);
 						arg++;
 					}
 					else
 					{
-						fprintf(stderr,"vci value is out of range.\n");
+						fprintf(stderr,"path to device is too long.\n");
 						exit(-1);
-					}*/
+					}
 				}
 				else
 				{
