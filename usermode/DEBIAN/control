@@ -1,0 +1,12 @@
+Source: usermode
+Section: contrib
+Priority: optional
+Maintainer: Jean-Sébastien <jeanseb@sourceforge.net>
+Standards-Version: 3.2.1
+Package: eciadsl-usermode
+Version: 0.4-1
+Distribution: testing
+Architecture: i386
+Depends:  ppp
+Description: Linux Driver for ECI hifocus ADSL modem
+ User mode driver for adsl modem based on globespan chipsets.
