@@ -71,12 +71,25 @@ fi
 lsmod|grep dabusb > /dev/null;
 if [ $? == "0" ]; then
     echo "Dabusb seems to be present trying to remove it...";
-    rmmod dabusb;
+    modprobe -r dabusb;
     lsmod|grep dabusb > /dev/null;
 if [ $? == "0" ]; then
 echo "Couldn't remove dabusb try rmmod dabusb manually";
 else
 echo "Removed dabusb successfully";
+fi
+fi
+
+#verify if ehci-hcd is loaded
+lsmod|grep ehci-hcd > /dev/null;
+if [ $? == "0" ]; then
+    echo "ehci-hcd seems to be present trying to remove it...";
+    modprobe -r ehci-hcd;
+    lsmod|grep ehci-hcd > /dev/null;
+if [ $? == "0" ]; then
+echo "Couldn't remove ehci-hcd try rmmod dabusb manually";
+else
+echo "Removed ehci-hcd successfully";
 fi
 fi
 

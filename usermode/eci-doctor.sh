@@ -82,6 +82,38 @@ else
 	echo "Preliminary USB device filesystem is OK" ;
 fi
 
+# check for the dabusb module
+lsmod | grep "^dabusb" > /dev/null
+if [ $? -eq 0 ]; then
+	echo "dabusb module is loaded: trying to unload!" ;
+	modprobe -r dabusb
+	lsmod | grep "^dabusb" > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "dabusb module cannot be unloaded, verify if it is busy";
+		fatal;
+	else
+		echo "dabusb module unloaded: OK";
+	fi
+else
+	echo "dabusb module is not loaded: OK";
+fi
+
+# check for the ehci-hcd module
+lsmod | grep "^ehci-hcd" > /dev/null
+if [ $? -eq 0 ]; then
+	echo "ehci-hcd module is loaded: trying to unload!" ;
+	modprobe -r ehci-hcd
+	lsmod | grep "^ehci-hcd" > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "ehci-hcd module cannot be unloaded, verify if it is busy";
+		fatal;
+	else
+		echo "ehci-hcd module unloaded: OK";
+	fi
+else
+	echo "ehci-hcd module is not loaded: OK";
+fi
+
 # try to locate UHCI controller
 uhci=0
 # directly check for the UHCI driver (avoid to use /proc/pci if there is none)
@@ -221,7 +253,7 @@ if [ $? -ne 0 ]; then
 		fatal;
 	fi
 # here, HDLC support is OK, but maybe some alias are missing
-	rmmod n_hdlc ;
+	modprobe -r n_hdlc ;
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: alias is missing... trying to add" ;
@@ -258,22 +290,6 @@ http://eciadsl.sourceforge.net/ in the Documentation section for further \
 instructions." ;
 else
 	echo "HDLC support is OK (no bug)" ;
-fi
-
-# check for the dabusb module
-lsmod | grep "^dabusb" > /dev/null
-if [ $? -eq 0 ]; then
-	echo "dabusb module is loaded: trying to unload!" ;
-	rmmod dabusb
-	lsmod | grep "^dabusb" > /dev/null
-	if [ $? -eq 0 ]; then
-		echo "dabusb module cannot be unloaded, verify if it is busy";
-		fatal;
-	else
-		echo "dabusb module unloaded: OK";
-	fi
-else
-	echo "dabusb module is not loaded: OK";
 fi
 
 if [ -e /etc/eciadsl/vidpid ]; then
