@@ -148,6 +148,8 @@ Available Synch .bin files list:
 	synch50.bin (generated in France/Domont, provider Club Internet, T1.413)
 	synch51.bin (generated in Switzerland, provider Netstream, T1.413)
 	synch52.bin (generated in France/Palaiseau, provider Club Internet, G.DMT)
+	synch53.bin (generated in Belgium/Chimay, provider Belgacom, G.DMT)
+	synch54.bin (generated in Belgium/Chimay, provider Belgacom, T1.413)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
