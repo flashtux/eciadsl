@@ -176,8 +176,8 @@ case "$1" in
 	done
 	IFS="$OLDIFS"
     modems="$modems|Other"
-    vid1pid1="$vid1pid1|00000000"
-    vid2pid2="$vid2pid2|00000000"
+    vid1pid1="$vid1pid1|????????"
+    vid2pid2="$vid2pid2|????????"
 
     echo -e "\n***** Welcome to Eci Adsl Linux driver configuration *****\n"
     echo -e "At any time, press Ctrl+C to quit this script without saving modifications.\n"
@@ -352,7 +352,7 @@ case "$1" in
 		fi
         vci=""
         while [ -z "$vci" ]; do
-	        echo -n "Type in your VPI (given by your provider$TMP): "
+	        echo -n "Type in your VCI (given by your provider$TMP): "
             read vci
 			if [ -n "$prev_vci" -a -z "$vci" ]; then
 				vci="$prev_vci"
@@ -382,14 +382,25 @@ case "$1" in
 		echo "get them):"
 
 		echo
-		echo "VID1 currently set to $vid1"
+		echo -n "VID1 currently "
+		if [ "$vid1" == "????" ]; then
+			echo "unset"
+			TMP=""
+		else
+			echo "set to $vid1"
+			TMP=", press ENTER to keep current value"
+		fi
         i_vid1=""
         while [ -z "$i_vid1" ]; do
-            echo -n "Type in a VID1 (4-digit hexadecimal, press ENTER to keep current value): "
+            echo -n "Type in a VID1 (4-digit hexadecimal$TMP): "
             read i_vid1
             if [ -z "$i_vid1" ]; then
-				echo "VID1 unchanged"
-                break
+				if [ "$vid1" != "????" ]; then
+					echo "VID1 unchanged"
+    	            break
+				else
+                    echo -e "VID1 still unset, please enter a value\n"
+				fi
             else
                 echo $i_vid1 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
@@ -402,14 +413,25 @@ case "$1" in
         done
 
 		echo
-		echo "PID1 currently set to $pid1"
+		echo -n "PID1 currently "
+		if [ "$pid1" == "????" ]; then
+			echo "unset"
+			TMP=""
+		else
+			echo "set to $pid1"
+			TMP=", press ENTER to keep current value"
+		fi
 		i_pid1=""
-        while [ -z "$i_vid1" ]; do
-            echo -n "Type in a PID1 (4-digit hexadecimal, press ENTER to keep current value): "
+        while [ -z "$i_pid1" ]; do
+            echo -n "Type in a PID1 (4-digit hexadecimal$TMP): "
             read i_pid1
             if [ -z "$i_pid1" ]; then
-				echo "PID1 unchanged"
-                break
+				if [ "$pid1" != "????" ]; then
+					echo "PID1 unchanged"
+    	            break
+				else
+                    echo -e "PID1 still unset, please enter a value\n"
+				fi
             else
                 echo $i_pid1 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
@@ -422,14 +444,25 @@ case "$1" in
         done
 
 		echo
-		echo "VID2 currently set to $vid2"
+		echo -n "VID2 currently "
+		if [ "$vid2" == "????" ]; then
+			echo "unset"
+			TMP=""
+		else
+			echo "set to $vid2"
+			TMP=", press ENTER to keep current value"
+		fi
         i_vid2=""
         while [ -z "$i_vid2" ]; do
-            echo -n "Type in a VID2 (4-digit hexadecimal, press ENTER to skip): "
+            echo -n "Type in a VID2 (4-digit hexadecimal$TMP): "
             read i_vid2
             if [ -z "$i_vid2" ]; then
-				echo "VID2 unchanged"
-				break
+				if [ "$vid2" != "????" ]; then
+					echo "VID2 unchanged"
+    	            break
+				else
+                    echo -e "VID2 still unset, please enter a value\n"
+				fi
             else
                 echo $i_vid2 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
@@ -442,14 +475,25 @@ case "$1" in
         done
 
 		echo
-		echo "PID2 currently set to $pid2"
+		echo -n "PID2 currently "
+		if [ "$pid2" == "????" ]; then
+			echo "unset"
+			TMP=""
+		else
+			echo "set to $pid2"
+			TMP=", press ENTER to keep current value"
+		fi
         i_pid2=""
         while [ -z "$i_pid2" ]; do
-            echo -n "Type in a PID2 (4-digit hexadecimal, press ENTER to skip): "
+            echo -n "Type in a PID2 (4-digit hexadecimal$TMP): "
             read i_pid2
             if [ -z "$i_pid2" ]; then
-				echo "PID2 unchanged"
-                break
+				if [ "$pid2" != "????" ]; then
+					echo "PID2 unchanged"
+    	            break
+				else
+                    echo -e "PID2 still unset, please enter a value\n"
+				fi
             else
                 echo $i_pid2 | grep -E "^([0-9A-Fa-f]{4})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
@@ -502,22 +546,20 @@ case "$1" in
             read use_dhcp
 			case "$use_dhcp" in
 			y*|Y*)	use_dhcp="yes"
-					break
 					;;
 			n*|N*)	use_dhcp="no"
-					break
 					;;
 			"")		if [ -n "$prev_use_dhcp" ]; then
 						use_dhcp="$prev_use_dhcp"
 						echo "DHCP usage unchanged"
-						break
 					fi
 					;;
 			*)		use_dhcp=""
 					;;
 			esac
-           	echo -e "Invalid answer, try again\n"
+           	test -z "$use_dhcp" && echo -e "Invalid answer, try again\n"
         done
+
 		staticip="$prev_staticip"
 		gateway="$prev_gateway"
 		if [ "$use_dhcp" != "yes" ]; then
@@ -525,41 +567,56 @@ case "$1" in
 			echo -n "In current config, static IP is "
 			if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
 				echo "used"
+				TMP=" or press ENTER to keep current setting"
 			else
 				echo "not used"
+				TMP=""
 			fi
         	echo "Did you get a static IP from your provider (MOST users should say NO)? "
 			foo=""
         	while [ -z "$foo" ]; do
-	   	        echo -n "(y/n or press ENTER to keep current setting) "
+	   	        echo -n "(y/n$TMP) "
             	read foo
 				case "$foo" in
 				y*|Y*)	foo="yes"
 						;;
 				n*|N*)	foo="no"
 						;;
-				"")		if [ "$prev_staticip" -a -n "$prev_gateway" ]; then
+				"")		if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
 							foo="yes"
 						else
-							foo="no"
+							# check if the settings were really existing before
+							# if so, default NO can be assumed
+							if [ -n "$prev_dhcp" ]; then
+								foo="no"
+							fi
 						fi
-						echo "Static IP usage unchanged"
+						if [ -n "$foo" ]; then
+							echo "Static IP usage unchanged"
+						fi
 						;;
 				*)		foo=""
-		            	echo -e "Invalid answer, try again\n"
 						;;
 				esac
+            	test -z "$foo" && echo -e "Invalid answer, try again\n"
         	done
+
 			if [ "$foo" == "yes" ]; then
-				TMP="(press ENTER to use $prev_staticip)"
+				if [ -n "$prev_staticip" ]; then
+					TMP=" (press ENTER to use $prev_staticip)"
+				else
+					TMP=""
+				fi
         		echo
-        		echo -n "Type in your static IP $TMP: "
+        		echo -n "Type in your static IP$TMP: "
 				staticip=""
         		while [ -z "$staticip" ]; do
             		read staticip
 					case "$staticip" in
-					"")		staticip="$prev_staticip"
-							echo "Static IP unchanged"
+					"")		if [ -n "$prev_staticip" ]; then
+								staticip="$prev_staticip"
+								echo "Static IP unchanged"
+							fi
 							;;
 					*)		echo "$staticip" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1 
 			                if [ $? -ne 0 ]; then
@@ -567,17 +624,24 @@ case "$1" in
 							fi
 							;;
 					esac
-        			echo -n "Invalid static IP, try again $TMP: "
+        			test -z "$staticip" && echo -n "Invalid static IP, try again $TMP: "
         		done
-				TMP="(press ENTER to use $prev_gateway)"
+
+				if [ -n "$prev_gateway" ]; then
+					TMP=" (press ENTER to use $prev_gateway)"
+				else
+					TMP=""
+				fi
         		echo
-        		echo "Type in your provider's gateway IP $TMP: "
+        		echo "Type in your provider's gateway IP$TMP: "
 				gateway=""
         		while [ -z "$gateway" ]; do
             		read gateway
 					case "$gateway" in
-					"")		gateway="$prev_gateway"
-							echo "Gateway unchanged"
+					"")		if [ -n "$gateway" ]; then
+								gateway="$prev_gateway"
+								echo "Gateway unchanged"
+							fi
 							;;
 					*)		echo "$gateway" | grep -E "^([0-9]{1,3}\.){3}[0-9]{1,3}$" > /dev/null 2>&1 
 				            if [ $? -ne 0 ]; then
@@ -585,7 +649,7 @@ case "$1" in
 							fi
 							;;
 					esac
-        			echo -n "Invalid gateway IP, try again $TMP: "
+        			test -z "$gateway" && echo -n "Invalid gateway IP, try again $TMP: "
         		done
 			fi
 		fi
@@ -626,9 +690,13 @@ case "$1" in
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
 
-        $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" $dns1 $dns2 $vpi $vci \
-			"$vid1$vid2" "$vid2pid2" "$binfile" "$firmware" "$staticip" "$gateway" "$use_dhcp" \
-			"$modem" "$provider"
+echo         $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2"
+echo		"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware"
+echo		"$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
+
+        $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" $dns1 $dns2 \
+			"$vpi" "$vci" "$vid1$pid1" "$vid2pid2" "$binfile" "$firmware" \
+			"$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
         if [ $? -eq 0 ]; then
             echo
             echo "==== eciconftxt.sh: Configuration updated with success !"
