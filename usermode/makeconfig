@@ -117,7 +117,7 @@ pid1=`echo $8 | cut -c 5-8`
 vid2=`echo $9 | cut -c 1-4`
 pid2=`echo $9 | cut -c 5-8`
 
-nomadsl=${ETC_DIR}/ppp/peers/adsl
+nomadsl=${PPPD_DIR}/peers/adsl
 if [ -s $nomadsl ]; then
     nombak="${nomadsl}.bak"
     numero=0
@@ -176,7 +176,7 @@ noauth
 # lcp-echo-failure 10
 #
 # However, if your PPP peer DOES NOT answer to lcp-echo request, you MUST
-# desactivate this feature with the folowing line
+# desactivate this feature with the following line
 #
 lcp-echo-interval 0
 
