@@ -1692,9 +1692,14 @@ static void eci_bh_bulk(unsigned long pinstance)
 	//urb->transfer_flags = USB_QUEUE_BULK;
 	if(usb_submit_urb(urb))
 	{
+	/*
+		TODO:	Put the cells back in list on error
+			need antother way handling cells and
+			list 
+	*/
 		ERR_OUT("Can't submit bulk urb\n");
 	//	kfree(buf);
-		return;
+	/*	return; 	BIG BUG WITH LOCKING !!!!!	*/
 	}
 	/*}*/
 	spin_unlock_irqrestore(&instance->lock, flags);
