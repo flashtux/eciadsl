@@ -1105,6 +1105,7 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 
 static void _eci_send_init_urb(struct urb *eciurb)
 {
+
 	struct eci_instance *instance;
 	unsigned char *setuppacket;
 	unsigned int pipe;
@@ -1327,11 +1328,11 @@ static void eci_int_callback(struct urb *urb)
 				 	0x580 , eci_outbuf, 
 					sizeof(eci_outbuf), HZ);
 			}
-			DBG_OUT("EP INT received 64 bytes\n");
-			DBG_RAW_OUT("EP INT datas :",in_buf, 64); 
+			/*DBG_OUT("EP INT received 64 bytes\n"); 
+			DBG_RAW_OUT("EP INT datas :",in_buf, 64); */
 		}
 	}
-	DBG_OUT("Int callBack out\n");
+	/*	DBG_OUT("Int callBack out\n");	*/
 }
 
 static void eci_iso_callback(struct urb *urb)
@@ -1344,9 +1345,12 @@ static void eci_iso_callback(struct urb *urb)
 	unsigned char 		*buf;		/* Working buffer pointer */
 
 	instance = (struct eci_instance *)urb->context;
-	if (!urb->status)
+	if (!urb->status && urb->actual_length)
 	{
- 		cells = _uni_cell_list_alloc();
+ 		if(!(cells = _uni_cell_list_alloc())) {
+			ERR_OUT("Failed to allocate cell list\n");
+			goto end;
+		}
 		for (i=0;i<ECI_NB_ISO_PACKET;i++)
 		{
 			if (!urb->iso_frame_desc[i].status &&
@@ -1364,7 +1368,8 @@ static void eci_iso_callback(struct urb *urb)
  				    pos+=ATM_CELL_SZ; pos < 
  			 	    urb->iso_frame_desc[i].actual_length);
  				  {
- 					cell = _uni_cell_alloc();
+ 					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
+						buf + pos);
  					memcpy(cell->raw, buf + pos,
  						ATM_CELL_SZ);
  					if(_uni_cell_list_append(cells, cell))
@@ -1376,9 +1381,12 @@ static void eci_iso_callback(struct urb *urb)
 
 			}
 		}
- 		eci_atm_receive_cell(instance, cells);
+ 		if(eci_atm_receive_cell(instance, cells)) {
+			_uni_cell_list_free(cells);
+		}
 	}
 					
+	end:
 	urb->dev = instance->usb_wan_dev;
 	urb->pipe = usb_rcvisocpipe(urb->dev, ECI_ISO_PIPE);
 	urb->transfer_flags = USB_ISO_ASAP;
@@ -1405,7 +1413,7 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 	int		buflen;		/* urb buffer len		*/
 	int		bufpos;		/* position in urb buffer	*/
 	int		nbcells;	/* number of cell to be sent 	*/
-	struct uni_cell	*cell;		/* current computed cell	*/
+	uni_cell_list_crs_t	cell;	/* current computed cell	*/
 	struct urb	*urb;		/* urb pointer to sent urb	*/
 
 	nbcells = _uni_cell_list_nbcells(cells);
@@ -1427,12 +1435,14 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 		}
 		else
 			break;
+		if(_uni_cell_list_crs_next(&cell)) break;
 	}
 	if( ret != nbcells)
 	{
 		ERR_OUT("Error computing bulk buffer\n");
-		ERR_OUT("Expecting %d cell got %d\n", nbcell, ret);
+		ERR_OUT("Expecting %d cell got %d\n", nbcells, ret);
 	}
+	DBG_RAW_OUT("new bulk",buf,bufpos);
 	if(!(urb = usb_alloc_urb(0)))
 	{
 		ERR_OUT("Can't alloacate bulk URB\n");
@@ -1442,12 +1452,13 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 	FILL_BULK_URB(urb, instance->usb_wan_dev, 
 		usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 		buf, bufpos, eci_bulk_callback, instance);
-	if(!(usb_submit_urb(urb)))
+	if(usb_submit_urb(urb))
 	{
 		ERR_OUT("Can't submit bulk urb\n");
 		kfree(buf);
 		return(0);
 	}
+	usb_free_urb(urb);
 	return(ret);	
 }
 
