@@ -101,7 +101,7 @@ A:	Check the pre-requisites.
 
 
 ================================================================================
-Q:	startmodem, eciconf or eci-doctor report me an unsupported modem!
+Q:	startmodem or eci-doctor.sh report me an unsupported modem!
 
 --------------------------------------------------------------------------------
 A:	Jump to the previous question.
@@ -111,7 +111,7 @@ A:	Jump to the previous question.
 
 
 ================================================================================
-Q:	startmodem, eciconf or eci-doctor's output shows:
+Q:	startmodem or eci-doctor.sh's output shows:
 	/proc/bus/usb: No such file or directory
 
 --------------------------------------------------------------------------------
