@@ -6,6 +6,10 @@
 # 03/02/2002: added a sleep 2 after loading USB controller driver, as suggested
 # by Sebastien YAPO <sebastien.yapo@free.fr>.
 
+# 07/02/2002: added the CVS Id
+# CVS $Id$
+# Tag $Name$
+
 echo "Checking USB system ..."
 
 if [ ! -d /proc/bus/usb ]; then
