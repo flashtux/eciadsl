@@ -170,6 +170,16 @@ int eoc_read_next() {
 	return(mes);
 }
 
+
+void eoc_write_data(u_int16_t code) {
+
+	printf("OEC.C - eco_writenext - START [eocreadpos : %d| eocreadlen : %d]\n", eocwritepos, eocwritelen);
+	if(eocreadpos < eocreadlen) {
+		*eocnextrw++ = (code >> 5) & 0xff;
+	}
+	printf("OEC.C - eco_writenext - END   [mes : %04x]\n", mes);
+}
+
 /*
 	parse and handle eoc code from the buffer
 	
@@ -215,6 +225,24 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 				eocmescnt++;
 			}
 			printf("OEC.C - parse_eoc_buffer - CYCLE1 [eocmesval : %04x| eoccode . %04x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
+			if(!(eocmesval & EOC_DATA_MASK)) { /* handle data */
+				eoc_write_data(eocmesval);
+				if(eocwritepos == eocwritedlen) { /* if last  tell it to atu-c */
+					mes = 0x5301;
+					mes |= (0x0e & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
+					mes |= (0x0e & 0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
+					if(eocwritepar) {	/* set parity bit and switch eocwritepar value */
+						mes |= EOC_PARITY_EVEN;
+						eocwritepar = 0;
+					} else {
+						mes |= EOC_PARITY_ODD;
+						eocwritepar = 1;			
+					}
+					eoc_out_buf[eoc_out_buffer_pos-2] = mes & 0xff;
+					eoc_out_buf[eoc_out_buffer_pos-1] = (mess >>8 ) & 0xff;					
+				}
+				continue;
+			} /* else handle an opcode */
 			switch(eocstate) {
 				case _preread:
 						printf("OEC.C - parse_eoc_buffer - PREREAD [eocstate : _preread]\n");

@@ -20,9 +20,10 @@
 
 #define EOC_MAX_LEN 34
 
-#define EOC_ADDRESS(x) (x  & 0x0003)
-#define EOC_ADDRESS_ATU_R 0x0000
-#define EOC_ADDRESS_ATU_C 0x0003
+#define EOC_ADDRESS(x) 		(x  & 0x0003)
+#define EOC_ADDRESS_ATU_R 	0x0000
+#define EOC_ADDRESS_ATU_C 	0x0003
+#define EOC_DATA_MASK 		0x0004
 
 #define EOC_OPCODE(x)		(x & (0xFF << 5))
 #define EOC_OPCODE_HOLD		(0x01 << 5)
