@@ -751,7 +751,7 @@ case "$1" in
         if [ $? -eq 0 ]; then
             echo
             echo "==== eciadsl-config-text: Configuration updated with success !"
-            echo "You can now run eciadsl-config-text (as root) to connect to the internet."
+            echo "You can now run eciadsl-start (as root) to connect to the internet."
         else
             echo "*** eciadsl-makeconfig reports error(s), please fix the problem and run eciadsl-config-text again."
         fi
