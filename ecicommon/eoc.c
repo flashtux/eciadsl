@@ -56,6 +56,11 @@ void eoc_execute(u_int16_t eocmesval) {
 			eocreadpar = oecreadcnt = eocreadpos = 0;
 			eocreadlen = 8;
 			break;
+		case EOC_OPCODE_READ_1:
+			eocstate = preread;
+			eocreadpar = ecreadcnt = eocreadpos = 0;
+			eocreadlen = 2;
+			break;			
 		default:
 			/* break; useless	*/
 	}
