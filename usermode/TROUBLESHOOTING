@@ -79,8 +79,7 @@ Q:	startmodem, or eciconf report me an unsupported modem!
 A:	See the previous question.
 
 
-Q:	startmodem or eciconf output say:
-	/proc/bus/usb: No such file or directory
+Q:	startmodem or eciconf output shows: /proc/bus/usb: No such file or directory
 
 A:	Check your system's USB configuration. This may be due to a lack of
 	devusbfs support in kernel configuration. If kernel has support for it,
@@ -90,7 +89,7 @@ A:	Check your system's USB configuration. This may be due to a lack of
 
 
 Q:	eciconf reports me that the DABUSB module is loaded!
-	TODO: dabusb leads to wich problems?
+	TODO: dabusb leads to which problems?
 
 A:	Disable/remove the dabusb module:
 		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
@@ -104,7 +103,7 @@ Q:	eciconf reports me:
 	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
 	and/or I see this in /var/log/messages:
 		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
-		[many times]
+		..
 		LCP: timeout sending Config-Requests
 		Connection terminated.
 
@@ -135,9 +134,9 @@ A:	Follow the pre-requisites, read the documentation about then N_HDLC problem.
 Q:	My kernel is OK (N_HDLC patched or kernel >=2.4.18-pre3) but I still get
 	I get LCP timeout lines in /var/log/messages then a modem hangup
 	(and eventually another problem more between both) like this:
-	sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
-	[many times]
-	LCP: timeout sending Config-Requests
+		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
+		..
+		LCP: timeout sending Config-Requests
 
 A:	If your kernel really OK? Check above!
 
@@ -145,6 +144,8 @@ A:	If your kernel really OK? Check above!
 
 	See next question also, because CHAP/PAP authentication problems are not
 	always verbosely shown.
+
+	See also below questions related to international users.
 
 
 Q:	/var/log/messages shows CHAP or PAP failures.
@@ -311,16 +312,7 @@ A:	Type the following commands:
 	DABUSB must ne disabled.
 
 
-Q:	TODO: which problem? (foreign users with other PPP encapsulations/layers)
-
-A:	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
-
-	Try other synch .bin.
-
-	Use -mode and/or -alt 4 in the pppoeci invocation in /etc/ppp/peers/adsl.
-
-
-Q:	I get kernel oops like
+Q:	I get kernel panic/oops like: TODO
 
 A:	Wait for eciadsl version 0.7 (there's a lack URB clean-up when pppd disconnect).
 	TODO: other problems.
@@ -332,11 +324,32 @@ Q:	I get the message in /var/log/messages:
 A:	TODO
 
 
-Q:	TODO: italian or belgian patched version?
+Q:	I'm not from France, and get problems wich pppd (LCP problems maybe).
 
-A:	TODO
+A:	Verify that you modem is supported and that the installation and
+	configuration went OK.
 
+	Upgrade your eciadsl driver version (0.5 owners: get the latest CVS)
 
-Q:	TODO: foreigners: windows driver use PPPoE or DHCP or noauth?
+	Try other synch .bin.
 
-A:	TODO
+	Check above questions.
+	
+	If you live outside from France, you may also try to set these options:
+		-mode VCM_RFC2364
+	or	-mode LLC_RFC2364
+	or	-mode LLC_SNAP_RFC1483
+	to the pppoeci invocation in /etc/ppp/peers/adsl.
+	It may worth trying the -alt 4 option too.
+
+	Think about checking which protocol you windows driver uses. If it's PPPoE
+	or other protocol/layers, it may be a problem since current driver version
+	may not support them until a further release.
+
+	You may also have problems if your provider doesn't need authentication or
+	provide DHCP services or any other exotic stuff.
+
+	Users from Belgium or Italy: get further info or specific patched
+	version from here:
+		http://www.prout.be/ECI/
+		http://www.hctechnews.org/
