@@ -212,9 +212,10 @@ static const struct usb_device_id eci_usb_deviceids[] =
 };
 
 static void eci_init_vendor_callback(struct urb *urb);
-static void eci_ep_int_callback(struct urb *urb);
+static void eci_int_callback(struct urb *urb);
 static void eci_iso_callback(struct urb *urb);
 static void _eci_send_init_urb(struct urb *eciurb);
+static void eci_bulk_callback(struct urb *urb);
 
 
 
@@ -733,7 +734,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		DBG_OUT("interrupt buffer = %p\n", out_instance->interrupt_buffer);
 		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
 			out_instance->interrupt_buffer,64,
-			eci_ep_int_callback,out_instance,3);
+			eci_int_callback,out_instance,3);
 		if(usb_submit_urb(eciurb))
 		{
 			ERR_OUT("error couldn't send interrupt urb\n");
@@ -1163,7 +1164,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 	
 
 */
-static void eci_ep_int_callback(struct urb *urb)
+static void eci_int_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
 	struct urb *eci_vendor;
@@ -1292,6 +1293,69 @@ static void eci_iso_callback(struct urb *urb)
 	*/
 }
 
+static int eci_usb_send_urb(struct eci_instance *instance, struct aal5 *aal5)
+{
+	int 		ret;		/*	counter			*/
+	int 		nbcell;		/*	cellcount expected	*/
+	unsigned	char *buf;	/*	urb buffer		*/
+	int		buflen;		/*	urb buffer len		*/
+	int		bufpos;		/*	position in urb buffer	*/
+	struct uni_cell	*cell;		/*	current computed cell	*/
+	struct urb	*urb;		/*	urb pointer to sent urb	*/
+
+	nbcell = aal5->nbcells;	/*	Must be change to use	*/
+	buflen = ATM_CELL_PAYLOAD * 
+			aal5->nbcells;	/*	abstraction function	*/
+	if(!(buf=(unsigned char *)kmalloc(buflen, GFP_KERNEL)))
+	{
+		ERR_OUT("Can't allocate bulk urb Buffer\n");
+		return(0);
+	}
+	bufpos = ret = 0;
+	while((cell = _aal5_get_next(aal5)))
+	{
+		if( memcpy(buf + bufpos, cell->raw, ATM_CELL_PAYLOAD) ==
+			ATM_CELL_PAYLOAD)
+		{
+			bufpos += ATM_CELL_PAYLOAD;
+			ret++;
+		}
+		else
+			break;
+	}
+	if( ret != nbcell)
+	{
+		ERR_OUT("Error computing bulk buffer\n");
+		ERR_OUT("Expecting %d cell got %d\n", nbcell, ret);
+	}
+	if(!(urb = usb_alloc_urb(0)))
+	{
+		ERR_OUT("Can't alloacate bulk URB\n");
+		return(0);
+	}
+	FILL_BULK_URB(urb, instance->usb_wan_dev, 
+		usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
+		buf, bufpos, eci_bulk_callback, instance);
+	if(!(usb_submit_urb(urb)))
+	{
+		ERR_OUT("Can't submit bulk urb\n");
+		return(0);
+	}
+	_aal5_free(aal5);
+	return(ret);	
+}
+
+static void eci_bulk_callback(struct urb *urb)
+{
+	if(urb->status)
+	{
+		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
+	}
+	kfree(urb->transfer_buffer);
+}
+/**********************************************************************
+		END USB CODE
+*************************************************************************/
 static int _eci_make_aal5(
 		aal5_t * 		paal5,
 		int			vpi,
