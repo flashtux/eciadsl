@@ -461,7 +461,8 @@ function configure_dot()
 	INCFGFILE="config.h.sk"
 	CFGTMPFILE="$CFGFILE.tmp"
 	display 1 -n "generating $CFGFILE... "
-	:> "$CFGTMPFILE"
+	echo "#ifndef CONFIG_H" > "$CFGTMPFILE"
+	echo "#define CONFIG_H" >> "$CFGTMPFILE"
 	insert_edit_warning "/*" "*/" "$CFGTMPFILE" "$INCFGFILE"
 	cat "$INCFGFILE" >> "$CFGTMPFILE"
 	if [ $DEBUG -eq 1 ]
@@ -477,6 +478,7 @@ function configure_dot()
 	echo "#define ETC_DIR \"$DIST_ETC_DIR\"" >> "$CFGTMPFILE"
 	echo "#define CONF_PATH \"$DIST_CONF_PREFIX\"" >> "$CFGTMPFILE"
 	echo "#define CONF_DIR \"$DIST_CONF_DIR\"" >> "$CFGTMPFILE"
+	echo "#endif" >> "$CFGTMPFILE"
 	diff "$CFGTMPFILE" "$CFGFILE" > /dev/null 2>&1
 	if [ $? -eq 0 ]
 	then

@@ -1,6 +1,8 @@
 /* GS7070.h
    Header file for gs7070 int response handler
 */
+#ifndef GS7070_H
+#define GS7070_H
 
 #define CONTROLCODEBUFFERSIZE 20
 /* Piucked at random, I never get more that three controlcodes in a
@@ -55,3 +57,5 @@ void gs7070GetResponse(GS7070int* gs,unsigned char* buffer);
 
 GS7070int* allocateGS7070int(void);
 GS7070int* allocateGS7070int(void);
+
+#endif
