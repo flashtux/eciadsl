@@ -767,6 +767,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			out_instance->bh_iso.func = eci_bh_iso ;
 			out_instance->bh_iso.data = (unsigned long) 
 							out_instance ;
+		 	if(_uni_cell_list_init(&out_instance->iso_cells))
+			{
+				ERR_OUT("Cant init Bulk list\n");
+				return 0;
+			}
 			memset(&out_instance->bh_bulk, 0, 
 					sizeof(out_instance->bh_bulk)) ;
 			out_instance->bh_bulk.func = eci_bh_bulk;
@@ -1739,9 +1744,9 @@ static int _eci_tx_aal5(
 	lv_nbsent = eci_usb_send_urb(pinstance, &lv_list) ;
 
 /*
-	if (!lv_nbsent || lv_nbsent != _uni_cell_list_nbcells(&lv_list)) {
+	if (!lv_nbsent || 
 */
-	if (!lv_nbsent) {
+	if(lv_nbsent != _uni_cell_list_nbcells(&lv_list)) {
 	       ERR_OUT(
 			       "Not all the cells where sent (%d/%d)\n",
 			       lv_nbsent,
@@ -1749,7 +1754,7 @@ static int _eci_tx_aal5(
 	       lv_rc = -1 ;
 	}
 
-	//_uni_cell_list_reset(&lv_list) ;
+	_uni_cell_list_reset(&lv_list) ;
 
 
 	return lv_rc ;
