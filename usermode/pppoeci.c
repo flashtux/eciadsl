@@ -265,8 +265,6 @@ dump(unsigned char *buf, int len)
 {
 	int i, j;
 
-	return ;
-
 	for(i = 0; i < len; i += 16) {
 
 		for(j = i; j < len && j < i + 16; j++)
@@ -845,6 +843,14 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 
 	int i, outi = 0;
 
+	if (verbose>1)
+	{
+		printf("< pid=%d > ", this_process);
+		print_time();
+		printf(" read from ep int, len = %d\n", size);
+		dump(buf, size);
+	}
+
 	for (i=0;i<15;i++)
 	{
 		unsigned char b1, b2;
@@ -861,6 +867,20 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 
 			if (b1 == 0x73 && b2 == 0x11)
 				replace_b1_b2(&b1,&b2);
+
+
+			/* we check that we are not writing outside our buffer.
+			   From what is found in our log, this never happen.
+			*/
+
+			if (10 + outi >= sizeof(outbuf))
+			{
+				printf("< pid=%d > ", this_process);
+				print_time();
+				printf(" warning: outbuf is too small\n");
+				dump(buf,size);
+				break;
+			}
 
 			outbuf[10 + outi++] = b1;
 			outbuf[10 + outi++] = b2;
@@ -951,8 +971,6 @@ void handle_urb(pusb_urb_t urb)
 		break;
 	}
 }
-
-int oldpid[10],nbpid = 0;
 
 void sig_rtmin(int sig)
 {
