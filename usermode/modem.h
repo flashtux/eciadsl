@@ -4,13 +4,25 @@
  Modified by	:	$Author$ ($Date$)
 *********************************************************************/
 
+/*
+  15/02/2002 Benoit PAPILLAULT
+    Change the string for the device name. Since the 2 chips are used in
+	several modems of differents brand names, we choose EZUSB and GlobeSpan
+	for their description.
+*/
+
 #ifndef MODEM_H
 #define MODEM_H
 
-/* ECI Telecom USB ADSL WAN Modem VendorID/ProductID */
+/* Vendor/ProdID for "ECI Telecom USB ADSL Loader" */
+#define EZUSB_NAME    "EZUSB USB ADSL Loader"
+#define EZUSB_VENDOR  0x0547 /* 0x0547 */
+#define EZUSB_PRODUCT 0x2131 /* 0x2131 */
 
-#define ST_VENDOR  0x0915
-#define ST_PRODUCT 0x8000
+/* Vendor/ProdID for "ECI Telecom USB ADSL WAN Modem" */
+#define GS_NAME       "GlobeSpan USB ADSL WAN Modem"
+#define GS_VENDOR     0x0915 /* 0x0915 */
+#define GS_PRODUCT    0x8000 /* 0x8000 */
 
 /* endpoint numbers */
 
