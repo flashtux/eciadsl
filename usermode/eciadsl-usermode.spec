@@ -106,7 +106,6 @@ that handles the modem. A kernel module is under development.
 %config /etc/eciadsl/eci_firm_kit_wanadoo.bin
 %config /etc/eciadsl/eci_wan3.bin
 %config /etc/eciadsl/eci_wan3.dmt.bin
-%config /etc/eciadsl/eci_logo.gif
 %config /etc/eciadsl/modemeci.gif
 
 # doc files
