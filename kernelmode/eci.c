@@ -842,7 +842,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 							GFP_KERNEL);
 		if(out_instance)
 		{
-			MOD_INC_USE_COUNT;
 			memset(out_instance, 0, sizeof(struct eci_instance));
 			eci_instances=out_instance; 
 			spin_lock_init(&out_instance->lock);
@@ -1072,7 +1071,6 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 		kfree(eci_instances);
 		eci_instances=NULL;
 	}
-	MOD_DEC_USE_COUNT;
 
 };
 
