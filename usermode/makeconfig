@@ -1,23 +1,24 @@
 #!/bin/sh
 # ************************************************************************
 # *                                                                      *
-# *      makeconfig v0.1 - ECI Linux driver configuration script         *
+# *      makeconfig v0.6 - ECI Linux driver configuration script         *
 # *                        by FlashCode and Crevetor (c) 14/04/2002      *
 # *                                                                      *
 # *          For any support, contact one of us :                        *
 # *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
 # *           - Crevetor : ziva@caramail.com                             *
-# *           Licence : GPL                                              *
 # *                                                                      *
-# *        Parameters for this script :                                  *
-# *          $1 = username + domain (username@domain)                    *
-# *          $2 = password (given by provider)                           *
-# *          $3 = path to pppoeci (eg: /usr/local/bin/pppoeci)           *
-# *          $4 = DNS 1 (depends on provider, 0=no DNS setup)            *
-# *          $5 = DNS 2 (depends on provider)                            *
-# *          $6 = VPI (depends on provider)                              *
-# *          $7 = VCI (depends on provider)                              *
-# *          $8 = path to .bin (optional)                                *
+# *      Parameters for this script :                                    *
+# *        1  = username + domain (username@domain)                      *
+# *        2  = password (given by provider)                             *
+# *        3  = path to pppoeci (eg: /usr/local/bin/pppoeci)             *
+# *        4  = DNS 1 (depends on provider, 0=no DNS setup)              *
+# *        5  = DNS 2 (depends on provider)                              *
+# *        6  = VPI (depends on provider)                                *
+# *        7  = VCI (depends on provider)                                *
+# *        8  = VID/PID before synchro (example: 05472131 for ECI modem) *
+# *        9  = VID/PID after synchro  (example: 09158000 for ECI modem) *
+# *        10 = path to .bin (optional)                                  *
 # *                                                                      *
 # ************************************************************************
 
@@ -36,9 +37,9 @@ if [ $UID -ne 0 ]; then
     exit 255
 fi
 
-if [ $# -ne 7 -a $# -ne 8 ]; then
+if [ $# -ne 9 -a $# -ne 10 ]; then
     echo -e "Error: invalid number of parameters."
-    echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci>"
+    echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> <path_bin>"
     exit 1
 fi
 
@@ -105,6 +106,12 @@ for auth in "chap" "pap"
 # create or backup/modify "adsl" script
 #
 
+vid1=`echo $8 | cut -c 1-4`
+pid1=`echo $8 | cut -c 5-8`
+
+vid2=`echo $9 | cut -c 1-4`
+pid2=`echo $9 | cut -c 5-8`
+
 nomadsl=${base_etc}/ppp/peers/adsl
 if [ -s $nomadsl ]; then
     nombak="${nomadsl}.bak"
@@ -118,7 +125,7 @@ if [ -s $nomadsl ]; then
     cp -f $nomadsl $nombak
     echo "ok"
     echo -n "Modifying $nomadsl... "
-    sed s£"^pty \".*"£"pty \"$3 -vpi $6 -vci $7\""£ $nomadsl | sed s£"^user \".*"£"user \"$1\""£ >$nomadsl
+    sed s£"^pty \".*"£"pty \"$3 -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2\""£ $nomadsl | sed s£"^user \".*"£"user \"$1\""£ >$nomadsl
     echo "ok"
 else
     echo -n "Creating $nomadsl... "
@@ -136,7 +143,7 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "$3 -vpi $6 -vci $7"
+pty "$3 -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2"
 sync
 user "$1"
 noaccomp
@@ -175,12 +182,20 @@ EOF
 fi
 
 #
+# create vidpid file
+#
+
+echo -n "Creating ${base_etc}/eciadsl/vidpid..."
+echo "$vid1 $pid1 $vid2 $pid2" >${base_etc}/eciadsl/vidpid
+echo "ok"
+
+#
 # change .bin file
 #
 
-if [ $# -eq 8 ]; then
-    echo -n "Modifying /usr/local/bin/startmodem (installing new .bin : $8)..."
-    sed s£"\$ECILOAD2 /.*"£"\$ECILOAD2 $8;"£ /usr/local/bin/startmodem | sed s£"\$ECILOAD2 0x\$3 0x\$4 /.*"£"\$ECILOAD2 0x\$3 0x\$4 $8;"£ >/tmp/makeconfig$$
+if [ $# -eq 10 ]; then
+    echo -n "Modifying /usr/local/bin/startmodem (installing new .bin : ${10})..."
+    sed s£"\$ECILOAD2 0x\$vid2 0x\$pid2 /.*"£"\$ECILOAD2 0x\$vid2 0x\$pid2 ${10};"£ /usr/local/bin/startmodem | sed s£"\$ECILOAD2 0x\$3 0x\$4 /.*"£"\$ECILOAD2 0x\$3 0x\$4 ${10};"£ >/tmp/makeconfig$$
     mv /tmp/makeconfig$$ /usr/local/bin/startmodem
     echo "ok"
 fi
