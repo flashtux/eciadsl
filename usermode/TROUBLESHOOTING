@@ -72,6 +72,15 @@ also provide us your /var/log/messages, /var/log/dmesg if available.
 FREQUENTLY ASKED QUESTIONS AND SOME COMMON TROUBLES
 ===================================================
 
+Before reading the following:
+the following Q/A list is *not* exhaustive.
+It is also possible that you won't find any Q/A that matches your problem.
+Please read them anyway, they may provide you help in fixing your problem
+anyway.
+And even if your problem is listed below, it is possible that the answers don't
+help you anymore to solve it. Then, please contact us, we will try to help you
+finding a solution.
+
 
 ================================================================================
 Q:	I don't know if my modem is supported.
