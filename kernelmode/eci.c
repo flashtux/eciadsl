@@ -636,6 +636,8 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
 	unsigned char 		*interrupt_buffer;
 	unsigned char 		*pooling_buffer;
+	char			iso_celbuf[ATM_CELL_SZ]; /* incomplete cell */
+	int			iso_celbuf_pos;/*	Pos in cell buf	*/
 
 	/* -- test -- */
 	struct atm_vcc		*pcurvcc ;
@@ -1362,12 +1364,31 @@ static void eci_iso_callback(struct urb *urb)
 					urb->transfer_buffer +
 						urb->iso_frame_desc[i].offset,
 					urb->iso_frame_desc[i].actual_length);
- 				  for(pos=0, buf=urb->transfer_buffer + 
+				if(instance->iso_celbuf_pos)
+				{	
+					memcpy(instance->iso_celbuf + 
+					       instance->iso_celbuf_pos,
+						urb->transfer_buffer, 
+						ATM_CELL_SZ - 
+						instance->iso_celbuf_pos);
+					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
+						   instance->iso_celbuf);
+ 					if(_uni_cell_list_append(
+						 	cells, cell))
+ 					{
+ 				  		ERR_OUT(
+					   "Couldn't queue One cell\n");
+ 				  		_uni_cell_free(cell);
+ 					}
+				}
+				pos=instance->iso_celbuf_pos;
+				instance->iso_celbuf_pos = 0;
+ 				for(buf=urb->transfer_buffer + 
  				    urb->iso_frame_desc[i].offset;
  				    pos + ATM_CELL_SZ < 
  			 	    urb->iso_frame_desc[i].actual_length;
  				    pos+=ATM_CELL_SZ)
- 				  {
+ 				{
  					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
 						buf + pos);
  					if(_uni_cell_list_append(cells, cell))
@@ -1375,7 +1396,13 @@ static void eci_iso_callback(struct urb *urb)
  					  ERR_OUT("Couldn't queue One cell\n");
  					  _uni_cell_free(cell);
  					}
- 				  }			
+ 				}
+				if((instance->iso_celbuf_pos = 
+				   urb->iso_frame_desc[i].actual_length - pos))
+				{
+					memcpy(instance->iso_celbuf, buf +pos,
+						instance->iso_celbuf_pos);
+				}
 			}
 		}
  		if(eci_atm_receive_cell(instance, cells)) {
