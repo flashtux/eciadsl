@@ -401,6 +401,57 @@ static uni_cell_t * _uni_cell_qhead(uni_cell_q_t *) ;
 
 /*----------------------------------------------------------------------*/
 
+/*--------------------- U N I  C E L L  L I S T ------------------------*/
+
+/*-- M A C R O S -------------------------------------------------------*/
+/*-- T Y P E S ---------------------------------------------------------*/
+
+struct uni_cell_list {
+	unsigned int		nbcells ;	/* Number of cells	*/
+	uni_cell_t *		first ;		/* First list item	*/
+	uni_cell_t *		last ;		/* Last list item	*/
+} ;
+
+typedef struct uni_cell_list cell_list_t ;
+
+typedef const uni_cell_t * cell_list_crs_t ;
+
+/*-- C O N S T A N T S -------------------------------------------------*/
+/*-- V A R I A B L E S -------------------------------------------------*/
+/*-- F U N C T I O N S -------------------------------------------------*/
+
+/* Init a list */
+static int _cell_list_init(cell_list_t *) ;
+
+/* Alloc a new list */
+static cell_list_t * _cell_list_alloc(void) ;
+
+/* Free a list (free each cells) */
+static void _cell_list_free(cell_list_t *) ;
+
+/* Get number of Cells in list (<0 : error)*/
+static inline int _cell_list_nbcells(cell_list_t *) ;
+
+/* Get First cell of list */
+static inline const uni_cell_t * _cell_list_first(cell_list_t *) ;
+
+/* Get Last cell of list */
+static inline const uni_cell_t * _cell_list_last(cell_list_t *) ;
+
+/* Extract First cell of list */
+static uni_cell_t * _cell_list_extract(cell_list_t *) ;
+
+/* Insert a new cell at the beginning of the list */
+static int _cell_list_insert(cell_list_t *, uni_cell_t *) ;
+
+/* Add a new cell at the end of the list */
+static int _cell_list_append(cell_list_t *, uni_cell_t *) ;
+
+/* Move cursor forward */
+static inline int _cell_list_crs_next(cell_list_crs_t *) ;
+
+/*----------------------------------------------------------------------*/
+
 /*------------------------ A A L 5  F R A M E --------------------------*/
 
 /*-- M A C R O S -------------------------------------------------------*/
@@ -550,11 +601,6 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
 	unsigned char 		*interrupt_buffer;
 	unsigned char 		*pooling_buffer;
-
-
-	/* -- Transmission Elements -- */
-	spinlock_t		rx_q_lock ;
-	uni_cell_q_t *		prx_q ;
 };
 
 struct eci_instance	*eci_instances= NULL;		/*  Driver list	*/
@@ -2326,6 +2372,156 @@ static uni_cell_t * _uni_cell_qhead(
 	DBG_OUT("_uni_cell_qhead out\n") ;
 	*/
 	return lp_cell ;
+}
+
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+/*----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------
+ 			UNI CELL LIST ABSTRACTION
+  ----------------------------------------------------------------------*/
+
+/*----------------------------------------------------------------------*/
+
+/* Init a list */
+static int _cell_list_init(cell_list_t *plist) {
+	if (!plist) return -EINVAL ;
+	memset(plist, 0x00, sizeof(cell_list_t)) ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Alloc a new list */
+
+static cell_list_t * _cell_list_alloc(void) {
+	cell_list_t * lp_list = NULL ;
+
+	lp_list = kmalloc(sizeof(cell_list_t), GFP_KERNEL) ;
+	if (!lp_list) return NULL ;
+
+	if (_cell_list_init(lp_list)) {
+		kfree(lp_list) ;
+		return NULL ;
+	}
+	return lp_list ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Free a list (free each cells) */
+
+static void _cell_list_free(cell_list_t *plist) {
+	uni_cell_t *	lp_cell = NULL ;
+
+	if (!plist) return ;
+
+	/* Free each cells of the list */
+	while ((lp_cell = _cell_list_extract(plist))) {
+		_uni_cell_free(lp_cell) ;
+	}
+
+	kfree(plist) ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Get number of Cells in list (<0 : error)*/
+
+static inline int _cell_list_nbcells(cell_list_t *plist) {
+	return (plist 
+			? plist->nbcells 
+			: -EINVAL) ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Get First cell of list */
+static inline const uni_cell_t * _cell_list_first(cell_list_t *plist) {
+	return (plist
+			? (const uni_cell_t*) plist->first
+			: NULL) ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Get Last cell of list */
+static inline const uni_cell_t * _cell_list_last(cell_list_t *plist) {
+	return (plist
+			? (const uni_cell_t*) plist->last
+			: NULL) ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Extract First cell of list */
+static uni_cell_t * _cell_list_extract(cell_list_t *plist) {
+	uni_cell_t * lp_cell = NULL ;
+
+	if (!plist || !plist->first) return NULL ;
+
+	lp_cell = plist->first ;
+	plist->first = lp_cell->next ;
+
+	/* Case of single cell list */
+	if (!plist->first)
+		plist->last = NULL ;
+
+	lp_cell->next = NULL ;
+	return lp_cell ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Insert a new cell at the beginning of the list */
+
+static int _cell_list_insert(cell_list_t *plist, uni_cell_t *pcell) {
+	if (!plist || !pcell) return -EINVAL ;
+
+	/* Manage empty list case */
+	if (!plist->first) {
+		pcell->next	= NULL ;
+		plist->first	= pcell ;
+		plist->last	= pcell ;
+	} else {
+		pcell->next	= plist->first ;
+		plist->first	= pcell ;
+	}
+
+	plist->nbcells++ ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Add a new cell at the end of the list */
+
+static int _cell_list_append(cell_list_t *plist, uni_cell_t *pcell) {
+	if (!plist || !pcell) return -EINVAL ;
+
+	pcell->next = NULL ;
+
+	/* Manage empty list case */
+	if (!plist->first) {
+		plist->first		= pcell ;
+		plist->last		= pcell ;
+	} else {
+		plist->last->next	= pcell ;
+	}
+
+	plist->nbcells++ ;
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
+/* Move cursor forward */
+
+static inline int _cell_list_crs_next(cell_list_crs_t *pcursor) {
+	if (!pcursor || !*pcursor) return -EINVAL ;
+	*pcursor = (cell_list_crs_t) ((uni_cell_t*)*pcursor)->next ;
+	return 0 ;
 }
 
 /*----------------------------------------------------------------------*/
