@@ -12,8 +12,8 @@
 # *        1  = username + domain (username@domain)                      *
 # *        2  = password (given by provider)                             *
 # *        3  = path to pppoeci (eg: /usr/local/bin/pppoeci)             *
-# *        4  = DNS 1 (depends on provider, 0=no DNS setup)              *
-# *        5  = DNS 2 (depends on provider)                              *
+# *        4  = DNS 1 (depends on provider, 0 or "" = skipped)           *
+# *        5  = DNS 2 (depends on provider, 0 or "" = skipped)           *
 # *        6  = VPI (depends on provider)                                *
 # *        7  = VCI (depends on provider)                                *
 # *        8  = VID/PID before synchro (example: 05472131 for ECI modem) *
@@ -58,24 +58,31 @@ fi
 # backup and create resolv.conf
 #
 
-if [ $4 != 0 ]; then
-    nomresolv=${ETC_DIR}/resolv.conf
-    if [ -s $nomresolv ]; then
-        nombak="${nomresolv}.bak"
-        numero=0
-        while [ -s $nombak ]
-        do
-            numero=`expr $numero + 1`
-            nombak="${nomresolv}.bak$numero"
-        done
-        echo -n "Backing up $nomresolv (to $nombak)... "
-        cp -f $nomresolv $nombak
-        echo "ok"
-    fi
-    echo -n "Creating $nomresolv..."
-    echo "nameserver $4" >$nomresolv
-    echo "nameserver $5" >>$nomresolv
-    echo "ok"
+if [ "$4" != "0" -o "$5" != "0" ]; then
+	if [ -n "$4$5" ]; then
+    	nomresolv=${ETC_DIR}/resolv.conf
+    	if [ -s $nomresolv ]; then
+        	nombak="${nomresolv}.bak"
+        	numero=0
+        	while [ -s $nombak ]
+        	do
+            	numero=`expr $numero + 1`
+            	nombak="${nomresolv}.bak$numero"
+        	done
+        	echo -n "Backing up $nomresolv (to $nombak)... "
+        	cp -f $nomresolv $nombak
+        	echo "ok"
+    	fi
+    	echo -n "Creating $nomresolv..."
+		>$nomresolv
+		if [ "$5" != "0" -a -n "$5" ]; then
+	    	echo "nameserver $4" >>$nomresolv
+		fi
+		if [ "$5" != "0" -a -n "$5" ]; then
+	    	echo "nameserver $5" >>$nomresolv
+		fi
+    	echo "ok"
+	fi
 fi
 
 #
