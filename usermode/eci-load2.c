@@ -39,7 +39,7 @@
 
 #define TIMEOUT 2000
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enought */
-#define ECILOAD_TIMEOUT 60
+#define ECILOAD_TIMEOUT 100
 
 /* just for testing without USB */
 /*#define TESTECI*/
