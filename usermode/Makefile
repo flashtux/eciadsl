@@ -31,7 +31,6 @@ pppoeci: pppoeci.o pusb.o
 check-hdlc: check-hdlc.o
 check-hdlc-bug: check-hdlc-bug.o
 eci-eeprom: eci-eeprom.o pusb.o
-eci-memr: eci-memr.o pusb.o
 
 pusb.o : pusb.c pusb-linux.c pusb.h
 eci-load1.o: eci-load1.c modem.h pusb.h
@@ -40,7 +39,6 @@ pppoeci.o: pppoeci.c modem.h pusb.h
 check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
 eci-eeprom.o: eci-eeprom.c modem.h pusb.h
-eci-memr.o: eci-memr.c pusb.h
 
 install: all check-char-major-108 check-tty-ldisc-14 check-tty-ldisc-13 \
   install-etc-ppp-peers-adsl
@@ -120,3 +118,11 @@ uninstall:
 	$(RM) $(ETCDIR)/eciadsl/modemeci.gif
 	@echo "The driver has been successfully uninstalled"
 
+#deb:
+#	deb -c package.deb
+
+#rpm:
+#   tar zcvf /tmp/eciadsl-usermode-x.y.tar.gz eciadsl-usermode-x.y
+#	rpm -ta /tmp/eciadsl-usermode-x.y.tar.gz
+#   RPMS : /usr/src/RPM/RPMS/i686/eciadsl-usermode-0.5-2.i686.rpm
+#	SRPMS: /usr/src/RPM/SRPMS/eciadsl-usermode-0.5-2.src.rpm
