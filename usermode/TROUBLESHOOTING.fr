@@ -837,8 +837,9 @@ Q:	Comment puis-je stopper la connection PPP ?
 R:	`killall pppd` ou `ifconfig ppp0 down`.
 	Ceci laissera votre modem initialisé.
 	
-	Si vous voulez vraiment réinitialiser votre modem, déchargez le module qui gère votre
-	HUB USB (`modprobe -r usb-uhci` par exemple). Mais ceci peut causer des problèmes
-	car d'autres périphériques USB peuvent être gérés par ce module (!), et vous pouvez
-	rencontrer des problèmes en relançant startmodem (besoin de le relancer plusieurs fois
-	ou peut-être de débrancher/rebrancher votre modem et relancer ensuite `startmodem`).
+	Si vous voulez vraiment réinitialiser votre modem, déchargez le module qui
+	gère votre HUB USB (`modprobe -r usb-uhci` par exemple). Mais ceci peut
+	causer des problèmes car d'autres périphériques USB peuvent être gérés par
+	ce module (!), et vous pouvez rencontrer des problèmes en relançant
+	startmodem (besoin de le relancer plusieurs fois ou peut-être de
+	débrancher/rebrancher votre modem et relancer ensuite `startmodem`).
