@@ -1410,7 +1410,7 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 	static struct usb_ctrlrequest *dr;
 
 	instance = (struct eci_instance *) urb->context;
-	spin_lock_bh(&instance->lock);
+	spin_lock(&instance->lock);
 	if(urb->actual_length) {
 		if(urb->actual_length!=64){
 			/*		Synchronisation 
@@ -1563,14 +1563,14 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 	}
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))		
 #else
-	usb_fill_int_urb(urb, instance->usb_wan_dev, usb_rcvintpipe(dev, ECI_INT_EP), 
+	usb_fill_int_urb(urb, instance->usb_wan_dev, usb_rcvintpipe(instance->usb_wan_dev, ECI_INT_EP), 
 			instance->interrupt_buffer,64,
-			eci_int_callback,out_instance,3);
-		if(usb_submit_urb(eciurb, GFP_KERNEL)) {
-			ERR_OUT("error couldn't send interrupt urb\n");
+			eci_int_callback,instance,3);
+		if(usb_submit_urb(urb, GFP_KERNEL)) {
+			ERR_OUT("error couldn't send interrupt urb in int callback\n");
 			goto erreure;
 		}
-	spin_unlock_bh(&instance->lock);
+	spin_unlock(&instance->lock);
 }
 
 static void eci_bh_iso(unsigned long instance)  {
