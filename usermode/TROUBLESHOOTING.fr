@@ -1124,3 +1124,70 @@ R:	Vérifiez si pppd est installé sur votre système.
 
 	(*) attention : selon les distributions Linux, ces fichiers peuvent ne pas
 	être présents ou d'autres les remplacer.
+
+
+5.14
+================================================================================
+Q:	Mon fournisseur utilise PPPoE (RFC1483, RFC2516), comment puis-je configurer
+	ça ?
+
+--------------------------------------------------------------------------------
+R:	Premièrement, n'utilisez pas le support PPPoE du noyau. C'est expérimental
+	dans les noyaux 2.4 et utilisé par défaut dans le noyau Debian. Utilisez
+	rp-pppoe à la place comme outil en mode utilisateur pour la connexion PPP.
+	Voir 5.3.1 and 5.4.
+
+	Bien sûr, le mode PPP choisi dans la configuration ECIADSL doit être un
+	des modes PPPoE supportés (voir `eciadsl-pppoeci --list`).
+
+	Vous pouvez trouver rp-pppoe ici :
+		http://www.roaringpenguin.com/pppoe
+
+	Installez et configurez-le pour qu'il utilise l'interface tap0 comme interface ETH.
+
+	Lancez eciadsl-start, et utilisez alors rp-pppoe pour activer la ligne PPP
+	voir la documentation rp-pppoe).
+
+
+5.15
+================================================================================
+Q:	Mon fournisseur utilise PPPoA (RFC2364), comment puis-je configurer ça ?
+
+--------------------------------------------------------------------------------
+R:	Merci de nous contacter.
+
+
+5.16
+================================================================================
+Q:	Mon fournisseur utilise IPoATM (RFC1483), comment puis-je configurer ça ?
+
+--------------------------------------------------------------------------------
+R:	Merci de nous contacter.
+
+
+5.17
+================================================================================
+Q:	Mon fournisseur utilise un mode PPP que je ne peux pas trouver dans la liste
+	des modes. Que puis-je faire ?
+
+--------------------------------------------------------------------------------
+R:	Merci de nous contacter.
+
+
+5.18
+================================================================================
+Q:	Je ne connais pas le mode PPP utilisé par mon fournisseur.
+	Que puis-je faire ?
+
+--------------------------------------------------------------------------------
+R:	Voir 5.17.
+
+
+5.19
+================================================================================
+Q:	Lorsque EciAdsl tourne, des applications comme KDE tournent très lentement.
+	Que puis-je faire ?
+
+--------------------------------------------------------------------------------
+R:	Regarder à la sortie de la commande ifconfig si l'interface "lo" (loopback)
+	est là. Ajoutez-la si besoin (par exemple: ifconfig lo up).

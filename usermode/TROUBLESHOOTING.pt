@@ -1073,3 +1073,69 @@ R:	Verificação se o pppd for instalado em seu sistema.
 
 	(*) atenção: dependendo da distribuição Linux que usar, estes ficheiros
 	podem não existir ou outros serem usados no seu lugar.
+
+
+5.14
+================================================================================
+P:	My provider use PPPoE (RFC1483, RFC2516), how can I manage to configure
+	this?
+
+--------------------------------------------------------------------------------
+R:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
+	and used by default in Debian kernel. Use rp-pppoe instead as a userland
+	tool to manage the PPP connection. See 5.3.1 and 5.4.
+
+	Of course, the PPP mode defined in the ECIADSL config must be one of the
+	supported PPPoE modes (see `eciadsl-pppoeci --list`).
+
+	You can find rp-pppoe here:
+		http://www.roaringpenguin.com/pppoe
+
+	Install and configure it so that it uses tap0 as ETH interface.
+
+	Run eciadsl-start, then use rp-pppoe to enable the PPP line (see rp-pppoe
+	documentation).
+
+
+5.15
+================================================================================
+P:	My provider use PPPoA (RFC2364), how can I manage to configure this?
+
+--------------------------------------------------------------------------------
+R:	Please contact us.
+
+
+5.16
+================================================================================
+P:	My provider use IPoATM (RFC1483), how can I manage to configure this?
+
+--------------------------------------------------------------------------------
+R:	Please contact us.
+
+
+5.17
+================================================================================
+P:	My provider use a PPP mode I cannot find in the PPP modes list.
+	What can I do?
+
+--------------------------------------------------------------------------------
+R:	Please contact us.
+
+
+5.18
+================================================================================
+P:	I don't know which PPP mode is used by my provider.
+	What can I do?
+
+--------------------------------------------------------------------------------
+R:	See 5.17.
+
+
+5.19
+================================================================================
+P:	When EciAdsl is running, some apps like KDE run very slowly.
+	What can I do?
+
+--------------------------------------------------------------------------------
+R:	Look at ifconfig command output if "lo" (loopback) interface is here.
+	Add it if necessary (for example: ifconfig lo up).

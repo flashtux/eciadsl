@@ -1101,7 +1101,7 @@ A:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
 Q:	My provider use PPPoA (RFC2364), how can I manage to configure this?
 
 --------------------------------------------------------------------------------
-A:	
+A:	Please contact us.
 
 
 5.16
@@ -1109,7 +1109,7 @@ A:
 Q:	My provider use IPoATM (RFC1483), how can I manage to configure this?
 
 --------------------------------------------------------------------------------
-A:	
+A:	Please contact us.
 
 
 5.17
@@ -1128,3 +1128,13 @@ Q:	I don't know which PPP mode is used by my provider.
 
 --------------------------------------------------------------------------------
 A:	See 5.17.
+
+
+5.19
+================================================================================
+Q:	When EciAdsl is running, some apps like KDE run very slowly.
+	What can I do?
+
+--------------------------------------------------------------------------------
+A:	Look at ifconfig command output if "lo" (loopback) interface is here.
+	Add it if necessary (for example: ifconfig lo up).
