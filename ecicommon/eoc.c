@@ -107,27 +107,44 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
 				eocstate = idle;
 				eocmescnt = 0;
 				continue;
+			} else {
+				oecmescnt++;
 			}
-			if(++oecmescnt>2) {
-				switch(eocstate) {
-					case preread:
-							switch(EOC_OPCODE(eocmesval)) {
-								case EOC_OPCODE_NEXT:
-								eoc_handle_next();
+			switch(eocstate) {
+				case preread:
+						switch(EOC_OPCODE(eocmesval)) {
+							case EOC_OPCODE_NEXT:
+								if((eocmescnt >= 2) && (EOC_PARITY == EOC_PARITY_ODD)) 
+									eocstate = read;
+								if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
+									eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+								} else {
+									return -EIO;
+								}
 								break;
-							}
-							break;
-					case idle:
-						if((err = eoc_execute(eocmesval)) <0) return err;
+							case RTN:
+							case HOLD:
+								if(eocmescnt >= 2) 
+									eocstate = idle;
+								break;
+						}
 						if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
 							eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
 						} else {
 							return -EIO;
 						}
 						break;
-				}
-			}				
-		}
+				case idle:	/*like G992.2 recomendation */
+					if(eocmescns >=2) /* execute third time with same message */
+						if((err = eoc_execute(eocmesval)) <0) return err;
+					if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
+						eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+					} else {
+						return -EIO;
+					}
+					break;
+			}
+		}				
 	}
 	return 0;
 }
