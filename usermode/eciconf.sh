@@ -405,11 +405,11 @@ pack .ligne_vide3
 #
 
 frame .boutons
-button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig "$username" "$password" "$path_pppoeci" "$dns1" "$dns2" $vpi $vci $vid1 $pid1 $vid2 $pid2} -state disabled
+button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig "$username" "$password" "$path_pppoeci" "$dns1" "$dns2" $vpi $vci $vid1 $pid1 $vid2 $pid2} -state disabled -background lightgray
 bind .boutons.create <Enter> {pushstate "Save modifications then quit: select a modem first"}
 bind .boutons.create <Leave> {popstate}
 frame .boutons.espace -width 20
-button .boutons.set_bin -text {Change synch .bin} -width 15 -height 1 -command {run_eciconftxt} -state disabled
+button .boutons.set_bin -text {Change synch .bin} -width 15 -height 1 -command {run_eciconftxt} -state disabled -background lightgray
 bind .boutons.set_bin <Enter> {pushstate "Only change current synch .bin: enable it above and select a .bin"}
 bind .boutons.set_bin <Leave> {popstate}
 frame .boutons.espace2 -width 20
@@ -613,7 +613,7 @@ proc invert_bin {} {
         if {[string compare $bin_choisi ""] == 0} {
             set bin_choisi $bin_initial
         }
-		.boutons.set_bin configure -state disabled
+		.boutons.set_bin configure -state disabled -background lightgray
 		bind .boutons.set_bin <Enter> {pushstate "Only change current synch .bin: enable it above and select a .bin"}
 		bind .boutons.set_bin <Leave> {popstate}
     }
