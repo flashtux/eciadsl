@@ -491,10 +491,10 @@ void usage(const int ret)
 	printf(	"usage:\n"
 			"       %s [<switch>..] [[VID2 PID2] <synch.bin>]\n", exec_filename);
 	printf(	"switches:\n"
-			"       -v or --verbose   be verbose\n"
-			"       -h or --help      show this help message then exit\n"
-			"       -V or --version   show version information then exit\n"
-			"       -t or --timeout   override the default timeout value (in sec)\n"
+			"       -v or --verbose               be verbose\n"
+			"       -h or --help                  show this help message then exit\n"
+			"       -V or --version               show version information then exit\n"
+			"       -t <num> or --timeout <num>   override the default timeout value (in sec)\n"
 			"\n");
 	printf(	"If ALL other parameters are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
 			"are assumed.\n"
