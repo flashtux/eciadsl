@@ -82,6 +82,7 @@ if [ -s "$CONF_DIR/eciadsl.conf" ]; then
 	synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 	gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	use_staticip=`grep -E "^[ \t]*USE_STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 	use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 	eciload1_options=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
@@ -338,7 +339,7 @@ then
 	DEV="$GW"
 	case "$GW" in
 	tap0|tun0)
-		if [ -n "$staticip" -a -n "$gateway" ]
+		if [ "$use_staticip" -a -n "$staticip" -a -n "$gateway" ]
 		then
 			ifconfig $GW $staticip pointopoint $gateway
 			GW="gw $gateway"

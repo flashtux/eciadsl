@@ -46,10 +46,14 @@ if [ -s "$CONF_DIR/eciadsl.conf" ]; then
 	prev_synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	prev_staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 	prev_gateway=`grep -E "^[ \t]*GATEWAY[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
+	prev_use_staticip=`grep -E "^[ \t]*USE_STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 	prev_use_dhcp=`grep -E "^[ \t]*USE_DHCP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
 	prev_modem=`grep -E "^[ \t]*MODEM[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	prev_provider=`grep -E "^[ \t]*PROVIDER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_dns1=`grep -E "^[ \t]*DNS1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_dns2=`grep -E "^[ \t]*DNS2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	prev_pppd_user=`grep -E "^[ \t]*PPPD_USER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_pppd_passwd=`grep -E "^[ \t]*PPPD_PASSWD[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 fi
 
 case "$1" in
@@ -138,10 +142,18 @@ case "$1" in
     providers="Select your provider"
     servers_dns1="*"
     servers_dns2="*"
-	if [ -n "$prev_provider" ]; then
+	if [ -n "$prev_provider" -a -n "$prev_dns1" -a -n "$prev_dns2" ]; then
+		dns1_="$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 2)"
+		dns2_="$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 3)"
+		if [ "$prev_provider" != "Other" -a "$dns1" != "$prev_dns1" -o "$dns2_" != "$prev_dns2" ]; then
+			prev_provider="Other"
+			servers_dns1="$servers_dns1|$prev_dns1"
+			servers_dns2="$servers_dns2|$prev_dns2"
+		else
+			servers_dns1="$servers_dns1|$dns1_"
+			servers_dns2="$servers_dns2|$dns2_"
+		fi
 		providers="$providers|$previous ($prev_provider)"
-		servers_dns1="$servers_dns1|$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 2)"
-		servers_dns2="$servers_dns2|$(grep -v -E "^[ \t]*#" "$providers_db" | grep "$prev_provider" | tr -s "\t" "|" | cut -d '|' -f 3)"
 	fi
 	for LINE in $(grep -v -E "^[ \t]*#" "$providers_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
 		providers="$providers|$LINE"
@@ -212,20 +224,33 @@ case "$1" in
 		echo
         pwdmatch=0
         while [ $pwdmatch -eq 0 ]; do
+			if [ -n "$prev_pppd_passwd" ]; then
+				echo "Current password is: $prev_pppd_passwd"
+				TMP=", press ENTER to keep the previous one"
+			else
+				TMP=""
+			fi
             stty -echo
             password=""
             while [ -z "$password" ]; do
-                echo -n "Type in your password (given by your provider): "
+                echo -n "Type in your password (given by your provider$TMP): "
                 read password
                 echo
+				if [ -z "$password" -a -n "$prev_pppd_passwd" ]; then
+					password="$prev_pppd_passwd"
+				fi
             done
-            password2=""
-            while [ -z "$password2" ]; do
-                echo -n "Type in your password again (for verification): "
-                read password2
-                echo
-            done
-            stty echo
+			if [ "$password" == "$prev_pppd_passwd" ]; then
+				password2="$password1"
+			else
+	            password2=""
+	            while [ -z "$password2" ]; do
+	                echo -n "Type in your password again (for verification$TMP): "
+	                read password2
+	                echo
+	            done
+	            stty echo
+			fi
             if [ "$password" == "$password2" ]; then
                 pwdmatch=1
             else
@@ -562,14 +587,11 @@ case "$1" in
 			esac
         done
 
-		staticip="$prev_staticip"
-		gateway="$prev_gateway"
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
-			# check if the settings were really existing before
-			if [ -n "$prev_use_dhcp" ]; then
+			if [ -n "$prev_use_static" ]; then
 				echo -n "In current config, static IP is "
-				if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
+				if [ "$prev_use_static" == "yes" ]; then
 					echo "used"
 					TMP=" or press ENTER to keep current setting"
 				else
@@ -580,37 +602,29 @@ case "$1" in
 				TMP=""
 			fi
         	echo "Did you get a static IP from your provider (MOST users should say NO)? "
-			foo=""
-        	while [ -z "$foo" ]; do
+			use_staticip=""
+        	while [ -z "$use_staticip" ]; do
 	   	        echo -n "(y/n$TMP) "
-            	read foo
-				case "$foo" in
-				y*|Y*)	foo="yes"
+            	read use_staticip
+				case "$use_staticip" in
+				y*|Y*)	use_staticip="yes"
 						;;
-				n*|N*)	foo="no"
+				n*|N*)	use_staticip="no"
 						;;
-				"")		if [ -n "$prev_staticip" -a -n "$prev_gateway" ]; then
-							foo="yes"
-						else
-							# check if the settings were really existing before
-							# if so, default NO can be assumed
-							if [ -n "$prev_use_dhcp" ]; then
-								foo="no"
-							fi
-						fi
-						if [ -n "$foo" ]; then
+				"")		if [ -n "$prev_use_staticip" ]; then
+							use_staticip="$prev_use_staticip"
 							echo "* static IP usage unchanged"
 						else
-							foo="no"
+							use_staticip="no"
 						fi
-					;;
-				*)		foo=""
+						;;
+				*)		use_staticip=""
 						echo -e "** invalid answer, try again\n"
 						;;
 				esac
         	done
 
-			if [ "$foo" == "yes" ]; then
+			if [ "$use_staticip" == "yes" ]; then
 				if [ -n "$prev_staticip" ]; then
 					TMP=" (press ENTER to use $prev_staticip)"
 				else
@@ -660,9 +674,6 @@ case "$1" in
 					esac
         			test -z "$gateway" && echo -n "** invalid gateway IP, try again $TMP: "
         		done
-			else
-				staticip=""
-				gateway=""
 			fi
 		fi
 
@@ -682,21 +693,22 @@ case "$1" in
         echo
         echo "==== Configuration will be created with these values :"
         echo
-        echo "  + User        : $user"
-        echo "  + Password    : (hidden)"
-        echo "  + Provider    : $provider"
-        echo "      DNS 1     : $dns1"
-        echo "      DNS 2     : $dns2"
-        echo "  + VPI/VCI     : $vpi/$vci"
-        echo "  + Modem       : $modem"
-        echo "      VID1/PID1 : $vid1/$pid1"
-        echo "      VID2/PID2 : $vid2/$pid2"
-        echo "  + .bin file   : $binfile"
-		echo "  + PPP mode    : $mode"
-		echo "  + use DHCP    : $use_dhcp"
-		if [ "$use_dhcp" != "yes" ]; then
-			echo "  + static IP   : $staticip"
-			echo "      gateway   : $gateway"
+        echo "  + User          : $user"
+        echo "  + Password      : (hidden)"
+        echo "  + Provider      : $provider"
+        echo "      DNS 1       : $dns1"
+        echo "      DNS 2       : $dns2"
+        echo "  + VPI/VCI       : $vpi/$vci"
+        echo "  + Modem         : $modem"
+        echo "      VID1/PID1   : $vid1/$pid1"
+        echo "      VID2/PID2   : $vid2/$pid2"
+        echo "  + .bin file     : $binfile"
+		echo "  + PPP mode      : $mode"
+		echo "  + use DHCP      : $use_dhcp"
+		echo "  + use static IP : $use_dhcp"
+		if [ "$use_staticip" == "yes" ]; then
+			echo "    static IP     : $staticip"
+			echo "      gateway     : $gateway"
 		fi
         echo
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
@@ -704,7 +716,7 @@ case "$1" in
 
         $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" $dns1 $dns2 \
 			"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware" \
-			"$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
+			"$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"
         if [ $? -eq 0 ]; then
             echo
             echo "==== eciconftxt.sh: Configuration updated with success !"

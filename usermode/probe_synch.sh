@@ -11,14 +11,36 @@ function version()
 
 function commandlinehelp()
 {
-	echo "usage:"
+	echo "Usage:"
 	echo "          $BASE [<switch>..] [dir]"
-	echo "switches:"
+	echo "Switches:"
 	echo "          --try-all              try all the synch .bin even if one is OK"
+	echo "          --full-init            reset modem between each synch .bin test"
 	echo "          --batch                disable default interactive mode"
 	echo "          --version or -v        show version number then exit"
 	echo "          --help or -h           show this help then exit"
 	exit $1
+}
+
+function reset_usb()
+{
+#		modprobe -r $HUB > /dev/null
+#		sleep 1
+#		modprobe $HUB > /dev/null
+		sleep 1
+}
+
+function init_modem()
+{
+	echo -e "\nLoading firmware.."
+	$BIN_DIR/eci-load1 $ECILOAD1_OPTIONS 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" > /dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "Firmware loaded"
+	else
+		echo "*** failed to load firmware, aborting"
+		exit 1
+	fi
 }
 
 
@@ -32,11 +54,12 @@ VERSION=""
 
 BASE=${0##*/}
 DIR=""
-declare -i ALL=0 INTERACTIVE=1
+declare -i ALL=0 INTERACTIVE=1 FULL_INIT=0
 
 while [ -n "$1" ]
 do
 	case "$1" in
+		"--full_init")		let FULL_INIT=1;;
 		"--try-all")		let ALL=1;;
 		"--batch")			let INTERACTIVE=0;;
 		"--version"|"-v")	version;;
@@ -48,7 +71,7 @@ done
 
 if [ $UID -ne 0 ]
 then
-	echo -e "\nyou must be root to run this script!"
+	echo -e "\nYou must be root to run this script!"
 	exit 1
 fi
 
@@ -56,7 +79,7 @@ fi
 echo -e "\nWARNING: if no $CONF_DIR/eciadsl.conf file exists,"
 echo "default vid/pid will be assumed. This eciadsl.conf file is generated using"
 echo "eciconf.sh or eciconftxt.sh"
-echo -e "\nthis script requires your modem to be supported by the driver,"
+echo -e "\nThis script requires your modem to be supported by the driver,"
 echo "and that you've installed some extra synch .bin (the official"
 echo "synch_bin package for instance)"
 
@@ -70,9 +93,9 @@ if [ -f "$CONF_DIR/eciadsl.conf" ]; then
 	FIRMWARE=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	ECILOAD1_OPTIONS=`grep -iE "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s " \t" " "`
 	ECILOAD2_OPTIONS=`grep -iE "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s " \t" " "`
-	echo -e "\nconfig read from $CONF_DIR/eciadsl.conf"
+	echo -e "\nConfig read from $CONF_DIR/eciadsl.conf"
 else
-	echo -e "\ndefault config assumed"
+	echo -e "\nDefault config assumed"
 fi
 test -z "$VID1" && VID1="0547"
 test -z "$PID1" && PID1="2131"
@@ -83,7 +106,7 @@ test -z "$DIR" && DIR=$CONF_DIR
 
 if [ $INTERACTIVE -eq 1 ]
 then
-	echo -e "\ntype in a directory where to find the synch .bin"
+	echo -e "\nType in a directory where to find the synch .bin"
 	echo -en "[default is $DIR]: "
 	read USERDIR
 	test -n "$USERDIR" && DIR="$USERDIR"
@@ -91,51 +114,42 @@ fi
 
 if [ ! -d "$DIR" ]
 then
-	echo -e "\ncannot access to $DIR"
+	echo -e "\n*** cannot access to $DIR"
 	exit 1
 fi
 
 LIST=""
-for FILE in $(ls "$DIR")
+for FILE in $(find "$DIR" -maxdepth 1 -type f -name "*.bin" | grep -v firm)
 do
-	if [ -f "$DIR/$FILE" -a ! -L "$DIR/$FILE" -a -s "$DIR/$FILE" ]
-	then
-		case "$FILE" in
-		*firm*)		;;
-		*".bin")	test -n "$LIST" && LIST="$LIST\n$FILE" || LIST="$FILE";;
-		*)			;;
-		esac
-	fi
+	test -n "$LIST" && LIST="$LIST\n$FILE" || LIST="$FILE";;
 done
 
 if [ -z "$LIST" ]
 then
-	echo -e "\nno synch .bin has been found in $DIR, quitting"
+	echo -e "\n*** no synch .bin has been found in $DIR, aborting"
 	exit 1
 fi
 
-echo -e "\nthese synch .bin will be tested:"
+echo -e "\nThese synch .bin will be tested:"
 echo -e "$LIST"
 if [ $INTERACTIVE -eq 1 ]
 then
-	echo -en "start the tests now? (Y/n) "
+	echo -en "Start the tests now? (Y/n) "
 	read CONFIRM
 	case $CONFIRM in
 	Y|y|"")	;;
-	*)		echo "cancelled by user, exiting"
+	*)		echo "*** cancelled by user, exiting"
 			exit 1;;
 	esac
 fi
 
+# HUB=usb-uhci
 
-echo -e "loading firmware.."
-$BIN_DIR/eci-load1 $ECILOAD1_OPTIONS 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" > /dev/null 2>&1
-if [ $? -eq 0 ]
+if [ $FULL_INIT -eq 0 ]
 then
-	echo "firmware loaded"
+	init_modem
 else
-	echo "failed to load firmware, aborting"
-	exit 1
+	reset_usb
 fi
 
 OLDIFS="$IFS"
@@ -143,7 +157,12 @@ IFS="
 "
 for FILE in $(echo -e "$LIST")
 do
-	echo -e "\ntesting synch with $DIR/$FILE.."
+	if [ $FULL_INIT -eq 1 ]
+	then
+		init_modem
+	fi
+
+	echo -e "\nTesting synch with $DIR/$FILE.."
 	$BIN_DIR/eci-load2 $ECILOAD2_OPTIONS 0x$VID2 0x$PID2 "$DIR/$FILE"
 	if [ $? -eq 0 ]
 	then
@@ -151,19 +170,24 @@ do
 		echo "$DIR/$FILE seems OK"
 		test $ALL -eq 0 && break
 	fi
-	echo "trying the next one.."
+	echo "Trying the next one.."
 	sleep 1
+
+	if [ $FULL_INIT -eq 1 ]
+	then
+		reset_usb
+	fi
 done
 IFS="$OLDIFS"
 
 if [ -z "$LISTOK" ]
 then
-	echo -e "\nno valid synch .bin has been found. There are many possible issues"
+	echo -e "\n** No valid synch .bin has been found"
+	echo "There are many possible issues"
 	echo "and it may be necessary to generate your own one. Please refer to"
 	echo "the documentation in both cases."
 else
-	echo -e "\nthese synch .bin are supposed to be OK:"
+	echo -e "\nThese synch .bin are supposed to be OK:"
 	echo -e "$LISTOK"
 fi
-
 exit

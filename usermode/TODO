@@ -55,8 +55,10 @@ Sorted according to priority (the upper in the list, the prior):
   if RFC1483_ETH for both -> (dhcp && if !dhcp -> static ip), !user/pass
   if ROUTED_IP -> !dhcp, !user/pass
   also allow/disallow username+passwd input (routed_ip or dhcp, no need for such info)
-- get back password from previous config
-- get back DNS IPs from current config if Other is set (and even if Other is not set)
+* get back password from previous config
+* get back DNS IPs from current config if Other is set (and even if Other is not set)
+* get back USE_STATICIP from current config
+
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)

@@ -149,8 +149,10 @@ void read_config_file(void)
 							else
 							if (
 								(strcmp(ptr, "PPPD_USER")!=0)
+								&& (strcmp(ptr, "PPPD_PASSWD")!=0)
 								&& (strcmp(ptr, "STATICIP")!=0)
 								&& (strcmp(ptr, "GATEWAY")!=0)
+								&& (strcmp(ptr, "USE_STATICIP")!=0)
 								&& (strcmp(ptr, "USE_DHCP")!=0)
 								&& (strcmp(ptr, "SYNCH_ATTEMPTS")!=0)
 								&& (strcmp(ptr, "ECILOAD1_OPTIONS")!=0)
@@ -158,6 +160,8 @@ void read_config_file(void)
 								&& (strcmp(ptr, "PPPOECI_OPTIONS")!=0)
 								&& (strcmp(ptr, "MODEM")!=0)
 								&& (strcmp(ptr, "PROVIDER")!=0)
+								&& (strcmp(ptr, "DNS1")!=0)
+								&& (strcmp(ptr, "DNS2")!=0)
 								)
 								fprintf(stderr,
 									"config: unrecognized entry %s at line %lu\n",

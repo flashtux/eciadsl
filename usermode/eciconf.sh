@@ -99,31 +99,29 @@ if {$file!=-1} {
 			set entry [string trim [string range "$line" $pos1 $pos2]]
 			set value [string trim [string range "$line" [expr $pos2+2] end]]
 			switch $entry {
-				PPPD_USER	{ set username "$value" }
-				VID1		{ set vid1 "$value" }
-				PID1		{ set pid1 "$value" }
-				VID2		{ set vid2 "$value" }
-				PID2		{ set pid2 "$value" }
-				VPI			{ set vpi "$value" }
-				VCI			{ set vci "$value" }
-				MODE		{ set mode "$value" }
-				SYNCH		{ set synch "$value" }
-				FIRM		{ set firm "$value" }
-				USE_DHCP	{ set use_dhcp "$value" }
-				STATICIP	{ set staticip "$value" }
-				GATEWAY		{ set gateway "$value" }
-				MODEM		{ set modem "$value" }
-				PROVIDER	{ set provider "$value" }
+				PPPD_USER		{ set username "$value" }
+				PPPD_PASSWD		{ set password "$value" }
+				VID1			{ set vid1 "$value" }
+				PID1			{ set pid1 "$value" }
+				VID2			{ set vid2 "$value" }
+				PID2			{ set pid2 "$value" }
+				VPI				{ set vpi "$value" }
+				VCI				{ set vci "$value" }
+				MODE			{ set mode "$value" }
+				SYNCH			{ set synch "$value" }
+				FIRM			{ set firm "$value" }
+				USE_DHCP		{ set use_dhcp "$value" }
+				USE_STATICIP	{ set use_staticip "$value" }
+				STATICIP		{ set staticip "$value" }
+				GATEWAY			{ set gateway "$value" }
+				MODEM			{ set modem "$value" }
+				PROVIDER		{ set provider "$value" }
+				DNS1			{ set dns1 "$value" }
+				DNS2			{ set dns2 "$value" }
 			}		
 		}
 	}
 	close $file
-	if {"$gateway"!="" && "$staticip"!="" && "$use_dhcp"!="yes"} {
-		set use_staticip "yes"
-	} else {
-		set staticip ""
-		set gateway ""
-	}
 }
 
 #
@@ -243,11 +241,20 @@ while {$i<$len} {
 }
 # previously defined provider set?
 if {"$provider"!=""} {
-	set selected_provider [expr [lsearch $providers $provider]/3]
-	if {$selected_provider!=-1} {
-		.bloc1.fai.liste.contenu selection set $selected_provider
-		.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
-	}
+		set selected_provider [expr [lsearch $providers $provider]/3]
+		if {$selected_provider!=-1} {
+			set dns1_ [lindex $providers [expr $index*3+1]]
+			set dns2_ [lindex $providers [expr $index*3+2]]
+			# if dns don't match the provider name
+			if {"$dn1"!="$dns1_" || "$dns2"!="$dns2_"} {
+				set selected_provider -1
+			} else {
+				set dns1 "$dns1_"
+				set dns2 "$dns2_"
+				.bloc1.fai.liste.contenu selection set $selected_provider
+				.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
+			}
+		}
 } else {
 	set selected_provider -1
 }
@@ -742,7 +749,7 @@ proc run_makeconfig {} {
 		set staticip ""
 		set gateway ""
 	}
-    set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" $staticip $gateway $use_dhcp "$modem" "$provider"} sortie]
+    set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" "$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"} sortie]
     if {$returncode != 0} {
         conf_report "non" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
     } else {
