@@ -7,8 +7,8 @@ How-to pour le driver Linux du modem ECI USB
 
 2) Configuration requise
 
-	Assurez vous d'abord vous possédez un noyau Linux 
-	de version superieure ou egale a 2.4.7-10
+	Assurez vous d'abord que vous possédez un noyau Linux 
+	de version supérieure ou égale a 2.4.7-10
 
 	Distributions où le driver fonctionne : 
 		Mandrake Linux 8.1 (noyau 2.4.8-26mk)
@@ -18,11 +18,11 @@ How-to pour le driver Linux du modem ECI USB
 		Redhat Linux 7.1 (noyau 2.4.2-2)
  
 	Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
-	avec un autre distribution ou avec un noyau plus ancien,
-	n'hésitez pas a contacter à nous contacter.
+	avec une autre distribution ou avec un noyau plus ancien,
+	n'hésitez pas à nous contacter.
 
 3) Procédure d'installation (à ne faire qu'une seule fois)
-	Reference : archive usermode.tgz presente sur http://flashcode.free.fr/linux
+	Référence : archive usermode.tgz presente sur http://flashcode.free.fr/linux
 
 3.1) Preparation du driver
 
@@ -38,12 +38,12 @@ How-to pour le driver Linux du modem ECI USB
 	par la version de votre noyau Linux : 
 	(pour connaite la version du noyau tapez : uname -r)
 	
-	rm -f /lib/modules/VERSION/dabusb.o.gz
-	( ou rm -f /lib/modules/VERSION/dabusb.o selon les distributions)
+	rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz
+	( ou rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz selon les distributions)
 	depmod -a
 
 	Si vous voulez eviter un reboot :
-	- Faite lsmod.
+	- Faites lsmod.
 	- Si vous voyez une ligne dabusb : faites rmmod dabusb
 	
 3.2) Configuration de pppd pour l'ouverture de la connexion
@@ -125,7 +125,7 @@ How-to pour le driver Linux du modem ECI USB
 
 4.1) Manuelle (à reproduire à chaque connexion Internet)
 
-3 possibilites de connexions suivant votre distribution ou votre hardware :
+3 possibilités de connections suivant votre distribution ou votre hardware :
 
 	Toute distribution et sur Chipset VIA ou INTEL :
 		rmmod usb-uhci
@@ -133,9 +133,9 @@ How-to pour le driver Linux du modem ECI USB
 		mount -t usbdevfs none /proc/bus/usb
 		startmodem>log
 
-	Pour une CM equipee d'un chip ALI Aladin :
-		meme procedure que ci-dessus mais remplacer
-		les references a usb-uhci par usb-ohci
+	Pour une CM équipée d'un chip ALI Aladin :
+		meme procédure que ci-dessus mais remplacez
+		les références à usb-uhci par usb-ohci
 
 	Si vous avez la Linux Mandrake 8.1, la procedure suivante peut s'appliquer
 		/etc/rc.d/init.d/usb restart

@@ -52,8 +52,8 @@
 
 \section{Configuration requise}
 
-	Assurez vous d'abord vous possédez un noyau Linux 
-	de version superieure ou egale a 2.4.7-10
+	Assurez vous d'abord que vous possédez un noyau Linux 
+	de version supérieure ou égale à 2.4.7-10
 
 	Distributions où le driver fonctionne : 
 	\begin {itemize}
@@ -67,11 +67,11 @@
  	\end{itemize}
 	
 	Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
-	avec un autre distribution ou avec un noyau plus ancien,
-	n'hésitez pas a contacter à nous contacter.
+	avec une autre distribution ou avec un noyau plus ancien,
+	n'hésitez pas à nous contacter.
 
 \section {Procédure d'installation (à ne faire qu'une seule fois)}
-	Reference : archive usermode.tgz presente sur http://flashcode.free.fr/linux
+	Référence : archive usermode.tgz presente sur http://flashcode.free.fr/linux
 
 \subsection{Préparation du driver}
 
@@ -88,13 +88,13 @@
 	par la version de votre noyau Linux : 
 	\footnote{(pour connaite la version du noyau tapez : uname -r)}
 	
-	rm -f /lib/modules/VERSION/dabusb.o.gz
-	\footnote{( ou rm -f /lib/modules/VERSION/dabusb.o selon les distributions)}\\
+	rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz
+	\footnote{( ou rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o selon les distributions)}\\
 	depmod -a
 
 	Si vous voulez eviter un reboot :
 	\begin {itemize}
-	\item Faite lsmod.
+	\item Faites lsmod.
 	\item Si vous voyez une ligne dabusb : faites rmmod dabusb
 	\end{itemize}
 	
@@ -187,7 +187,7 @@
 
 \subsection{Manuelle (à reproduire à chaque connexion Internet)}
 
-3 possibilites de connexions suivant votre distribution ou votre hardware :
+3 possibilités de connections suivant votre distribution ou votre hardware :
 
 	Toute distribution et sur Chipset VIA ou INTEL :
 	\begin{itemize}
@@ -197,9 +197,9 @@
 	\item	startmodem>log
 	\end{itemize}
 	
-	Pour une CM equipee d'un chip ALI Aladin :\\
-		meme procedure que ci-dessus mais remplacer
-		les references a usb-uhci par usb-ohci
+	Pour une CM équipée d'un chip ALI Aladin :\\
+		meme procédure que ci-dessus mais remplacez
+		les références à usb-uhci par usb-ohci
 
 	Si vous avez la Linux Mandrake 8.1, la procedure suivante peut s'appliquer\\
 		/etc/rc.d/init.d/usb restart
