@@ -29,5 +29,6 @@ regarding to the location/provider
 Installation :
 - driver version <= 0.5: replace each occurrence of "/etc/eciadsl/eci_wan3.bin" with the
   .bin filename you use in the startmodem script
-- driver version > 0.5 : launch eciconftxt.sh or eciconf.sh then follow the interactive
-  instructions.
+- driver version > 0.5 : install all the .bin files in the eciadsl/ directory (default
+  location is /etc/eciadsl). Launch eciconftxt.sh or eciconf.sh then follow the
+  interactive instructions.

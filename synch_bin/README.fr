@@ -31,4 +31,6 @@ Instructions d'installation :
 - toutes versions jusqu'à 0.5 : dans votre script startmodem, remplacez chaque
   occurence de "/etc/eciadsl/eci_wan3.bin" par le chemin/nom du fichier .bin
   que vous utilisez (2 lignes à modifier).
-- version > 0.5 : lancez eciconftxt.sh ou eciconf.sh et suivez les instructions.
+- version > 0.5 : copiez tous les fichiers .bin dans le répertoire eciadsl/ (par
+  défaut /etc/eciadsl). Lancez alors eciconftxt.sh ou eciconf.sh et suivez les
+  instructions.
