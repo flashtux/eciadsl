@@ -31,7 +31,7 @@ eci-eeprom.o: eci-eeprom.c modem.h pusb.h
 check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
 
-install: all modules_conf ppp_peer uninstall_bin_files
+install: all modules_conf ppp_peer uninstall_old_bin_files
 	$(INSTALL_DIR) $(CONFDIR)
 	$(INSTALL_DATA) adsl $(CONFDIR)/adsl-skel
 	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif $(CONFDIR)
@@ -47,7 +47,7 @@ clean:
 	$(RM) ${BIN} *.o
 
 modules_conf:
-# for for the ppp_generic, ppp_synctty and n_hdlc aliases in /etc/modules.conf
+# check/set ppp_generic, ppp_synctty and n_hdlc aliases in /etc/modules.conf
 	@test -f $(ETCDIR)/modules.conf
 	@FILE=$(ETCDIR)/modules.conf; \
 	grep -E "^alias[ \t]+char-major-108[ \t]+" $$FILE > /dev/null; \
@@ -80,7 +80,7 @@ ppp_peer:
 		$(INSTALL_DATA) adsl $(PPPDIR)/peers/adsl; \
 	fi
 
-uninstall: uninstall_bin_files
+uninstall: uninstall_old_bin_files
 	$(RM) $(BINDIR)/startmodem
 	$(RM) $(BINDIR)/eci-load1
 	$(RM) $(BINDIR)/eci-load2
@@ -98,7 +98,7 @@ uninstall: uninstall_bin_files
 	$(RM) -r $(CONFDIR)
 	@echo "the driver has been uninstalled"
 
-uninstall_bin_files:
+uninstall_old_bin_files:
 	$(RM) $(CONFDIR)/firmware.bin
 	$(RM) $(CONFDIR)/synch.bin
 	$(RM) $(CONFDIR)/firmware00.bin
