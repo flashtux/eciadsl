@@ -134,17 +134,20 @@ void eoc_execute(u_int16_t eocmesval) {
  */
 
 int eoc_read_next() {
+	char *data;
 	int	mes;
 	
 	printf("OEC.C - eco_readnext - START [eocreadpos : %d| eocreadlen : %d]\n", eocreadpos, eocreadlen);
 	if(eocreadpos < eocreadlen) {
+		data = *eocnextrw++;
 		mes = 0x2301;
 		if(eocreadpar) {
 			mes |= EOC_PARITY_EVEN;
 		} else {
 			mes |= EOC_PARITY_ODD;
 		}
-		mes |= 0; /* should or the register here but with bit manipulation */
+		mes |= (data & 0x01 ) << (7 + 8); /* 1st byte contain lsb in bit 7 */
+		mes |= (data & &0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
 	} else {
 		mes = EOC_OPCODE_EOD;
 	}
