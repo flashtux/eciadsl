@@ -1189,5 +1189,5 @@ Q:	Lorsque EciAdsl tourne, des applications comme KDE tournent très lentement.
 	Que puis-je faire ?
 
 --------------------------------------------------------------------------------
-R:	Regarder à la sortie de la commande ifconfig si l'interface "lo" (loopback)
+R:	Regardez la sortie de la commande ifconfig si l'interface "lo" (loopback)
 	est là. Ajoutez-la si besoin (par exemple: ifconfig lo up).
