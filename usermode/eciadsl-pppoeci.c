@@ -251,9 +251,9 @@ int use_DataIn_ISO_Urb = 1; /* define if must use ISO for DATA_IN endpoint (defa
 
 /* predeclarations */
 
-int aal5_read(unsigned char* cell_buf, /* size_t count, */
-				unsigned int vpi, unsigned int vci,
-				unsigned int pti, int fdout);
+int aal5_read(const unsigned char* cell_buf, /* size_t count, */
+              unsigned int vpi, unsigned int vci,
+              unsigned int pti, int fdout);
 
 int init_ep_data_in_int(pusb_endpoint_t ep_data_in);
 
@@ -386,7 +386,7 @@ void fatal_error(const error_codes err, const char* text)
 	else \
 		printf(".");
 
-void dump(unsigned char* buf, int len)
+void dump(const unsigned char* buf, int len)
 {
 	int i, j;
 
@@ -708,11 +708,14 @@ int ppp_write(int fd, unsigned char* buf, int n)
 }
 
 /*
- * cell_read : is used to decode an individual cell and to try to make
- * an AAL5 frame.
+
+ cell_read: decode an individual ATM cell and to try to make an AAL5
+ frame. return value: -2 if vpi.vci is incorrect, 0 if everything is OK, <0 on
+ other errors
+
  */
 
-int cell_read(unsigned char* cellbuf, /* size_t count, */ int fdout){
+int cell_read(const unsigned char* cellbuf, /* size_t count, */ int fdout){
 	struct aal5_header_st aal5Header;
 
 	getAal5HeaderStructure(cellbuf, &aal5Header);
@@ -758,7 +761,7 @@ int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
  * (0 otherwise)
  */
 
-int aal5_read(unsigned char* cell_buf, /* size_t count, */
+int aal5_read(const unsigned char* cell_buf, /* size_t count, */
 		unsigned int vpi, unsigned int vci, unsigned int pti, int fdout)
 {
 	static unsigned char buf[64 * 1024];
@@ -960,7 +963,7 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 }
 /* returns -1 in case of errors */
 
-int decode_usb_pkt(unsigned char* buf, int len)
+int decode_usb_pkt(const unsigned char* buf, int len)
 {
 	static unsigned char rbuf [64 * 1024];
 	static int rlen = 0;
@@ -974,12 +977,12 @@ int decode_usb_pkt(unsigned char* buf, int len)
 		snprintf(errText, ERR_BUFSIZE,
 				"reading from USB: len=%d", len);
 		message(errText);
-		dump(buf, len);
+        dump(buf, len);
 	}
 
 	/* add the received buf to our buf, if possible */
 
-	if ((unsigned int)(rlen + len) < sizeof(rbuf))
+	if (rlen + len < (int)sizeof(rbuf))
 	{
 		memcpy(rbuf + rlen, buf, len);
 		rlen += len;
@@ -994,22 +997,12 @@ int decode_usb_pkt(unsigned char* buf, int len)
 	pos = 0;
 	while ((rlen - pos) >= eci_device.cell_r_size)
 	{
-		if ((r = cell_read(rbuf + pos, /* CELL_SIZE, */ gfdout)) < 0 && r != -2)
-		{
-			rlen -= pos;
-			if (rlen != 0)
-				memcpy(rbuf, rbuf + pos, rlen);
-			return(r);
-		}
-		if (r == -2)
-			/* we got out of sync or there was some junk so try to find the next
-			block header (just add 1 onto pos!!) for now!! */
-			pos++;
-		else
-			pos += eci_device.cell_r_size;
+		r = cell_read(rbuf + pos, /* CELL_SIZE, */ gfdout);
+        pos += eci_device.cell_r_size;
 	}
-	rlen -= pos;
 
+    /* adjust the buffer (rbuf, rlen) */
+	rlen -= pos;
 	if (rlen != 0)
 		memcpy(rbuf, rbuf + pos, rlen);
 
@@ -1062,7 +1055,9 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 	unsigned char* buf; 
 	int i, ret;
 
-	buf = (unsigned char*) malloc(eci_device.eci_nb_pkt_ep_data_in * eci_device.eci_nb_pkt_ep_data_in * eci_device.eci_nb_pkt_ep_data_in);
+    buf = (unsigned char *) malloc(
+        eci_device.eci_nb_pkt_ep_data_in * eci_device.eci_nb_iso_packet
+        * eci_device.eci_iso_packet_size);
 
 	/* if DATA_IN type is not ISO call init for Interrupt handling - kolja*/
 	if(!use_DataIn_ISO_Urb)
