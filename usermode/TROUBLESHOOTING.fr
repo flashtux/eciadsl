@@ -498,7 +498,8 @@ R:	Cela peut être du à un trafic élevé sur la ligne ou à un problème du
 
 	Activez l'option 'persist' pour pppd dans le fichier /etc/ppp/peers/adsl
 	(ceci requiert le support N_HDLC dans le noyau, regardez la question
-	concernant la configuration du noyau ci-dessous).
+	concernant la configuration du noyau ci-dessous). Vérifiez que cette option
+	est présente (c'est le cas par défaut).
 
 	Vous pouvez aussi utiliser un script de reconnection automatique, et bien
 	sûr vérifiez que votre configuration est OK.

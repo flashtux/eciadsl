@@ -488,7 +488,7 @@ A:	This may be due to high traffic on the line or to any provider problem/daily
 
 	Enable the 'persist' option for pppd in /etc/ppp/peers/adsl (this requires
 	N_HDLC support in the kernel, see the kernel configuration related question
-	below).
+	below). Verify that this persist option is set (by default it is).
 
 	You may also try using a third-party autoconnect script, and of course check
 	if your configuration has been properly set.
