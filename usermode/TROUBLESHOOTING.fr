@@ -105,6 +105,15 @@ R:	Voir la question 1.4.
 	configuration du noyau, ou encore: désactivez/activez le support USB Legacy
 	dans le BIOS.
 
+	De tels problèmes sont connus avec des chipsets USB tels que des vieux
+	VIA (vieux: tout est relatif) et des SiS 700x. Si vous ne savez pas quel
+	chipset USB équipe votre carte mère, ou si voulez avoir confirmation que
+	vos problèmes viennet de votre équipement matériel, contactez-nous.
+	Dans de tels cas, un des solutions est d'acquérir un HUB USB en carte PCI.
+	Surtout n'essayez pas un HUB USB qui se branche sur un port USB, le
+	problème serait toujours le même! Surtout: n'achetez pas un HUB USB en
+	carte PCI sans l'avoir testé auparavant..
+
 	Voir aussi la question sur le module dabusb. Tant que dabusb sera chargé
 	automatiquement, vous ne pourrez pas utiliser votre modem avec le driver.
 
@@ -114,7 +123,7 @@ R:	Voir la question 1.4.
 Q:	Je ne connais pas les adresses IP des DNS de mon provider.
 
 --------------------------------------------------------------------------------
-A:	La plupart des utilisateurs en ont en effet besoin (ce n'est pas le cas de
+R:	La plupart des utilisateurs en ont en effet besoin (ce n'est pas le cas de
 	ceux qui utilisent DHCP pour obtenir une IP de leur provider par exemple),
 	et si vous ne trouvez sur le site de votre provider ou sur les papiers que
 	celui-ci vous a envoyé, ou encore dans la config MS Windows un fois installé
@@ -262,7 +271,7 @@ R:	Votre modem n'est probablement pas supporté, lisez cette FAQ depuis
 Q:	startmodem/probe_device.sh/eci-doctor.sh ne trouvent pas mon modem.
 
 --------------------------------------------------------------------------------
-A:	Votre modem n'est peut-être pas supporté. Il se peut que votre HUB USB ne
+R:	Votre modem n'est peut-être pas supporté. Il se peut que votre HUB USB ne
 	le soit pas, ou encore que le module du noyau relatif à ce HUB pose
 	problème.
 
@@ -562,9 +571,6 @@ Q:	J'obtiens un kernel panic/oops.
 R:	Attendez la version eciadsl 0.7 (il semblerait que le driver ne purge pas
 	correctement les URBs en cas de déconnexion).
 
-	This may come from a kernel module bug (OHCI?), badly supported hardware,
-	heavily loaded CPU or USB bus, or any kind of global system problem (even a
-	bug in the driver of course).
 	Cela pourrait aussi provenir d'un bug dans un module noyau (OHCI?), d'un
 	matériel incorrectement supporté, ou d'un problème de configuration système
 	en général (et bien sûr d'un bug du driver lui-même).
@@ -614,7 +620,7 @@ Q:	J'utilise DHCP avec mon provider, mais impossible d'accéder à internet après
 	avoir lancé `startmodem`.
 
 --------------------------------------------------------------------------------
-A:	Vérifiez que vous avez bien une ligne UG (route par défaut) en tapant sous
+R:	Vérifiez que vous avez bien une ligne UG (route par défaut) en tapant sous
 	root: `route -n`. Si ce n'est pas le cas, il s'agit probablement d'un
 	problème relatif au client DHCP de votre système.
 	Les clients DHCP les plus utilisés sont: pump, dhclient, dhcpcd. Vérifiez
@@ -631,7 +637,7 @@ Q:	Startmodem me dit:
 	eci-load2: failed to create shared semaphore: No space left on device
 
 --------------------------------------------------------------------------------
-A:	Il s'agit d'un bug introduit dans la version 0.6, qui est sensé être corrigé
+R:	Il s'agit d'un bug introduit dans la version 0.6, qui est sensé être corrigé
 	depuis les versions supérieures à la version 7.0.
 	Téléchargez donc une version plus récente que la 7.0 (ou le cvs), et
 	installez-la.
