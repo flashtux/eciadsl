@@ -1327,12 +1327,11 @@ DBG_OUT("SEND INIT URB\n");
 				If write URB then read the buffer and
 				set endpoint else just set enpoint
 			*/
+		size = (instance->setup_packets[7] << 8 ) |
+			instance->setup_packets[6];			
 		if(setuppacket[0] & 0x80) {
-			size = 0;
 			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
 		} else {
-			size = (instance->setup_packets[7] << 8 ) |
-				instance->setup_packets[6];			
 			memcpy(eciurb->transfer_buffer, instance->setup_packets+8,size);
 			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
 		}
