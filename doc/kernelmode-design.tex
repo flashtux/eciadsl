@@ -16,23 +16,12 @@
 
 \section{Introduction}
 
+\subsection{When the story began...}
+
 The roots of this document started in the night of February 2002, 17
 when \textit{webdaemon} and \textit{benoit} talked about the design of
 the kernel mode driver for the ECI ADSL modem. This discussion was
 held on channel \#eci-conf at irc.openprojects.net server.
-
-The main goals are :
-\begin{itemize}
-
-\item use a kernel mode driver to achieve better performance by
-  reducing context switching
-
-\item propose a standard interface (here an ATM interface)
-
-\item be easily configurable (changing firmware or type of ADSL
-  modulation)
-
-\end{itemize}
 
 Were presents:
 \begin{itemize}
@@ -42,7 +31,32 @@ Were presents:
 \item Beretta\_V
 \end{itemize}
 
-Most part of the discussion were hold between \textit{benoit} and \textit{webdaemon}
+Most part of the discussion were hold between \textit{benoit} and
+\textit{webdaemon}
+
+\subsection{Main goals}
+
+The main goals are :
+\begin{itemize}
+  
+\item use a kernel mode driver to achieve better performance by
+  reducing context switching between kernel context and user-mode
+  process context
+
+\item propose a standard interface (here an ATM interface)
+
+\item be easily configurable (changing firmware or type of ADSL
+  modulation)
+
+\end{itemize}
+
+\subsection{History}
+
+\begin{itemize}
+\item 17/02/2002 : Start with \textit{benoit} and \texit{webdaemon}
+\item 23/02/2002 : Discussion between \textit{benoit} and
+  \textit{jeanseb} about the handling of all GlobeSpan based modems.
+\end{itemize}
 
 \section{Overview of the design}
 
@@ -72,6 +86,51 @@ ID=0547/2131), and once the firmware is loaded, it is replaced by
 another one (Vendor/Product ID=0915/8000).
 
 \section{Detailed design}
+
+\subsection{Handling several modems}
+
+We have seen several modems which are GlobeSpan based, which use an
+EZ-USB interface and which should be compatible with our driver.
+However, most of those modems use different USB VID/PID. Thus how we
+can make a driver for all those modems? The answer is really simple.
+Unix philosophy has always been ``do what I asked and nothing mode''.
+Thus the solution is to pass VID/PID (for both USB devices) to each
+kernel module which is responsible for.
+
+However, for newbies using the driver, it can be useful to have a
+tool that will try to guess the VID/PID of the modem. This can be
+accomplished quite accurately since :
+
+\begin{itemize}
+  
+\item the first USB device is always the EZ-USB chip and beside the
+  VID/PID difference always have the same number of endpoints,
+  configuration and so on. So we can easily scan all available USB
+  devices and recognize what are the EZ-USB devices. However, there
+  exist some EZ-USB chips which are not used which GlobeSpan chip and
+  which are not modem at all (see the dabusb module for instance). We
+  intend to detect what EZ-USB device are really ADSL modems by loading
+  a special purpose firmware into the EZ-USB that will try to find the
+  GlobeSpan chip.
+  
+\item the second device is derived from the first apparently. For
+  instance, if the EEPROM content is not used or not present, the
+  first device is always 0547/2131 and the second device XXXX/8000. If
+  the first device is AAA/BBBB, then the second device will be
+  AAAA/BBBB+1. We don't know if those rules are mandatory or just a
+  facility provider by firmware or other means.
+
+\end{itemize}
+
+We can even think to a third possibility, once the modem is detected,
+we can change the VID/PID (by writing to the EEPROM) and thus the
+driver can have a default configuration which is to handle this
+universal VID/PID (chosen by the ECI ADSL team).
+
+\textit{jeanseb} propose to store the firmware for each modem in
+/etc/eciadsl/PID-VID.bin and to create a global configuration file
+listing all knows modems working with our driver, each modem will be
+activated by uncommenting a line in this file for example.
 
 \subsection{First module}
 
@@ -106,7 +165,7 @@ This module has two main responsibilities:
   ATM interface. Thus the Linux ATM API should be studied, and
   documented. At least, we need to understand how to interface a
   kernel mode driver with the Linux ATM stack and how to use this
-  stack from usermode programs.
+  stack from user mode programs.
   
 \item begin responsible for the ADSL synchronization and all
   parameters that can be seen under the ``Development mode'' of the
@@ -148,7 +207,7 @@ official IDs.
 \subsection{Handling loss of synchro}
 
 I found no real solution to this problem which already occur in the
-speedtouch driver. Let's imagine the following scenario:
+Speedtouch USB driver. Let's imagine the following scenario:
 
 \begin{itemize}
 
@@ -169,9 +228,14 @@ since the radius server ensure that you are connected only once.
 One point is that latest version of pppoeci detect the loss of synchro
 (but does nothing).
 
-I think it's useful to compare with the speedtouch modem. In this later case, the speedtouch automatically resynchronize itself. So, let's imagine the case where you are unplugging and plugging again the phone line after a certain amount of time (say T). Consider that loss of synchro is not signaled to pppd.
+I think it's useful to compare with the Speedtouch USB modem. In this
+later case, the Speedtouch USB automatically resynchronize itself. So,
+let's imagine the case where you are unplugging and plugging again the
+phone line after a certain amount of time (say T). Consider that loss
+of synchro is not signaled to pppd.
 
-If T is quite short, the connection recover with no problem. No PPP (client or server) have seen anything. So, be happy.
+If T is quite short, the connection recover with no problem. No PPP
+(client or server) have seen anything. So, be happy.
 
 If T is quite long, the PPP peer breaks down the session, but the PPP
 client (on our side) is not aware and thus, ppp0 acts like a ghost
@@ -209,7 +273,7 @@ This point changes nothing to the design and could be studied separately.
 \item Linux Hotplugging :
   \htmladdnormallink{http://linux-hotplug.sourceforge.net/}{http://linux-hotplug.sourceforge.net/}
   
-\item PPPoA related (from the SpeedTouch kernelmode driver) :
+\item PPPoA related (from the SpeedTouch USB kernelmode driver) :
   \htmladdnormallink{http://www.linux-usb.org/SpeedTouch/howto.html}{http://www.linux-usb.org/SpeedTouch/howto.html}
   
 \item ATM on Linux :
@@ -225,6 +289,13 @@ This point changes nothing to the design and could be studied separately.
 A lot of work need to be done. First of all, we need to read documents
 about various interfaces (ATM, pppd, ...).
 
+\section{Legal information}
+
+\begin{itemize}
+\item GlobeSpan is a trademark of GlobeSpan, Inc.
+\item 3Com is a registered trademark of 3Com Corporation.
+\item Speedtouch is a trademark of Alcatel.
+\item EZ-USB is a registered trademark of Cypress Semiconductor Corporation.
+\end{itemize}
+
 \end{document}
-
-
