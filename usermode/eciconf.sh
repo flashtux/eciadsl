@@ -55,7 +55,7 @@ if {[string compare $current_user "root"] != 0} {
 #
 
 frame .dabusb
-message .dabusb.texte -text "If your modem is running when you start Linux,\nclick here after unplugging your modem :" -aspect 600 -anchor w
+message .dabusb.texte -text "If your modem is running when you start Linux,\nclick here after unplugging your modem:" -aspect 600 -anchor w
 button .dabusb.remove -text {Remove Dabusb} -background "#ffccff" -command {run_dabusb} -padx 10
 frame .dabusb.espace -width 6
 bind .dabusb.remove <Enter> {pushstate "Unplug your modem first and then click on this button to remove dabusb"}
@@ -69,7 +69,7 @@ pack .dabusb -padx 10 -pady 15 -side top
 #
 
 frame .frame1
-label .frame1.label_chemin -text { Path to pppoeci :} -width 15 -anchor e
+label .frame1.label_chemin -text { Path to pppoeci:} -width 15 -anchor e
 set path_pppoeci "$BIN_DIR/pppoeci"
 entry .frame1.chemin -textvariable path_pppoeci -background lightblue -width 35
 bind .frame1.chemin <Enter> {pushstate "Enter path to run pppoeci (in case of doubt, don't modify this path)"}
@@ -79,7 +79,7 @@ pack configure .frame1.chemin -padx 15
 pack .frame1 -padx 15 -pady 3
 
 frame .frame2
-label .frame2.label_user -text {User :} -anchor e
+label .frame2.label_user -text {User:} -anchor e
 set username "username@domain"
 entry .frame2.user -textvariable username -background lightblue -width 17
 bind .frame2.user <Enter> {pushstate "Enter your username and domain (given by your provider)"}
@@ -87,7 +87,7 @@ bind .frame2.user <Leave> {popstate}
 pack .frame2.label_user .frame2.user -side left
 pack configure .frame2.user -padx 10
 
-label .frame2.label_password -text { Password :} -anchor e
+label .frame2.label_password -text { Password:} -anchor e
 set password ""
 entry .frame2.password -show * -textvariable password -background lightblue -width 13
 bind .frame2.password <Enter> {pushstate "Enter your password (given by your provider)"}
@@ -110,7 +110,7 @@ frame .bloc1.espace1 -width 15
 frame .bloc1.fai
 
 frame .bloc1.fai.majdns
-checkbutton .bloc1.fai.majdns.checkbox -text { Update provider DNS :} -command {invert_fai} -relief groove -background "#ffcc99" -width 28 -variable majfai -offvalue "non" -onvalue "oui" -selectcolor blue
+checkbutton .bloc1.fai.majdns.checkbox -text { Update provider DNS:} -command {invert_fai} -relief groove -background "#ffcc99" -width 28 -variable majfai -offvalue "non" -onvalue "oui" -selectcolor blue
 bind .bloc1.fai.majdns.checkbox <Enter> {pushstate "Check this box if you want to update your DNS ($ETC_DIR/resolv.conf)"}
 bind .bloc1.fai.majdns.checkbox <Leave> {popstate}
 pack .bloc1.fai.majdns.checkbox -side left
@@ -150,13 +150,13 @@ frame .bloc1.fai.espacevertic -height 5
 pack .bloc1.fai.espacevertic
 
 frame .bloc1.fai.dns1
-label .bloc1.fai.dns1.label -text "DNS 1 : " -width 8
+label .bloc1.fai.dns1.label -text "DNS 1: " -width 8
 entry .bloc1.fai.dns1.entry -textvariable dns1 -background lightblue -width 15
 pack .bloc1.fai.dns1.label .bloc1.fai.dns1.entry -side left
 pack .bloc1.fai.dns1
 
 frame .bloc1.fai.dns2
-label .bloc1.fai.dns2.label -text "DNS 2 : " -width 8
+label .bloc1.fai.dns2.label -text "DNS 2: " -width 8
 entry .bloc1.fai.dns2.entry -textvariable dns2 -background lightblue -width 15
 pack .bloc1.fai.dns2.label .bloc1.fai.dns2.entry -side left -anchor e
 pack .bloc1.fai.dns2
@@ -188,7 +188,7 @@ frame .bloc1.espace2 -width 15
 
 frame .bloc1.modem
 
-label .bloc1.modem.libelle -text "Select your modem :" -relief groove -background "#ffcc99" -width 46
+label .bloc1.modem.libelle -text "Select your modem:" -relief groove -background "#ffcc99" -width 46
 pack .bloc1.modem.libelle
 
 set modems {
@@ -233,19 +233,19 @@ frame .bloc1.modem.espacevertic -height 5
 pack .bloc1.modem.espacevertic
 
 frame .bloc1.modem.vidpid1
-label .bloc1.modem.vidpid1.labelvid -text "VID 1 : " -width 8
+label .bloc1.modem.vidpid1.labelvid -text "VID 1: " -width 8
 entry .bloc1.modem.vidpid1.entryvid -textvariable vid1 -background lightblue -width 7
 pack .bloc1.modem.vidpid1.labelvid .bloc1.modem.vidpid1.entryvid -side left
-label .bloc1.modem.vidpid1.labelpid -text "PID 1 : " -width 8
+label .bloc1.modem.vidpid1.labelpid -text "PID 1: " -width 8
 entry .bloc1.modem.vidpid1.entrypid -textvariable pid1 -background lightblue -width 7
 pack .bloc1.modem.vidpid1.labelpid .bloc1.modem.vidpid1.entrypid -side left
 pack .bloc1.modem.vidpid1
 
 frame .bloc1.modem.vidpid2
-label .bloc1.modem.vidpid2.labelvid -text "VID 2 : " -width 8
+label .bloc1.modem.vidpid2.labelvid -text "VID 2: " -width 8
 entry .bloc1.modem.vidpid2.entryvid -textvariable vid2 -background lightblue -width 7
 pack .bloc1.modem.vidpid2.labelvid .bloc1.modem.vidpid2.entryvid -side left
-label .bloc1.modem.vidpid2.labelpid -text "PID 2 : " -width 8
+label .bloc1.modem.vidpid2.labelpid -text "PID 2: " -width 8
 entry .bloc1.modem.vidpid2.entrypid -textvariable pid2 -background lightblue -width 7
 pack .bloc1.modem.vidpid2.labelpid .bloc1.modem.vidpid2.entrypid -side left
 pack .bloc1.modem.vidpid2
@@ -285,7 +285,7 @@ frame .bloc2
 
 frame .bloc2.listebin
 
-checkbutton .bloc2.listebin.checkbox -text { Change synch .bin file (only if driver hangs up) :} -command {invert_bin} -relief groove -background "#ffcc99" -width 45 -variable majbin -offvalue "non" -onvalue "oui" -selectcolor blue
+checkbutton .bloc2.listebin.checkbox -text { Change synch .bin file (only if driver hangs up):} -command {invert_bin} -relief groove -background "#ffcc99" -width 45 -variable majbin -offvalue "non" -onvalue "oui" -selectcolor blue
 bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to change your synch .bin file"}
 bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
@@ -326,7 +326,7 @@ scrollbar .bloc2.listebin.liste.scroll -command ".bloc2.listebin.liste.contenu y
 pack .bloc2.listebin.liste.contenu .bloc2.listebin.liste.scroll -side left -fill y
 
 frame .bloc2.listebin.recherche
-label .bloc2.listebin.recherche.texte -text {Search .bin here :} -width 15
+label .bloc2.listebin.recherche.texte -text {Search .bin here:} -width 15
 set chemin_bin $CONF_DIR
 entry .bloc2.listebin.recherche.chemin -textvariable chemin_bin -background "#CCEEEE" -width 27
 bind .bloc2.listebin.recherche.chemin <Enter> {pushstate "Enter path for searching .bin files"}
@@ -359,11 +359,11 @@ frame .bloc2.espace1 -width 15
 
 frame .bloc2.vpci
 
-label .bloc2.vpci.libelle -text "Your VPI/VCI :" -relief groove -background "#ffcc99" -width 15
+label .bloc2.vpci.libelle -text "Your VPI/VCI:" -relief groove -background "#ffcc99" -width 15
 
 frame .bloc2.vpci.vpi_espace -height 5
 frame .bloc2.vpci.vpi
-label .bloc2.vpci.vpi.label -text "VPI :"
+label .bloc2.vpci.vpi.label -text "VPI:"
 set vpi "8"
 entry .bloc2.vpci.vpi.entry -textvariable vpi -background lightblue -width 4
 bind .bloc2.vpci.vpi.entry <Enter> {pushstate "VPI given by your provider (8 for France)"}
@@ -371,7 +371,7 @@ bind .bloc2.vpci.vpi.entry <Leave> {popstate}
 
 frame .bloc2.vpci.vci_espace -height 10
 frame .bloc2.vpci.vci
-label .bloc2.vpci.vci.label -text "VCI :"
+label .bloc2.vpci.vci.label -text "VCI:"
 set vci "35"
 entry .bloc2.vpci.vci.entry -textvariable vci -background lightblue -width 4
 bind .bloc2.vpci.vci.entry <Enter> {pushstate "VCI given by your provider (35 for France)"}
@@ -406,13 +406,17 @@ pack .ligne_vide3
 
 frame .boutons
 button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig "$username" "$password" "$path_pppoeci" "$dns1" "$dns2" $vpi $vci $vid1 $pid1 $vid2 $pid2} -state disabled
-bind .boutons.create <Enter> {pushstate "Save modifications : select a modem first"}
+bind .boutons.create <Enter> {pushstate "Save modifications then quit: select a modem first"}
 bind .boutons.create <Leave> {popstate}
-frame .boutons.espace -width 50
+frame .boutons.espace -width 20
+button .boutons.set_bin -text {Change synch .bin} -width 15 -height 1 -command {run_eciconftxt} -state disabled
+bind .boutons.set_bin <Enter> {pushstate "Only change current synch .bin: enable it above and select a .bin"}
+bind .boutons.set_bin <Leave> {popstate}
+frame .boutons.espace2 -width 20
 button .boutons.cancel -text {Cancel} -background "#ffbbbb" -width 15 -height 1 -command {exit}
 bind .boutons.cancel <Enter> {pushstate "Quit without saving"}
 bind .boutons.cancel <Leave> {popstate}
-pack .boutons.create .boutons.espace .boutons.cancel -side left
+pack .boutons.create .boutons.espace .boutons.set_bin .boutons.espace2 .boutons.cancel -side left
 pack .boutons
 
 frame .ligne_vide4 -height 15
@@ -426,8 +430,51 @@ set statetext "Ready."
 # ===== call to makeconfig =====
 #
 
+proc conf_report {exit msg color sortie} {
+	global titre_fenetre
+
+    if {"$exit"=="oui"} {
+		catch {destroy .confok}
+	}
+	toplevel .confok
+    wm title .confok $titre_fenetre
+    message .confok.texte -text "$msg" -aspect 600 -padx 15 -pady 15
+	
+    if {"$sortie"!=""} {
+	    message .confok.sortie -text "$sortie" -aspect 600 -padx 15 -pady 15 -background $color
+	} else {
+	    message .confok.sortie
+	}
+
+    if {"$exit"=="oui"} {
+	    button .confok.ok -text { Quit } -command {exit}
+	} else {
+	    button .confok.ok -text { Close } -command {destroy .confok}
+	}
+
+    pack .confok.texte .confok.sortie .confok.ok -side top
+    pack configure .confok.ok -pady 15
+    grab set .confok
+    tkwait window .confok
+}
+
+proc run_eciconftxt {} {
+	global BIN_DIR majbin
+
+    if {[string compare $majbin "oui"] == 0} {
+        set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
+        set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
+	    set returncode [catch {exec $BIN_DIR/eciconftxt.sh "$nom_bin_choix"} sortie]
+	    if {$returncode != 0} {
+	        conf_report "non" "Synch .bin has NOT been set.\n\nThis is the error:" "#ffbbbb" $sortie
+	    } else {
+	        conf_report "non" "Synch .bin has been changed and will\nbe used the next time you run startmodem." lightgreen ""
+	    }
+	}
+}
+
 proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci vid1 pid1 vid2 pid2} {
-	global titre_fenetre majfai majbin BIN_DIR
+	global majfai majbin BIN_DIR
 
     if {[string compare $majfai "oui"] == 0} {
         set srvdns1 $dns1
@@ -443,22 +490,11 @@ proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci vid1 pid1 
     } else {
         set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$path_pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2} sortie]
     }
-    toplevel .confok
-    wm title .confok $titre_fenetre
     if {$returncode != 0} {
-        set msg "Makeconfig did not update your files.\n\nThis is the error :"
-        set color "#ffbbbb"
+        conf_report "oui" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
     } else {
-        set msg "Configuration files updated with success !\n\nThis is makeconfig output :"
-        set color lightgreen
+        conf_report "oui" "Configuration files updated with success!\n\nThis is makeconfig output:" lightgreen $sortie
     }
-    message .confok.texte -text "$msg" -aspect 600 -padx 15 -pady 15
-    message .confok.sortie -text "$sortie" -aspect 600 -padx 15 -pady 15 -background $color
-    button .confok.ok -text { O K } -command {exit}
-    pack .confok.texte .confok.sortie .confok.ok -side top
-    pack configure .confok.ok -pady 15
-    grab set .confok
-    tkwait window .confok
 }
 
 #
@@ -470,11 +506,11 @@ proc run_dabusb {} {
     toplevel .dab
     wm title .dab "dabusb"
     if {$returncode != 0} {
-        set msg "Dabusb couldn't be removed...\n\nThe error is :"
+        set msg "Dabusb couldn't be removed...\n\nThe error is:"
         set vmtitle "Error"
         set color "#ffbbbb"
     } else {
-        set msg "Dabusb succesfully removed.\n\nThis is dabusb output :"
+        set msg "Dabusb succesfully removed.\n\nThis is dabusb output:"
         set vmtitle "OK"
         set color lightgreen
     }
@@ -553,6 +589,7 @@ proc invert_fai {} {
 
 proc invert_bin {} {
 	global majbin bin_choisi bin_initial
+	global .boutons.set_bin
 
     if {[string compare $majbin "oui"] == 0} {
         if {[.bloc2.listebin.liste.contenu size] > 0} {
@@ -564,6 +601,9 @@ proc invert_bin {} {
             .bloc2.listebin.liste.contenu selection clear 0 end
             .bloc2.listebin.liste.contenu selection set $bin_choisi
             .bloc2.listebin.liste.contenu see $bin_choisi
+			.boutons.set_bin configure -state normal -background lightblue
+			bind .boutons.set_bin <Enter> {pushstate "Only change current synch .bin with the selected one"}
+			bind .boutons.set_bin <Leave> {popstate}
         } else {
             set majbin "non"
         }
@@ -573,6 +613,9 @@ proc invert_bin {} {
         if {[string compare $bin_choisi ""] == 0} {
             set bin_choisi $bin_initial
         }
+		.boutons.set_bin configure -state disabled
+		bind .boutons.set_bin <Enter> {pushstate "Only change current synch .bin: enable it above and select a .bin"}
+		bind .boutons.set_bin <Leave> {popstate}
     }
 }
 
@@ -599,7 +642,7 @@ proc select_modem {} {
 		.bloc1.modem.vidpid2.labelvid configure -foreground black
 		.bloc1.modem.vidpid2.labelpid configure -foreground black
 		.boutons.create configure -state normal -background lightgreen
-		bind .boutons.create <Enter> {pushstate "Save modifications : write configuration to files (backup all files before)"}
+		bind .boutons.create <Enter> {pushstate "Save modifications: write configuration to files and set synch .bin if enabled, then quit"}
 		bind .boutons.create <Leave> {popstate}
 	}
 }
