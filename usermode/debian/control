@@ -7,8 +7,8 @@ Standards-Version: 3.5.2
 
 Package: eciadsl-usermode
 Architecture: any
-Depends: ${shlibs:Depends}, ppp
-Recommends: wish
+Depends: ${shlibs:Depends}, ppp, pppoe
+Recommends: tk8.4|wish
 Description: usermode drivers for eci adsl modem.
  The eciadsl-usermode package contains the driver for the ADSL USB modem
  called ECI Hi-Focus. It is not a kernel module, but a user-mode program

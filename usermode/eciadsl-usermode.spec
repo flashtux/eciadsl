@@ -1,6 +1,6 @@
 # to build : rpm -ba eciadsl-usermode.spec
-# or       : rpm -ta eciadsl-usermode-0.10.tar.gz
-# the tar.gz should contain a directory eciadsl-usermode-0.10
+# or       : rpm -ta eciadsl-usermode-0.10.tar.bz2
+# the tar.bz2 should contain a directory eciadsl-usermode-0.10
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
 Name:     eciadsl-usermode
@@ -11,10 +11,10 @@ License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
 
-Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.9.tar.gz
+Source:		http://eciadsl.flashtux.org/download/%{name}-%{version}.tar.bz2
 
 BuildRoot:	%_tmppath/%name-%version-%release
-Requires: ppp
+Requires:   ppp, rp-pppoe, tcl, tk
 Prefix: /usr
 
 %description
@@ -31,12 +31,13 @@ that handles the modem. A kernel module is under development.
 
 %build
 # compile executable
-	./configure --enable-rpm-maintainer-mode
-	make -s ROOT="$RPM_BUILD_ROOT"
+./configure --enable-rpm-maintainer-mode --prefix=/usr \
+    --doc-prefix=/usr/share --doc-dir=doc/%name-%version
+make
 
 %install
-	./configure --enable-rpm-maintainer-mode
-	make -s ROOT="$RPM_BUILD_ROOT" install
+rm -rf "$RPM_BUILD_ROOT"   
+make ROOT="$RPM_BUILD_ROOT" install
 
 %pre
 # pre-install script
@@ -44,7 +45,7 @@ that handles the modem. A kernel module is under development.
 %post
 # post-install script
 echo "Now you need to configure the driver. Please read the README"
-echo "and INSTALL files located in /usr/local/doc/eciadsl."
+echo "and INSTALL files located in /usr/share/doc/%name-%version"
 
 %preun
 # pre-uninstall script
@@ -56,36 +57,30 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 # here, we list all the files that form the binary package.
 # executable files should be : rwxr-xr-x
 %defattr(755,root,root)
-%dir /usr/local/bin
-/usr/local/bin/eciadsl-start
-/usr/local/bin/eciadsl-stop
-/usr/local/bin/eciadsl-firmware
-/usr/local/bin/eciadsl-synch
-/usr/local/bin/eciadsl-pppoeci
-/usr/local/bin/eciadsl-doctor
-/usr/local/bin/eciadsl-check-hdlc
-/usr/local/bin/eciadsl-check-hdlc-bug
-/usr/local/bin/eciadsl-config-tk
-/usr/local/bin/eciadsl-config-text
-/usr/local/bin/eciadsl-remove-dabusb
-/usr/local/bin/eciadsl-probe-synch
-/usr/local/bin/eciadsl-probe-device
-/usr/local/bin/eciadsl-vendor-device.pl
-/usr/local/bin/eciadsl-data.pl
-/usr/local/bin/eciadsl-uc.pl
-/usr/local/bin/eciadsl-makeconfig
-%dir /usr/local/doc/eciadsl
-/usr/local/doc/eciadsl/BUGS
-/usr/local/doc/eciadsl/INSTALL
-/usr/local/doc/eciadsl/INSTALL.fr
-/usr/local/doc/eciadsl/README
-/usr/local/doc/eciadsl/README.fr
-/usr/local/doc/eciadsl/TODO
-/usr/local/doc/eciadsl/TROUBLESHOOTING
-/usr/local/doc/eciadsl/TROUBLESHOOTING.fr
+/usr/bin/eciadsl-start
+/usr/bin/eciadsl-stop
+/usr/bin/eciadsl-firmware
+/usr/bin/eciadsl-synch
+/usr/bin/eciadsl-pppoeci
+/usr/bin/eciadsl-doctor
+/usr/bin/eciadsl-check-hdlc
+/usr/bin/eciadsl-check-hdlc-bug
+/usr/bin/eciadsl-config-tk
+/usr/bin/eciadsl-config-text
+/usr/bin/eciadsl-remove-dabusb
+/usr/bin/eciadsl-probe-synch
+/usr/bin/eciadsl-probe-device
+/usr/bin/eciadsl-vendor-device.pl
+/usr/bin/eciadsl-data.pl
+/usr/bin/eciadsl-uc.pl
+/usr/bin/eciadsl-makeconfig
+# compatibility links
+/usr/bin/startmodem
+/usr/bin/eci-load1
+/usr/bin/eci-load2
+/usr/bin/pppoeci
 # config files should be : rw-r--r--
 %defattr(644,root,root)
-%dir /etc/eciadsl
 %config /etc/eciadsl/modems.db
 %config /etc/eciadsl/providers.db
 %config /etc/eciadsl/firmware00.bin
