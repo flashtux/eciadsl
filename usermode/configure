@@ -2,6 +2,7 @@
 
 # TODO: check if gcc -pipe leads to problem following the system
 # TODO: check for modules.conf location (warn if conf.modules is found)
+# TODO: better version string detection (for exotic debian gcc versions for instance)
 
 VERSION="0.0.1"
 
