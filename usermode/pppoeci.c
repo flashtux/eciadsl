@@ -1353,7 +1353,7 @@ void version(const int full)
 
 void display_modes(void)
 {
-	int i;
+	encapsulation_mode i;
 	for (i = 0; i < modes_count; i++)
 		fprintf(stderr, "%s%s\n", mode_name[i], (i == default_frame_type)?" (default)":"");
 }
