@@ -80,13 +80,16 @@ Provide use these info:
 		- your Windows driver info if you use it (and also the modulation
 		  type that your provider supports)
 		- the synch .bin you've tried
-	- your modem brand/model
+	- your modem exact brand/model
 	- you location (country/state/region/town)
 	- your provider and the PPP encapsulation/authentication protocol used
 	- your Linux experience level (for instance: newbie, average, confirmed,
 	  experienced, guru)
 	- the output of route -n before and after running startmodem if a network
 	  problem occurs after startmodem
+	- your /etc/eciadsl/eciadsl.conf file, and if possible, your
+	  /var/log/messages (verify that it contains activity trace since your last
+	  boot under Linux up to your use of the driver or your problem).
 
 It may help a lot if you come and see us with these info. Also get the output of
 the tools from the package you have launched (configure scripts or startmodem),

@@ -72,25 +72,29 @@ Comment obtenir de l'aide :
 
 Infos à nous communiquer :
 
-	- version du noyau (tapez : `uname -a` ou `cat /proc/version`). Dites-nous si
-	  le noyau est celui de votre distribution ou si vous l'avez compilé depuis
-	  les sources
+	- version du noyau (tapez : `uname -a` ou `cat /proc/version`). Dites-nous
+	  si le noyau est celui de votre distribution ou si vous l'avez compilé
+	  depuis les sources
 	- distribution Linux
 	- version de pppd (tapez : `pppd --version`)
 	- version de modutils (tapez : `lsmod --version`)
 	- modèle du controleur USB (HUB) (tapez : `lspci | grep USB`)
-	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des sources
-	  s'il existe pour les versions >0.5, ou pppoeci --version, sinon le nom du package/la
-	  date du CVS) et :
+	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des
+	  sources s'il existe pour les versions >0.5, ou pppoeci --version, sinon le
+	  nom du package/la date du CVS) et :
 		- les informations sur votre driver Windows si vous l'utilisez
 	      (at aussi le type de modulation que votre fournisseur supporte)
 		- les .bin de synchronisation que vous avez essayés
-	- votre modem (fabricant/modèle)
+	- votremodem (les références exactes: fabricant/modèle)
 	- votre position géographique (pays/département/ville)
 	- votre fournisseur d'accès et les protocoles de communication PPP ainsi
 	  que d'authentification utilisés
 	- votre niveau d'expérience (par exemple : débutant, quelques notions,
 	  confirmé, expérimenté, gourou)
+	- votre fichier /etc/eciadsl/eciadsl.conf
+	- éventuellement votre fichier /var/log/messages, en vous assurant qu'il
+	  contient les traces d'activité à partir du dernier démarrage de Linux
+	  jusqu'à votre utilisation du driver ou à votre problème
 
 Cela nous aidera grandement si vous nous fournissez toutes ces infos. Capturez
 aussi la sortie des outils du driver que vous avez lancé (scripts de
