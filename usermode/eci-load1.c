@@ -463,6 +463,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
+		/* try to assume default values from the config file */
 		if (config.vid1 && config.pid1 && config.vid2 && config.pid2
 			&& config.firmware)
 		{

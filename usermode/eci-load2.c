@@ -555,6 +555,7 @@ int main(int argc, char** argv)
 	}
 	else
 	{
+		/* try to assume default values from the config file */
 		if (config.vid2 && config.pid2 && config.synch)
 		{
 			vid2 = config.vid2;
