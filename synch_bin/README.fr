@@ -11,8 +11,18 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch09.bin (anciennement eci_uk.bin ou eci_ca.bin)
 	synch10.bin (anciennement eci_ca2.bin)
 	synch11.bin (anciennement eci_foggia.webpower.bin)
-    synch12.bin (anciennement eci_bastia.bin)
-    synch13.bin (anciennement eci_wan3.troll.bin - Italie/Naples/Telecom Italia)
+	synch12.bin (anciennement eci_bastia.bin)
+	synch13.bin (anciennement eci_wan3.troll.bin - Italie/Naples/Telecom Italia)
+
+ATTENTION:
+Les anciens noms sont OBSOLETES, ils n'indiquaient aucune certitude quant aux lieux
+possibles de l'utilisation des .bin.
+Par exemple: n'essayez pas eci_lens.bin simplement parce que vous habitez Dunkerque.
+Le .bin a été généré à Lens mais il peut très bien convenir pour une utilisation
+à Tchapamawak, et peut aussi bien ne pas convenir à Petaouchnok.
+Bien sûr, si vous habitez Lens (France), synch05.bin est le premier .bin à essayer
+(sauf si le DSLAM a changé).
+
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
