@@ -9,15 +9,18 @@
   $Id$
 */
 
-/*#if defined(__GNU_LIBRARY__) && defined(_SEM_SEMUN_UNDEFINED)*/
-typedef struct semun_
+#if defined(__GNU_LIBRARY__) && defined(_SEM_SEMUN_UNDEFINED)
+/* l'union semun est définie en incluant <sys/sem.h> */
+#else
+/* d'après X/OPEN nous devons la définir nous-même */
+typedef union  semun
 {
    int val;                           /* value for SETVAL */
    struct semid_ds *buf;              /* buffer for IPC_STAT & IPC_SET */
    unsigned short int *array;         /* array for GETALL & SETALL */
    struct seminfo *__buf;             /* buffer for IPC_INFO */
-} semun;
-/*#endif*/
+};
+#endif
 
 typedef union semun* semunptr;
 
@@ -27,7 +30,7 @@ typedef union semun* semunptr;
   create a semaphore and return the semaphore id or -1 in case of errors
 */
 
-int semaphore_init(semunptr count);
+int semaphore_init(union semun  **count);
 
 /*
   semaphore_incr:

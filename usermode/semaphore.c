@@ -17,7 +17,7 @@
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
-int semaphore_init(semunptr count)
+int semaphore_init(union semun **count)
 {
     int sem;
 
@@ -61,7 +61,7 @@ int semaphore_decr(int sem, int val)
 
 int semaphore_done(int sem)
 {
-   semun un;
+   union semun un;
  
    if (semctl(sem, 0, IPC_RMID, un) == -1)
         return(-1);
