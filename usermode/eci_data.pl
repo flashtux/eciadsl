@@ -25,6 +25,12 @@
 # is detected by several "URB n going down" where n is identical. This result
 # in a fatal error.
 
+# 13/01/2001 Change 'in' to 'in ' (be carefull to the ending space). We now
+# have the same number of letters as in 'out'. Change all occurrences of
+# in&out to reflect this new value and we prefer using 'in ' instead of "in".
+
+# Also added some checks on TransferBufferLength.
+
 $t = 0;
 
 # print_buffer ($buf)
@@ -55,11 +61,11 @@ sub print_buffer {
 # For each URB, we have the following fields ($urb is the original URB number)
 # $urb_list{$urb}{'exist'} = 'yes' / 'no'
 # $urb_list{$urb}{'t'}   is initialized at "going down"
-#                      AND when transfer_direction is 'in'
+#                      AND when transfer_direction is 'in '
 # $urb_list{$urb}{'type'} = 'VENDOR_DEVICE' / 'BULK_OR_INTERRUPT'
 #                           / 'ISO_TRANSFER' / 'GET_DESCRIPTOR_FROM_DEVICE'
 # $urb_list{$urb}{'endpoint"}
-# $urb_list{$urb}{'transfer_direction'} = 'in' / 'out'
+# $urb_list{$urb}{'transfer_direction'} = 'in ' / 'out'
 # $urb_list{$urb}{'buf'}
 # $urb_list{$urb}{'lenght'} should be length(buf)
 # $urb_list{$urb}{'request'}
@@ -73,7 +79,7 @@ undef ($urb_direction);
 while (<>) {
 
 	if (/URB ([0-9]+) going down/) {
-		$urb_direction = "out";
+		$urb_direction = 'out';
 		$urb = $1;
 		$buffer_ok = 1;
 
@@ -91,7 +97,7 @@ while (<>) {
 	}
 
 	if (/URB ([0-9]+) coming back/) {
-		$urb_direction = "in";
+		$urb_direction = 'in ';
 		$urb = $1;
 		$buffer_ok = 1;
 
@@ -119,13 +125,13 @@ while (<>) {
 		next;
 	}
 
-	if (/endpoint 0x([0-9A-F]+)/i) {
+	if (/endpoint[ \t]+0x([0-9a-f]+)/i) {
 		$urb_list{$urb}{'endpoint'} = hex($1);
 		next ;
 	}
 
 	if (/USBD_TRANSFER_DIRECTION_IN/) {
-		$urb_list{$urb}{'transfer_direction'} = 'in';
+		$urb_list{$urb}{'transfer_direction'} = 'in ';
 
 		$t ++;
 		$urb_list{$urb}{'t'} = $t;
@@ -140,13 +146,13 @@ while (<>) {
 	if (/TransferBufferLength[ \t]+=[ \t]+([0-9a-f]+)/i) {
 		if (defined ($urb_list{$urb}{'transfer_direction'})) {
 			$transfer_direction = $urb_list{$urb}{'transfer_direction'};
-			if (($transfer_direction eq "out")
-				&& ($urb_direction eq "out")) {
+			if (($transfer_direction eq 'out')
+				&& ($urb_direction eq 'out')) {
 				$urb_list{$urb}{'length'} = $1;
 			}
 
-			if (($transfer_direction eq "in")
-				&& ($urb_direction eq "in")) {
+			if (($transfer_direction eq 'in ')
+				&& ($urb_direction eq 'in ')) {
 				$urb_list{$urb}{'length'} = $1;
 			}
 		}
@@ -236,7 +242,7 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		}
 
 		print "URB $k: ";
-		if ($transfer_direction eq "in") {
+		if ($transfer_direction eq 'in ') {
 			print "$transfer_direction request_type=0xc0 ";
 		} else {
 			print "$transfer_direction request_type=0x40 ";
@@ -247,6 +253,11 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			print_buffer ($urb_list{$k}{'buf'});
 		}
 	} elsif ($type eq "BULK_OR_INTERRUPT" && $display_bulk_or_interrupt) {
+
+		if (!defined($urb_list{$k}{'length'})) {
+			print "Fatal error: URB $k has undefined TransferBufferLength\n";
+			exit ;
+		}
 
 		$endpoint = $urb_list{$k}{'endpoint'};
 		$transfer_direction = $urb_list{$k}{'transfer_direction'};
@@ -262,6 +273,11 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			print_buffer ($buf);
 		}
 	} elsif ($type eq "ISO_TRANSFER" && $display_iso) {
+
+		if (!defined($urb_list{$k}{'length'})) {
+			print "Fatal error: URB $k has undefined TransferBufferLength\n";
+			exit ;
+		}
 
 		$endpoint = $urb_list{$k}{'endpoint'};
 		$transfer_direction = $urb_list{$k}{'transfer_direction'};
