@@ -520,7 +520,7 @@ int main(int argc, char** argv)
 	while(errno != ECHILD);
 	alarm(0);
 
-	if (status)
+	if (WEXITSTATUS(status))
 		return(1);
 
 	printf("ECI load 1: success\n");
