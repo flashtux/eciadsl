@@ -124,10 +124,21 @@ set file [open "$CONF_DIR/providers.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
 	set line [string trim [gets $file]]
+	regsub -all {[\t]+} $line {^} line
 	if {"$line"!="" && ![regexp {^[ \t]*#} $line]} {
-		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 1]
-		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 2]
-		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 3]
+		set pos1 0
+		set pos2 [string first "^" "$line" [expr $pos1+1]]
+		set pos3 [string first "^" "$line" [expr $pos2+1]]
+		set pos4 [string first "#" "$line" [expr $pos3+1]]
+		if {$pos4!=-1} {
+			# skip trailing comment
+			set pos4 [expr $pos4-1]
+		} else {
+			set pos4 end
+		}
+		lappend providers [string trim [string range "$line" $pos1 [expr $pos2-1]]]
+		lappend providers [string trim [string range "$line" [expr $pos2+1] [expr $pos3-1]]]
+		lappend providers [string trim [string range "$line" [expr $pos3+1] $pos4]]
 	}
 }
 close $file
@@ -198,12 +209,25 @@ set file [open "$CONF_DIR/modems.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
 	set line [string trim [gets $file]]
+	regsub -all {[\t]+} $line {^} line
 	if {"$line"!="" && ![regexp {^[ \t]*#} $line]} {
-		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 1]
-		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 2]
-		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 3]
-		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 4]
-		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 5]
+		set pos1 0
+		set pos2 [string first "^" "$line" [expr $pos1+1]]
+		set pos3 [string first "^" "$line" [expr $pos2+1]]
+		set pos4 [string first "^" "$line" [expr $pos3+1]]
+		set pos5 [string first "^" "$line" [expr $pos4+1]]
+		set pos6 [string first "#" "$line" [expr $pos5+1]]
+		if {$pos6!=-1} {
+			# skip trailing comment
+			set pos6 [expr $pos6-1]
+		} else {
+			set pos6 end
+		}
+		lappend modems [string trim [string range "$line" $pos1 [expr $pos2-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos2+1] [expr $pos3-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos3+1] [expr $pos4-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos4+1] [expr $pos5-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos5+1] $pos6]]
 	}
 }
 close $file
