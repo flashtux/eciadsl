@@ -1256,10 +1256,9 @@ static void eci_bh_atm (unsigned long param) {
 		} else {
 			atomic_inc(&lp_vcc->stats->tx) ;
 		}
+		/* Free Socket Buffer */
+		FREE_SKB(ATM_SKB(lp_skb)->vcc, lp_skb);
 	}
-	/* Free Socket Buffer */
-	FREE_SKB(ATM_SKB(lp_skb)->vcc, lp_skb);
-out:
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
 }
 /*----------------------------------------------------------------------*/
