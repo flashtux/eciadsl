@@ -1,8 +1,9 @@
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
 # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+# 07/02/2002 Replace "maxfail 0" by "maxfail 10"
 #
 # This file could be rename but its place is under /etc/ppp/peers
-# To connect to Internet using this configuration file
+# To connect to Internet using this configuration file, type
 # pppd call adsl, where "adsl" stands for the name of this file
 
 debug
@@ -16,8 +17,13 @@ noaccomp
 nopcomp
 noccp
 novj
-holdoff 1
-maxfail 0
+holdoff 10
+
+# maxfail is the number of times pppd retries to execute pppoeci after
+# an error. If you put 0, pppd retries forever, filling up the process table
+# and thus, making the computer unusable.
+maxfail 10
+
 usepeerdns
 noauth
 # You may need lcp-echo feature. But that's optionnal.
