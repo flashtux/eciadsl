@@ -710,9 +710,6 @@ struct eci_instance 		/*	Private data for driver	*/
  	struct aal5		*pbklogaal5;	/*	AAL5 to complete */
 };
 
-struct eci_instance	*eci_instances= NULL;		/*  Driver list	*/
-
-
 struct usb_driver eci_usb_driver = {
 	name:		eci_drv_name,
 	id_table:	eci_usb_deviceids,
