@@ -32,6 +32,8 @@ static int interrupt_buffer_pos = 0;
  * TODO : MAY need to handle the down state for DSP (is_ready becoming 0)
  *        I think about returning a specifi -EXX to be conpatible with 
  *        both arch. But defining a common call should work too.
+ * 
+ * ASSUMPTION :INT_MAXPIPE_SIZE  divide the ep_int_buff struct size.
 */
 int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 							unsigned char *resp, int *resp_size,
@@ -40,11 +42,11 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 	
 	max_resp_size = *resp_size;
 	if((buffer_size == INT_MAXPIPE_SIZE) && (buffer[0] == 0xf0))	{
-		if(interrupt_buffer_pos == 0) {
-			memcpy (&(interrupt_buffer.raw[0]), buffer, INT_MAXPIPE_SIZE);
-		} else {
-			memcpy (&(interrupt_buffer.raw[INT_MAXPIPE_SIZE]), 
-			                                buffer, INT_MAXPIPE_SIZE);
+		memcpy (&(interrupt_buffer.raw[interrupt_buffer_pos]), 
+									buffer, INT_MAXPIPE_SIZE);
+		interrupt_buffer_pos += buffer_size;
+		if(interrupt_buffer_pos == sizeof(union ep_int_buf)) {
+			interrupt_buffer_pos = 0;
 /*	TODO : Handle the buffer !!!! */
 		}
 	} else {
