@@ -28,6 +28,12 @@
 #include <linux/usbdevice_fs.h>
 #include <asm/page.h>
 
+struct pusb_endpoint_t
+{
+	int fd;
+	int ep;
+};
+
 #include "pusb.h"
 
 struct pusb_device_t
