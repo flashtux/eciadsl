@@ -7,9 +7,9 @@ BINDIR = $(PREFIX)/usr/local/bin
 CONFDIR = $(ETCDIR)/eciadsl
 PPPDIR = $(ETCDIR)/ppp
 
-INSTALL_EXEC = install -m 755
-INSTALL_DATA = install -m 644
-INSTALL_DIR = install -d -m 755
+INSTALL_EXEC = install -c -p -m 755
+INSTALL_DATA = install -c -p -m 644
+INSTALL_DIR = install -c -p -d -m 755
 
 # Final targets
 BIN = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
