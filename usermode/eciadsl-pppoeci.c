@@ -119,7 +119,7 @@
 /* GS 7070 control routines */
 #include "gs7070.h"
 
-#define LOG_FILE "/tmp/pppoeci.log"
+#define LOG_FILE "/tmp/eciadsl-pppoeci.log"
 
 #define PPP_BUF_SIZE 64*1024
 
@@ -1696,7 +1696,7 @@ int main(int argc, char** argv)
 	}
 
 
-	/* Increase priority of the pppoeci process */
+	/* Increase priority of the eciadsl-pppoeci process */
 	if (setpriority(PRIO_PROCESS, this_process, -20) < 0 && verbose)
 	{
 		message("setpriority failed");
