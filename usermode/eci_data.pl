@@ -31,6 +31,10 @@
 
 # Also added some checks on TransferBufferLength.
 
+# 07/02/2002 Added the CVS Id & Tag
+# CVS $Id$
+# Tag $Name$
+
 $t = 0;
 
 # print_buffer ($buf)

@@ -19,6 +19,10 @@
 
 # 23/11/2001 : updated to the new USB log format. (few modifications in fact)
 
+# 07/02/2002 : added the CVS Id
+# CVS $Id$
+# Tag $Name$
+
 $active = 0;
 
 open BIN, ">eci_firmware.bin";

@@ -31,6 +31,10 @@
 # not always reported! Use eci_data.pl to check the validity of your USB log
 # file.
 
+# 07/02/2002 : added the CVS Id.
+# CVS $Id$
+# Tag $Name$
+
 $active = 0;
 
 $file = "eci_vendor.bin";
