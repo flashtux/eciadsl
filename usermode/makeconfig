@@ -204,7 +204,7 @@ do
 
         echo -n "modifying $secretfile.. "
 		TMP=$(echo "$username" | sed "s/\\\/\\\\\\\\\\\/g")
-		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*" $backupfile > "$secretfile"
+		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*\n?" $backupfile > "$secretfile"
     else
         echo -n "creating $secretfile.. "
         echo "# Secrets for authentication using $auth" > "$secretfile"
