@@ -39,6 +39,8 @@ PPPD_DIR="/etc/ppp"
 VERSION=""
 # </CONFIG>
 
+SYNCH_ATTEMPTS=1
+
 if [ "$1" == "--version" -o "$1" == "-v" ]; then
 	echo "$VERSION"
 	exit 0
@@ -206,12 +208,19 @@ fi
 
 
 echo -e "\nsetting up modem (3/5)..\n"
-"$BIN_DIR/eci-load2" 0x$vid2 0x$pid2 "$CONF_DIR/synch.bin"
-if [ $? -ne 0 ]; then
+CNT=1
+RET=$CNT
+while [ $CNT -le $SYNCH_ATTEMPTS ]; do
+	"$BIN_DIR/eci-load2" 0x$vid2 0x$pid2 "$CONF_DIR/synch.bin"
+	RET=$?
+	CNT=$(expr $CNT + 1)
+done
+if [ $RET -eq 0 ]; then
+	echo "synchronization successful"
+else
     echo "failed to get synchronization"
     exit -1
 fi
-echo "synchronization successful"
 
 
 echo -e "\nconnecting modem (4/5)..\n"
