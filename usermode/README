@@ -97,7 +97,9 @@ the tools from the package you have launched (configure scripts or startmodem),
 also provide us your /var/log/messages, /var/log/log if available, the output
 of `dmesg`, `lsmod` and `cat /proc/bus/usb/devices`.
 
-If you contact us from MS Windows, and if your Linux partition (ext2 or ext3 only)
-is on the same machine, use explore2fs to get the files directly from your Linux
+If you contact us from MS Windows, and if your Linux partition is on the same
+machine, use one of the tools below to get the files directly from your Linux
 partition instead of rebooting each time to Linux to get a file!
-explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
+explore2fs (ext2, ext3): http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
+waxfs (xfs): http://sourceforge.net/projects/waxfs/
+p-nand-q (reiserfs): http://p-nand-q.com/e/reiserfs.html
