@@ -321,8 +321,13 @@ void check_modem()
 
 	gettimeofday(&now,NULL);
 	
-	printf("I found your " ECI_NAME " (in less than %d ms) : GREAT!\n",
-		   (now.tv_sec-start.tv_sec)*1000+(now.tv_usec-start.tv_usec)/1000);
+	printf(
+		"I found your " ECI_NAME " (in less than %ld ms) : GREAT!\n",
+		(long) (
+			((now.tv_sec - start.tv_sec) * 1000) 
+			+ ((now.tv_usec - start.tv_usec) / 1000)
+		)
+	);
 	pusb_close (dev);
 }
 
