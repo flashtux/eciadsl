@@ -582,21 +582,23 @@ proc select_modem {} {
 	global modems vid1 pid1 vid2 pid2
 
 	set index [.bloc1.modem.liste.contenu curselection]
-	set vid1 [lindex $modems [expr $index*5+1]]
-	set pid1 [lindex $modems [expr $index*5+2]]
-	set vid2 [lindex $modems [expr $index*5+3]]
-	set pid2 [lindex $modems [expr $index*5+4]]
-	.bloc1.modem.vidpid1.entryvid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid1.entrypid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid2.entryvid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid2.entrypid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid1.labelvid configure -foreground black
-	.bloc1.modem.vidpid1.labelpid configure -foreground black
-	.bloc1.modem.vidpid2.labelvid configure -foreground black
-	.bloc1.modem.vidpid2.labelpid configure -foreground black
-	.boutons.create configure -state normal -background lightgreen
-	bind .boutons.create <Enter> {pushstate "Save modifications : write configuration to files (backup all files before)"}
-	bind .boutons.create <Leave> {popstate}
+	if {"$index"!=""} {
+		set vid1 [lindex $modems [expr $index*5+1]]
+		set pid1 [lindex $modems [expr $index*5+2]]
+		set vid2 [lindex $modems [expr $index*5+3]]
+		set pid2 [lindex $modems [expr $index*5+4]]
+		.bloc1.modem.vidpid1.entryvid configure -state normal -foreground black -background lightblue
+		.bloc1.modem.vidpid1.entrypid configure -state normal -foreground black -background lightblue
+		.bloc1.modem.vidpid2.entryvid configure -state normal -foreground black -background lightblue
+		.bloc1.modem.vidpid2.entrypid configure -state normal -foreground black -background lightblue
+		.bloc1.modem.vidpid1.labelvid configure -foreground black
+		.bloc1.modem.vidpid1.labelpid configure -foreground black
+		.bloc1.modem.vidpid2.labelvid configure -foreground black
+		.bloc1.modem.vidpid2.labelpid configure -foreground black
+		.boutons.create configure -state normal -background lightgreen
+		bind .boutons.create <Enter> {pushstate "Save modifications : write configuration to files (backup all files before)"}
+		bind .boutons.create <Leave> {popstate}
+	}
 }
 
 proc select_provider {} {
@@ -604,12 +606,14 @@ proc select_provider {} {
 	global providers dns1 dns2 majfai
 
 	set index [.bloc1.fai.liste.contenu curselection]
-	set dns1 [lindex $providers [expr $index*3+1]]
-	set dns2 [lindex $providers [expr $index*3+2]]
-	if {"$majfai"=="oui"} {
-		.bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
-		.bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
-		.bloc1.fai.dns1.label configure -foreground black
-		.bloc1.fai.dns2.label configure -foreground black
+	if {"$index"!=""} {
+		set dns1 [lindex $providers [expr $index*3+1]]
+		set dns2 [lindex $providers [expr $index*3+2]]
+		if {"$majfai"=="oui"} {
+			.bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
+			.bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
+			.bloc1.fai.dns1.label configure -foreground black
+			.bloc1.fai.dns2.label configure -foreground black
+		}
 	}
 }
