@@ -1,7 +1,7 @@
 /*
  *	eoc.c
  * 
- *	Author : Valette Jean-Sébastien
+ *	Author : Valette Jean-Sï¿½astien
  *
  * Creation : 18 01 2004
  *
@@ -18,6 +18,8 @@
  * 		  using stdlib call.
 */
 #include <assert.h>
+#include <sys/types.h>
+#include <errno.h>
 
 #include "eoc.h"
 
@@ -29,7 +31,7 @@ static int eocreadcnt;		/* readcounter	*/
 static int eocreadpos;		/* position index in readed register	*/
 static int eocreadlen;		/* length inread register	*/
 
-static char eoc_out_buf[32];	/* out buffer */
+static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
 struct eoc_registers eocregs;
@@ -40,13 +42,13 @@ struct eoc_registers eocregs;
 
 void eoc_init() {
 		eoc_out_buffer_pos = eocmescnt = eocmesval = eocstate = 0;
-};
+}
 
 /*
  *		Decode the buffer and return the 13 bit eoc code  
  */
-u_int16t eoc_decode(char b1, char b2) {
-	return (((b2>>2) & 0x3f)) || ((b1 & 0xfe) << 5));
+u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
+	return (((b2>>2) & 0x3f) || ((b1 & 0xfe) << 5));
 }
 
 /*
@@ -55,18 +57,15 @@ u_int16t eoc_decode(char b1, char b2) {
 void eoc_execute(u_int16_t eocmesval) {
 	switch(EOC_OPCODE(eocmesval)) {
 		case EOC_OPCODE_READ_0:
-			eocstate = preread;
-			eocreadpar = oecreadcnt = eocreadpos = 0;
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = 0;
 			eocreadlen = 8;
 			break;
 		case EOC_OPCODE_READ_1:
-			eocstate = preread;
-			eocreadpar = ecreadcnt = eocreadpos = 0;
+			eocstate = _preread;
+			eocreadpar = eocreadcnt = eocreadpos = 0;
 			eocreadlen = 2;
 			break;			
-		default:
-			
-			/* break; useless	*/
 	}
 }
 
@@ -78,15 +77,15 @@ void eoc_next() {
 	int	mes;
 	
 	switch(eocstate) {
-		case preread:
-			eocstate = read;
+		case _preread:
+			eocstate = _read;
 		break;
-		case read:
+		case _read:
 			if(eocreadpos < eocreadlen) {
 				mes=0;
-				mes | = 0 ;		
+				mes |= 0;
 			} else {
-				mes = EOC_OPCAODE_REP_EOD;
+				mes = EOC_OPCODE_EOD;
 			}
 		break;
 	}
@@ -97,10 +96,9 @@ void eoc_next() {
 	
 */
 
-int parse_eoc_buffer(char *buffer, int bufflen) {
+int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	int i=0; 
-	int err
-	u_int16t eoccode;
+	u_int16_t eoccode;
 	
 	assert(bufflen < EOC_MAX_LEN);
 	
@@ -116,37 +114,37 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
 				eocmescnt = 0;
 				continue;
 			} else {
-				oecmescnt++;
+				eocmescnt++;
 			}
 			switch(eocstate) {
-				case preread:
+				case _preread:
 						switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
-								if((eocmescnt >= 2) && (EOC_PARITY == EOC_PARITY_ODD)) 
-									eocstate = read;
+								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
+									eocstate = _read;
 								if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
-									eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+									eoc_out_buf[eoc_out_buffer_pos++] = eocmesval;
 								} else {
 									return -EIO;
 								}
 								break;
-							case RTN:
-							case HOLD:
+							case EOC_OPCODE_RTN:
+							case EOC_OPCODE_HOLD:
 								if(eocmescnt >= 2) 
-									eocstate = idle;
+									eocstate = _idle;
 								break;
 						}
 						if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
-							eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+							eoc_out_buf[eoc_out_buffer_pos++] = eocmesval;
 						} else {
 							return -EIO;
 						}
 						break;
-				case idle:	/*like G992.2 recomendation */
-					if(eocmescns >=2) /* execute third time with same message */
-						if((err = eoc_execute(eocmesval)) <0) return err;
+				case _idle:	/*like G992.2 recomendation */
+					if(eocmescnt >=2) /* execute third time with same message */
+						eoc_execute(eocmesval);
 					if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
-						eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+						eoc_out_buf[eoc_out_buffer_pos++] = eocmesval;
 					} else {
 						return -EIO;
 					}
@@ -161,16 +159,20 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
  * 	return the buffer for eoc answer
  */
 
- void get_oec_answer(char *eocoutbuff) {
+ void get_oec_answer(unsigned char *eocoutbuff) {
  	int i;
  	
  	assert(eoc_out_buffer_pos<32);
  	
- 	for(i = 0; i< 32; i++) {	/* to be optimized */
+ 	for(i=0; i< 32; i++) {	/* to be optimized */
  			eocoutbuff[i] = 0x0c;
  	}
  	for(i=0; i < eoc_out_buffer_pos; i++) {
  		eocoutbuff[i] = eoc_out_buf[i++];
  	}
  	eoc_out_buffer_pos = 0;
+}
+
+int has_eocs(){
+	return (eocmescnt);
 }

@@ -1,7 +1,7 @@
 /*
  *	eoc.h
  * 
- *	Author : Valette Jean-Sébastien
+ *	Author : Valette Jean-Sï¿½astien
  *
  * Creation : 20 01 2004
  *
@@ -21,10 +21,10 @@
 #define EOC_MAX_LEN 34
 
 #define EOC_ADDRESS(x) (x  & 0x0003)
-#define ECO_ADDRESS_ATU_R 0x0000
+#define EOC_ADDRESS_ATU_R 0x0000
 #define EOC_ADDRESS_ATU_C 0x0003
 
-#define EOC_OPCODE(x)		((x & (0xFF << 5)) || ((x >> 7 ) & 1))
+#define EOC_OPCODE(x)		((x & (0xFF << 5)) | ((x >> 7 ) & 1))
 #define EOC_OPCODE_HOLD		(0x01 << 5)
 #define EOC_OPCODE_RTN		(0xf0 << 5)
 #define EOC_OPCODE_SLFTST	(0x02 << 5)
@@ -74,13 +74,13 @@
 #define EOC_OPCODE_DGASP	(0xE7 << 5)
 #define EOC_OPCODE_UTC		(0x04 << 5)
 
-#define EOC_PARITY (x)		(x & 0x0004)
+#define EOC_PARITY(x)		(x & 0x0004)
 #define EOC_PARITY_ODD		0x0040
 #define EOC_PARITY_EVEN		0x0040
 
 
 
-enum eoc_state { idle =0, utc, exe, preread, read, prewirte, write);
+typedef enum { _idle =0, _utc, _exe, _preread, _read, _prewirte, _write} eoc_state;
 
 struct eoc_registers {
 	char vendorID[8];	/* reg 0 */
@@ -95,4 +95,13 @@ struct eoc_registers {
 						/* no reg 9 reserved for future */
 	char linkstate;		/* reg A */
 						/* no reg B to F reserved for future */
-}
+};
+
+
+void eoc_init(void); 
+
+int has_eocs(void);
+
+int parse_eoc_buffer(unsigned char *buffer, int bufflen);
+
+void get_oec_answer(unsigned char *eocoutbuff);
