@@ -578,6 +578,9 @@ Q:	Mes taux de transfert sont très bas (2-5KO/sec au lieu de 40KO/sec par
 --------------------------------------------------------------------------------
 R:	Essayez un autre .bin de synchro.
 
+	C'est notamment le cas de certains utilisateurs en Belgique, qui sont passés
+	récemment au 3.3Mbit/sec de bande passante.
+
 
 5.0
 ================================================================================
@@ -589,89 +592,92 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	cherchez-les sur google ou téléchargez l'archive cnx, disponible dans la
 	section "téléchargement" du site officiel eciadsl.
 
-<TRANSLATE>
-	Making it possible using init.d:
+	Configuration par init.d:
 
-	Pre-requisites:
-	 - ECIADSL driver installed and configured
-	 - the cnx package (auto reconnection script)
-	All this stuff is available at: http://eciadsl.flashtux.org/download.php
-
-
-	Mandrake or RedHat users: get rc.adsl.MDK from the cnx package.
-	SuSE users: get rc.adsl.SuSE from the cnx package.
-	Other systems: get rc.adsl.MDK from the cnx package, but it may be necessary
-	to adapt it to your system.
+	Pré-requis:
+	 - le driver ECIADSL est installé et configuré
+	 - vous avez téléchargé le package cnx (script de reconnexion automatique)
+	Vous trouverez ceux-ci ici: http://eciadsl.flashtux.org/download.php
 
 
-	Copy the rc.adsl* file to /etc/init.d: cp rc.adsl /etc/init.d
+	Utilisateurs de Mandrake ou de RedHat: prenez le fichier rc.adsl.MDK dans le
+	package cnx.
+	Utilisateurs de SuSE: prenez l;e fichier rc.adsl.SuSE.
+	Utilisateurs d'autres distributions GNU/Linux: prenez le fichier rc.adsl.MDK
+	bien qu'il soit possible que vous ayiez à l'adapter à votre distribution.
 
+	Copier le fichier rc.adsl* vers /etc/init.d: cp rc.adsl /etc/init.d
 
-	Each rc*.d directory corresponds to an init level. For instance, init level
-	5 is the one that leads to a graphical login (this is default on most Linux
-	systems), so /etc/rc.d/rc5.d belongs to that level.
+	Dans /etc/rc.d, chaque répertoire rc*.d correspond à un init-level. Par
+	exemple, l'init-level 5 est celui qui est atteint par défaut au démarrage de
+	nombreuses distributions Linux, permettant un login graphique.
+	À cet init-level correspond 5 donc le répertoire /etc/rc.d/rc5.d.
 
-	You will find more information about init levels:
+	Vous trouverez plus d'informations à propos des ces init-levels en tapant:
 		man inittab
-	or look at your /etc/inittab file.
+	ou en jetant un oeil à votre /etc/inittab.
 
-	To know which default init level is reached at boot, find a line like the
-	following in /etc/inittab file:
+	Afin de savoir quel est l'init-level par défaut au démarrage de votre
+	système, consultez votre /etc/inittab et chercher la ligne ressemblant à:
 		id:5:initdefault:
-	Here, default level is 5.
-	Let's say we use init level 5 at boot.
+	Dans ce cas-ci, l'init-level par défaut est 5.
+	Admettons pour la suite des opérations que c'est notre cas.
 
-	You have to know that when your system enters an init level, it calls all
-	the	K* files from the last level, then call all the S* files from the new
-	level. All these K* and S* files are in /etc/rc.d/rc<init level>.d they
-	belong to.
+	Pour info: quand le système entre dans un init-level particulier, il
+	appelle tous les fichiers K* contenu dans le répertoire associé à
+	l'init-level qu'il quitte, puis appelle tous les fichiers S* associés au
+	nouvel init-level. Ces fichiers K* et S* sont dans les répertoires
+	/etc/rc.d/rc<init-level>.d comme vous vous en seriez douté (n'est-ce pas?).
+	Ces fichiers K* et S* sont en fait des liens symboliques vers des scripts
+	situés en général dans /etc/init.d.
 
-	Eash S* file is like this: Sxxyyyyy, where xx is a 2-digit number, and
-	yyyyy a service name (the name is human friendly, but you can set it as
-	anything you want).
-	All Sxxyyyyy files are called following the xx number (increasingly), then
-	by the service name (yyyyy, alphabetical increasing order).
+	Chaque fichier S* est de la forme: Sxxyyyyy, où xx est un nombre à 2
+	chiffres et yyyyy un nom de service ou de démon.
+	Les fichiers Sxxyyyyy sont appellés par le système par ordre croissant de
+	xx, puis par ordre alphabétique croissant de yyyyy.
 
-	For instance:
+	Par exemple:
 		ls /etc/rc.d/rc5.d
-	shows
+	affiche
 		S01foo
 		S15bar
 		S99dummy
 		K10schtroumpf
 		K80barbatruc
-	(take care, it's only an example).
-	So when init level 5 in entered, it will call S01foo, S15bar then S99dummy.
+	(ce n'est qu'un exemple).
+	Cela veut dire que quand le système entre en init-level 5, il va appeler
+	S01foo, s15bar puis s((dummy.
+	De façon identique, quand l'init-level 5 est quitté, les fichiers K* vont
+	être appelés. Selon le système, ils peuvent être appelés par xx croissant
+	ou décroissant, puis par yyyyy.
 
-	When init level 5 is left, this is the same for K* files. But following the
-	system, they are called in the same order (by xx increasingly), or in a
-	reverse order (by xx decreasingly).
-
-	Now you know how all this stuff works, you can make the relevant links to
-	/etc/init.d in /etc/rc.d/rc5.d.
+	Maintenant vous en savez un peu plus sur le fonctionnement des init-level
+	vous pouvez donc créer les liens symboliques vers /etc/init.d dans
+	/etc/rc.d/rc5.d.
 
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
-	or
+	ou
 		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/S90adsl 
 		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/K90adsl 
-	following the rc.adsl file you use.
+	en fonction du fichier rc.adsl que vous utilisez.
 
-	Before you create these links, ensure that the S90 is relevant, this means
-	that S90* will be called after all other network services.
-	Of course, verify that K90 is relevant too. According to some systems
-	(reverse kill order) this would be better to use K00, but simply think of
-	the best order to kill the connection.
+	Avant de créer ces liens, assurez-vous que 90 est un chiffre pertinent, au
+	sens ou il doit être disponible :-), mais aussi que S90 sera exécuté après
+	tout autre service réseau. Idem pour K90, selon l'ordre d'appel des K*, il
+	sera préférable d'utiliser K00 plutôt.
 
-	Once all the symlinks are done, you can test it by rebooting your system.
-	You can also test it without rebooting: close your X11 session, open a
-	root session in console mode, then:
+	Une fois ces liens créés, vous pouvez tester tout cela en redémarrant votre
+	système.
+	Vous pouvez toutefois faire le test sans avoir à redémarrer: fermez tous vos
+	applications, ainsi que vos sessions X11 ou console. Logguez-vous sous root
+	en mode console, puis changez d'init-level en tapant:
 		init 3
-	then
-		init 5.
-	Understood what it does? It means leaving init level 5 to init level 3, then
-	coming back to init level 5. The relevant S* and K* links will be called!
-</TRANSLATE>
+	puis revenez à votre init-level normal en tapant:
+		init 5
+	Vous voyez ce dont il s'agit? En quittant l'init-level 5 pour l'init-level 3
+	puis en revenant à l'init-level 5, les fichiers K* et S* correspondants aux
+	init-levels quittés et entrés sont appelés!
 
 
 5.1
@@ -739,6 +745,13 @@ R:	Tapez les commandes suivantes :
 		  < >	PPP over ATM (EXPERIMENTAL)
 		 ..
 
+	En fonction du type d'encapsulation PPP utilisé par votre fournisseur
+	d'accès, il vous sera peut-être nécessaire d'apporter quelques autres
+	modificatiions à la configuration du noyau. Utilisateurs de PPPoE ou de
+	IPoATM, consultez la question 5.3.1.
+
+	Une fois le fichier de configuration du noyau sauvegardé, tapez:
+
 		make -s dep modules modules_install && depmod -a
 
 	ou la commande que vous utilisez habituellement pour compiler et installer
@@ -778,6 +791,27 @@ R:	Tapez les commandes suivantes :
 	ou	alias usb-hostadapter uhci
 	et enfin tapez :
 		touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+
+
+5.3.1
+================================================================================
+Q:	Comment configurer correctement le noyau depuis les sources si j'utilise
+	une connexion PPPoE, Bridged Ethernet (RFC1483B) ou IPoATM (RFC1483R)?
+
+--------------------------------------------------------------------------------
+A:	Les principes de configuration et de compilation du noyau sont les mêmes
+	(voir 5.3), mais vous devez ajouter ceci à la configuration:
+
+		  Network device support --->
+		  ..
+		  [*] Network device support
+	    	..
+	    	<M> Universal TUN/TAP device driver support
+	    	..
+
+	puis tapez:
+		mkdir /dev/net
+		mknod /dev/net/tun c 10 200
 
 
 5.4

@@ -38,7 +38,7 @@ WHERE TO GET SUPPORT
 
 	Support, packages (driver and optional synch .bin's) and documentation:
 		- IRC: openprojects.net, #eci channel
-		- http://eciadsl.sf.net or http://eciadsl.flashtux.org
+		- http://eciadsl.sf.net or http://eciadsl.flashtux.org?lang=en
 		  (documentation, forum, user mailing list, etc.)
 		  
 	We provide support in both French and English languages.
@@ -102,7 +102,7 @@ Q:	I don't know if my modem is supported.
 --------------------------------------------------------------------------------
 A:	Check the pre-requisites.
 
-	Check at http://eciadsl.flashtux.org/modems.php.
+	Check at http://eciadsl.flashtux.org/modems.php?lang=en.
 	
 	Install the latest driver version, then launch startmodem or eci-doctor.sh,
 	if they report errors, try to launch probe_device.sh to check your modem
@@ -567,6 +567,9 @@ Q:	My transfert rate is very slow (for instance 2-5KB/sec instead of the
 --------------------------------------------------------------------------------
 A:	Try with another synch .bin.
 
+	Recently, some users from Belgium have had such problems, since their
+	provider now deliver 3.3Mbit/sec bandwidth.
+
 
 5.0
 ================================================================================
@@ -583,7 +586,8 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	Pre-requisites:
 	 - ECIADSL driver installed and configured
 	 - the cnx package (auto reconnection script)
-	All this stuff is available at: http://eciadsl.flashtux.org/download.php
+	All this stuff is available at:
+	http://eciadsl.flashtux.org/download.php?lang=en
 
 
 	Mandrake or RedHat users: get rc.adsl.MDK from the cnx package.
@@ -591,13 +595,11 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	Other systems: get rc.adsl.MDK from the cnx package, but it may be necessary
 	to adapt it to your system.
 
-
 	Copy the rc.adsl* file to /etc/init.d: cp rc.adsl /etc/init.d
 
-
-	Each rc*.d directory corresponds to an init level. For instance, init level
-	5 is the one that leads to a graphical login (this is default on most Linux
-	systems), so /etc/rc.d/rc5.d belongs to that level.
+	In /etc/rc.d, each rc*.d directory corresponds to an init level. For
+	instance, init level 5 is the one that leads to a graphical login (this is
+	default on most Linux systems), so /etc/rc.d/rc5.d belongs to that level.
 
 	You will find more information about init levels:
 		man inittab
@@ -607,12 +609,14 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	following in /etc/inittab file:
 		id:5:initdefault:
 	Here, default level is 5.
-	Let's say we use init level 5 at boot.
+	For the operations below, let's say we use init level 5 at boot.
 
 	You have to know that when your system enters an init level, it calls all
 	the	K* files from the last level, then call all the S* files from the new
 	level. All these K* and S* files are in /etc/rc.d/rc<init level>.d they
 	belong to.
+	In fact, these S* and K* files are symlink, and point to scripts located
+	(most of the times) in /etc/init.d.
 
 	Eash S* file is like this: Sxxyyyyy, where xx is a 2-digit number, and
 	yyyyy a service name (the name is human friendly, but you can set it as
@@ -656,7 +660,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	root session in console mode, then:
 		init 3
 	then
-		init 5.
+		init 5
 	Understood what it does? It means leaving init level 5 to init level 3, then
 	coming back to init level 5. The relevant S* and K* links will be called!
 
@@ -683,7 +687,7 @@ Q:	How to properly configure kernel from the sources to get USB/PPP/N_HDLC
 	support?
 
 --------------------------------------------------------------------------------
-A:	Type the following commands:
+A	Type the following commands:
 		cd /usr/src/linux
 		make -s menuconfig
 
@@ -724,6 +728,12 @@ A:	Type the following commands:
 		  < >	PPP over ATM (EXPERIMENTAL)
 		 ..
 
+	Following the kind of PPP encapulsation your provider uses, you may need
+	extra settings in your kernel configuration. PPPoE or IPoATM users, please
+	refer to 5.3.1.
+
+	Once the kernel configuration file stored, type:
+
 		make -s dep modules modules_install && depmod -a
 
 	or whatever command you use to compile and install the kernal modules.
@@ -762,6 +772,27 @@ A:	Type the following commands:
 	or	alias usb-hostadapter uhci
 	then
 		touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+
+
+5.3.1
+================================================================================
+Q:	How to properly configure kernel from the sources if I use PPPoE, Bridged
+	Ethernet (RFC1483B) or IPoATM (RFC1483R)?
+
+--------------------------------------------------------------------------------
+A:	The kernel configuration and compilation principles are still the same
+	(see 5.3), but you need this:
+
+		  Network device support --->
+		  ..
+		  [*] Network device support
+	    	..
+	    	<M> Universal TUN/TAP device driver support
+	    	..
+
+	then type:
+		mkdir /dev/net
+		mknod /dev/net/tun c 10 200
 
 
 5.4
