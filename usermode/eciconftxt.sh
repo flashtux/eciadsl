@@ -660,6 +660,9 @@ case "$1" in
 					esac
         			test -z "$gateway" && echo -n "** invalid gateway IP, try again $TMP: "
         		done
+			else
+				staticip=""
+				gateway=""
 			fi
 		fi
 
