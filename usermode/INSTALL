@@ -9,11 +9,16 @@ then
 Check ./configure --help to get a list of optional settings. You may want to
 install the software in a different place than the default one (/usr/local),
 using --prefix=/opt for instance.
-Config files can also be installed in a directory you may prefer (default is
-in /etc), using the --etc-prefix parameter (for instance: --etc-prefix=/opt).
-Be carefull, as --etc-prefix is used to store the driver config files, until
-now it is also used to find the pppd config files as well as global system
-configuration files! Use --etc-prefix only if you know what you are doing.
+
+Driver's config files can also be installed in a directory you may prefer
+(default is in /etc/eciadsl), using the --conf-prefix (default is /) AND
+--conf-fir (default is eci/adsl) parameters. For instance:
+	--conf-prefix=/opt --conf-dir=etc/eciadsl
+or	--conf-prefix=/opt/eciadsl --conf-dir=etc
+
+Be careful, --etc-prefix can be changed too (defaut is /, so /etc is used),
+but it is used to get system config files like resolv.conf or the pppd config
+files. Use --etc-prefix only if you know what you are doing.
 
 
 INSTALLATION

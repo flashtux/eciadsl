@@ -10,14 +10,18 @@ Taper ./configure --help pour voir la liste des options disponibles. Si le
 driver doit être installé dans un autre répertoire de base que celui par défaut
 (/usr/local), utiliser l'option --prefix, par exemple :
 	./configure --prefix=/opt
+
 Les fichiers de configuration du driver peuvent eux aussi être installés
-ailleurs que dans le répertoire de base par défaut (/etc). Utiliser pour cela
-l'option --etc-prefix, par exemple:
-	./configure --etc-prefix=/opt
-Attention, pour l'instant, le --etc-prefix est utilisé pour définir où stocker
-les fichiers de configuration du driver, mais aussi pour accéder à ceux de
-pppd et à la configuration globale du système! N'utiliser donc --etc-prefix
-qu'en sachant exactement ce que cela implique.
+ailleurs que dans le répertoire par défaut (/etc/eciadsl). Utiliser pour cela
+les options --conf-prefix (par défaut: /) et --conf-dir (par défaut: etc/eciadsl).
+Par exemple:
+	--conf-prefix=/opt --conf-dir=etc/eciadsl
+ou	--conf-prefix=/opt/eciadsl --conf-dir=etc
+
+Attention, l'option --etc-prefix (par défault: /, le répertoire est donc /etc)
+est utilisée pour accéder aux fichiers de configuration de pppd et à resolv.conf
+notamment! N'utiliser donc --etc-prefix qu'en sachant exactement ce que cela
+implique.
 
 
 INSTALLATION
