@@ -54,6 +54,7 @@ function commandline_help()
 	echo "  --with-kernel-sources={PATH}  where to find the kernel sources (default=$KERNEL_SOURCES_PATH_DEFAULT)"
 
 	echo "  --enable-maintainer-mode      use default settings for maintainers (config/make/runtime options)"
+	echo "  --enable-rpm-maintainer-mode  use default settings for rpm maintainers (config/make/runtime options)"
 	echo "  -h or --help                  display this help then exit"
 	echo "  -v or --version               display version info then exit"
 	echo "example:"
@@ -506,10 +507,23 @@ function maintainer_defaults()
 		let DEBUG=1
 		let WARNINGS=1
 		let PPPD_CHECK=1
+		let WISH_CHECK=1
 		DIST_PREFIX="$(pwd)/dist"
 		DIST_ETC_PREFIX="$(pwd)/dist"
 		DIST_CONF_PREFIX="$(pwd)/dist"
 		DIST_DOC_PREFIX="$(pwd)/dist"
+	fi
+}
+
+function rpm_maintainer_defaults()
+{
+	# force some default settings for rpm maintainers
+	if [ $MAINTAINER -eq 1 ]
+	then
+		let DEBUG=1
+		let WARNINGS=1
+		let PPPD_CHECK=1
+		let WISH_CHECK=1
 	fi
 }
 
@@ -605,6 +619,8 @@ do
 		"--enable-debug")			let DEBUG=1;;
 		"--enable-maintainer-mode")	let MAINTAINER=1
 									maintainer_defaults;;
+		"--enable-rpm-maintainer-mode")	let MAINTAINER=1
+									rpm_maintainer_defaults;;
 		"--quiet")					let QUIET=1;;
 		"--clean")					clean_files "all"
 									exit 0;;
@@ -625,7 +641,7 @@ done
 test -z "$DIST_PREFIX" && DIST_PREFIX="$DIST_PREFIX_DEFAULT"
 test -z "$DIST_ETC_PREFIX" && DIST_ETC_PREFIX="$DIST_ETC_PREFIX_DEFAULT"
 test -z "$DIST_CONF_PREFIX" && DIST_CONF_PREFIX="$DIST_CONF_PREFIX_DEFAULT"
-test -z "$DIST_DOC_PREFIX" && DIST_DOC_PREFIX="$DIST_PREFIX_DEFAULT"
+test -z "$DIST_DOC_PREFIX" && DIST_DOC_PREFIX="$DIST_PREFIX"
 test -z "$DIST_BIN_DIR" && DIST_BIN_DIR="$DIST_BIN_DIR_DEFAULT"
 test -z "$DIST_ETC_DIR" && DIST_ETC_DIR="$DIST_ETC_DIR_DEFAULT"
 test -z "$DIST_CONF_DIR" && DIST_CONF_DIR="$DIST_CONF_DIR_DEFAULT"
@@ -641,7 +657,7 @@ default_or_user "$DIST_ETC_PREFIX" "$DIST_ETC_PREFIX_DEFAULT"
 display 1 -n "driver conf files prefix path = $DIST_CONF_PREFIX "
 default_or_user "$DIST_CONF_PREFIX" "$DIST_CONF_PREFIX_DEFAULT"
 display 1 -n "driver doc files prefix path = $DIST_DOC_PREFIX "
-default_or_user "$DIST_DOC_PREFIX" "$DIST_PREFIX_DEFAULT"
+default_or_user "$DIST_DOC_PREFIX" "$DIST_PREFIX"
 display 1 -n "binaries directory = $DIST_BIN_DIR "
 default_or_user "$DIST_BIN_DIR" "$DIST_BIN_DIR_DEFAULT"
 display 1 -n "system conf files directory = $DIST_ETC_DIR "
