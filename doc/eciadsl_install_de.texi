@@ -332,8 +332,8 @@ des/der DNS-Server Ihres Providers nicht wissen, lesen Sie die
 folgende Frage in den FAQ:@*
 @uref{http://eciadsl.flashtux.org/faq.php?lang=en#1.6}@*
 @*
-Bei T-Online w@"aren hier die folgenden Adressen einzutragen:@*
-212.185.253.9 und 194.25.2.129@*
+Bei T-Online sind hier bspw. die folgenden Adressen einzutragen:@*
+217.5.115.7 und 194.25.2.129@*
 @item Modem
 W@"ahlen Sie Ihr Modem aus der Liste aus.@*
 Ist Ihr Modem nicht in der Liste, schauen Sie bitte hier nach:@*
@@ -357,7 +357,7 @@ Option ausw@"ahlen. Schauen Sie hierzu bitte in den FAQ nach:@*
 RFC1483 BRIDGED ETH with NO FCS@*
 @item DHCP
 W@"ahlen Sie diese Option wenn Ihr Provider Ihnen eine IP-Adresse
-per DHCP zuweist. Bei T-DSL trifft dies bspw. nicht zu.@*
+per DHCP oder PPPoE zuweist. Bei T-DSL ist dies der Fall.@*
 @item Static IP
 W@"ahlen Sie dies wenn Sie eine statische IP-Adresse benutzen.@*
 Geben Sie diese und das Gateway anschlie@ss{}end ein.@*
@@ -518,8 +518,8 @@ steht (z.B. ``Wan modem'') und klicken Sie auf ``Install''.
 Anschlie@ss{}end m@"ussen Sie das Modem kurz vom Rechner trennen und
 wieder anschlie@ss{}en. Sobald das Modem mit der Synchronisierung fertig
 ist (achten Sie auf die LEDs am Modem), klicken Sie auf ``Uninstall''.@*
-Eventuell m@"ussen Sie das Modem auch wieder vom Rechner trennen, da-
-mit der Sniffer keine weiteren Pakete mitschreibt.@*
+Eventuell m@"ussen Sie das Modem auch wieder vom Rechner trennen, damit
+der Sniffer keine weiteren Pakete mitschreibt.@*
 Die abgeh@"orten USB-Pakete sollten nun in @file{C:\WINxxx\usbsnoop.log} zu
 finden sein.@*
 Booten Sie anschlie@ss{}end Linux.@*
