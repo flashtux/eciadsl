@@ -161,6 +161,16 @@ test -z "$provider" && provider="Other"
 test -z "$use_staticip" && use_staticip="no"
 test -z "$use_dhcp" && use_dhcp="no"
 
+
+#
+# check/create directories
+#
+
+test -d "$CONF_DIR" || mkdir -p "$CONF_DIR"
+test -d "$PPPD_DIR" || mkdir -p "$PPPD_DIR"
+test -d "$PPPD_DIR/peers" || mkdir "$PPPD_DIR/peers"
+
+
 if [ ! -f "$pppoeci" -o ! -x "$pppoeci" ]
 then
     echo "ERROR: $pppoeci is not a valid executable"
