@@ -1,4 +1,4 @@
-/*****************************************************************************
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	/*****************************************************************************
 *                                                                            *
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
@@ -23,7 +23,11 @@
                     Include stuf
 ***********************************************************************/
 
-#include <linux/modversions.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
+	#include <linux/modversions.h>
+#else
+		#include <linux/config/modversions.h>
+#endif
 #include <linux/module.h>
 
 #include <linux/init.h>
@@ -589,10 +593,7 @@ static int _eci_tx_aal5(
 		int, int, 
 		struct eci_instance *, struct sk_buff *
 ) ;
-static int _eci_rx_aal5(
-		struct eci_instance*,
-		aal5_t*
-) ;
+static int _eci_rx_aal5(struct eci_instance*, aal5_t*, struct atm_vcc *);
 
 /*
  * Send data from USB (single uni cell) to ATM
@@ -858,7 +859,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		*/
 		for(eci_isourbcnt=0;
 			eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 				if(!(eciurb=usb_alloc_urb(ECI_NB_ISO_PACKET))) {
+#else
+				if(!(eciurb = usb_alloc_urb(ECI_NB_ISO_PACKET, GFP_KERNEL))) {
+#endif
 					ERR_OUT(	"not enought memory for iso urb %d\n", eci_isourbcnt);
 					goto erreure;
 				}
@@ -871,7 +876,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			eciurb->dev = dev;
 			eciurb->context = out_instance;
 			eciurb->pipe = usb_rcvisocpipe(dev, ECI_ISO_PIPE);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 			eciurb->transfer_flags = USB_ISO_ASAP;
+#else
+			eciurb->transfer_flags = URB_ISO_ASAP;
+#endif
 			eciurb->number_of_packets = ECI_NB_ISO_PACKET;
 			eciurb->complete = eci_iso_callback;
 			eciurb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE;
@@ -882,12 +891,20 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 					ECI_ISO_PACKET_SIZE;
 				eciurb->iso_frame_desc[i].actual_length = 0 ;
 			}
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 			if(usb_submit_urb(eciurb)) {
+#else
+			if(usb_submit_urb(eciurb, GFP_KERNEL)) {
+#endif			
 				ERR_OUT("error couldn't send iso urbs\n");
 				goto erreure;
 			}
 		}
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))		
 		if(!(eciurb=usb_alloc_urb(0))) {
+#else
+		if(!(eciurb = usb_alloc_urb(0, GFP_KERNEL))) {
+#endif		
 			ERR_OUT("Can't allocate int urb !\n");
 			goto erreure;
 		}
@@ -906,7 +923,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		usb_fill_int_urb(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
 			out_instance->interrupt_buffer,64,
 			eci_int_callback,out_instance,3);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 		if(usb_submit_urb(eciurb)) {
+#else
+		if(usb_submit_urb(eciurb, GFP_KERNEL)) {
+#endif		
 			ERR_OUT("error couldn't send interrupt urb\n");
 			goto erreure;
 		}
@@ -1047,7 +1068,7 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci) {
 		return -EINVAL;
 	}
 #endif /* ATM_VPI_UNSPEC && ATM_VCI_UNSPEC */
-	
+#if 0	
 	/*
 	 * Check that a context don't exists already
 	 */
@@ -1055,9 +1076,9 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci) {
 	if (lv_rc != 0) {
 		ERR_OUT("atm_find_ci failed [%d]", lv_rc) ;
 		return lv_rc ;
-	}
+	}	
 	DBG_OUT("params after find : [%hd.%d]\n", vpi, vci) ;
-
+#endif
 	set_bit(ATM_VF_ADDR,&vcc->flags);
 
 	vcc->vpi = vpi ;
@@ -1241,7 +1262,11 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 		usb_fill_control_urb(eciurb, instance->usb_wan_dev, pipe, 
 			setuppacket, eciurb->transfer_buffer, size, eci_init_vendor_callback,
 			instance);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 		if(usb_submit_urb(eciurb)) {
+#else
+		if(usb_submit_urb(eciurb, GFP_ATOMIC)) {
+#endif
 			ERR_OUT("error couldn't send init urb\n");
 			return;
 		}
@@ -1480,7 +1505,11 @@ static void eci_int_callback(struct urb *urb) {
 						instance->usb_wan_dev, usb_pipecontrol(0),
 						(unsigned char*) &dr,	eci_outbuf,
 						sizeof(eci_outbuf),	eci_control_callback,dr);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))						
 					usb_submit_urb(instance->vendor_urb);
+#else
+					usb_submit_urb(instance->vendor_urb, GFP_ATOMIC);
+#endif
 				}
 			}
 		}
@@ -1564,7 +1593,11 @@ static void eci_iso_callback(struct urb *urb) {
 	end:
 	urb->dev = instance->usb_wan_dev;
 	urb->pipe = usb_rcvisocpipe(urb->dev, ECI_ISO_PIPE);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 	urb->transfer_flags = USB_ISO_ASAP;
+#else
+	urb->transfer_flags = URB_ISO_ASAP;
+#endif
 	urb->number_of_packets = ECI_NB_ISO_PACKET;
 	urb->complete = eci_iso_callback;
 	urb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE;
@@ -1573,7 +1606,11 @@ static void eci_iso_callback(struct urb *urb) {
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 	usb_submit_urb(urb);
+#else
+	usb_submit_urb(urb, GFP_ATOMIC);
+#endif
 	spin_unlock_bh(&instance->lock);	
 }
 
@@ -1624,7 +1661,11 @@ static void eci_bh_bulk(unsigned long pinstance) {
 		usb_fill_bulk_urb(urb, instance->usb_wan_dev, 
 			usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 			buf, bufpos, eci_bulk_callback, instance);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 		if(usb_submit_urb(urb))	{
+#else
+		if(usb_submit_urb(urb, GFP_ATOMIC)) {
+#ebdif		
 	/*
 		TODO:	Put the cells back in list on error
 			need antother way handling cells and
@@ -1727,7 +1768,7 @@ static int eci_atm_receive_cell(
 	struct atm_vcc *vcc;
 #if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,22))	
 	struct sock *s;
-#endiif
+#endif
 	
 	/* Check Interface */
 	if (!pinstance || !plist)
