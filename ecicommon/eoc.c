@@ -265,9 +265,10 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 						switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
 								printf("EOC.C - parse_eoc_buffer - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
-								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
+								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)){ 
 									eocmescnt = 0;
 									eocstate = _read;
+								}
 								break;
 							case EOC_OPCODE_RTN:
 								printf("EOC.C - parse_eoc_buffer - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
