@@ -127,6 +127,12 @@ radiobutton .telecomitalia.radio -text "Telecom Italia" -variable fai -value tel
 pack .telecomitalia.espace .telecomitalia.radio -side left
 pack .telecomitalia -anchor w
 
+frame .tiscali
+frame .tiscali.espace -width 170
+radiobutton .tiscali.radio -text "Tiscali Italia" -variable fai -value tiscali -command {set dns1 "195.130.224.18"; set dns2 "195.130.225.129"} -padx 10
+pack .tiscali.espace .tiscali.radio -side left
+pack .tiscali -anchor w
+
 set fai wanadoo
 
 foreach dns {1 2} {
@@ -173,9 +179,9 @@ set statetext "Ready."
 proc run_makeconfig {username password path_pppoeci dns1 dns2} {
 global titre_fenetre majdns
     if {[string compare $majdns "oui"] == 0} {
-        set returncode [catch {exec makeconfig $username $password $path_pppoeci $dns1 $dns2} sortie]
+        set returncode [catch {exec ./makeconfig $username $password $path_pppoeci $dns1 $dns2} sortie]
     } else {
-        set returncode [catch {exec makeconfig $username $password $path_pppoeci 0 0} sortie]
+        set returncode [catch {exec ./makeconfig $username $password $path_pppoeci 0 0} sortie]
     }
     toplevel .confok
     wm title .confok $titre_fenetre
@@ -250,6 +256,7 @@ global majdns
         .cegetel.radio configure -state normal
         .worldonline.radio configure -state normal
         .telecomitalia.radio configure -state normal
+        .tiscali.radio configure -state normal
         .framedns1.dns1 configure -state normal -background lightblue
         .framedns2.dns2 configure -state normal -background lightblue
     } else {
@@ -259,6 +266,7 @@ global majdns
         .cegetel.radio configure -state disabled
         .worldonline.radio configure -state disabled
         .telecomitalia.radio configure -state disabled
+        .tiscali.radio configure -state disabled
         .framedns1.dns1 configure -state disabled -background lightgray
         .framedns2.dns2 configure -state disabled -background lightgray
     }
