@@ -1,0 +1,8 @@
+
+
+All you have to do is to run make then make install.
+After edit /etc/ppp/peers/adsl file to change user name, vpi and vci 
+according to your provider and account.
+Then just add a line like 'username * pass *' in the /etc/ppp/chap-secrets file.
+thats all
+you can use startmodem script to start the modem.

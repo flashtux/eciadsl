@@ -1,0 +1,6 @@
+#!/bin/sh
+eci-load1 eci_firm_kit_wanadoo.bin
+eci-load2 eci_wan3.bin
+ppp call adsl
+
+
