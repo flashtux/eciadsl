@@ -15,6 +15,23 @@
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
+#
+#	Ugly stuff to check for eci-load? location.
+#	If not in path assume it is in /usr/local/bin
+#
+export ECILOAD1
+ECILOAD1=`which eci-load1`
+if [ -f $ECILOAD1 ]; then
+	ECILOAD1=/usr/local/bin/eci-load1
+	echo "test : $ECILOAD1"
+fi
+
+
+ECILOAD2=`which eci-load2`
+if [ -f $ECILOAD2 ]; then
+	ECILOAD2=/usr/local/bin/eci-load2
+fi
+
 if [ ! -d /proc/bus/usb ]; then
 	echo "Loading support for USB" ;
 	modprobe usbcore
@@ -75,9 +92,9 @@ fi
 if [ $? -eq 0 ]; then
 	echo "	Load Firmware ...";
 	if [ $# != "4" ]; then	
-	/usr/local/bin/eci-load1 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
+		$ECILOAD1 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
 	else
-	/usr/local/bin/eci-load1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
+		$ECILOAD1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
 	fi
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load firmware" ;
@@ -98,9 +115,9 @@ fi
 
 echo "	Setup modem ..." ;
 if [ $# != "4" ]; then
-/usr/local/bin/eci-load2 /etc/eciadsl/eci_wan3.bin;
+	$ECILOAD2 /etc/eciadsl/eci_wan3.bin;
 else
-/usr/local/bin/eci-load2 0x$3 0x$4 /etc/eciadsl/eci_wan3.bin;
+	$ECILOAD2 0x$3 0x$4 /etc/eciadsl/eci_wan3.bin;
 fi
 if [ $? -ne 0 ] ; then
 	echo "Failed to setup the modem" ;
