@@ -82,4 +82,12 @@ install-etc-ppp-peers-adsl:
 		chmod 700 /etc/ppp/peers/adsl ; \
 		chown root:root /etc/ppp/peers/adsl ; \
 	fi
+uninstall:
+	rm /usr/local/bin/eci-load1
+	rm /usr/local/bin/eci-load2
+	rm /usr/local/bin/eci_firm_kit_wanadoo.bin
+	rm /usr/local/bin/eci_wan3.bin
+	rm /usr/local/bin/pppoeci
+	rm /usr/local/bin/startmodem 
+	@echo "The driver has been successfully uninstalled"
 
