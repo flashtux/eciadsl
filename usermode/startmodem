@@ -240,7 +240,7 @@ echo -e "\nloading firmware (2/5)..\n"
 # already loaded ... so continue.
 grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
-    "$BIN_DIR/eci-load1" $eciload1_options 0x$vid1 0x$pid1 0x$vid2 0x$pid2 "$firmware"
+    "$BIN_DIR/eci-load1" $eciload1_options
     if [ $? -ne 0 ]; then
         echo "failed to load firmware"
         exit -1
@@ -261,7 +261,7 @@ echo -e "\nsetting up modem (3/5)..\n"
 CNT=1
 RET=$CNT
 while [ $CNT -le $synch_attempts ]; do
-	"$BIN_DIR/eci-load2" $eciload2_options 0x$vid2 0x$pid2 "$synch"
+	"$BIN_DIR/eci-load2" $eciload2_options
 	RET=$?
 	sleep 1
 	CNT=$(expr $CNT + 1)
