@@ -72,7 +72,7 @@ Sorted according to priority (the upper in the list, the prior):
 - reimplement .conf reading from shell scripts (simplify that).
 
 0.x:
-- check and merge bsd 0.5 port
+- check and merge bsd 0.6 port
 - submit driver to *BSD distro managers
 
 
