@@ -5,7 +5,7 @@ passez directement à la section CONFIGURATION.
 COMPILATION
 ===========
 
-Taper
+Taper en mode console ou dans un terminal
 	./configure
 puis
 	make
@@ -76,7 +76,7 @@ tap0.
 DÉSINSTALLATION
 ===============
 
-A partir du répertoire des sources:
+A partir du répertoire des sources (dans un terminal ou en mode console):
 	make uninstall
 et éventuellement
 	make distclean

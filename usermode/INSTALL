@@ -5,7 +5,7 @@ CONFIGURATION section.
 COMPILATION
 ===========
 
-All you have to do is to run
+All you have to do is to run in a console or a terminal
 	./configure
 then
 	make
@@ -70,7 +70,7 @@ through tap0.
 DEINSTALLATION
 ==============
 
-From within the source tree:
+From within the source tree (in console mode or in a terminal):
 	make uninstall
 and optionally
 	make distclean
