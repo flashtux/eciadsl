@@ -4,7 +4,7 @@
 base = howto
 pwd = `pwd`
 
-all: dvi html pdf ascii keep-useful-files-only
+all: dvi html ps pdf ascii keep-useful-files-only
 
 dvi: $(base).tex
 	latex $(base).tex
@@ -15,8 +15,8 @@ html: dvi
 ps: dvi 
 	dvips -f $(base).dvi >$(base).ps
 
-pdf: ps 
-	ps2pdf -f $(base).ps
+pdf: dvi
+	dvipdf $(base).dvi
 
 ascii: html
 	lynx -dump $(base).html >$(base).txt
