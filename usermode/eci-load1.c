@@ -367,6 +367,7 @@ void usage(const int ret)
 	printf("       -v or --verbose   be verbose\n");
 	printf("       -h or --help      show this help message then exit\n");
 	printf("       -V or --version   show version information then exit\n");
+	printf("       -t or --timeout   override the default timeout value (in sec)\n");
 	_exit(ret);
 }
 
