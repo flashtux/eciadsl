@@ -639,6 +639,7 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 struct eci_instance 		/*	Private data for driver	*/
 {
 	struct eci_instance	*next;	
+	spinlock_t		lock;		/*	lock for the struct */
 	struct usb_device 	*usb_wan_dev;
 	struct atm_dev		*atm_dev;
 	int 			minor;
@@ -653,7 +654,7 @@ struct eci_instance 		/*	Private data for driver	*/
 	unsigned char 		*pooling_buffer;
 	char			iso_celbuf[ATM_CELL_SZ]; /* incomplete cell */
 	int			iso_celbuf_pos;/*	Pos in cell buf	*/
-
+	
 	/* -- test -- */
 	struct atm_vcc		*pcurvcc ;
  	struct aal5		*pbklogaal5;	/*	AAL5 to complete */
@@ -744,6 +745,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		{
 			MOD_INC_USE_COUNT;
 			eci_instances=out_instance; 
+			spin_lock_init(out_intsance->lock);
 			out_instance->usb_wan_dev= dev;
 			out_instance->setup_packets = eci_init_setup_packets;
 			/*init_waitqueue_head(&out_instance->eci_wait);*/
@@ -1221,6 +1223,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 
 	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
+	spin_lock(instance->lock);
 /*	dev = instance->usb_wan_dev;
 	DBG_OUT("dev = %p\n", dev);	unused */
 
@@ -1265,6 +1268,7 @@ static void eci_init_vendor_callback(struct urb *urb)
 			DBG_OUT("Waiting for data on 0x86 endpoint\n");
 #endif /* DEBUG */
 	}
+	spin_unlock(instance->lock);
 	DBG_OUT("Vendor callBack out\n");
 }
 
@@ -1386,6 +1390,7 @@ static void eci_iso_callback(struct urb *urb)
 	unsigned char 		*buf;		/* Working buffer pointer */
 
 	instance = (struct eci_instance *)urb->context;
+	spin_lock(instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
  		if(!(cells = _uni_cell_list_alloc())) {
@@ -1463,6 +1468,11 @@ static void eci_iso_callback(struct urb *urb)
 						instance->iso_celbuf_pos);
 				}
 			}
+#ifdef DEBUG
+			else
+#endif	/* 	DEBUG	*/
+				DBG_OUT("Dropping one frame\tStatus %d\n", \
+					urb->iso_frame_desc[i].status);
 		}
 		DBG_OUT("Received cell, send to atm\n");
  		if(eci_atm_receive_cell(instance, cells)) {
@@ -1483,6 +1493,7 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
+	spin_unlock(instance->lock);
 	/*
 	DBG_OUT("Iso Callback Exit\n");
 	*/
@@ -1553,6 +1564,7 @@ static void eci_bulk_callback(struct urb *urb)
 	{
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
+	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
 	kfree(urb->transfer_buffer);
 	usb_free_urb(urb);
 }
@@ -2440,7 +2452,7 @@ static uni_cell_q_t * _uni_cell_qalloc(void) {
 	*/
 	lp_cellq = (uni_cell_q_t *) kmalloc(
 			sizeof(uni_cell_q_t),
-			GFP_KERNEL) ;
+			GFP_ATOMIC) ;
 	if (!lp_cellq) {
 		ERR_OUT("Not enought memory for queue\n") ;
 		return NULL ;
