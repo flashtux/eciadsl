@@ -24,7 +24,7 @@ Sorted according to priority (the upper in the list, the prior):
   * some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
     other util stuff..)
   - --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
-+ unify websites: eciadsl.sf.net update/move to flashtux
+* unify websites: eciadsl.sf.net update/move to flashtux
 - update the spec file
 * redesign eciconf.sh UI
 * see if selected modem/provider/synchbin can be still coloured when an item from another
