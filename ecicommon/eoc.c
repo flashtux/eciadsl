@@ -41,13 +41,17 @@ struct eoc_registers eocregs;
  */
 
 void eoc_init() {
+		printf("OEC.C - eco_init - START\n");
 		eoc_out_buffer_pos = eocmescnt = eocmesval = eocstate = 0;
+		printf("OEC.C - eco_init - END\n");
 }
 
 /*
  *		Decode the buffer and return the 13 bit eoc code  
  */
 u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
+	printf("OEC.C - eco_decode - START [b1b2 : %01x%01x]\n", b1, b2);
+	printf("OEC.C - eco_decode - END     [b1b2 : %02x]\n", ((b2>>2) & 0x3f) || ((b1 & 0xfe) << 5));
 	return (((b2>>2) & 0x3f) || ((b1 & 0xfe) << 5));
 }
 
@@ -55,18 +59,22 @@ u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
  * Handle the oec messages in idle state
  */
 void eoc_execute(u_int16_t eocmesval) {
+	printf("OEC.C - eco_execute - START [eocmesval : %01x]\n", eocmesval);
 	switch(EOC_OPCODE(eocmesval)) {
 		case EOC_OPCODE_READ_0:
 			eocstate = _preread;
+			printf("OEC.C - eco_execute - STEP1 [eocmesval : EOC_OPCODE_READ_0]\n");
 			eocreadpar = eocreadcnt = eocreadpos = 0;
 			eocreadlen = 8;
 			break;
 		case EOC_OPCODE_READ_1:
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_1]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = 0;
 			eocreadlen = 2;
 			break;			
 	}
+	printf("OEC.C - eco_execute - END   [eocmesval : %01x]\n", eocmesval);
 }
 
 /*
@@ -76,6 +84,7 @@ void eoc_execute(u_int16_t eocmesval) {
 int eoc_read_next() {
 	int	mes;
 	
+	printf("OEC.C - eco_readnext - START [eocreadpos : %d| eocreadlen : %d]\n", eocreadpos, eocreadlen);
 	if(eocreadpos < eocreadlen) {
 		mes = 0x2301;
 		if(eocreadpar) {
@@ -87,6 +96,7 @@ int eoc_read_next() {
 	} else {
 		mes = EOC_OPCODE_EOD;
 	}
+	printf("OEC.C - eco_readnext - END   [mes : %02x]\n", mes);
 	return(mes);
 }
 
@@ -102,7 +112,9 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	
 	assert(bufflen < EOC_MAX_LEN);
 	
-	for(;i<bufflen;i+=2) {
+	printf("OEC.C - parse_eoc_buffer - START [eocmesval : %02x]\n", eocmesval);
+	
+	for(;i<bufflen;i+=2) {		
 		if(buffer[i] !=0xc0) {
 			/* TODO: check for eoc valicode*/
 			eoccode = eoc_decode(buffer[i], buffer[i+1]);
@@ -116,10 +128,13 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 			} else {
 				eocmescnt++;
 			}
+			printf("OEC.C - parse_eoc_buffer - CYCLE1 [eocmesval : %02x| eoccode . %02x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 			switch(eocstate) {
 				case _preread:
+						printf("OEC.C - parse_eoc_buffer - CYCLE2 [eocstate : _preread]\n");
 						switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
+								printf("OEC.C - parse_eoc_buffer - CYCLE2A [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
 									eocstate = _read;
 								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
@@ -130,18 +145,22 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								}
 								break;
 							case EOC_OPCODE_RTN:
+								printf("OEC.C - parse_eoc_buffer - CYCLE2B [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 							case EOC_OPCODE_HOLD:
+								printf("OEC.C - parse_eoc_buffer - CYCLE2C [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 								if(eocmescnt >= 2) 
 									eocstate = _idle;
 								break;
 						}
 						if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
+							printf("OEC.C - parse_eoc_buffer - CYCLE2D [eoc_out_buffer_pos < 30]\n");							
 							eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
 							eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;						} else {
 							return -EIO;
 						}
 						break;
 				case _idle:	/*like G992.2 recomendation */
+					printf("OEC.C - parse_eoc_buffer - CYCLE3 [eocstate : _idle]\n");
 					if(eocmescnt >=2) /* execute third time with same message */
 						eoc_execute(eocmesval);
 					if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
@@ -152,8 +171,10 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 					}
 					break;
 				case _read:
+					printf("OEC.C - parse_eoc_buffer - CYCLE4 [eocstate : _read]\n");
 					switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
+								printf("OEC.C - parse_eoc_buffer - CYCLE4A [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
 								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
 									eoc_out_buf[eoc_out_buffer_pos++] = (mes & 0xff00) >> 8;
@@ -163,15 +184,19 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								}
 								break;
 							case EOC_OPCODE_RTN:
+								printf("OEC.C - parse_eoc_buffer - CYCLE4B [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 							case EOC_OPCODE_HOLD:
+								printf("OEC.C - parse_eoc_buffer - CYCLE4C [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 								if(eocmescnt >= 2) 
 									eocstate = _idle;
 								break;
 						}
 						break;
 			}
-		}				
+		}
+		printf("OEC.C - parse_eoc_buffer - CYCLE5 [eocmesval : %02x| eoccode . %02x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 	}
+	printf("OEC.C - parse_eoc_buffer - END  [eocmesval : %02x]\n", eocmesval);
 	return 0;
 }
 
@@ -183,7 +208,8 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  	int i;
  	
  	assert(eoc_out_buffer_pos<32);
- 	
+ 	printf("OEC.C - get_oec_answer - START\n");
+	
  	for(i=0; i< 32; i++) {	/* to be optimized */
  			eocoutbuff[i] = 0x0c;
  	}
@@ -191,6 +217,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  		eocoutbuff[i] = eoc_out_buf[i++];
  	}
  	eoc_out_buffer_pos = 0;
+	printf("OEC.C - get_oec_answer - END \n");
 }
 
 int has_eocs(){
