@@ -93,7 +93,7 @@ while [ -n "$1" ]
 do
 	case "$1" in
 		"--usb-init")		let FULL_INIT=1;;
-		"--prompt")			let PROMPT=0;;
+		"--no-prompt")		let PROMPT=0;;
 		"--try-all")		let ALL=1;;
 		"--batch")			let INTERACTIVE=0;;
 		"--version"|"-v")	version;;
