@@ -1566,9 +1566,8 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 	usb_fill_int_urb(urb, instance->usb_wan_dev, usb_rcvintpipe(instance->usb_wan_dev, ECI_INT_EP), 
 			instance->interrupt_buffer,64,
 			eci_int_callback,instance,3);
-		if(usb_submit_urb(urb, GFP_KERNEL)) {
+		if(usb_submit_urb(urb, GFP_ATOMIC)) {
 			ERR_OUT("error couldn't send interrupt urb in int callback\n");
-			goto erreure;
 		}
 #endif
 	spin_unlock(&instance->lock);
