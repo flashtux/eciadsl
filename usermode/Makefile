@@ -1,5 +1,7 @@
 include Makefile.config
 
+VERSION=$(shell cat VERSION)
+
 # for debugging with gdb, uncomment the following line
 #CFLAGS += -g
 
@@ -9,13 +11,33 @@ RPM_ARCH ?= i386,i686
 # Final targets
 TARGETS = eciadsl-firmware eciadsl-synch eciadsl-pppoeci \
 	eciadsl-check-hdlc eciadsl-check-hdlc-bug
+
+SRC = eciadsl-check-hdlc-bug.c eciadsl-check-hdlc.c eciadsl-eeprom.c \
+	eciadsl-firmware.c eciadsl-pppoeci.c eciadsl-synch.c \
+	gs7070.c gs7070.h modem.h platform_guess.c pppatm.c \
+	pusb-linux.c pusb-linux.h pusb.h pusb.c semaphore.h semaphore.c \
+	util.h util.c
+
 SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor \
 	eciadsl-config-tk eciadsl-config-text\
 	eciadsl-probe-device eciadsl-probe-synch\
 	eciadsl-remove-dabusb eciadsl-makeconfig\
 	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl
-DOCS = README README.fr INSTALL INSTALL.fr \
-	TROUBLESHOOTING TROUBLESHOOTING.fr BUGS TODO
+
+DOCS = README README.es README.fr README.it README.pt \
+	INSTALL INSTALL.es INSTALL.fr INSTALL.it INSTALL.pt \
+	TROUBLESHOOTING TROUBLESHOOTING.es TROUBLESHOOTING.fr \
+	TROUBLESHOOTING.it TROUBLESHOOTING.pt BUGS TODO
+
+BIN = firmware00.bin synch01.bin
+
+DIST = ChangeLog ID Makefile Makefile.config.sk TODO.old \
+	VERSION config.h.sk configure eciadsl-usermode.spec \
+	kmadsl modemeci.gif modems.db providers.db rc.adsl \
+	$(SRC) $(SCRIPTS) $(DOCS) $(BIN)
+
+DIST_DEBIAN = debian/changelog debian/control debian/copyright \
+	debian/docs debian/rules
 
 TMP_DIR = $(ROOT)/tmp/inst
 TMP_FILE = Makefile.tmp
@@ -123,8 +145,6 @@ install_dirs:
 	$(INSTALL_DIR) "$(ROOT)/$(BIN_DIR)"
 	$(INSTALL_DIR) "$(ROOT)/$(CONF_DIR)"
 	$(INSTALL_DIR) "$(ROOT)/$(DOC_DIR)"
-	$(INSTALL_DIR) "$(ROOT)/$(PPPD_DIR)"
-	$(INSTALL_DIR) "$(ROOT)/$(PPPD_DIR)/peers"
 
 clean:
 	$(RM) $(TARGETS) *.o core
@@ -238,3 +258,18 @@ cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > "$(TMP_FILE)"
 	sh "$(TMP_FILE)" && "$(ROOT)/$(BIN_DIR)/eciadsl-config-tk" || "$(ROOT)/$(BIN_DIR)/eciadsl-config-text"
 	$(RM) "$(TMP_FILE)"
+
+dist:
+	@echo "building eciadsl-usermode-$(VERSION).tar.bz2"
+	rm -rf "eciadsl-usermode-$(VERSION)"
+	rm -rf "eciadsl-usermode-$(VERSION).tar"
+	rm -rf "eciadsl-usermode-$(VERSION).tar.gz"
+	rm -rf "eciadsl-usermode-$(VERSION).tar.bz2"
+	mkdir "eciadsl-usermode-$(VERSION)"
+	cp $(DIST) "eciadsl-usermode-$(VERSION)"
+	mkdir "eciadsl-usermode-$(VERSION)/debian"
+	cp $(DIST_DEBIAN) "eciadsl-usermode-$(VERSION)/debian"
+	tar cf "eciadsl-usermode-$(VERSION).tar" "eciadsl-usermode-$(VERSION)"
+	bzip2 -k9 "eciadsl-usermode-$(VERSION).tar"
+	gzip -9 "eciadsl-usermode-$(VERSION).tar"
+	rm -rf "eciadsl-usermode-$(VERSION)"
