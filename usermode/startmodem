@@ -191,7 +191,7 @@ if [ $? -eq 0 ]; then
         echo "failed to load firmware"
         exit -1
     fi
-    echo " OK"
+    echo "firmware loaded successfully"
 else
 	grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
 	if [ $? -eq 0 ]; then
