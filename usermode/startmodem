@@ -227,8 +227,9 @@ echo -e "\nsetting up route table (5/5)..\n"
 # Wait until ppp0 get available
 COUNTER=10
 FLREADY=0
+TIMES=1
 echo -n "waiting for ppp0.."
-for (( times = 1; times < $COUNTER; times++ )) ; do
+while [ $TIMES -le $COUNTER ]; do
     ifconfig ppp0 > /dev/null 2>&1
     if [ $? -eq 0 ]; then
         FLREADY=1
@@ -236,6 +237,7 @@ for (( times = 1; times < $COUNTER; times++ )) ; do
     fi
     sleep 1
     echo -n "."
+	TIMES=$(expr $TIMES + 1)
 done
 echo
 if [ "$FLREADY" -eq 0 ]; then
