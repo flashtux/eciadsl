@@ -1,0 +1,77 @@
+Benoit PAPILLAULT, 06/03/2003 <benoit.papillault@free.fr>
+Last modification: 07/03/2003
+
+Installing eci driver on OpenBSD 3.3
+====================================
+
+Introduction: This has been tested on OpenBSD 3.3, however it should
+work with other BSD version. You might adjust the file location.
+
+Step 1: install gmake
+---------------------
+
+-> solution 1:
+pkg_add ftp://ftp.openbsd.org/pub/OpenBSD/3.3/packages/i386/gmake-3.80.tgz
+
+-> solution 2:
+  download:
+    ftp://ftp.openbsd.org/pub/OpenBSD/3.3/packages/i386/gmake-3.80.tgz
+    ftp://ftp.openbsd.org/pub/OpenBSD/3.3/packages/i386/libiconv-1.8.tgz
+    ftp://ftp.openbsd.org/pub/OpenBSD/3.3/packages/i386/gettext-0.10.40p1.tgz
+  pkg_add gmake-3.80.tgz
+
+Add /usr/local/bin to your PATH:
+
+- for sh users:
+  vi .profile
+  PATH=$PATH:/usr/local/bin
+  export PATH
+
+Step 2: download the required files
+-----------------------------------
+
+http://benoit.is-a-geek.net/bsd-tmp/libpusb.tar.gz
+http://benoit.is-a-geek.net/bsd-tmp/eciadsl-usermode-0.10.tar.gz
+
+Step 3: compile and install libpusb
+-----------------------------------
+
+tar zxvf libpusb.tar.gz
+cd libpusb/src
+./configure
+gmake clean ; rm *.o
+gmake
+gmake install
+
+Step 3 : compile and install eciadsl-usermode
+---------------------------------------------
+
+- compile eciadsl-usermode
+
+tar zxvf eciadsl-usermode-0.10.tar.gz
+cd eciadsl-usermode-0.10
+gmake clean
+gmake eci-load1 eci-load2 pppoeci
+
+- configuration of ppp
+
+(ppp.conf is present in eciadsl-usermode-0.10)
+cp ppp.conf /etc/ppp/ppp.conf
+
+In this file (/etc/ppp/ppp.conf), you need to change the following:
+  - vpi/vci
+  - login/password
+  - vid2/pid2
+  - path to pppoeci
+
+- connecting to the Internet
+
+  tested with vid1=0x1690 pid1=0x0203
+              vid2=0x0915 pid2=0x0204
+
+  tested with vid1=0x0547 pid1=0x2131
+              vid2=0x0915 pid2=0x8000
+
+./eci-load1 vid1 pid1 vid2 pid2 firmware00.bin
+./eci-load2 vid2 pid2 synch01.bin
+ppp -background adsl
