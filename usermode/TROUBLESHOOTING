@@ -67,6 +67,10 @@ It may help a lot if you come and see us with these info. Also get the output of
 the tools from the package you have launched (configure scripts or startmodem),
 also provide us your /var/log/messages, /var/log/dmesg if available.
 
+If you contact us from Windows, and if your Linux partition (ext2 or ext3 only)
+is on the same machine, use explore2fs to get the files directly from your Linux
+partition instead of rebooting each time to Linux to get a file!
+explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
 
 
 FREQUENTLY ASKED QUESTIONS AND SOME COMMON TROUBLES
