@@ -1,0 +1,224 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[francais]{babel}
+\usepackage{html}
+\usepackage[latin1]{inputenc}
+\baselineskip=16pt
+
+\title{\huge{kernel mode design of the ECI ADSL modem driver}}
+\author{Benoit PAPILLAULT}
+
+\begin{document}
+\pagenumbering{arabic}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+The roots of this document started in the night of February 2002, 17
+when \textit{webdaemon} and \textit{benoit} talked about the design of
+the kernel mode driver for the ECI ADSL modem. This discussion was
+held on channel \#eci-conf at irc.openprojects.net server.
+
+The main goals are :
+\begin{itemize}
+
+\item use a kernel mode driver to achieve better performance by
+  reducing context switching
+
+\item propose a standard interface (here an ATM interface)
+
+\item be easily configurable (changing firmware or type of ADSL
+  modulation)
+
+\end{itemize}
+
+Were presents:
+\begin{itemize}
+\item webdaemon
+\item benoit
+\item Mons
+\item Beretta\_V
+\end{itemize}
+
+Most part of the discussion were hold between \textit{benoit} and \textit{webdaemon}
+
+\section{Overview of the design}
+
+First of all, we have an ADSL USB modem, that is to say : a device
+with one USB cable on one side and an ADSL cable on the other side.
+The USB cable is connected to the computer and hence, handled by the
+Linux kernel. The other side, the ADSL cable is connected to the POTS
+line. The common point between ADSL and USB is that both are used to
+carry ATM cells in our case. So from the kernel point of view, we
+access our device through the USB subsystem.
+
+Next, we wanted a PPP connection (among other types of connection).
+This PPP connection does not use telephone line or classical modem. It
+uses the PPPoA protocol and is based on ATM and its AAL5 layer. And
+our modem already carry ATM cells.
+
+From a software point of view, PPP connection (pppd) and ATM/AAL5
+(Linux ATM), as well as the USB subsystem already exist. Even, if some
+part of those software are still not stable or badly supported, they
+are all standards and not specific to our device. So, the only missing
+point is a software component making the glue between USB and ATM.
+
+Another point about the USB ADSL modem is that it needs some kind of
+firmware to be loaded, in order to operated properly. From the USB
+point of view, we first see a generic USB device (Vendor/Product
+ID=0547/2131), and once the firmware is loaded, it is replaced by
+another one (Vendor/Product ID=0915/8000).
+
+\section{Detailed design}
+
+\subsection{First module}
+
+This module will handle USB device 0547/2131. It will be responsible
+for uploading the firmware. We can't include firmware in kernel
+sources since it's forbidden by the GPL License and we want to use the
+same module with several firmware.  That's why we choose to store the
+firmware in a FILE. Another advantage to use a file is the facility to
+quickly replace the firmware by another. This module does the same
+work as \textit{eci-load1}. At the end of this step, the device
+0915/8000 should appear.
+
+\textit{webdaemon} suggested to make a kernel module with the firmware
+file name as a parameter of insmod, like :
+\begin{verbatim}
+# insmod -firm=/etc/modem/firm01.bin
+\end{verbatim}
+
+We should study if we can load a file from a kernel module and if it's
+safe or not.
+
+\textit{benoit} proposed to look at the possibility of the hotplug
+package.
+
+\subsection{Second module}
+
+This module has two main responsibilities:
+
+\begin{itemize}
+  
+\item being the ATM interface, as such, it must conform to the Linux
+  ATM interface. Thus the Linux ATM API should be studied, and
+  documented. At least, we need to understand how to interface a
+  kernel mode driver with the Linux ATM stack and how to use this
+  stack from usermode programs.
+  
+\item begin responsible for the ADSL synchronization and all
+  parameters that can be seen under the ``Development mode'' of the
+  Windows drivers tool. Such parameters include : synchronization type
+  (DMT, CAP, ...).
+
+\end{itemize}
+
+ATM is the common point to many protocols used to carry IP (like PPP
+connection for instance, but there are others. We should look at
+protocols in used by current ADSL providers and those proposed by the
+3Com Windows drivers).
+
+\subsection{Linux ATM}
+
+Our USB device IS an ATM interface. Thus the best way to be used under
+the Linux system is to use the Linux ATM API.
+
+We need to read some documents about it and find the reference site.
+
+\subsection{pppd}
+
+pppd is the currently way (and standard way) to make PPP connection
+under Linux (and several other Unix). It is currently able to handle
+the PPPoA protocol, which is used to handle PPP connection over ATM
+connection. However, the current software is merely a collection of
+patch from various site. Maybe we should look at the design of pppd
+and try to help the pppd team to implement PPPoA INSIDE the standard
+pppd.
+
+\section{Other}
+
+\subsection{Own Vendor/Product ID}
+
+\textit{webdaemon} suggested to use our own Vendor/Product ID since we
+can modify them. Maybe we should look at the process to obtain
+official IDs.
+
+\subsection{Handling loss of synchro}
+
+I found no real solution to this problem which already occur in the
+speedtouch driver. Let's imagine the following scenario:
+
+\begin{itemize}
+
+\item pppd is running, IP connection is OK and the ADSL synchro is OK
+\item unplug the telephone line
+\item the driver detects the loss of synchro and reports to pppd
+\item pppd shuts down the ppp0 interface
+\item now, I reconnect the telephone line and restart the driver : \textit{startmodem} for instance.
+\item I got ``Authentication failed''. Why?
+\end{itemize}
+
+The explanation is quite simple in fact. The other end of the PPP
+connection (the peer) has not seen the disconnection yet and consider
+that your session is still active. Thus, when you ask for a new IP
+through PPP and it's radius server, you get an authentication failure,
+since the radius server ensure that you are connected only once.
+
+One point is that latest version of pppoeci detect the loss of synchro
+(but does nothing).
+
+I think it's useful to compare with the speedtouch modem. In this later case, the speedtouch automatically resynchronize itself. So, let's imagine the case where you are unplugging and plugging again the phone line after a certain amount of time (say T). Consider that loss of synchro is not signaled to pppd.
+
+If T is quite short, the connection recover with no problem. No PPP (client or server) have seen anything. So, be happy.
+
+If T is quite long, the PPP peer breaks down the session, but the PPP
+client (on our side) is not aware and thus, ppp0 acts like a ghost
+connection, sending data to nowhere.
+
+If found strange that the peer PPP does not see packets sent over a
+closed PPP connection or packets sent over an existing connection.
+Maybe we should look closely at the PPP protocols and its
+implementations.
+
+Maybe a quick work-around is to use a timeout. But that will never be
+a perfect solution and will not handle all cases.
+
+\subsection{Not using ISO USB transfers}
+
+ISO transfers are not reliable by nature, since there are designed for fixed
+bandwidth transfer like audio stream. However, even if IP is designed
+to work over link with some packet loss, I think we should avoid using
+ISO transfers. We could use BULK transfers instead, since one of the
+firmware used under Windows uses BULK transfer only.
+
+This point changes nothing to the design and could be studied separately.
+
+\section{Links}
+
+\begin{itemize}
+  
+\item Linux Device Drivers, 2nd Edition :
+  \htmladdnormallink{http://www.xml.com/ldd/chapter/book/index.html}{http://www.xml.com/ldd/chapter/book/index.html}
+
+\item Programming Guide for Linux USB Device Drivers :
+  \htmladdnormallink{http://usb.cs.tum.edu/usbdoc/}{http://usb.cs.tum.edu/usbdoc/}.
+  Quite old (2000/12/25)
+  
+\item ATM on Linux :
+  \htmladdnormallink{http://linux-atm.sourceforge.net/}{http://linux-atm.sourceforge.net/}.
+  
+\item PPP (official?) website :
+  \htmladdnormallink{http://ppp.samba.org/}{http://ppp.samba.org/}
+  
+\end{itemize}
+
+\section{Conclusion}
+
+A lot of work need to be done. First of all, we need to read documents
+about various interfaces (ATM, pppd, ...).
+
+\end{document}
+
+
