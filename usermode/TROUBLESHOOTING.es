@@ -1077,11 +1077,13 @@ R:	Simplemente asegurese que sudo esta instalado en su sistema.
 
 5.13
 ================================================================================
-P:	Cuando ejecuto sudo startmodem, obtengo este error:
+P:	Cuando ejecuto startmodem o sudo startmodem, obtengo este error:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-R:	Primer cheque si el pppd está instalado en su sistema.
+R:	Cheque si el pppd está instalado en su sistema.
+
+	Para sudo:
 
 	En la consola o terminal como root, digite:
 		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem

@@ -1051,11 +1051,13 @@ R:	Assurez-vous que sudo est installé sur votre système.
 
 5.13
 ================================================================================
-Q:	Quand je lance sudo startmodem, j'ai cette erreur :
+Q:	Quand je lance startmodem ou sudo startmodem, j'ai cette erreur :
 	nice: pppd: Aucun fichier ou répertoire de ce type
 
 --------------------------------------------------------------------------------
-R:	Vérifiez d'abord si pppd est installé sur votre système.
+R:	Vérifiez si pppd est installé sur votre système.
+
+	Pour sudo :
 
 	Dans la console ou dans un terminal, sous root, tapez :
 		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
