@@ -662,7 +662,7 @@ struct eci_instance 		/*	Private data for driver	*/
 	char			iso_celbuf[ATM_CELL_SZ]; /* incomplete cell */
 	int			iso_celbuf_pos; /*	Pos in cell buf	    */
 	struct tasklet_struct	bh_iso;		/*	incoming datas	BH  */
- 	struct uni_cell_list	*iso_cells;	/* 	incoming cell Q     */
+ 	struct uni_cell_list	iso_cells;	/* 	incoming cell Q     */
 	struct tasklet_struct	bh_bulk;	/*	outgoing urb BH     */
  	struct uni_cell_list	bulk_cells;	/* 	outgoing urb Q      */
 	struct tasklet_struct	bh_atm;		/*	outgoing datasBH    */
@@ -1471,7 +1471,7 @@ static void eci_int_callback(struct urb *urb)
 static void eci_bh_iso(unsigned long instance)
 {
  	eci_atm_receive_cell(((struct eci_instance *)instance),
-		((struct eci_instance *)instance)->iso_cells);
+		&(((struct eci_instance *)instance)->iso_cells));
 }
 
 static void eci_iso_callback(struct urb *urb)
@@ -1482,7 +1482,7 @@ static void eci_iso_callback(struct urb *urb)
  	//struct uni_cell_list	*cells;		/* New computed queue of cell */
 	struct uni_cell 	*cell;		/* Working cell		*/
 	unsigned char 		*buf;		/* Working buffer pointer */
-	int 			*received = 0;	/* boolean for cell in frames */
+	int 			received = 0;	/* boolean for cell in frames */
 
 	instance = (struct eci_instance *)urb->context;
 	spin_lock(&instance->lock);
@@ -1522,7 +1522,7 @@ static void eci_iso_callback(struct urb *urb)
 					else 
 					{
 						if(_uni_cell_list_append(
-							instance->iso_cells, cell))
+							&instance->iso_cells, cell))
 						{
 						    ERR_OUT(
 				 		"Couldn't queue One cell\n");
@@ -1550,7 +1550,7 @@ static void eci_iso_callback(struct urb *urb)
 					}
 					else 
 					 if(_uni_cell_list_append(
-							instance->iso_cells,cell))
+							&instance->iso_cells,cell))
 					 {
 					   ERR_OUT("Couldn't queue One cell\n");
 					   _uni_cell_free(cell);
