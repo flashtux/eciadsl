@@ -182,6 +182,8 @@ static const char id[] = "@(#) $Id$";
 #define DATA_TIMEOUT 300
 int data_timeout=0;
 
+int EICON_fix=0;
+
 #include "modem.h"
 
 /* max size of data endpoint (Windows driver uses 448). */
@@ -957,9 +959,9 @@ void replace_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount){
 
 	count = (count + 1) % 12;
 
-/*	if (count == 0)
+	if (EICON_fix && count == 0)
 		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
-*/
+
 }
 
 
@@ -1444,6 +1446,8 @@ int main(int argc, char *argv[])
 		)
 		usage(-1);
 
+	EICON_fix=(product==0xac82);
+
 	if (verbose)
 	{
 		fprintf(stderr, "Using:\n"
@@ -1458,6 +1462,8 @@ int main(int argc, char *argv[])
 			fprintf(stderr, " pusb_set_interface_alt=%d\n", pusb_set_interface_alt);
 		if (data_timeout)
 			fprintf(stderr, " data timeout=%d\n", data_timeout);
+		if (EICON_fix)
+			fprintf(stderr, " EICON fix enabled\n");
 	}
 	if (!data_timeout)
 		data_timeout=DATA_TIMEOUT;
