@@ -20,6 +20,10 @@
 #include <net/if.h>
 #include <sys/ioctl.h>
 
+#include <string.h>
+
+char pppd_version[] = VERSION;
+
 #define _PATH_ATMOPT _ROOT_PATH "/etc/ppp/options"
 
 
@@ -56,15 +60,17 @@ static char *bad_options[] = {
  */
 
 static int open_device_pppoatm(void);
-static void set_line_discipline_pppoatm(int fd);
+static int set_line_discipline_pppoatm(int fd);
 
 static int setdevname_pppoatm(const char *cp)
 {
 	struct sockaddr_atmpvc addr;
 	int fd;
 	extern struct stat devstat;
-	if (device_got_set)
-		return 0;
+	if (device_got_set) {
+		info("device already set");
+		return 1;
+	}
 	info("PPPoATM setdevname_pppoatm");
 	memset(&addr, 0, sizeof addr);
 	if (text2atm(cp, (struct sockaddr *) &addr, sizeof(addr),
@@ -76,7 +82,9 @@ static int setdevname_pppoatm(const char *cp)
 	strlcpy(devnam, cp, sizeof devnam);
 	devstat.st_mode = S_IFSOCK;
 	if(the_channel != &pppoa_channel) {
+		/*
 		char **a;
+		*/
 
 		the_channel = &pppoa_channel;
 		info("registering channel\n");
@@ -159,7 +167,7 @@ static void pre_close_restore_pppoatm(int fd)
 }
 
 
-static void set_line_discipline_pppoatm(int fd)
+static int set_line_discipline_pppoatm(int fd)
 {
 	struct atm_backend_ppp be;
 	be.backend_num = ATM_BACKEND_PPP;
@@ -173,6 +181,7 @@ static void set_line_discipline_pppoatm(int fd)
 		be.encaps = PPPOATM_ENCAPS_AUTODETECT;
 	if (ioctl(fd, ATM_SETBACKEND, &be) < 0)
 		fatal("ioctl(ATM_SETBACKEND): %m");
+	return fd ;
 }
 
 
@@ -188,7 +197,7 @@ static void reset_line_discipline_pppoatm(int fd)
 */
 
 
-static void send_config_pppoatm(int unit, int mtu, u_int32_t asyncmap,
+static void send_config_pppoatm(int mtu, u_int32_t asyncmap,
 	int pcomp, int accomp)
 {
 	int sock;
@@ -207,7 +216,7 @@ static void send_config_pppoatm(int unit, int mtu, u_int32_t asyncmap,
 
 
 
-static void recv_config_pppoatm(int unit, int mru, u_int32_t asyncmap,
+static void recv_config_pppoatm(int mru, u_int32_t asyncmap,
 	int pcomp, int accomp)
 {
 	if (mru > pppoatm_max_mru)
@@ -273,7 +282,7 @@ static option_t my_options[] = {
 #endif
 	{ "device name", o_wild, (void *) &setdevname_pppoatm,
 	  "Serial port device name",
-	  OPT_DEVNAM, OPT_PRIVFIX | OPT_NOARG | OPT_A2STRVAL | OPT_STATIC,
+	  OPT_DEVNAM| OPT_PRIVFIX | OPT_NOARG | OPT_A2STRVAL | OPT_STATIC,
 	  devnam},
 	{ "llc-encaps", o_bool, &llc_encaps,
 	  "use LLC encapsulation for PPPoATM", 1},
@@ -288,7 +297,7 @@ void plugin_init(void)
 {
 	info("PPPoATM plugin_init");
 	add_options(my_options);
-	add_notifier(&phasechange,pppoatm_phase_change,0);
+	//add_notifier(&phasechange,pppoatm_phase_change,0);
 	/*add_devname_class(setdevname_pppoatm);
 	setspeed_hook = setspeed_pppoatm;
 	options_for_device_hook = options_for_pppoatm;*/
