@@ -272,7 +272,7 @@ bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to 
 bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
-set nom_bin_actuel [exec ls -l /etc/eciadsl/eci_wan.bin | sed s£.*->\ ££ ]
+set nom_bin_actuel [exec ls -l /etc/eciadsl/synch.bin | sed s£.*->\ ££ ]
 
 label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
 

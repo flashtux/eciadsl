@@ -355,7 +355,7 @@ void usage()
 {
 	printf("eci-load1 version $Name$\n");
 	printf("usage:\n");
-	printf("       eci-load1 [-v] [1stVID 1stPID 2ndVID 2ndPID] eci_firmware.bin\n");
+	printf("       eci-load1 [-v] [1stVID 1stPID 2ndVID 2ndPID] firmware.bin\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
 	_exit(-1);

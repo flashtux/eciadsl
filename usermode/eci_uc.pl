@@ -26,7 +26,7 @@
 
 $active = 0;
 
-open BIN, ">eci_firmware.bin";
+open BIN, ">firmware.bin";
 
 while (<>) {
 	last if (/DriverUnload/);

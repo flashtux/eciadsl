@@ -279,8 +279,8 @@ case "$1" in
         exit 1
     fi
     echo -n "Modifying .bin link (${confdir}/eci_wan.bin -> $1)..."
-    rm -f ${confdir}/eci_wan.bin >/dev/null
-    ln -sf "$1" ${confdir}/eci_wan.bin
+    rm -f ${confdir}/synch.bin >/dev/null
+    ln -sf "$1" ${confdir}/synch.bin
     echo "ok"
 	;;
 esac

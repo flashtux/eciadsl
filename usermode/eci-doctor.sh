@@ -315,13 +315,13 @@ grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
-	/usr/local/bin/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/eci_firm_kit_wanadoo.bin
+	/usr/local/bin/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/firmware.bin
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load EZ-USB firmware" ;
 		fatal ;
 	fi ;
 	echo "Loading the GlobeSpan firmware..." ;
-	/usr/local/bin/eci-load2 0x$vid2 0x$pid2 /etc/eciadsl/eci_wan3.bin
+	/usr/local/bin/eci-load2 0x$vid2 0x$pid2 /etc/eciadsl/synch.bin
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load GlobeSpan firmware" ;
 		fatal ;

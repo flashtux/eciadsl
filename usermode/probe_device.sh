@@ -147,7 +147,7 @@ function get_manufacturer()
 
 BASE=${0##*/}
 BIN=eci-load1
-FIRMWARE=/etc/eciadsl/eci_firm_kit_wanadoo.bin
+FIRMWARE=/etc/eciadsl/firmware.bin
 DEVICES=/proc/bus/usb/devices
 VID1_TABLE=""
 VID2_TABLE=""

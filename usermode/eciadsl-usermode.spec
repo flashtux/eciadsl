@@ -103,9 +103,8 @@ that handles the modem. A kernel module is under development.
 %dir /etc/eciadsl
 %defattr(644,root,root)
 %config /etc/eciadsl/adsl-skel
-%config /etc/eciadsl/eci_firm_kit_wanadoo.bin
-%config /etc/eciadsl/eci_wan3.bin
-%config /etc/eciadsl/eci_wan3.dmt.bin
+%config /etc/eciadsl/firmware.bin
+%config /etc/eciadsl/synch.bin
 %config /etc/eciadsl/modemeci.gif
 
 # doc files

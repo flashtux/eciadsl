@@ -194,8 +194,8 @@ echo "ok"
 #
 
 if [ $# -eq 10 ]; then
-    echo -n "Modifying .bin link (${base_etc}/eciadsl/eci_wan.bin -> ${10})..."
-    rm ${base_etc}/eciadsl/eci_wan.bin >/dev/null
-    ln -s ${10} ${base_etc}/eciadsl/eci_wan.bin
+    echo -n "Modifying .bin link (${base_etc}/eciadsl/synch.bin -> ${10})..."
+    rm ${base_etc}/eciadsl/synch.bin >/dev/null
+    ln -s ${10} ${base_etc}/eciadsl/synch.bin
     echo "ok"
 fi

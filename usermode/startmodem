@@ -4,6 +4,9 @@
 # Creation : 06/12/2001
 # Licence  : GPL
 
+# 21/10/2002 wwp:
+# default .bin is synch01.bin now, /etc/eciadsl/synch.bin is a symlink to this one!
+
 # 03/02/2002: added a sleep 2 after loading USB controller driver, as suggested
 # by Sebastien YAPO <sebastien.yapo@free.fr>.
 
@@ -132,9 +135,9 @@ fi
 if [ $? -eq 0 ]; then
     echo "  Load Firmware ..."
     if [ $# != "4" ]; then
-        $ECILOAD1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/eci_firm_kit_wanadoo.bin
+        $ECILOAD1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/firmware.bin
     else
-        $ECILOAD1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/eci_firm_kit_wanadoo.bin
+        $ECILOAD1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/firmware.bin
     fi
     if [ $? -ne 0 ]; then
         echo "Failed to load firmware"
@@ -155,9 +158,9 @@ fi
 
 echo "  Setup modem ..."
 if [ $# != "4" ]; then
-    $ECILOAD2 0x$vid2 0x$pid2 /etc/eciadsl/eci_wan.bin
+    $ECILOAD2 0x$vid2 0x$pid2 /etc/eciadsl/synch.bin
 else
-    $ECILOAD2 0x$3 0x$4 /etc/eciadsl/eci_wan.bin
+    $ECILOAD2 0x$3 0x$4 /etc/eciadsl/synch.bin
 fi
 if [ $? -ne 0 ] ; then
     echo "Failed to setup the modem"

@@ -451,8 +451,8 @@ void usage()
 {
 	printf("eci-load2 version $Name$\n");
 	printf("usage:\n");
-	printf("       eci-load2 [-v] eci_sequence.bin\n");
-	printf("    or eci-load2 [-v] 2ndVID 2ndPID eci_sequence.bin\n");
+	printf("       eci-load2 [-v] synch.bin\n");
+	printf("    or eci-load2 [-v] 2ndVID 2ndPID synch.bin\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
 	exit (-1);
