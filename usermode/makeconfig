@@ -125,7 +125,7 @@ then
     exit 255
 fi
 
-if [ $# -ne 17 ]
+if [ $# -ne 18 ]
 then
     echo -e "\nERROR: invalid number of parameters"
     echo -e "syntax:\n  makeconfig <mode> <username> <password> </path/to/pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin>"
