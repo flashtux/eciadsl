@@ -123,7 +123,7 @@ while (<>) {
 		if ($interrupt) {
 # we check if the interrupt packet is 64 bytes long. If so, end the loop.
 			if (hex ($1) == 64) {
-				print "interrupt packet detected. properly ending the generation of eci_vendor.bin\n" ;
+				print "interrupt packet detected. properly ending the generation of eci_vendor.bin\nSynch .bin is ok!\n" ;
 				last;
 			}
 		}
