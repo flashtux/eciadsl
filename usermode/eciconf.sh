@@ -204,9 +204,9 @@ set statetext "Ready."
 proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci} {
 global titre_fenetre majdns
     if {[string compare $majdns "oui"] == 0} {
-        set returncode [catch {exec ./makeconfig $username $password $path_pppoeci $dns1 $dns2 $vpi $vci} sortie]
+        set returncode [catch {exec makeconfig $username $password $path_pppoeci $dns1 $dns2 $vpi $vci} sortie]
     } else {
-        set returncode [catch {exec ./makeconfig $username $password $path_pppoeci 0 0 $vpi $vci} sortie]
+        set returncode [catch {exec makeconfig $username $password $path_pppoeci 0 0 $vpi $vci} sortie]
     }
     toplevel .confok
     wm title .confok $titre_fenetre
@@ -227,7 +227,7 @@ global titre_fenetre majdns
 }
 
 proc run_dabusb {} {
-    set returncode [catch {exec ./remove_dabusb} sortie]
+    set returncode [catch {exec remove_dabusb} sortie]
     toplevel .dab
     wm title .dab "dabusb"
     if {$returncode != 0} {
