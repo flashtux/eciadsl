@@ -1,0 +1,26 @@
+# 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
+# 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+#
+# This file could be rename but its place is under /etc/ppp/peers
+# To connect to Internet using this configuration file
+# pppd call adsl, where "adsl" stands for the name of this file
+
+debug
+kdebug 1
+noipdefault
+noauth
+defaultroute
+plugin /home/jeanseb/driver/kernelmode/pppoatm.so
+8.35
+#sync
+user "fti/@fti"
+#noaccomp
+#nopcomp
+#noccp
+#novj
+holdoff 1
+#persist
+maxfail 0
+usepeerdns
+#lcp-echo-interval 600
+#lcp-echo-failure 5
