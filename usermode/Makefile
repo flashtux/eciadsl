@@ -10,7 +10,7 @@ SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh prob
 TMP_DIR = inst
 TMP_FILE = Makefile.tmp
 
-all: ${TARGETS} ${SCRIPTS}
+all: check ${TARGETS} ${SCRIPTS}
 
 eci-load1: eci-load1.o pusb.o util.o
 eci-load2: eci-load2.o pusb.o util.o
@@ -29,7 +29,13 @@ eci-eeprom.o: eci-eeprom.c modem.h pusb.h
 check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
 
-install: install_no_system_fixes modules_conf
+check:
+	if [ "$(PRODUCT_VERSION)" != "$(cat VERSION)" ]; then \
+		echo "Version has changed since your last ./configure call"; \
+		echo "You should re-run ./configure"; \
+	fi
+
+install: check install_no_system_fixes modules_conf
 
 install-strip: install
 	for FILE in $(TARGETS); \
@@ -159,14 +165,14 @@ uninstall_dirs:
 debian: all
 	@dpkg-buildpackage -rfakeroot
 
-rpm:
+rpm: check
 	@echo "not yet implemented"
 #   tar zcvf /tmp/eciadsl-usermode-x.y.tar.gz eciadsl-usermode-x.y
 #	rpm -ta /tmp/eciadsl-usermode-x.y.tar.gz
 #   RPMS : /usr/src/RPM/RPMS/i686/eciadsl-usermode-0.5-2.i686.rpm
 #	SRPMS: /usr/src/RPM/SRPMS/eciadsl-usermode-0.5-2.src.rpm
 
-cfg:
+cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
 	sh $(TMP_FILE) && $(BIN_DIR)/eciconf.sh || $(BIN_DIR)/eciconftxt.sh
 	$(RM) $(TMP_FILE)
