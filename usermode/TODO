@@ -29,18 +29,19 @@ Sorted according to priority (the upper in the list, the prior):
 * redesign eciconf.sh UI
 * see if selected modem/provider/synchbin can be still coloured when an item from another
   listbox is selected.
-- see if synch_bin update function (invert_bin) can use invert_fai's scheme (minor).
+-? see if synch_bin update function (invert_bin in eciconf.sh) can use invert_fai's scheme (minor).
 * add grep -m check to ./configure, else use egrep (fixed temporarily).
 - synch_bin installation (asks or greps to/into makeconfig or startmodem for CONF_DIR)
 * use section numbers in TROUBLESHOOTING files
 * fix TROUBLESHOOTING file regarding the USB2 warns.
-- skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
-  adsl file, is this relevant in Makefile?
-+ add PPPoE and IPoATM patches to the tracker. Then merge then to the main sources
 * fix EICON problems with 0.6-preX
 * add doc about connecting using startmodem at boot
-- -mode selection (protocol) using eciconf*
+- skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
+  adsl file, is this relevant in Makefile?
+- keep previous settings when installing
 - complete translations
+- merge pending patches
+- -mode selection (protocol) using eciconf*
 
 
 0.7:
