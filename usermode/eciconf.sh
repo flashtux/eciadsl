@@ -133,6 +133,7 @@ set providers {
 
 frame .bloc1.fai.liste
 listbox .bloc1.fai.liste.contenu -yscrollcommand {.bloc1.fai.liste.scroll set} -width 27 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
+.bloc1.fai.liste.contenu configure -exportselection 0
 set i 0
 set len [llength $providers]
 while {$i<$len} {
@@ -214,6 +215,7 @@ set modems {
 
 frame .bloc1.modem.liste
 listbox .bloc1.modem.liste.contenu -yscrollcommand {.bloc1.modem.liste.scroll set} -width 43 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
+.bloc1.modem.liste.contenu configure -exportselection 0
 
 set i 0
 set len [llength $modems]
@@ -295,6 +297,7 @@ label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunke
 
 frame .bloc2.listebin.liste
 listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scroll set" -width 45 -height 4 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
+.bloc2.listebin.liste.contenu configure -exportselection 0
 
 proc add_bins {chemin} {
 	global .bloc2.listebin nom_bin_actuel lien_bin_final
