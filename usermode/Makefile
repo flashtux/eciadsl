@@ -90,7 +90,7 @@ install_scripts:
 				sed -f $(TMP_DIR)/sh.sed $$FILE > $(TMP_DIR)/$$FILE; \
 			fi; \
 		fi; \
-		$(INSTALL_EXEC) $(TMP_DIR)/$$FILE $(BIN_DIR); \
+		$(INSTALL_EXEC) $(TMP_DIR)/$$FILE $(ROOT)$(BIN_DIR); \
 	done
 	$(MAKE) externdistclean
 
