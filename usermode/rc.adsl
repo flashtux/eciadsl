@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# BEGIN OF CONFIG_SECTION
+
+EXEC_PREFIX="/usr/local/bin"
+
+# END OF CONFIG_SECTION
+
+case "$1" in
+	start)
+		echo -n "Starting adsl: "
+		PATH=$EXEC_PREFIX:/usr/bin:/usr/sbin:/bin:/sbin startmodem
+		exit $?
+        ;;
+	stop)
+		echo -n "Shutting down adsl: "
+		killall -TERM $EXEC_PREFIX/pppoeci /usr/sbin/pppd
+		exit $?
+        ;;
+	status)
+		echo -n "Checking for adsl: "
+		/bin/ps ax | /bin/grep $EXEC_PREFIX/pppoeci | /bin/grep -v grep && echo "OK" || echo "No process"
+		;;
+	restart)
+		$0 stop && $0 start
+		exit $?
+		;;
+	*)
+		echo "Usage: rc.adsl {start|stop|status|restart}"
+		exit 1
+		;;
+esac
+exit 0

@@ -566,25 +566,17 @@ Q:	Est-il possible de lancer startmodem au démarrage de Linux ?
 
 --------------------------------------------------------------------------------
 R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
-	utilisateurs Debian. Certains scripts pré-configurés sont disponibles,
-	cherchez-les sur google ou téléchargez l'archive cnx, disponible dans la
-	section "téléchargement" du site officiel eciadsl.
+	utilisateurs Debian.
 
-	Configuration par init.d avec le script cnx:
+	Configuration par init.d:
 
 	Pré-requis:
 	 - le driver ECIADSL est installé et configuré
-	 - vous avez téléchargé le package cnx (script de reconnexion automatique)
-	Vous trouverez ceux-ci ici: http://eciadsl.flashtux.org/download.php
+	 - vous avez téléchargé les sources du driver, que vous trouverez ici:
+	   http://eciadsl.flashtux.org/download.php
 
 
-	Utilisateurs de Mandrake ou de RedHat: prenez le fichier rc.adsl.MDK dans le
-	package cnx.
-	Utilisateurs de SuSE: prenez l;e fichier rc.adsl.SuSE.
-	Utilisateurs d'autres distributions GNU/Linux: prenez le fichier rc.adsl.MDK
-	bien qu'il soit possible que vous ayiez à l'adapter à votre distribution.
-
-	Copier le fichier rc.adsl* vers /etc/init.d: cp rc.adsl /etc/init.d
+	Copier le fichier rc.adsl vers /etc/init.d: cp rc.adsl /etc/init.d
 
 	Dans /etc/rc.d, chaque répertoire rc*.d correspond à un init-level. Par
 	exemple, l'init-level 5 est celui qui est atteint par défaut au démarrage de
@@ -632,13 +624,8 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	Maintenant vous en savez un peu plus sur le fonctionnement des init-level
 	vous pouvez donc créer les liens symboliques vers /etc/init.d dans
 	/etc/rc.d/rc5.d.
-
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
-	ou
-		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/S90adsl 
-		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/K90adsl 
-	en fonction du fichier rc.adsl que vous utilisez.
 
 	Avant de créer ces liens, assurez-vous que 90 est un chiffre pertinent, au
 	sens ou il doit être disponible :-), mais aussi que S90 sera exécuté après

@@ -535,25 +535,17 @@ Q:	Is it possible to launch startmodem at boot time?
 
 --------------------------------------------------------------------------------
 A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
-	users. Some pre-configured scripts/configurations are available, ask google
-	for them or check the cnx package available from the download section at the
-	official eciadsl website.
+	users.
 
-	Making it possible using init.d and the cnx script:
+	Making it possible using init.d:
 
 	Pre-requisites:
 	 - ECIADSL driver installed and configured
-	 - the cnx package (auto reconnection script)
-	All this stuff is available at:
-	http://eciadsl.flashtux.org/download.php?lang=en
+	 - the ECIADSL sources package, available at:
+	   http://eciadsl.flashtux.org/download.php?lang=en
 
 
-	Mandrake or RedHat users: get rc.adsl.MDK from the cnx package.
-	SuSE users: get rc.adsl.SuSE from the cnx package.
-	Other systems: get rc.adsl.MDK from the cnx package, but it may be necessary
-	to adapt it to your system.
-
-	Copy the rc.adsl* file to /etc/init.d: cp rc.adsl /etc/init.d
+	Copy the rc.adsl file to /etc/init.d: cp rc.adsl /etc/init.d
 
 	In /etc/rc.d, each rc*.d directory corresponds to an init level. For
 	instance, init level 5 is the one that leads to a graphical login (this is
@@ -599,13 +591,8 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 
 	Now you know how all this stuff works, you can make the relevant links to
 	/etc/init.d in /etc/rc.d/rc5.d.
-
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
-	or
-		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/S90adsl 
-		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/K90adsl 
-	following the rc.adsl file you use.
 
 	Before you create these links, ensure that the S90 is relevant, this means
 	that S90* will be called after all other network services.
