@@ -857,7 +857,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 				ERR_OUT("out of memory\n");
 				goto erreure;
 			}
-#if 0			
+#if (!(LINUX_VERSION_CODE  < KERNEL_VERSION(2,6,0)))
 			if(usb_set_configuration(dev,1)<0) {
 				ERR_OUT("Can't set interface\n");
 				goto erreure;
@@ -1054,7 +1054,7 @@ erreure:
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 static void eci_usb_disconnect(struct usb_device *dev, void *p) {
-	struct eci_instance eciInstance = p;
+	struct eci_instance *eciInstance = p;
 #else
 static void eci_usb_disconnect(struct usb_interface *interface) {
 	struct eci_instance *eciInstance;
@@ -1063,9 +1063,12 @@ static void eci_usb_disconnect(struct usb_interface *interface) {
 #endif
 
 	if(eciInstance) {
+
 		_eci_cleanup_instance(eciInstance);
 		kfree(eciInstance);
+#if(! (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)))
 		usb_set_intfdata (interface, NULL);
+#endif
 	}
 };
 
@@ -1102,7 +1105,7 @@ static int eci_atm_open(struct atm_vcc *vcc) {
 		return -EINVAL;
 	}
 #endif /* ATM_VPI_UNSPEC && ATM_VCI_UNSPEC */
-#if 0	
+#if 0
 	/*
 	 * Check that a context don't exists already
 	 */
@@ -1150,7 +1153,6 @@ static void eci_atm_close(struct atm_vcc *vcc) {
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
 	lp_instance->atm_dev->vccs = NULL;
 	lp_instance->atm_dev->last = NULL;
-#else
 #endif	
 	if (lp_instance->pbklogaal5) {
 		_aal5_free(lp_instance->pbklogaal5) ;
