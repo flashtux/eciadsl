@@ -364,10 +364,10 @@ case "$1" in
         mode=$(expr $ret + 1)
 
         echo
-        echo -n "Is DHCP used by your provider? "
+        echo -n "Is DHCP used by your provider (most users should say No)? "
         use_dhcp=""
         while [ -z "$use_dhcp" ]; do
-            echo -n "(y/N) "
+            echo -n "(y/n) "
             read use_dhcp
 			case "$use_dhcp" in
 			y*|Y*)	use_dhcp="yes"
@@ -383,10 +383,10 @@ case "$1" in
         done
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
-        	echo -n "Did you get a static IP from your provider? "
+        	echo -n "Did you get a static IP from your provider (most users should say No)? "
 			foo=""
         	while [ -z "$foo" ]; do
-	   	        echo -n "(y/N) "
+	   	        echo -n "(y/n) "
             	read foo
 				case "$foo" in
 				y*|Y*)	foo="yes"

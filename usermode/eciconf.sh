@@ -498,13 +498,13 @@ onclick_use_staticip
 bind .bloc2.modes.liste.contenu <ButtonRelease> {select_mode}
 bind .bloc2.modes.liste.contenu <Enter> {pushstate "Select a PPP mode/encapsulation"}
 bind .bloc2.modes.liste.contenu <Leave> {popstate}
-bind .bloc2.modes.advanced.use_dhcp <Enter> {pushstate "Click here if you use DHCP to get an IP from your provider"}
+bind .bloc2.modes.advanced.use_dhcp <Enter> {pushstate "Click here if you use DHCP to get an IP from your provider (most users should disable this)"}
 bind .bloc2.modes.advanced.use_dhcp <Leave> {popstate}
-bind .bloc2.modes.advanced.use_staticip <Enter> {pushstate "Click here if you get a static IP from your provider (then fill in the fields below)"}
+bind .bloc2.modes.advanced.use_staticip <Enter> {pushstate "Click here if you get a static IP from your provider (most users should disable this)"}
 bind .bloc2.modes.advanced.use_staticip <Leave> {popstate}
-bind .bloc2.modes.staticip.edit <Enter> {pushstate "Your static IP (given by your provider)"}
+bind .bloc2.modes.staticip.edit <Enter> {pushstate "Your static IP (if given by your provider)"}
 bind .bloc2.modes.staticip.edit <Leave> {popstate}
-bind .bloc2.modes.gateway.edit <Enter> {pushstate "Your provider's gateway IP (given by your provider)"}
+bind .bloc2.modes.gateway.edit <Enter> {pushstate "Your provider's gateway IP (if given by your provider)"}
 bind .bloc2.modes.gateway.edit <Leave> {popstate}
 
 pack .bloc2.modes.liste
