@@ -214,7 +214,7 @@ function check_source()
 	display 1 -n "checking $1... "
 	OPTIONS="$2"
 	shift 2
-	> "$GENFILE"
+	:> "$GENFILE"
 	while [ -n "$1" ]
 	do
 		echo "#include $1" >> "$GENFILE"
@@ -427,7 +427,7 @@ function configure_dot()
 	MAKEFILE_CONFIG="Makefile.config"
 	INMAKEFILE_CONFIG="Makefile.config.sk"
 	display 1 -n "generating $MAKEFILE_CONFIG... "
-	> "$MAKEFILE_CONFIG"
+	:> "$MAKEFILE_CONFIG"
 	insert_edit_warning "#" "" "$MAKEFILE_CONFIG" "$INMAKEFILE_CONFIG"
 	cat "$INMAKEFILE_CONFIG" >> "$MAKEFILE_CONFIG"
 	echo "PRODUCT_ID = $PRODUCT_ID" >> "$MAKEFILE_CONFIG"
@@ -455,7 +455,7 @@ function configure_dot()
 	INCFGFILE="config.h.sk"
 	CFGTMPFILE="$CFGFILE.tmp"
 	display 1 -n "generating $CFGFILE... "
-	> "$CFGTMPFILE"
+	:> "$CFGTMPFILE"
 	insert_edit_warning "/*" "*/" "$CFGTMPFILE" "$INCFGFILE"
 	cat "$INCFGFILE" >> "$CFGTMPFILE"
 	if [ $DEBUG -eq 1 ]
@@ -594,9 +594,9 @@ do
 done
 
 # temp/log files init
-> "$LOGFILE"
-> "$TMPFILE"
-> "$GENFILE"
+:> "$LOGFILE"
+:> "$TMPFILE"
+:> "$GENFILE"
 
 # apply defaults if no user-defined settings
 test -z "$DIST_PREFIX" && DIST_PREFIX="$DIST_PREFIX_DEFAULT"
