@@ -13,7 +13,7 @@ Et même si votre problème est mentionné ci-dessous, il est possible que la
 réponse ne vous aide pas à corriger le problème. Dans ce cas, contactez-nous,
 nous essaierons de vous aider à trouver une solution.
 
-1 - Compilation, installation, and configuration du driver
+1 - Compilation, installation, et configuration du driver
 2 - Initialisation du modem
 3 - Synchronisation du modem
 4 - Problèmes de connexion
