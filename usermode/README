@@ -68,6 +68,8 @@ Provide use these info:
 	- your provider and the PPP encapsulation/authentication protocol used
 	- your Linux experience level (for instance: newbie, average, confirmed,
 	  experienced, guru)
+	- the output of route -n before and after running startmodem if a network
+	  problem occurs after startmodem
 
 It may help a lot if you come and see us with these info. Also get the output of
 the tools from the package you have launched (configure scripts or startmodem),
