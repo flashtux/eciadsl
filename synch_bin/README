@@ -1,3 +1,51 @@
+
+PLEASE PLEASE: READ THE WARNING BELOW BEFORE READING THE REST OF THE DOCUMENT!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ******  <<< WARNING: >>>  *****************************************************
 **
 **  The former names are DEPRECATED, because they are not friendly since they
@@ -7,6 +55,11 @@
 **  Tchapamawak, and may not work for people leaving in Petaouchnok.
 **  Of course if you live in Lens, try synch05.bin first, this is obvious
 **  (except if DSLAM has changed eheh).
+**
+**  I repeat: this means that a .bin generated in a place X may work in another
+**  place Y, and also may not always work in the place X where it has been
+**  generated. So don't complain 'cause you don't find a .bin that was
+**  generated where you are. TRY ALL .bin's!
 **
 *******************************************************************************
 

@@ -1,3 +1,51 @@
+
+ATTENTION : LISEZ LE WARNING QUI SUIT AVANT DE LIRE LE RESTE DU DOCUMENT!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ******  <<< ATTENTION : >>>  **************************************************
 **
 **  Les anciens noms sont OBSOLETES, ils n'indiquaient aucune certitude quant
@@ -8,6 +56,11 @@
 **  utilisation à Tchapamawak, et peut aussi bien ne pas convenir à Petaouchnok.
 **  Bien sûr, si vous habitez Lens (France), synch05.bin est le premier .bin à
 **  essayer (sauf si le DSLAM a changé).
+**
+**  Je répète: ce n'est pas parce qu'un .bin a été généré ici qu'il ne
+**  fonctionnera pas là, ni ce n'est une garantie absolument qu'il fonctionnera
+**  aussi sur son lieu de génération. Ne soyez donc pas catastrophés si vous ne
+**  voyez aucun .bin généré là où vous résidez. ESSAYEZ LES TOUS!
 **
 *******************************************************************************
 
