@@ -194,8 +194,8 @@ echo "ok"
 #
 
 if [ $# -eq 10 ]; then
-    echo -n "Modifying /usr/local/bin/startmodem (installing new .bin : ${10})..."
-    sed s£"\$ECILOAD2 0x\$vid2 0x\$pid2 /.*"£"\$ECILOAD2 0x\$vid2 0x\$pid2 ${10};"£ /usr/local/bin/startmodem | sed s£"\$ECILOAD2 0x\$3 0x\$4 /.*"£"\$ECILOAD2 0x\$3 0x\$4 ${10};"£ >/tmp/makeconfig$$
-    mv /tmp/makeconfig$$ /usr/local/bin/startmodem
+    echo -n "Modifying .bin link (${base_etc}/eciadsl/eci_wan.bin -> ${10})..."
+    rm ${base_etc}/eciadsl/eci_wan.bin >/dev/null
+    ln -s ${10} ${base_etc}/eciadsl/eci_wan.bin
     echo "ok"
 fi

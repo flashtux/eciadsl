@@ -227,9 +227,7 @@ bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to 
 bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
-set bin_actuel [exec grep "\$ECILOAD2 0x\$vid2 0x\$pid2 /" /usr/local/bin/startmodem]
-set fin ".*"
-set bin_actuel [regexp "pid2 ($fin);" $bin_actuel ligne nom_bin_actuel]
+set nom_bin_actuel [exec ls -l /etc/eciadsl/eci_wan.bin | sed s£.*->\ ££ ]
 
 label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
 

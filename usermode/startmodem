@@ -129,9 +129,9 @@ fi
 
 echo "  Setup modem ..." ;
 if [ $# != "4" ]; then
-    $ECILOAD2 0x$vid2 0x$pid2 /etc/eciadsl/eci_wan3.bin;
+    $ECILOAD2 0x$vid2 0x$pid2 /etc/eciadsl/eci_wan.bin;
 else
-    $ECILOAD2 0x$3 0x$4 /etc/eciadsl/eci_wan3.bin;
+    $ECILOAD2 0x$3 0x$4 /etc/eciadsl/eci_wan.bin;
 fi
 if [ $? -ne 0 ] ; then
     echo "Failed to setup the modem" ;
