@@ -65,21 +65,19 @@ case "$1" in
 "@bin@")
     fichiers_bin="Select your .bin file for sync|"
     echo
-    find ${confdir} -name "*.bin" 2>/dev/null | grep "bin" >/dev/null 2>&1
+    find ${confdir} -type f -o -type l -name "*.bin" 2>/dev/null | grep "bin" >/dev/null 2>&1
     if [ $? -ne 0 ]; then
         echo "WARNING: no .bin file found in ${confdir} or subdirectories"
-        echo "Startmodem will probably not work !"
+        echo "Please check your driver installation !"
         echo "Skipping .bin selection..."
         > $tmpbin
         exit 255
     fi
-    for bin in $(find ${confdir} -name "*.bin"); do
-        if [ -f "$bin" -a ! -L "$bin" ]; then
-            echo "$bin" | grep "firmware" >/dev/null 2>&1
-            if [ $? -ne 0 ]; then
-                fichiers_bin="${fichiers_bin}$bin|"
-            fi
-        fi
+    for bin in $(find ${confdir} -type f -name "*.bin"); do
+		case "$bin" in
+		*firmware*)	;;
+		*)			test "$bin" != "${confdir}/synch.bin" && fichiers_bin="${fichiers_bin}$bin|";;
+		esac
     done
     $0 @menu@ "$fichiers_bin"
 	ret=$?
@@ -240,7 +238,7 @@ case "$1" in
         read quitte
 
         makeconfig "$user" "$password" /usr/local/bin/pppoeci $dns1 $dns2 $vpi $vci \
-			$(echo $vid1pid1 | cut -f $modem -d '|') $(echo $vid2pid2 | cut -f $modem -d '|') $binfile
+			$(echo $vid1pid1 | cut -f $modem -d '|') $(echo $vid2pid2 | cut -f $modem -d '|') "$binfile"
 
         if [ $? -eq 0 ]; then
             echo
@@ -278,9 +276,10 @@ case "$1" in
         echo "ERROR: .bin file \"$1\" is a symbolic link !"
         exit 1
     fi
-    echo -n "Modifying .bin link (${confdir}/eci_wan.bin -> $1)..."
-    rm -f ${confdir}/synch.bin >/dev/null
-    ln -sf "$1" ${confdir}/synch.bin
+	synch_bin_link="${confdir}/synch.bin"
+    echo -n "Modifying .bin link ($synch_bin_link -> $1)..."
+    rm -f "$synch_bin_link" >/dev/null
+    ln -sf "$1" "$synch_bin_link"
     echo "ok"
 	;;
 esac
