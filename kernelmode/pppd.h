@@ -496,8 +496,6 @@ int  get_pty __P((int *, int *, char *, int));	/* Get pty master/slave */
 int  open_ppp_loopback __P((void)); /* Open loopback for demand-dialling */
 int  tty_establish_ppp __P((int));  /* Turn serial port into a ppp interface */
 void tty_disestablish_ppp __P((int)); /* Restore port to normal operation */
-void generic_disestablish_ppp __P((int dev_fd)); /* Restore device setting */
-int  generic_establish_ppp __P((int dev_fd)); /* Make a ppp interface */
 void make_new_bundle __P((int, int, int, int)); /* Create new bundle */
 int  bundle_attach __P((int));	/* Attach link to existing bundle */
 void cfg_bundle __P((int, int, int, int)); /* Configure existing bundle */
@@ -589,7 +587,6 @@ int int_option __P((char *, int *));
 				/* Simplified number_option for decimal ints */
 void add_options __P((option_t *)); /* Add extra options */
 void check_options __P((void));	/* check values after all options parsed */
-int remove_option __P((char *)); /* Disable the specified option */
 int  override_value __P((const char *, int, const char *));
 				/* override value if permitted by priority */
 void print_options __P((void (*) __P((void *, char *, ...)), void *));
