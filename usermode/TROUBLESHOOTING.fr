@@ -796,36 +796,34 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 	ou un doute, récupérez la dernière version ou contactez-nous.
 
 	Pour info:
-	    RFC1483 VC-MUX (ou null) PPPoA == RFC2364 VC-MUX
-	    RFC1483 LLC PPPoA == RFC2364 LLC Routed
-            RFC1483 BRIDGED ETH with NO FCS (ethernet sur ADSL, ETHoA ou
-	        ETHoATM)
-                est un mode typiquement utilisé pour encapsuler les trames
-                ethernet, il est souvent utilisé avec PPPoE, une IP statique
-                ethernet, ou DHCP sur ADSL.
-                Ce mode est très flexible, soit votre provider donne un 
-	            login/password pour se connecter en PPPoE ou une IP statique,
-		        soit dit simplement d'utiliser DHCP.
-	        VCM RFC1483 BRIDGED ETH est un mode similaire à RFC1483 BRIDGED ETH
-            NO FCS mais n'est pas souvent utilisé.
-	        LLC RFC1483 ROUTED IP est utilisé pour la transmission directe
-	            de datagrammes
-		    IP sur ADSL (IPoATM ou IPoA) typiquement dans le cas d'une IP
-			statique, ce protocole requiert une IP statique et une passerelle
-			données par le provider.
-	            VCM RFC1483 ROUTED IP est un mode similaire à
-				LLC RFC1483 ROUTED IP
-	                mais n'est pas souvent utilisé.
+    
+		RFC1483 VC-MUX (ou null) PPPoA == RFC2364 VC-MUX
+		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		RFC1483 BRIDGED ETH with NO FCS (ethernet sur ADSL, ETHoA ou ETHoATM)
+			est un mode typiquement utilisé pour encapsuler les trames
+			ethernet, il est souvent utilisé avec PPPoE, une IP statique
+			ethernet, ou DHCP sur ADSL.
+			Ce mode est très flexible, soit votre provider donne un 
+			login/password pour se connecter en PPPoE ou une IP statique,
+			soit dit simplement d'utiliser DHCP.
+		VCM RFC1483 BRIDGED ETH est un mode similaire à RFC1483 BRIDGED ETH
+			NO FCS mais n'est pas souvent utilisé.
+		LLC RFC1483 ROUTED IP est utilisé pour la transmission directe
+			de datagrammes IP sur ADSL (IPoATM ou IPoA) typiquement dans le cas
+			d'une IP statique, ce protocole requiert une IP statique et une
+			passerelle données par le provider.
+		VCM RFC1483 ROUTED IP est un mode similaire à LLC RFC1483 ROUTED IP
+			mais n'est pas souvent utilisé.
 
-	    SNAP est une couche d'encapsulation supplémentaire, entre ethernet et LLC
-	    ou entre IP et LLC.
+		SNAP est une couche d'encapsulation supplémentaire, entre ethernet et LLC
+		ou entre IP et LLC.
 
-	    Plus d'informations sur le mode utilisé dans votre pays peut ètre
-	    trouvées dans l'application de controle du modem sous Windows, ou par
-	    votre provider.
+    	Plus d'informations sur le mode utilisé dans votre pays peut ètre
+		trouvées dans l'application de controle du modem sous Windows, ou par
+		votre provider.
 
-	    Vous pouvez aussi lire les RFC1483 et RFC2364 qui décrivent ces
-	    modes en détail.
+		Vous pouvez aussi lire les RFC1483 et RFC2364 qui décrivent ces
+		modes en détail.
 
 
 5.5
