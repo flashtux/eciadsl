@@ -278,11 +278,11 @@ function configure_env()
 				display 1 -n "checking $_bin_ version... "
 				MAKE_VERSION="$($MAKE --version 2>&1)"
 				debug_info "$_bin_.version: $MAKE_VERSION"
-				if [ $(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 3) == "version" ]
+				if [ $(echo "$MAKE_VERSION" | head -n 1 | cut -d " " -f 3) == "version" ]
 				then
-					MAKE_VERSION=$(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 4 | cut -d "," -f 1)
+					MAKE_VERSION=$(echo "$MAKE_VERSION" | head -n 1 | cut -d " " -f 4 | cut -d "," -f 1)
 				else
-					MAKE_VERSION=$(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 3)
+					MAKE_VERSION=$(echo "$MAKE_VERSION" | head -n 1 | cut -d " " -f 3)
 				fi
 				if [ -n "$MAKE_VERSION" ]
 				then
@@ -325,12 +325,12 @@ function configure_env()
 				display 1 -n "checking $_bin_ version... "
 				GCC_VERSION="$($GCC --version 2>&1)"
 				debug_info "$_bin_.version: $GCC_VERSION"
-				GCC_VERSION=$(echo "$GCC_VERSION" | head -1)
+				GCC_VERSION=$(echo "$GCC_VERSION" | head -n 1)
 				if [ -n "$GCC_VERSION" ]
 				then
 					case "$GCC_VERSION" in
 						"egcs-"*)			GCC_VERSION=${GCC_VERSION:5};;
-						"gcc (GCC)"*)	GCC_VERSION=$(echo "$GCC_VERSION" | head -1 | cut -d " " -f 3);;
+						"gcc (GCC)"*)	GCC_VERSION=$(echo "$GCC_VERSION" | head -n 1 | cut -d " " -f 3);;
 						*)				;;
 					esac
 					display 1 $GCC_VERSION
@@ -372,7 +372,7 @@ function configure_env()
 				display 1 -n "checking $_bin_ version... "
 				PPPD_VERSION="$($PPPD --version 2>&1)"
 				debug_info "$_bin_.version: $PPPD_VERSION"
-				PPPD_VERSION=$(echo "$PPPD_VERSION" | head -1 | cut -d ' ' -f 3)
+				PPPD_VERSION=$(echo "$PPPD_VERSION" | head -n 1 | cut -d ' ' -f 3)
 				if [ -n "$PPPD_VERSION" ]
 				then
 					display 1 $PPPD_VERSION
@@ -553,9 +553,9 @@ GENFILE="$BASE.c"
 BASE="${0##*/}"
 
 # dir and project info
-PRODUCT_ID="$(head -1 ./ID)"
-PRODUCT_NAME="$(tail -1 ./ID)"
-PRODUCT_VERSION="$(head -1 ./VERSION)"
+PRODUCT_ID="$(head -n 1 ./ID)"
+PRODUCT_NAME="$(tail -n 1 ./ID)"
+PRODUCT_VERSION="$(head -n 1 ./VERSION)"
 test -n "$PRODUCT_VERSION" && VERSION="$PRODUCT_VERSION"
 SRC_DIR=""
 
