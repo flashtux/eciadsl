@@ -1,13 +1,9 @@
-# For the users of the driver :
-# Just do "make" and you'll get your doc in the following formats
-# dvi html ps pdf ascii
-
-# For the developers :
-# Just do "make site" and the following actions will be auto executed :
-# - gets the last Tex file via anonymous cvs
-# - gets the last doc Makefile and move it to Makefile2
-# - executes Makefile2
-# - saves Makefile2 as Makefile
+# If you are a Eciadsl project member, the best thing to do is :
+# $ ssh -l yourlogin eciadsl.sf.net
+# (when asked for a password, type Enter)
+# $ cd /home/groups/e/ec/eciadsl/doc
+# $ make site (to get the last Tex and Makefile using anonymous cvs)
+# $ make (to get your doc in DVI HTML PS PDF ASCII)
 
 base = howto
 pwd = `pwd`
@@ -24,21 +20,17 @@ html: dvi
 ps: dvi 
 	dvips -f $(base).dvi >$(base).ps
 
-pdf: dvi
-	dvips -j0 -P generic -q -f $(base).dvi | gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$(base).pdf -dCompatibilityLevel=1.3 -c save pop -
+pdf: $(base).tex
+	pdflatex $(base).tex
 
 ascii: html
 	lynx -dump $(base).html >$(base).txt
 	
-site:	clean site2
-site2:
+site:	
 	cvs -d$(cvsroot) login
 	cvs -d$(cvsroot) update $(base).tex
 	cvs -d$(cvsroot) update Makefile
 	cvs -d$(cvsroot) logout
-	mv Makefile Makefile2
-	make -f Makefile2
-	mv Makefile2 Makefile
 
 keep-useful-files-only:
 	rm -f labels.pl warnings $(base).log $(base).aux $(base).toc
