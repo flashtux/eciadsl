@@ -559,6 +559,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 
 
 	Copy the rc.adsl file to /etc/init.d: cp rc.adsl /etc/init.d
+	(the rc.adsl file is provided with version >= 0.7 (or CVS))
 
 	For Debian, just type as root: update-rc.d rc.adsl defaults 15
 
