@@ -523,6 +523,11 @@ static inline int _aal5_getVci(
 	aal5_t *		/* IN: the frame		*/
 ) ;
 
+/* Get AAL5 size */
+static inline size_t _aal5_getSize(
+	aal5_t *		/* IN: the frame		*/
+) ;
+	
 /* check if this is the frame is completed */
 static inline bool _aal5_iscomplete(
 	aal5_t *		/* IN: the frame		*/
@@ -557,6 +562,10 @@ static u32 _calc_crc(unsigned char *, int, unsigned int) ;
 static int _eci_tx_aal5( 
 		int, int, 
 		struct eci_instance *, struct sk_buff *
+) ;
+static int _eci_rx_aal5(
+		struct eci_instance*,
+		aal5_t*
 ) ;
 static void _eci_bulk_callback(struct urb *) ;
 
@@ -627,6 +636,11 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
 	unsigned char 		*interrupt_buffer;
 	unsigned char 		*pooling_buffer;
+
+	/* -- test -- */
+	struct atm_vcc		*pcurvcc ;
+	byte			bklog[ATM_CELL_SZ];/*	buffer to complete */
+	size_t			szbklog ;	/*	filled bytes */
 };
 
 struct eci_instance	*eci_instances= NULL;		/*  Driver list	*/
@@ -857,6 +871,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 
 	DBG_OUT(" doing ATM\n");
 
+	out_instance->pcurvcc = NULL ;
+
 	out_instance->atm_dev = atm_dev_register(
 			eci_drv_label,
 			&eci_atm_devops,
@@ -978,6 +994,9 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 	/* Indicate we're done! */
 	set_bit(ATM_VF_READY, &vcc->flags);
 
+	/* test */
+	((struct eci_instance*)vcc->dev->dev_data)->pcurvcc = vcc ;
+	
 	DBG_OUT("eci_atm_open out\n");
 
 	return 0;
@@ -1576,69 +1595,59 @@ static int eci_atm_receive_cell(
 		struct eci_instance * pinstance,
 		uni_cell_list_t *		plist
 ) {
-	uni_cell_t *		lp_cellfirst	= NULL ;
-	uni_cell_t *		lp_cellprv	= NULL ;
 	uni_cell_t *		lp_cell		= NULL ;
-	bool			lf_last 	= false ;
-	int			lv_vpi ;
-	int			lv_vci ;
-	int			lv_crc ;
-	size_t			lv_size 	= 0 ;
-	struct sk_buff *	lp_skb		= NULL ;
-
+	aal5_t 			lv_aal5 ;
+	int			lv_rc ;
+	
+	/* Check Interface */
 	if (!pinstance || !plist)
 		return -EINVAL ;
 
-	/*
-	 * Get the Cells that constitute a full AAL5 frame
-	 */
-	/*
-	lp_cellfirst		= 
-		lp_cell 	= 
-		lp_cellprv 	= _uni_cell_qpop(pinstance->prx_q) ;
-	if (!lp_cell) {
-		ERR_OUT("Empty rx q\n") ;
-		return -EINVAL ;
-	}
-	*/
-	lv_size += ATM_CELL_PAYLOAD ;
-	lv_crc = _calc_crc(
-			_uni_cell_getPayload(lp_cell),
-			ATM_CELL_PAYLOAD,
-			-1) ;
-	
-	while (lp_cell && !(lf_last = _uni_cell_islast(lp_cell))) {
-
-		lp_cellprv->next	= lp_cell ;
-		lp_cellprv 		= lp_cell ;
-		/*
-		lp_cell 		= _uni_cell_qpop(pinstance->prx_q) ;
-		*/
-
-		lv_size 		+= ATM_CELL_PAYLOAD ;
-		lv_crc = ~ _calc_crc(
-				_uni_cell_getPayload(lp_cell),
-				ATM_CELL_PAYLOAD,
-				lv_crc) ;
+	lv_rc = _aal5_init(&lv_aal5) ;
+	if (lv_rc) {
+		ERR_OUT("AAL5 init failed\n") ;
+		return lv_rc ;
 	}
 
-	if (!lp_cell || !lf_last) {
-		/* Something goes wrong */
-		ERR_OUT("failed to browse the AAL5 frame\n") ;
-		lp_cell = lp_cellfirst ;
-		while ((lp_cellprv = lp_cell)) {
-			lp_cell = lp_cellprv->next ;
-			_uni_cell_free(lp_cellprv) ;
-		}
-		return -EINVAL ;
-	}
+	/* Parse The complete list */
+	do {
 
-	/*
-	 * Compare CRC
-	 */
-	
-	/* TODO ... */
+		/* Manage a complete AAL5 */
+		do {
+			lp_cell = _uni_cell_list_extract(plist) ;
+			if (!lp_cell) {
+				ERR_OUT("COuld not get more cell\n") ;
+				goto end;
+			}
 
+			/* Check that the Cell is PDU */
+			if ((lp_cell->raw[3] >> 3) & 0x1) {
+				WRN_OUT("Not supported cell type\n") ;
+				DBG_RAW_OUT("the unsupported cell",
+						lp_cell->raw,
+						ATM_CELL_SZ) ;
+				_uni_cell_free(lp_cell) ;
+				continue ;
+			}
+			
+			lv_rc = _aal5_add_cell(&lv_aal5, lp_cell) ;
+			if (lv_rc) {
+				ERR_OUT("Failed to add new cell\n") ;
+				_uni_cell_free(lp_cell) ;
+				goto end;
+			}
+		} while (!_aal5_iscomplete(&lv_aal5)) ;
+
+		/* Now send it to ATM layer */
+		_eci_rx_aal5(pinstance, &lv_aal5) ;
+
+		/* Reset AAL5 */
+		_aal5_clean(&lv_aal5) ;
+	} while (true) ;
+		
+	end:
+	_aal5_clean(&lv_aal5) ;
+	_uni_cell_list_free(plist) ;
 	return 0 ;
 
 
@@ -1650,75 +1659,78 @@ static int eci_atm_receive_cell(
  *
  */
 static int _eci_rx_aal5(
-		struct eci_instance * pinstance
+		struct eci_instance *	pinstance,
+		aal5_t *		paal5
 ) {
-	uni_cell_t *		lp_cellfirst	= NULL ;
-	uni_cell_t *		lp_cellprv	= NULL ;
 	uni_cell_t *		lp_cell		= NULL ;
-	bool			lf_last 	= false ;
 	int			lv_vpi ;
 	int			lv_vci ;
-	int			lv_crc ;
-	size_t			lv_size 	= 0 ;
+	size_t			lv_size ;
 	struct sk_buff *	lp_skb		= NULL ;
+	byte *			lp_data		= NULL ;
 
 	/* Check Interface */
-	if (!pinstance) return -EINVAL ;
+	if (!pinstance || !paal5) return -EINVAL ;
 
-	/*
-	 * Get the Cells that constitute a full AAL5 frame
-	 */
-	/*
-	lp_cellfirst		= 
-		lp_cell 	= 
-		lp_cellprv 	= _uni_cell_qpop(pinstance->prx_q) ;
-	if (!lp_cell) {
-		ERR_OUT("Empty rx q\n") ;
+	lv_vpi = _aal5_getVpi(paal5) ;
+	lv_vci = _aal5_getVci(paal5) ;
+
+	if (lv_vpi == -1 || lv_vci == -1) {
+		ERR_OUT("VC info not properly set\n") ;
 		return -EINVAL ;
 	}
-	*/
-	lv_size += ATM_CELL_PAYLOAD ;
-	lv_crc = _calc_crc(
-			_uni_cell_getPayload(lp_cell),
-			ATM_CELL_PAYLOAD,
-			-1) ;
+
+	lv_size = _aal5_getSize(paal5) ;
 	
-	while (lp_cell && !(lf_last = _uni_cell_islast(lp_cell))) {
-
-		lp_cellprv->next	= lp_cell ;
-		lp_cellprv 		= lp_cell ;
-		/*
-		lp_cell 		= _uni_cell_qpop(pinstance->prx_q) ;
-		*/
-
-		lv_size 		+= ATM_CELL_PAYLOAD ;
-		lv_crc = ~ _calc_crc(
-				_uni_cell_getPayload(lp_cell),
-				ATM_CELL_PAYLOAD,
-				lv_crc) ;
+	/* Alloc SKB */
+	lp_skb = atm_alloc_charge(pinstance->pcurvcc, lv_size, GFP_ATOMIC);
+	if (!lp_skb) {
+		ERR_OUT("not enought mem for new skb\n") ;
+		return -ENOMEM ;
 	}
 
-	if (!lp_cell || !lf_last) {
-		/* Something goes wrong */
-		ERR_OUT("failed to browse the AAL5 frame\n") ;
-		lp_cell = lp_cellfirst ;
-		while ((lp_cellprv = lp_cell)) {
-			lp_cell = lp_cellprv->next ;
-			_uni_cell_free(lp_cellprv) ;
+	/* Init SKB */
+	skb_put(lp_skb, lv_size) ;
+	ATM_SKB(lp_skb)->vcc = pinstance->pcurvcc ;
+	lp_skb->stamp = xtime ;
+
+	/* Copy data */
+	lp_data = lp_skb->data ;
+	while (lv_size > ATM_CELL_PAYLOAD) {
+		lp_cell = _aal5_get_next(paal5) ;
+		if (!lp_cell) {
+			ERR_OUT("Next Cell not availlable\n") ;
+			/* TODO : free SKB */
+			return -1 ;
 		}
-		return -EINVAL ;
+		memcpy(
+			lp_data, 
+			_uni_cell_getPayload(lp_cell), 
+			ATM_CELL_PAYLOAD) ;
+		lp_data += ATM_CELL_PAYLOAD ;
+		lv_size -= ATM_CELL_PAYLOAD ;
 	}
 
-	/*
-	 * Compare CRC
-	 */
+	/* Copy last bytes if any */
+	lp_cell = _aal5_get_next(paal5) ;
+	if (!lp_cell) {
+		ERR_OUT("Next Cell not availlable\n") ;
+		/* TODO : free SKB */
+		return -1 ;
+	}
+	memcpy(
+		lp_data, 
+		_uni_cell_getPayload(lp_cell), 
+		lv_size) ;
+
+	DBG_RAW_OUT("aal5 to be sent", lp_skb->data, lp_skb->len) ;
+
+	DBG_OUT("SEND AAL5 TO ATM\n") ;
+	pinstance->pcurvcc->push(pinstance->pcurvcc, lp_skb) ;
+	atomic_inc(&pinstance->pcurvcc->stats->rx) ;
 	
-	/* TODO ... */
 
 	return 0 ;
-
-	
-	
 
 }
 
@@ -2586,11 +2598,21 @@ static int _aal5_to_cells(
 	}
 
 	/* Check aal5 size */
-	if (szaal5 > ((2^16) - 1)) {
-		ERR_OUT("data to long to be hold in aal5 frame\n") ;
+	if (szaal5 > 0xffff) {
+		ERR_OUT(
+			"data too long to be hold in aal5 frame [%d/%d]\n",
+			szaal5,
+			0xffff) ;
 		return -EINVAL ;
 	}
 
+	/* Init Temp list */
+	lv_rc = _uni_cell_list_init(&lv_tmplist) ;
+	if (lv_rc) {
+		ERR_OUT("Failed to init temp list\n") ;
+		return -1 ;
+	}
+	
 	/*
 	 * |------------------|---------|---------|--------|-----|
 	 * |    User Data     |   PAD   | Control | Length | CRC |
@@ -2733,11 +2755,11 @@ static int _aal5_to_cells(
 		return -ENOMEM ;
 	}
 
-	/* Format this before last slice */
+	/* Format this last slice */
 	lv_rc = _uni_cell_format(
 			vpi,
 			vci,
-			false,
+			true,
 			ATM_CELL_PAYLOAD,
 			lv_aal5trl,
 			lp_cell) ;
@@ -2892,6 +2914,22 @@ static inline bool _aal5_isvalid(
 
 /*----------------------------------------------------------------------*/
 
+/* Get AAL5 frame size */
+static inline size_t _aal5_getSize(
+	aal5_t * paal5			/* IN: the frame		*/
+) {
+	uni_cell_t * lp_last = NULL ;
+
+	if (!paal5 || !_aal5_iscomplete(paal5)) return 0 ;
+
+	lp_last = paal5->plastcell ;
+
+	return ((lp_last->raw[ATM_CELL_SZ - 6] << 8) & 0xff00)
+		+ lp_last->raw[ATM_CELL_SZ - 5] ;
+}
+
+/*----------------------------------------------------------------------*/
+
 /* Get the number of cells in the AAL5 frame */
 static inline int _aal5_getNbCell(
 	aal5_t * paal5			/* IN: the frame		*/
@@ -2917,7 +2955,7 @@ static int _aal5_add_cell(
 	if (!_uni_cell_islast(pcell)) {
 		/* compute crc */
 		paal5->_crc 	= _calc_crc(
-					pcell->raw + ATM_CELL_HDR,
+					_uni_cell_getPayload(pcell),
 					ATM_CELL_PAYLOAD,
 					paal5->_crc) ;
 	} else {
@@ -2949,6 +2987,7 @@ static int _aal5_add_cell(
 			ERR_OUT("Invalid crc field in trailer\n") ;
 			return -EINVAL ;
 		}
+		paal5->is_valid = true ;
 	}
 
 	if (!paal5->nbcells) {
