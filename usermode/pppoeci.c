@@ -1366,9 +1366,10 @@ void usage(const int ret)
 					"       pppoeci [<switch>..] [-vpi num -vci num -vendor hex -product hex]\n");
 	fprintf(stderr,	"switches:\n"
 					"       -alt <num>           force the use of an alternate method to set USB interface\n"
-					"       -dto <num>           override default DATA_TIMEOUT value\n"
+					"       -dto <num>           set the DATA_TIMEOUT value (default is %d)\n"
                     "       -mode <name>         PPP encapsulation method (see below)\n"
-					"       -v or --verbosity    define the verbosity level [0-2] (enables logging)\n");
+					"       -v or --verbosity    define the verbosity level [0-2] (enables logging)\n",
+					DATA_TIMEOUT);
 	fprintf(stderr,	"       -f or --logfile      define the log filename to use (default " LOG_FILE ")\n"
 					"       -h or --help         display this message then exit\n"
 					"       -V or --version      display the version number then exit\n"
