@@ -52,4 +52,6 @@ keep-useful-files-only:
 	$(RM) internals.pl labels.pl warnings *.log *.aux *.toc *.out
 
 clean: keep-useful-files-only
-	$(RM) *.html *.css *.dvi *.ps *.pdf *.txt
+	$(RM) $(base).html $(base).css $(base).dvi $(base).ps $(base).pdf $(base).txt
+	$(RM) kernelmode-design.html kernelmode-design.css kernelmode-design.dvi
+	$(RM) technical-reference.html technical-reference.css technical-reference.dvi
