@@ -1,0 +1,17 @@
+Source: eciadsl-ursermode.0.5
+Section: unknown
+Priority: optional
+Maintainer: Jean-Sébastien <jeanseb@libertysurf.fr>
+Build-Depends: debhelper (>> 3.0.0)
+Standards-Version: 3.5.2
+
+Package: eciadsl-ursermode.0.5
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: <insert up to 60 chars description>
+ <insert long description, indented with spaces>
+
+Package: eciadsl-ursermode.0.5-doc
+Architecture: all
+Description: Documentation for eciadsl-ursermode.0.5
+ <insert long description, indented with spaces>
