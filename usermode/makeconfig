@@ -16,6 +16,7 @@
 # *          $5 = DNS 2 (depends on provider)                            *
 # *          $6 = VPI (depends on provider)                              *
 # *          $7 = VCI (depends on provider)                              *
+# *          $8 = path to .bin (optional)                                *
 # *                                                                      *
 # ************************************************************************
 
@@ -34,7 +35,7 @@ if [ $UID -ne 0 ]; then
     exit 255
 fi
 
-if [ $# -ne 7 ]; then
+if [ $# -ne 7 -a $# -ne 8 ]; then
     echo -e "Error: invalid number of parameters."
     echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci>"
     exit 1
@@ -169,5 +170,16 @@ lcp-echo-interval 0
 # You may need the following, but ONLY as a workaround
 # mtu 1432
 EOF
+    echo "ok"
+fi
+
+#
+# change .bin file
+#
+
+if [ $# -eq 8 ]; then
+    echo -n "Modifying /usr/local/bin/startmodem (installing new .bin : $8)..."
+    sed s£"\$ECILOAD2 /.*"£"\$ECILOAD2 $8;"£ /usr/local/bin/startmodem | sed s£"\$ECILOAD2 0x\$3 0x\$4 /.*"£"\$ECILOAD2 0x\$3 0x\$4 $8;"£ >/tmp/makeconfig$$
+    mv /tmp/makeconfig$$ /usr/local/bin/startmodem
     echo "ok"
 fi
