@@ -11,7 +11,7 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "/usr/local/bin/pppoeci -v 1 -vpi 8 -vci 35"
+pty "/usr/local/bin/pppoeci -v 1 -vpi 8 -vci 35 -vendor 0x0915 -product 0x8000"
 sync
 user "adsl@adsl"
 noaccomp
