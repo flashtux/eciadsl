@@ -1,7 +1,0 @@
-# Automatically added by dh_installdocs
-if [ "$1" = "configure" ]; then
-	if [ -d /usr/doc -a ! -e /usr/doc/eciadsl-usermode.0.5 -a -d /usr/share/doc/eciadsl-usermode.0.5 ]; then
-		ln -sf ../share/doc/eciadsl-usermode.0.5 /usr/doc/eciadsl-usermode.0.5
-	fi
-fi
-# End automatically added section
