@@ -64,7 +64,7 @@ typedef struct lcp_options {
     bool neg_endpoint;		/* negotiate endpoint discriminator */
     int  mru;			/* Value of MRU */
     int	 mrru;			/* Value of MRRU, and multilink enable */
-    u_char chap_mdtype;		/* which MD type (hashing algorithm) */
+    u_char chap_mdtype;		/* which MD types (hashing algorithm) */
     u_int32_t asyncmap;		/* Value of async map */
     u_int32_t magicnumber;
     int  numloops;		/* Number of loops during magic number neg. */

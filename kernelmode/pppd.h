@@ -71,7 +71,7 @@ enum opt_type {
 	o_int,
 	o_uint32,
 	o_string,
-	o_wild,
+	o_wild
 };
 
 typedef struct {
@@ -86,6 +86,7 @@ typedef struct {
 	const char *source;
 	short int priority;
 	short int winner;
+	void	*addr3;
 } option_t;
 
 /* Values for flags */
@@ -102,6 +103,7 @@ typedef struct {
 #define OPT_ZEROOK	0x10000	/* 0 value is OK even if not within limits */
 #define OPT_HIDE	0x10000	/* for o_string, print value as ?????? */
 #define OPT_A2LIST	0x10000 /* for o_special, keep list of values */
+#define OPT_A2CLRB	0x10000 /* o_bool, clr val bits in *(u_char *)addr2 */
 #define OPT_NOINCR	0x20000	/* value mustn't be increased */
 #define OPT_ZEROINF	0x40000	/* with OPT_NOINCR, 0 == infinity */
 #define OPT_PRIO	0x80000	/* process option priorities for this option */
@@ -117,6 +119,7 @@ typedef struct {
 #define OPT_A2PRINTER	0x10000000 /* *addr2 is a fn for printing option */
 #define OPT_A2STRVAL	0x20000000 /* *addr2 points to current string value */
 #define OPT_NOPRINT	0x40000000 /* don't print this option at all */
+#define OPT_A3OR  	0x80000000 /* addr3 -> third location to rcv | value */
 
 #define OPT_VAL(x)	((x) & OPT_VALUE)
 
@@ -147,6 +150,8 @@ struct permitted_ip {
 struct pppd_stats {
     unsigned int	bytes_in;
     unsigned int	bytes_out;
+    unsigned int	pkts_in;
+    unsigned int	pkts_out;
 };
 
 /* Used for storing a sequence of words.  Usually malloced. */
@@ -212,11 +217,18 @@ extern int	unsuccess;	/* # unsuccessful connection attempts */
 extern int	do_callback;	/* set if we want to do callback next */
 extern int	doing_callback;	/* set if this is a callback */
 extern char	ppp_devnam[MAXPATHLEN];
+extern char     remote_number[MAXNAMELEN]; /* Remote telephone number, if avail. */
+extern int      ppp_session_number; /* Session number (eg PPPoE session) */
+
+extern int	listen_time;	/* time to listen first (ms) */
 extern struct notifier *pidchange;   /* for notifications of pid changing */
 extern struct notifier *phasechange; /* for notifications of phase changes */
 extern struct notifier *exitnotify;  /* for notification that we're exiting */
 extern struct notifier *sigreceived; /* notification of received signal */
-extern int	listen_time;	/* time to listen first (ms) */
+extern struct notifier *ip_up_notifier; /* IPCP has come up */
+extern struct notifier *ip_down_notifier; /* IPCP has gone down */
+extern struct notifier *auth_up_notifier; /* peer has authenticated */
+extern struct notifier *link_down_notifier; /* link has gone down */
 
 /* Values for do_callback and doing_callback */
 #define CALLBACK_DIALIN		1	/* we are expecting the call back */
@@ -441,6 +453,8 @@ void fatal __P((char *, ...));	/* log an error message and die(1) */
 void init_pr_log __P((char *, int));	/* initialize for using pr_log */
 void pr_log __P((void *, char *, ...));	/* printer fn, output to syslog */
 void end_pr_log __P((void));	/* finish up after using pr_log */
+void dump_packet __P((const char *, u_char *, int));
+				/* dump packet to debug log if interesting */
 
 /* Procedures exported from auth.c */
 void link_required __P((int));	  /* we are starting to use the link */
@@ -496,6 +510,8 @@ int  get_pty __P((int *, int *, char *, int));	/* Get pty master/slave */
 int  open_ppp_loopback __P((void)); /* Open loopback for demand-dialling */
 int  tty_establish_ppp __P((int));  /* Turn serial port into a ppp interface */
 void tty_disestablish_ppp __P((int)); /* Restore port to normal operation */
+void generic_disestablish_ppp __P((int dev_fd)); /* Restore device setting */
+int  generic_establish_ppp __P((int dev_fd)); /* Make a ppp interface */
 void make_new_bundle __P((int, int, int, int)); /* Create new bundle */
 int  bundle_attach __P((int));	/* Attach link to existing bundle */
 void cfg_bundle __P((int, int, int, int)); /* Configure existing bundle */
@@ -570,6 +586,7 @@ int  get_if_hwaddr __P((u_char *addr, char *name));
 char *get_first_ethernet __P((void));
 
 /* Procedures exported from options.c */
+int setipaddr __P((char *, char **, int)); /* Set local/remote ip addresses */
 int  parse_args __P((int argc, char **argv));
 				/* Parse options from arguments given */
 int  options_from_file __P((char *filename, int must_exist, int check_prot,
@@ -606,9 +623,17 @@ extern int (*pap_auth_hook) __P((char *user, char *passwd, char **msgp,
 				 struct wordlist **popts));
 extern void (*pap_logout_hook) __P((void));
 extern int (*pap_passwd_hook) __P((char *user, char *passwd));
+extern int (*allowed_address_hook) __P((u_int32_t addr));
 extern void (*ip_up_hook) __P((void));
 extern void (*ip_down_hook) __P((void));
 extern void (*ip_choose_hook) __P((u_int32_t *));
+
+extern int (*chap_check_hook) __P((void));
+extern int (*chap_passwd_hook) __P((char *user, char *passwd));
+
+/* Let a plugin snoop sent and received packets.  Useful for L2TP */
+extern void (*snoop_recv_hook) __P((unsigned char *p, int len));
+extern void (*snoop_send_hook) __P((unsigned char *p, int len));
 
 /*
  * Inline versions of get/put char/short/long.
@@ -784,6 +809,10 @@ extern void (*ip_choose_hook) __P((u_int32_t *));
 #endif
 #ifndef MAX
 #define MAX(a, b)	((a) > (b)? (a): (b))
+#endif
+
+#ifndef offsetof
+#define offsetof(type, member) ((size_t) &((type *)0)->member)
 #endif
 
 #endif /* __PPP_H__ */
