@@ -797,8 +797,8 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 		tasklet_kill(&i->bh_atm);
 		i->bh_atm.func = 0;
 	}
-	_uni_cell_list_free(&i->iso_cells);
-	_uni_cell_list_free(&i->bulk_cells);
+	_uni_cell_list_reset(&i->iso_cells);
+	_uni_cell_list_reset(&i->bulk_cells);
 	/*skb_free(i->txq);*/
 	if(i->pcurvcc) 	{
 	}
@@ -886,7 +886,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 				ERR_OUT("out of memory\n");
 				goto erreure;
 			}
-#if (!(LINUX_VERSION_CODE  < KERNEL_VERSION(2,6,0)))
+#if(LINUX_VERSION_CODE  < KERNEL_VERSION(2,6,0))
 			if(usb_set_configuration(dev,1)<0) {
 				ERR_OUT("Can't set interface\n");
 				goto erreure;
