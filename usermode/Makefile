@@ -18,10 +18,11 @@ all: check ${TARGETS} ${SCRIPTS}
 eci-load1: eci-load1.o pusb.o util.o
 eci-load2: eci-load2.o pusb.o util.o semaphore.o
 pppoeci: pppoeci.o pusb.o gs7070.o util.o
+pppatm: pppatm.o 
+	cc $(LDFLAGS) -latm -o pppatm pppatm.o
 eci-eeprom: eci-eeprom.o pusb.o
 check-hdlc: check-hdlc.o
 check-hdlc-bug: check-hdlc-bug.o
-
 pusb.o: pusb.c pusb-linux.c pusb.h
 eci-load1.o: eci-load1.c pusb.h modem.h config.h util.h
 eci-load2.o: eci-load2.c pusb.h modem.h config.h util.h semaphore.h
