@@ -1076,7 +1076,7 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci) {
 	/*	
 	 * TODO: allow more than one VCC.
 	 */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
 	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->vccs = vcc;
 	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->last = vcc;	
 #else
@@ -1092,7 +1092,7 @@ static void eci_atm_close(struct atm_vcc *vcc) {
 	/*
 	 * 	TO DO allow to open more than one vcc
 	 */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
 	lp_instance->atm_dev->vccs = NULL;
 	lp_instance->atm_dev->last = NULL;
 #else
@@ -1138,6 +1138,7 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb) {
 		dev_kfree_skb(skb) ;
 		return -EINVAL ;
 	}	
+	ATM_SKB(skb)->vcc = vcc;
 	/* Get private data */
 	lp_outinst = GET_PRIV(vcc->dev) ;
 	if (!lp_outinst) {
@@ -1183,14 +1184,6 @@ static void eci_bh_atm (unsigned long param) {
 	int flags;
 	
 	spin_lock_irqsave(&lp_instance->lock, flags);
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
-	if (!(lp_vcc = lp_instance->atm_dev->last)) {
-	       ERR_OUT("No VC ready no dequeue\n") ;
-		goto out;
-	}
-#else
-	goto out;
-#endif
 	/*
 	 * 	Allow  more than one VCC
 	 * 	Probleme with eci_tx_all5 param, gotta change it to struct atm_vcc *
@@ -1198,6 +1191,7 @@ static void eci_bh_atm (unsigned long param) {
 	 */
 
 	if((lp_skb = skb_dequeue(&lp_instance->txq))) {
+		lp_vcc = ATM_SKB(lp_skb)->vcc;
 		lv_rc = _eci_tx_aal5(lp_vcc->vpi, lp_vcc->vci, lp_instance, lp_skb) ;
 		if (lv_rc) {
 			ERR_OUT("_eci_tx_aal5 failed\n") ;
@@ -1207,10 +1201,7 @@ static void eci_bh_atm (unsigned long param) {
 		}
 	}
 	/* Free Socket Buffer */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
-	FREE_SKB(lp_instance->atm_dev->vccs, lp_skb) ;
-#else
-#endif
+	FREE_SKB(ATM_SKB(lp_skb)->vcc, lp_skb);
 out:
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
 }
@@ -1724,7 +1715,7 @@ static int _eci_usb_rx(
 /*----------------------------------------------------------------------
  * 
  * Send Cell to ATM
- *
+ * this need to be fully rewritten !!
  */
 static int eci_atm_receive_cell(
 		struct eci_instance * pinstance,
@@ -1733,19 +1724,31 @@ static int eci_atm_receive_cell(
 	uni_cell_t *		lp_cell		= NULL ;
  	aal5_t *		lp_aal5 	= NULL ;
 	int			lv_rc ;
+	struct atm_vcc *vcc;
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,22))	
+	struct sock *s;
+#endiif
 	
 	/* Check Interface */
 	if (!pinstance || !plist)
 		return -EINVAL ;
 
 	/* Check if VCC available */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
-	if (!pinstance->atm_dev->last){
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
+	if (!(vcc = = pinstance->atm_dev->last)){
 		ERR_OUT("No opened VC\n") ;
 		return -ENXIO ;
-	}
+	} 
 #else
-	return -ENXIO ;
+	read_lock(vcc_sklist_lock);
+	for(s = vcc_sklist; s->s; s = s->next)
+	{
+		vcc = s->protinfo.af_atm;
+		if(vcc->dev == pinstance) break;
+		
+	}
+	read_unlock(vcc_sklist_lock);
+	if(!s)	return -ENXIO ;
 #endif
 
  	/* Manage backlog AAL5 */
@@ -1788,14 +1791,12 @@ static int eci_atm_receive_cell(
 		} while (!_aal5_iscomplete(lp_aal5)) ;
 
 		/* Now send it to ATM layer */
-		_eci_rx_aal5(pinstance, lp_aal5) ;
+		_eci_rx_aal5(pinstance, lp_aal5, vcc) ;
 
 		/* Reset AAL5 */
-		_aal5_clean(lp_aal5) ;
+		_aal5_clean(lp_aal5) ;		
 
-		
-	end:
-
+end:
  	/* Manage AAL5 backlog */
  	if (_aal5_getNbCell(lp_aal5) && !_aal5_iscomplete(lp_aal5)) {
  		pinstance->pbklogaal5 = lp_aal5 ;
@@ -1820,10 +1821,8 @@ static int eci_atm_receive_cell(
  * Gotta add some check for which vcc somewhere !!!
  *
  */
-static int _eci_rx_aal5(
-		struct eci_instance *	pinstance,
-		aal5_t *		paal5
-) {
+static int _eci_rx_aal5(struct eci_instance *	pinstance,
+		aal5_t *		paal5,struct atm_vdcc *vcc) {
 	uni_cell_t *		lp_cell		= NULL ;
 	int			lv_vpi ;
 	int			lv_vci ;
@@ -1854,11 +1853,7 @@ static int _eci_rx_aal5(
 
 	/* Init SKB */
 	skb_put(lp_skb, lv_size) ;
-	#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
-		ATM_SKB(lp_skb)->vcc = pinstance->atm_dev->vccs ;
-	#else
-		
-	#endif
+	ATM_SKB(lp_skb)->vcc = vcc ;
 	lp_skb->stamp = xtime ;
 
 	/* Copy data */
@@ -1889,7 +1884,7 @@ static int _eci_rx_aal5(
 		lp_data, 
 		_uni_cell_getPayload(lp_cell), 
 		lv_size) ;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,22))	
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
 	pinstance->atm_dev->vccs->push(pinstance->pcurvcc, lp_skb) ;
 	atomic_inc(&pinstance->atm_dev->vccs->stats->rx) ;
 #else
