@@ -268,7 +268,12 @@ function configure_env()
 				display 1 -n "checking $_bin_ version... "
 				MAKE_VERSION="$($MAKE --version 2>&1)"
 				debug_info "$_bin_.version: $MAKE_VERSION"
-				MAKE_VERSION=$(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 4 | cut -d "," -f 1)
+				if [ $(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 3) == "version" ]
+				then
+					MAKE_VERSION=$(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 4 | cut -d "," -f 1)
+				else
+					MAKE_VERSION=$(echo "$MAKE_VERSION" | head -1 | cut -d " " -f 3)
+				fi
 				if [ -n "$MAKE_VERSION" ]
 				then
 					display 1 $MAKE_VERSION
