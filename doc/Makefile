@@ -13,7 +13,7 @@ base = howto
 pwd = `pwd`
 cvsroot= :pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl
 
-all: $(base).dvi $(base).html $(base).ps $(base).txt \
+all: $(base).dvi $(base).html $(base).ps $(base).txt eciadsl_kernelmode.dvi eciadsl_kernelmode.ps eciadsl_kernelmode.txt eciadsl_kernelmode.html\
 	kernelmode-design.html technical-reference.html \
 	keep-useful-files-only
 
