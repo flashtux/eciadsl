@@ -12,6 +12,9 @@
 # 16/02/2002 Benoit PAPILLAULT
 #   Check for an existing pppd and display its version
 
+# cd to the directory where the 'doctor' is.
+cd `dirname $0`
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 if [ `whoami` != "root" ]; then
