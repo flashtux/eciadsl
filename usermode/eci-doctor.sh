@@ -395,7 +395,7 @@ if [ "$x" = "" ]; then
 fi
 
 # check the pppd version
-ppp_version=`pppd --version | cut -d" " -f 3` ;
+ppp_version=`pppd --version 2>&1 | cut -d" " -f 3` ;
 msg="";
 if [ "$ppp_version" != "2.4.0" -a "$ppp_version" != "2.4.1" ]; then
 	msg=" (untested)" ;
