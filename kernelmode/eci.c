@@ -831,15 +831,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 
 	DBG_OUT(" doing ATM\n");
 
-	/*
-	 * Init Queues
-	 */
-	out_instance->prx_q = _uni_cell_qalloc() ;
-	if (!out_instance->prx_q) {
-		ERR_OUT("Failed allocating RX Q\n") ;
-		return 0 ;
-	}
-
 	out_instance->atm_dev = atm_dev_register(
 			eci_drv_label,
 			&eci_atm_devops,
@@ -876,12 +867,6 @@ void eci_usb_disconnect(struct usb_device *dev, void *p)
 #ifdef __USE_ATM__
 		DBG_OUT("disconnect : freeing atm_dev\n");
 		atm_dev_deregister(eci_instances->atm_dev);
-
-		/*
-		 * Free the IO Q
-		 */
-		_uni_cell_qfree(eci_instances->prx_q) ;
-
 #endif /* __USE_ATM__ */
 
 		DBG_OUT("disconnect : freeing int urb\n");
@@ -1683,6 +1668,7 @@ static int _eci_rx_aal5(
 	/*
 	 * Get the Cells that constitute a full AAL5 frame
 	 */
+	/*
 	lp_cellfirst		= 
 		lp_cell 	= 
 		lp_cellprv 	= _uni_cell_qpop(pinstance->prx_q) ;
@@ -1690,6 +1676,7 @@ static int _eci_rx_aal5(
 		ERR_OUT("Empty rx q\n") ;
 		return -EINVAL ;
 	}
+	*/
 	lv_size += ATM_CELL_PAYLOAD ;
 	lv_crc = _calc_crc(
 			_uni_cell_getPayload(lp_cell) + ATM_CELL_HDR,
@@ -1700,7 +1687,9 @@ static int _eci_rx_aal5(
 
 		lp_cellprv->next	= lp_cell ;
 		lp_cellprv 		= lp_cell ;
+		/*
 		lp_cell 		= _uni_cell_qpop(pinstance->prx_q) ;
+		*/
 
 		lv_size 		+= ATM_CELL_PAYLOAD ;
 		lv_crc = ~ _calc_crc(
