@@ -5,6 +5,7 @@ Sorted according to priority (the upper in the list, the prior):
 * done
 + currently in development
 - pending
+? is this really necessary?
 
 0.6:
 * merging of pending patches (LCP timeouts, LLC/LLC_SNAP, eci-load* timeout detection, oliverthered*)
@@ -13,7 +14,7 @@ Sorted according to priority (the upper in the list, the prior):
 * ANSIC89 compliance
 * eciconftxt.sh
 * probe_device.sh
-+ add auto modes to probe_device.sh
++? add auto modes to probe_device.sh
 - redesign probe_synch.sh to reset the modem between each synch .bin test
 * synch bin auto selection (config time only)
 * packaging:
@@ -39,13 +40,14 @@ Sorted according to priority (the upper in the list, the prior):
 * add doc about connecting using startmodem at boot
 * removed: skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
   adsl file, is this relevant in Makefile?
-- keep previous settings when installing/configuring
+* keep previous settings when installing/configuring (eciconf.sh)
+- keep previous settings when installing/configuring (eciconftxt.sh)
 * merge oliverthered's pending patches (stability, gs7070), update doc if necessary
 * merge flynux's pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
 * remove synch and firm link, all scripts and exec must use eciadsl.conf (startmodem for instance)
-- reimplement the .bak system (yak!)
+- reimplement the .bak system in makeconfig (yak!)
 * eciload* and pppoeci should read the .conf file by default (see pending patch or merge wwp's previous implementation)
-- fix a hole in makeconfig: updated a pre-existing eciadsl.conf does not re-add missing fields
+* fix a hole in makeconfig: updated a pre-existing eciadsl.conf does not re-add missing fields
 + complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
 - add better documentation in the TROUBLESHOOTING/INSTALL files about DHCP/static IP and the PPP mode.
 
