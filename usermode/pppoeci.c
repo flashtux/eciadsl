@@ -640,6 +640,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 	int r;
 	static unsigned char rbuf [ 64*1024];
 	static int rlen = 0;
+	int pos;
 	static int waiting_for_53 = 0;
 
 	/*Debug message*/
@@ -669,7 +670,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 			printf("ok... back to normal :-)\n");
 			waiting_for_53 = 0;
 		}
-	}*/
+	}
 
 	if ((len % 53) == 0)
 	{
@@ -678,7 +679,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 			printf("dropping %d bytes\n",rlen);
 			rlen = 0;
 		}
-	}
+	}*/
 
 	/* add the received buf to our buf, if possible */
 
@@ -688,19 +689,20 @@ decode_usb_pkt(unsigned char *buf, int len)
 		rlen += len;
 	}
 
-	while(rlen >= CELL_SIZE) {
+	pos = 0;
+	while((rlen - pos) >= CELL_SIZE) {
 
-		if((r = cell_read(rbuf, CELL_SIZE, gfdout)) < 0)
+		if((r = cell_read(rbuf + pos, CELL_SIZE, gfdout)) < 0)
 			return(r);
-
-		/* move next cell to the beginning of rbuf */
-
-		memcpy(rbuf,rbuf + CELL_SIZE,rlen - CELL_SIZE);
-		rlen -= CELL_SIZE;
+		pos += CELL_SIZE;
 	};
+	rlen -= pos;
 
 	if (rlen != 0)
+	{
 		printf("warning: rlen=%d\n",rlen);
+		memcpy(rbuf, rbuf + pos, rlen);
+	}
 
 	return(0);
 }
