@@ -334,12 +334,14 @@ then
 		if [ -n "$staticip" -a -n "$gateway" ]
 		then
 			ifconfig $GW $staticip pointopoint $gateway
-			GW=$gateway
+			GW="gw $gateway"
 		else
 			echo "couldn't set your static IP or your external gateway"
 			echo "if you don't use PPPoE, please check your configuration"
 			exit -1
 		fi
+		;;
+	*)	GW="dev $GW"
 		;;
 	esac
 
@@ -356,7 +358,7 @@ then
 		echo "adding default route.."
 		route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+$GW$" > /dev/null
 		if [ $? -ne 0 ]; then
-   			route add default dev $GW
+   			route add default $GW
 			if [ $? -ne 0 ]; then
 				echo "failed to set default route to $GW"
 			else
