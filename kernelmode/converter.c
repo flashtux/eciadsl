@@ -16,9 +16,7 @@
 #include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
-#include <sys/types.h>
-#include <errno.h>
-
+#include <time.h>
 
 /*
 	From ECI-LOAD2
@@ -34,11 +32,14 @@ int convert(FILE *fp)
 	while((r=fread(b,1,sizeof(b),fp)) == sizeof(b))
 	{
 	
-		/*p->request_type = b[0];
+		/*
+      p->request_type = b[0];
 			p->request      = b[1];
-		p->value        = (b[2]<<8) | b[3];
-		p->index        = (b[4]<<8) | b[5];
-		p->size         = (b[6]<<8) | b[7];*/
+      p->value        = (b[2]<<8) | b[3];
+      p->index        = (b[4]<<8) | b[5];
+      p->size         = (b[6]<<8) | b[7];
+    */
+
 		printf("0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x, 0x%02x,\n",
 			b[0], b[1], b[3], b[2], b[5], b[4], b[7], b[6]);
 
@@ -59,10 +60,12 @@ int convert(FILE *fp)
 						   r,size);
 					return 0;
 				}
+
+        printf("      ");
 				for(i = 0; i<r; i++)
 				{
-					if(!(i%8)) printf("\n");				
 					printf ("0x%02x, ",buf[i]);
+          if ((i%8) == 7) printf("\n      ");
 				}
 				printf("\n");
 			}
@@ -70,21 +73,58 @@ int convert(FILE *fp)
 	}
 	return -1;
 }
+
+void usage()
+{
+  printf("usage: converter file.bin\n");
+  printf("output a usb_packets.h\n");
+  exit (-1);
+}
+
 int main(int argc, char *argv[])
 {
-	const char * file = argv[1];
-	FILE *f;
+  const char * file = NULL;
+	FILE * fp;
+  int i;
+  time_t t;
 
-	f=fopen("eci_wan3.bin","rb");
+  for (i=1;i<argc;i++)
+    {
+      if (file == NULL)
+        file = argv[i];
+      else
+        usage();
+    }
 
-	if (!convert(f))
-	{
-		printf("Conversion failed!\n");
-		return -1;
-	}
+  if (file == NULL)
+    usage();
 
-	printf("Conversion Success\n");
+	fp=fopen(file,"rb");
 
+  time(&t);
+
+  printf(
+    "#ifndef USB_PACKETS_H\n"
+    "#define USB_PACKETS_H\n"
+    "\n"
+    "/* Generated on %.24s from :\n"
+    "   %s\n"
+    "*/\n"
+    "\n"
+    "static const unsigned char eci_init_setup_packets[] = {\n",
+    ctime(&t),file);
+
+	if (!convert(fp))
+    {
+      printf("Conversion failed!\n");
+      return -1;
+    }
+
+  printf(
+    "0x00\n"
+    "};\n"
+    "\n"
+    "#endif\n");
 
 	return 0;
 }

@@ -1,9 +1,14 @@
 CC=gcc
-MODCFLAGS := -Wall -DMODULE -DMODVERSIONS -D__KERNEL__ -DLINUX -D_DMT_ -O2 -DDEBUG
+MODCFLAGS := -Wall -DMODULE -DMODVERSIONS -D__KERNEL__ -DLINUX -O2 -DDEBUG
+
+# If your line is using DMT modulation, add this define and recompile
+# MODFLAGS += -D_DMT_
 
 ifndef KERNELDIR
   KERNELDIR=/lib/modules/`uname -r`/build
 endif
+
+INSTALLDIR=/lib/modules/`uname -r`/misc
 
 INCDIR := -I$(KERNELDIR)/include  -include $(KERNELDIR)/include/linux/modversions.h
 
@@ -13,8 +18,8 @@ eci.o: eci.c usb_packets.h
 	$(CC) $(MODCFLAGS) -c $(INCDIR) eci.c
 
 install:
-	cp eci.o /lib/modules/`uname -r `/kernel/drivers/usb
-	chown root:root /lib/modules/`uname -r `/kernel/drivers/usb
+	@mkdir -p $(INSTALLDIR)
+	cp eci.o  $(INSTALLDIR)
 	depmod -a 
 
 atmtotap: atmtotap.c

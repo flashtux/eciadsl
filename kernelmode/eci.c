@@ -55,7 +55,6 @@
                     Debuging Stuf
 ***********************************************************************/
 
-#define DEBUG
 #ifdef DEBUG
 
 #define DBG_OUT(fmt, argz...) \
@@ -101,7 +100,7 @@ static void _dumpk(
 
 	/* Format the buffer */
 	for (lc_1=0 ; lc_1 < lv_max ; lc_1 += 8) {
-		lp_cur += sprintf(lp_cur, "%s:", KERN_DEBUG);
+		lp_cur += sprintf(lp_cur, "%s %02x:", KERN_DEBUG, lc_1);
 		
 		/* Print hexa */
 		for (
@@ -173,9 +172,10 @@ static void _dumpk(
 #define ECI_ISO_PIPE 0x88
 #define ECI_BULK_PIPE 0x02
 
-#define ECI_NB_ISO_PACKET 10
+#define ECI_NB_ISO_PACKET   20 /* number of ISO URB */
 #define ECI_ISO_PACKET_SIZE 448
-#define ECI_ISO_BUFFER_SIZE (ECI_ISO_PACKET_SIZE * ECI_NB_ISO_PACKET)
+#define ECI_ISO_PACKET_NB   10 /* number of packets in one URB */
+#define ECI_ISO_BUFFER_SIZE (ECI_ISO_PACKET_SIZE * ECI_ISO_PACKET_NB)
 
 #define ECI_NB_BULK_PKT 10
 #define ECI_BULK_BUFFER_SIZE (64 * ECI_NB_BULK_PKT)
@@ -203,16 +203,19 @@ static void _dumpk(
 
 static const char eci_drv_name[] =  "ECI HiFocus ADSL Modem";
 static const char eci_drv_label[] =  "ECI";
+
+/*
+  Format of the usb_packets.h (or usb_packets_dmt.h) file :
+
+  It should define an array eci_init_setup_packets[] which the following
+  contents:
+
+*/
+
 #ifndef _DMT_
-static const unsigned char eci_init_setup_packets[] =
-{
-#include "usb_packets.h"
-};
+  #include "usb_packets.h"
 #else
-static const unsigned char eci_init_setup_packets[] =
-{
-#include "usb_packets_dmt.h"
-};
+  #include "usb_packets_dmt.h"
 #endif
 
 /**********************************************************************
@@ -221,7 +224,7 @@ static const unsigned char eci_init_setup_packets[] =
 
 static const struct usb_device_id eci_usb_deviceids[] =
 {
-	{ USB_DEVICE ( 0x915 , 0x8000 ) } , /* ECI HI FOCUS */
+	{ USB_DEVICE ( 0x0915 , 0x8000 ) } , /* ECI HI FOCUS */
 					    /* ECI B FOCUS  */
 	{ USB_DEVICE ( 0x0915 , 0xac82 ) } ,  /* EICON DIVA USB */
 	{}
@@ -653,10 +656,10 @@ module_exit (eci_exit);
 
 /*	prototypes	*/	
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
-	static void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
+static void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
 		const struct usb_device_id *id);
 #else
-	static int eci_usb_probe(struct usb_interface *interface, 
+static int eci_usb_probe(struct usb_interface *interface, 
 		const struct usb_device_id *id);
 #endif
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
@@ -741,7 +744,7 @@ static int __init eci_init(void) {
 	/*	Must register driver and claim for hardware */
 
 	printk("ECI HiFocus ADSL Modem Driver  loading\n");
-	DBG_OUT("$Id$");
+	DBG_OUT("$Id$\n");
 	lv_res = usb_register(&eci_usb_driver) ;
 
 	return lv_res ;
@@ -898,10 +901,12 @@ static int eci_usb_probe(struct usb_interface *interface,
 				ERR_OUT("out of memory\n");
 				goto erreure;
 			}
+/*
 			if(usb_set_configuration(dev,1)<0) {
 				ERR_OUT("Can't set configuration\n");
 				goto erreure;
 			}
+*/
 			if(usb_set_interface(dev,0,4)<0) {
 				ERR_OUT("Cant set interface\n");
 				goto erreure;
@@ -909,12 +914,12 @@ static int eci_usb_probe(struct usb_interface *interface,
 		/*
 			send 20 Urbs to the iso EP
 		*/
-		for(eci_isourbcnt=0;
-			eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++) {
+		for(eci_isourbcnt=0;eci_isourbcnt<ECI_NB_ISO_PACKET;eci_isourbcnt++)
+      {
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
-				if(!(eciurb=usb_alloc_urb(ECI_NB_ISO_PACKET))) {
+				if(!(eciurb = usb_alloc_urb(ECI_ISO_PACKET_NB))) {
 #else
-				if(!(eciurb = usb_alloc_urb(ECI_NB_ISO_PACKET, GFP_KERNEL))) {
+				if(!(eciurb = usb_alloc_urb(ECI_ISO_PACKET_NB, GFP_KERNEL))) {
 #endif
 					ERR_OUT(	"not enought memory for iso urb %d\n", eci_isourbcnt);
 					goto erreure;
@@ -933,15 +938,15 @@ static int eci_usb_probe(struct usb_interface *interface,
 			eciurb->transfer_flags = URB_ISO_ASAP;
 			eciurb->interval = 1;
 #endif
-			eciurb->number_of_packets = ECI_NB_ISO_PACKET;
+      eciurb->start_frame       = 0;
+			eciurb->number_of_packets = ECI_ISO_PACKET_NB;
 			eciurb->complete = eci_iso_callback;
 			eciurb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE; 
-			for(i=0;i < ECI_NB_ISO_PACKET; i ++) {
-				eciurb->iso_frame_desc[i].offset = 
-					i * ECI_ISO_PACKET_SIZE;
-				eciurb->iso_frame_desc[i].length = 
-					ECI_ISO_PACKET_SIZE;
+			for(i=0;i < ECI_ISO_PACKET_NB; i ++) {
+				eciurb->iso_frame_desc[i].offset = 	i * ECI_ISO_PACKET_SIZE;
+				eciurb->iso_frame_desc[i].length =      ECI_ISO_PACKET_SIZE;
 				eciurb->iso_frame_desc[i].actual_length = 0 ;
+        eciurb->iso_frame_desc[i].status = 0;
 			}
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 			if(usb_submit_urb(eciurb)) {
@@ -952,6 +957,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 				ERR_OUT("error couldn't send iso urbs %d\n", eci_isourbcnt);
 				goto erreure;
 			}
+      DBG_OUT("ISO URB %2d sent\n",eci_isourbcnt);
 			out_instance->isourbs[eci_isourbcnt] = eciurb;
 		}
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))		
@@ -1000,7 +1006,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 			Allocate bulk urb transfert buffer
 		*/
 		if(!(out_instance->bulk_urb->transfer_buffer=kmalloc(
-				ECI_ISO_BUFFER_SIZE, GFP_KERNEL))) {
+				2*ECI_ISO_BUFFER_SIZE, GFP_KERNEL))) {
 					ERR_OUT("not enought memory for bulk buffer\n");
 					goto erreure;
 		}
@@ -1039,7 +1045,6 @@ static int eci_usb_probe(struct usb_interface *interface,
 		out_instance->vendor_urb = eciurb;
 		out_instance->state = ECI_STATE_SYNCHRONIZING;
 		_eci_send_init_urb(eciurb);
-	
 	} else {
 		ERR_OUT("Probleme finding modem !\n");
 		DBG_OUT("vid,pid  = %02x,%02x, should be %02x,%02x\n",
@@ -1136,7 +1141,7 @@ static int eci_atm_open(struct atm_vcc *vcc) {
 #endif
 	int lv_rc ;
 	
-	DBG_OUT("eci_atm_open in [%hd.%d]\n", vpi, vci);
+	DBG_OUT("eci_atm_open: vpi:%d vci:%d\n", vpi, vci);
 
 #if defined(ATM_VPI_UNSPEC) && defined(ATM_VCI_UNSPEC)
 	/* Check that VCI & VPI are specified */
@@ -1179,6 +1184,8 @@ static int eci_atm_open(struct atm_vcc *vcc) {
 	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->last = vcc;	
 #else
 #endif
+
+  DBG_OUT("eci_atm_open: OK\n");
 	return 0;
 };
 
@@ -1186,6 +1193,9 @@ static int eci_atm_open(struct atm_vcc *vcc) {
 static void eci_atm_close(struct atm_vcc *vcc) {
 	struct eci_instance * lp_instance = 
 		(struct eci_instance*)vcc->dev->dev_data ;
+
+  DBG_OUT("eci_atm_close: vpi:%d vci:%d\n",vcc->vpi, vcc->vci);
+
 	lp_instance->pcurvcc = NULL ;
 	/*
 	 * 	TO DO allow to open more than one vcc
@@ -1201,8 +1211,11 @@ static void eci_atm_close(struct atm_vcc *vcc) {
 };
 
 /*----------------------------------------------------------------------*/
-static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg) {
+static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
+{
 	int lv_res = -EINVAL ;
+
+  DBG_OUT("eci_atm_ioctl: cmd=0x%x arg=%p\n",cmd,arg);
 
 	switch (cmd) {
 		case ATM_QUERYLOOP:
@@ -1223,7 +1236,10 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb) {
 
 	struct sk_buff		*lp_newskb = NULL;
 	/* unsigned long		flags; */
-	
+
+/*
+  DBG_OUT("eci_atm_send: vpi:%d vci:%d\n",vcc->vpi, vcc->vci);
+*/
 	/* Check interface */
 	if (!skb) {
 		ERR_OUT("Invalid Socket Buffer\n") ;
@@ -1248,9 +1264,11 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb) {
 	/* Manage Send */
 	switch (vcc->qos.aal) {
 	case ATM_AAL5:
+/*
 		DBG_OUT("queue AAL5 data for bh_atm\n") ;
-			skb_queue_tail (&lp_outinst->txq, skb);
-			tasklet_schedule (&lp_outinst->bh_atm);
+*/
+    skb_queue_tail (&lp_outinst->txq, skb);
+    tasklet_schedule (&lp_outinst->bh_atm);
 		break ;
 
 	case ATM_AAL0:
@@ -1273,12 +1291,17 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb) {
 /*----------------------------------------------------------------------*/
 
 /* -- Private Functions ------------------------------------------------*/
-static void eci_bh_atm (unsigned long param) {
+static void eci_bh_atm (unsigned long param)
+{
 	struct eci_instance * lp_instance = (struct eci_instance *)param ;
 	struct sk_buff *lp_skb = NULL ;
 	struct atm_vcc *lp_vcc = NULL ;
-	int lv_rc ;
+	int lv_rc;
 	int flags;
+
+/*
+  DBG_OUT("eci_bh_atm: param:%d\n",param);
+*/
 	if(lp_instance->state == ECI_STATE_REMOVING) return;
 	spin_lock_irqsave(&lp_instance->lock, flags);
 	/*
@@ -1287,8 +1310,12 @@ static void eci_bh_atm (unsigned long param) {
 	 * 	in order thow allow choose one couple VPI/VCI between all opened vcc
 	 */
 
-	if((lp_skb = skb_dequeue(&lp_instance->txq))) {
-		lp_vcc = ATM_SKB(lp_skb)->vcc;
+	if((lp_skb = skb_dequeue(&lp_instance->txq)))
+    {
+/*
+      DBG_OUT("skb_dequeue\n");
+*/
+      lp_vcc = ATM_SKB(lp_skb)->vcc;
 		lv_rc = _eci_tx_aal5(lp_vcc->vpi, lp_vcc->vci, lp_instance, lp_skb) ;
 		if (lv_rc) {
 			ERR_OUT("_eci_tx_aal5 failed\n") ;
@@ -1312,6 +1339,11 @@ static void eci_bh_atm (unsigned long param) {
 
 *******************************************************************************/
 
+/*
+  _eci_send_init_urb: send the next CTRL URB from the list in
+  setup_packets. The last URB is followed by a single zero byte
+*/
+
 static void _eci_send_init_urb(struct urb *eciurb) {
 	struct eci_instance *instance;
 	unsigned char *setuppacket;
@@ -1320,7 +1352,7 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 DBG_OUT("SEND INIT URB\n");
 	instance = eciurb->context;
 	if(instance->state == ECI_STATE_REMOVING) return;		
-	if(instance->setup_packets[0]) {
+	if(instance->setup_packets[0] != 0) {
 		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
 		memcpy(setuppacket, instance->setup_packets,8);
 			/*
@@ -1452,6 +1484,14 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 	}; 
 	static struct usb_ctrlrequest *dr;
 
+/*
+  DBG_OUT("eci_int_callback: urb:%p urb->actual_length:%d\n",
+          urb, urb->actual_length);
+
+  if (urb->actual_length != 0) {
+    DBG_RAW_OUT("INT URB", urb->transfer_buffer, urb->actual_length);
+  }
+*/
 	instance = (struct eci_instance *) urb->context;
 	spin_lock(&instance->lock);
 	if(urb->actual_length) {
@@ -1460,9 +1500,11 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 					Check Data returned by int urb
 					and send Next Vendor
 			*/
+/*
 			DBG_OUT( "EP INT received %d bytes\n",	urb->actual_length);
 			DBG_OUT("Calling _eci_send_init_urb from Int \n");
-			DBG_RAW_OUT("Int buffer\n",urb->transfer_buffer,urb->actual_length);
+			DBG_RAW_OUT("Int buffer",urb->transfer_buffer,urb->actual_length);
+*/
 			_eci_send_init_urb(instance->vendor_urb);
 		} else {
 /*	
@@ -1616,8 +1658,13 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 	spin_unlock(&instance->lock);
 }
 
-static void eci_bh_iso(unsigned long instance)  {
+static void eci_bh_iso(unsigned long instance)
+{
 	int flags;
+
+/*
+  DBG_OUT("eci_bh_iso\n");
+*/
 
 	if(((struct eci_instance *)instance)->state == ECI_STATE_REMOVING) return;
 	spin_lock_irqsave(&(((struct eci_instance *)instance)->lock), flags);
@@ -1625,6 +1672,7 @@ static void eci_bh_iso(unsigned long instance)  {
 		&(((struct eci_instance *)instance)->iso_cells));
 	spin_unlock_irqrestore(&(((struct eci_instance *)instance)->lock), flags);
 }
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 static void eci_iso_callback(struct urb *urb) {
 #else
@@ -1637,60 +1685,81 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 	unsigned char 		*buf;		/* Working buffer pointer */
 	int 			received = 0;	/* boolean for cell in frames */
 
+/*
+  if (urb->actual_length > 0 || urb->status != 0) {
+    DBG_OUT("eci_iso_callback: urb=%p urb->status=%d urb->actual_length:%d\n",
+            urb, urb->status, urb->actual_length);
+  }
+*/
+
 	instance = (struct eci_instance *)urb->context;
 	spin_lock(&instance->lock);
-	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length) {
-		DBG_OUT("Data in iso packet \n");
-		for (i=0;i<ECI_NB_ISO_PACKET;i++) {
-			if (!urb->iso_frame_desc[i].status && 
-				 urb->iso_frame_desc[i].actual_length)	{
-				if(instance->iso_celbuf_pos)	{
-					pos = ATM_CELL_SZ - instance->iso_celbuf_pos;
-					memcpy(instance->iso_celbuf + instance->iso_celbuf_pos,
-						urb->transfer_buffer + urb->iso_frame_desc[i].offset, pos) ;
-					if(!(cell = _uni_cell_fromRaw( ATM_CELL_SZ,
-						 instance->iso_celbuf)))	{
-				 	  ERR_OUT( "not enough memory for new cell\n");
-					} else {
-						if(_uni_cell_list_append(&instance->iso_cells, cell))	{
-						    ERR_OUT("Couldn't queue One cell\n");
-						    _uni_cell_free(cell);
-						}	else
-					 	    received = -1;
-					}
-				} else {
-					pos = 0 ;
-				}
-				for(buf=urb->transfer_buffer + urb->iso_frame_desc[i].offset;
-					pos + ATM_CELL_SZ <=urb->iso_frame_desc[i].actual_length;
-					pos+=ATM_CELL_SZ) {
-						cell = _uni_cell_fromRaw(ATM_CELL_SZ, buf + pos);
-					if (!cell) {
-						ERR_OUT( "not enough mem for new cell\n") ;
-					} else 
-						if(_uni_cell_list_append(&instance->iso_cells,cell)) {
-					   ERR_OUT("Couldn't queue One cell\n");
-					   _uni_cell_free(cell);
-					 }	 else
-					   received = -1;
-				}
-				if((instance->iso_celbuf_pos = urb->iso_frame_desc[i].actual_length - 
-					pos)) {
-					DBG_OUT("Saving data for next frame\n");
-					memcpy(instance->iso_celbuf, buf +pos,
-						instance->iso_celbuf_pos);
-				}
-			}
+	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
+    {
+/*
+      DBG_OUT("Data in ISO URB\n");
+*/
+      for (i=0;i<ECI_ISO_PACKET_NB;i++)
+        {
+          if (!urb->iso_frame_desc[i].status && 
+              urb->iso_frame_desc[i].actual_length)	{
+            if(instance->iso_celbuf_pos)	
+              {
+                pos = ATM_CELL_SZ - instance->iso_celbuf_pos;
+                memcpy(instance->iso_celbuf + instance->iso_celbuf_pos,
+                       urb->transfer_buffer + urb->iso_frame_desc[i].offset, pos) ;
+                if(!(cell = _uni_cell_fromRaw( ATM_CELL_SZ,
+                                               instance->iso_celbuf)))	
+                  {
+                    ERR_OUT( "not enough memory for new cell\n");
+                  } else {
+                    if(_uni_cell_list_append(&instance->iso_cells, cell))	
+                      {
+                        ERR_OUT("Couldn't queue One cell\n");
+                        _uni_cell_free(cell);
+                      }
+                    else
+                      received = -1;
+                  }
+              }
+            else
+              {
+                pos = 0 ;
+              }
+            for(buf=urb->transfer_buffer + urb->iso_frame_desc[i].offset;
+                pos + ATM_CELL_SZ <=urb->iso_frame_desc[i].actual_length;
+                pos+=ATM_CELL_SZ) {
+              cell = _uni_cell_fromRaw(ATM_CELL_SZ, buf + pos);
+              if (!cell) {
+                ERR_OUT( "not enough mem for new cell\n") ;
+              } else 
+                if(_uni_cell_list_append(&instance->iso_cells,cell)) {
+                  ERR_OUT("Couldn't queue One cell\n");
+                  _uni_cell_free(cell);
+                }	 else
+                  received = -1;
+            }
+            if((instance->iso_celbuf_pos = urb->iso_frame_desc[i].actual_length - 
+                pos)) {
+/*
+              DBG_OUT("Saving data for next frame\n");
+*/
+              memcpy(instance->iso_celbuf, buf +pos,
+                     instance->iso_celbuf_pos);
+            }
+          }
 #ifdef DEBUG
-			else
-				if(urb->iso_frame_desc[i].actual_length)
+          else
+            if(urb->iso_frame_desc[i].actual_length)
 #endif	/* 	DEBUG	*/
-				DBG_OUT("Dropping one frame\tStatus %d\n", 
-					urb->iso_frame_desc[i].status);
-		}
-	}
+              DBG_OUT("Dropping one frame\tStatus %d\n", 
+                      urb->iso_frame_desc[i].status);
+        }
+    }
 	if(received) {
+/*
 		DBG_OUT("scheduling iso bh from iso callback\n");
+*/
 		tasklet_schedule (&instance->bh_iso);
 	}
 					
@@ -1702,13 +1771,15 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 #else
 	urb->transfer_flags = URB_ISO_ASAP;
 #endif
-	urb->number_of_packets = ECI_NB_ISO_PACKET;
+  urb->start_frame       = 0;
+	urb->number_of_packets = ECI_ISO_PACKET_NB;
 	urb->complete = eci_iso_callback;
 	urb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE;
-	for(i=0;i < ECI_NB_ISO_PACKET; i ++) {
+	for(i=0;i < ECI_ISO_PACKET_NB; i ++) {
 		urb->iso_frame_desc[i].offset = i * ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
+    urb->iso_frame_desc[i].status = 0;
 	}
 	if(instance->state != ECI_STATE_REMOVING)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
@@ -1743,6 +1814,9 @@ static void eci_bh_bulk(unsigned long pinstance) {
 	struct eci_instance *instance;	/* pointer to instance		*/
 	int flags;
 
+/*
+  DBG_OUT("eci_bh_bulk: pinstance:0x%x\n",pinstance);
+*/
 	instance = (struct eci_instance *)pinstance;
 	if(instance->state == ECI_STATE_REMOVING) return;
 	spin_lock_irqsave(&instance->lock , flags);
@@ -1767,6 +1841,11 @@ static void eci_bh_bulk(unsigned long pinstance) {
 		usb_fill_bulk_urb(urb, instance->usb_wan_dev, 
 			usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 			buf, bufpos, eci_bulk_callback, instance);
+/*
+    DBG_OUT("usb_submit_urb\n");
+    DBG_RAW_OUT("buf", buf, bufpos);
+*/
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 		if(usb_submit_urb(urb))	{
 #else
@@ -1792,6 +1871,11 @@ static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 #endif
 	struct eci_instance *instance;
 
+/*
+  DBG_OUT("eci_bulk_callback: urb:%p urb->status:%d\n",
+          urb,urb->status);
+*/
+
 	if (!urb) return ;/*	????	*/
 	if(urb->status) {
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
@@ -1806,7 +1890,9 @@ static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 		/*	Schedule ATM in case of pending data
 			as many schedule may have been canceled
 			by one call to bh_atm	*/
+/*
 		DBG_OUT("Rescheduling ATM BH from bulk callback");
+*/
 		tasklet_schedule(&instance->bh_atm);
 	}
 	spin_unlock(&instance->lock);
@@ -1936,7 +2022,9 @@ static int eci_atm_receive_cell(
 		do {
 			lp_cell = _uni_cell_list_extract(plist) ;
 			if (!lp_cell) {
+/*
 				DBG_OUT("No more cell\n") ;
+*/
 				goto end;
 			}
 
@@ -1969,9 +2057,11 @@ end:
  	/* Manage AAL5 backlog */
  	if (_aal5_getNbCell(lp_aal5) && !_aal5_iscomplete(lp_aal5)) {
  		pinstance->pbklogaal5 = lp_aal5 ;
+/*
  		DBG_OUT(
  			"store bklog AAL5 with [%d] cells\n",
  			_aal5_getNbCell(lp_aal5)) ;
+*/
  	} else {
  		_aal5_free(lp_aal5) ;
  	}
@@ -2057,7 +2147,7 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 }
 
 /*
- * Toolz for CRC computing (from Benoit Papillaut)
+ * Toolz for CRC computing (from Benoit Papillault)
  */
 #define CRC32_REMAINDER CBF43926
 #define CRC32_INITIAL 0xffffffff
