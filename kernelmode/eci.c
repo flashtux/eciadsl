@@ -1,4 +1,4 @@
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	/*****************************************************************************
+/*****************************************************************************
 *                                                                            *
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
@@ -23,11 +23,8 @@
                     Include stuf
 ***********************************************************************/
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
-	#include <linux/modversions.h>
-#else
-		#include <linux/config/modversions.h>
-#endif
+#include <linux/modversions.h>
+
 #include <linux/module.h>
 
 #include <linux/init.h>
@@ -227,14 +224,21 @@ static const struct usb_device_id eci_usb_deviceids[] =
 };
 
 #define ECI_NB_MODEMS 2
-
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 static void eci_init_vendor_callback(struct urb *urb);
 static void eci_int_callback(struct urb *urb);
 static void eci_iso_callback(struct urb *urb);
+static void eci_bulk_callback(struct urb *urb);
+#else
+static void eci_init_vendor_callback(struct urb *urb, struct pt_regs *regs);
+static void eci_int_callback(struct urb *urb, struct pt_regs *regs);
+static void eci_iso_callback(struct urb *urb, struct pt_regs *regs);
+static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs);
+#endif
 static void eci_bh_iso(unsigned long instance);
 static void _eci_send_init_urb(struct urb *eciurb);
 static void eci_bh_bulk(unsigned long instance);
-static void eci_bulk_callback(struct urb *urb);
+
 
 
 
@@ -640,9 +644,18 @@ module_exit (eci_exit);
 ***********************************************************************/
 
 /*	prototypes	*/	
-void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
-	const struct usb_device_id *id);
-void eci_usb_disconnect(struct usb_device *dev, void *p);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+	static void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
+		const struct usb_device_id *id);
+#else
+	static int eci_usb_probe(struct usb_interface *interface, 
+		const struct usb_device_id *id);
+#endif
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+static void eci_usb_disconnect(struct usb_device *dev, void *p);
+#else
+static void eci_usb_disconnect(struct usb_interface *interface);
+#endif
 int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf);
 static int eci_usb_send_urb(struct eci_instance *instance, 
 			struct uni_cell_list *cells);
@@ -790,8 +803,14 @@ static void __exit eci_exit(void) {
 	return;
 };
 	
-void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+static void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum , 
 	const struct usb_device_id *id) {
+#else
+static int eci_usb_probe(struct usb_interface *interface, 
+	const struct usb_device_id *id) {
+	struct usb_device *dev= interface_to_usbdev(interface);	
+#endif 
 	struct eci_instance *out_instance= NULL;
 	struct urb *eciurb, *tmpurb;
 	/* unused : int dir; */
@@ -934,7 +953,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		/*
 			Allocate bulk urb	
 		*/
-		if(!(out_instance->bulk_urb = usb_alloc_urb(0))) 	{
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+		if(!(out_instance->bulk_urb = usb_alloc_urb(0))) {
+#else
+		if(!(out_instance->bulk_urb = usb_alloc_urb(0, GFP_KERNEL))) {
+#endif
 			ERR_OUT("Can't alloacate bulk URB\n");
 			goto erreure;
 		}
@@ -1011,17 +1034,28 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 #endif /* __USE_ATM__ */
 	
 	DBG_OUT("out_instance : %p\n", out_instance);
-	
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 	return out_instance;
+#else
+	return 0;
+#endif
 erreure:
 	if(out_instance) 	{
 		eci_cleanup(out_instance);
 		kfree(out_instance);
 	}
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 	return 0;
+#else
+	return -ENOMEM;
+#endif
 };
-
-void eci_usb_disconnect(struct usb_device *dev, void *p) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
+static void eci_usb_disconnect(struct usb_device *dev, void *p) {
+#else
+static void eci_usb_disconnect(struct usb_interface *interface) {
+	struct usb_device *dev = interface_to_dev(interface);
+#endif
 	struct urb *urb;
 	
 	if(eci_instances) {
@@ -1289,7 +1323,11 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 		30 11 2001
 
 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 static void eci_init_vendor_callback(struct urb *urb) {
+#else
+static void eci_init_vendor_callback(struct urb *urb, struct pt_regs *regs) {
+#endif
 	struct eci_instance *instance;
 	int size;
 
@@ -1326,7 +1364,11 @@ static void eci_init_vendor_callback(struct urb *urb) {
 /*
 	Null call back for control urbs
 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 static void eci_control_callback(struct urb *urb) {
+#else
+static void eci_control_callback(struct urb *urb, struc pt_regs *regs) {
+#endif
 	kfree(urb->context);
 	return;
 }
@@ -1342,7 +1384,11 @@ static void eci_control_callback(struct urb *urb) {
 
 	30 11 2001
 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 static void eci_int_callback(struct urb *urb) {
+#else
+static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
+#endif
 	struct eci_instance *instance;
 	int i; 		/*loop counter	*/
 	int outi = 0; 
@@ -1525,8 +1571,11 @@ static void eci_bh_iso(unsigned long instance)  {
 		&(((struct eci_instance *)instance)->iso_cells));
 	spin_unlock_irqrestore(&(((struct eci_instance *)instance)->lock), flags);
 }
-
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 static void eci_iso_callback(struct urb *urb) {
+#else
+static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
+#endif
 	struct eci_instance 	*instance;	/* Driver private structre */
 	int 			i;		/* Frame Counter	*/
  	int 			pos;		/* Buffer curent pos counter */
@@ -1665,7 +1714,7 @@ static void eci_bh_bulk(unsigned long pinstance) {
 		if(usb_submit_urb(urb))	{
 #else
 		if(usb_submit_urb(urb, GFP_ATOMIC)) {
-#ebdif		
+#endif		
 	/*
 		TODO:	Put the cells back in list on error
 			need antother way handling cells and
@@ -1679,7 +1728,11 @@ static void eci_bh_bulk(unsigned long pinstance) {
 	return;	
 }
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 static void eci_bulk_callback(struct urb *urb) {
+#else
+static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs) {
+#endif
 	struct eci_instance *instance;
 
 	if (!urb) return ;/*	????	*/
