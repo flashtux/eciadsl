@@ -423,6 +423,7 @@ int eci_load2(const char * file)
 
 void usage()
 {
+	printf("eci-load2 version $Name$\n");
 	printf("usage: eci-load2 eci_sequence.bin\n");
 	exit (-1);
 }
