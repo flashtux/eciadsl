@@ -1824,7 +1824,7 @@ int main(int argc, char** argv)
 			fatal_error(ERR_PUSB_SET_INTERFACE, errText);
 		}
 
-	/* we claim interface 0, where endpoints 0x02, 0x86 & 0x88 are */
+	/* we claim interface 0 (altsetting != 0 (we use 4)), where endpoints 0x02, 0x86 & 0x88 are */
 
 	if (pusb_claim_interface(fdusb, 0) < 0)
 		fatal_error(ERR_PUSB_CLAIM_INTERFACE,
