@@ -30,6 +30,10 @@
 #include <linux/usbdevice_fs.h>
 #include <asm/page.h>
 
+#ifndef USBDEVFS_URB_QUEUE_BULK
+#define USBDEVFS_URB_QUEUE_BULK	0
+#endif
+
 struct pusb_endpoint_t
 {
 	int fd;
@@ -170,8 +174,8 @@ int usbfs_search(const char* path, int vendorID, int productID)
 		{
 			/* check the file size, which must be 18 
 			   = sizeof(struct usb_device_descriptor) */
-			
-			if (statbuf.st_size != sizeof(struct usb_device_descriptor))
+
+			if (statbuf.st_size < sizeof(struct usb_device_descriptor))
 				continue;
 			
 			if ((result=test_file(file, vendorID, productID)) < 0)
