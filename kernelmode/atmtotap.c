@@ -165,7 +165,7 @@ void usage(const int ret)
 					"       atmtotap [<switch>] [-vpi num -vci num -d device]\n");
 	fprintf(stdout,	"Switches:\n");
 	fprintf(stdout,	"	-h or --help		display this message then exit\n"
-					"   -V or --version     display the version number then exit\n"
+					"	-V or --version     display the version number then exit\n"
 					"\n");
 	fprintf(stdout,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
 					"by provider. For instance: 8.35 for France, 0.38 for UK.\n");
@@ -241,8 +241,11 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	if(arg!=7)
+	if(argc!=7)
+	{
+		fprintf(stderr,"wrong number of arguments\n");
 		usage(-1);
+	}
 	if(!(datas.fdtap =  tap_open("tap0",path_to_dev)))
 	{
 		fprintf(stderr,"can't open tap device\n");
@@ -251,7 +254,7 @@ int main(int argc, char **argv)
 	sprintf(vpi_vci,"%d.%d",my_vpi ,my_vci);
 	if((datas.fdatm = open_atmdevice(vpi_vci))==0)
 	{
-		fprintf(stderr,"can't open atm device\n");
+		fprintf(stderr," can't open atm device\n");
 		exit(5);
 	}
 
