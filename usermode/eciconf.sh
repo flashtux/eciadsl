@@ -1,4 +1,4 @@
-#!/usr/bin/wish
+#!/bin/wish
 # ****************************************************************************
 # *                                                                          *
 # *   eciconf - Tcl/tk GUI for ECI Linux driver configuration (makeconfig)   *
