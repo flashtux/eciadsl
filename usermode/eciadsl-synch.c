@@ -66,7 +66,7 @@
 
 #define ECILOAD_TIMEOUT 300
 /*timeout for a waiting cycle */
-#define WAITING_TIMEOUT 10
+#define WAITING_TIMEOUT 20
 /*number of retry */
 #define NBR_SYNCH_RETRY 10
 
