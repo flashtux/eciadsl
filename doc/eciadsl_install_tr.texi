@@ -1,0 +1,616 @@
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename eciadsl_install_tr.info
+@settitle EciAdsl - Serbest Linux USB ADSL Surucu
+@c %**end of header
+
+@c EciAdsl Dokumani (turkce surum)
+@c
+@c Kopyalama Hakki (c) 2004 by FlashCode <flashcode@flashtux.org>
+@c
+@c Turkish version by Emre Onur KURT <1030215196@erciyes.edu.tr>
+@c
+@c Permission is granted to copy, distribute and/or modify this document
+@c under the terms of the GNU Free Documentation License, Version 1.2
+@c or any later version published by the Free Software Foundation;
+@c with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c A copy of the license is included in the section entitled "GNU
+@c Free Documentation License".
+
+@c pdf : texi2pdf eciadsl_install_tr.texi
+@c html: makeinfo --html --no-split --number-sections eciadsl_install_tr.texi
+
+@c tex
+@c \overfullrule=0pt
+@c end tex
+
+@documentlanguage en
+
+@titlepage
+@title EciAdsl surucu - Kurulum kilavuzu
+@subtitle Free ADSL USB linux driver for Globespan based modems
+@subtitle EciAdsl icin  dokuman v0.8  - Mart, 09 2004
+
+@author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
+@page
+
+Bu dokuman Globespan cipsetli modemler icin serbest bir ADSL USB linux surucusu olan
+, EciADSL surucucu icin bilgi verir.@*
+Bu dokuman EciADSL surucusunun bir parcasidir.@*
+@*
+Bu dokumanin en son sekli asagidadir:@*
+@uref{http://eciadsl.flashtux.org/doc.php?lang=tr}@*
+@*
+Kopyalama hakki @copyright{} 2004 FlashCode
+<@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
+Turkce versiyon Emre Onur Kurt 
+<@email{1030215196@@erciyes.edu.tr}>@*
+@*
+Bu dokuman GNU Genel Yayim Lisansi surum 2 ya da yukarisi
+sartlari altinda kullanilabilir.
+
+@end titlepage
+
+@everyheading @thischapter @| @|
+@everyfooting @thistitle @| @| Page @thispage
+
+@contents
+
+@node Top, Baslangic, (dir), (dir)
+@menu
+* Baslangic    :: EciAdsl surucusu nedir ?
+* Kurulum      :: Surucu nasil kurulur
+* Konfigurasyon:: Surucu nasil konfigure edilir
+* Baglanti     :: Internet baglantisinin saglanmasi
+* Synch .bin olusturulmasi:: synch .bin dosyanizin olusturulmasi
+* Yapimcilar / Destek:: Yapimcilar ile iletisime gecin ve destek alin
+@end menu
+
+
+@c ******************************* Baslangic *******************************
+
+@node Baslangic, Kurulum, Top, Top
+@chapter Baslangic
+@menu
+* Tanimlama::
+* On-gereklilikler::
+@end menu
+
+@node Tanimlama, On-gereklilikler, Baslangic, Baslangic
+@section Tanimlama
+
+EciADSL, bir Globespan tabanli ADSL USB modeminiz olmak sarti ile bilgisayarinizi
+internete baglayan serbest bir linux surucusudur.@*
+*BSD gibi diger isletim sistemleri gelistirme asamasindadir (lutfen daha detayli bilgi
+icin yapimcilarla iletisime geciniz - @xref{Yapimcilar / Destek}.)@*
+@*
+EciAdsl surucusu ana sayfasi buradadir:@*
+@uref{http://eciadsl.flashtux.org}@*
+@*
+Desteklenen modemlerin bir listesi bu sayfada mevcuttur:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en&supported=yes}
+
+@node On-gereklilikler, , Tanimlama, Baslangic
+@section On-gereklilikler
+
+@subsection Paketler
+
+EciAdsl surucusunu kurabilmek icin,  @b{ihtiyaciniz} asagidaki paketler/programlardir:@*
+
+@itemize @bullet
+@item
+Standart araclari iceren hali hazirda bir GNU / Linux (x86 mimarisinde) sistem 
+gereklidir (MDK9 / RH8 / daha onceki / farkli olanlar (cozulebilir) bazi 
+sorunlara sahip olabilirler , BSD ve diger sistemler henuz resmi olarak 
+desteklenmemistir)
+@item
+USB 1.1 donanim destegi
+@item
+Linux kerneli 2.4.x (>=2.4.18-pre3 veya <2.4.18-pre3+N_HDLC yamasi 
+onerilen pppd otomatik tekrar arama ozelliginin calismasi icin 
+gereklidir.)
+@item
+USB destegi (moduller biciminde):
+@itemize @minus
+@item
+genel USB destegi
+@item
+USB preliminary fs
+@item
+MODUL olarak USB HUB denetleyiciniz
+@item
+DABUSB modulu aktive edilmemis.
+@end itemize
+@item
+PPP destegi (usermode pppd paketini iceren >=2.4.0)
+@item
+Kaynak dosyalarindan (Sources) kurulum: standart gelistirme paketleri (/usr/src/linux
+icerisindeki kaynaklar, gcc>=2.91.66 gibi GNU yazilimi, GNU make, vb.)
+@item
+USB modem (*sadece* GlobeSpan cipset icerenler)
+@item
+bash (>=2.x.x)
+@item
+opsiyonel olarak: tcl/tk >= 8.x.x, perl
+@item
+root haklari (en azindan surucuyu kurabilmek icin)
+
+@end itemize
+
+@subsection Kernel
+
+Eger varsayilan kerneli iceren en son Mandrake / RedHat surumune sahipseniz bu bolumu gecebilirsiniz.@*
+Dagitiminiza gore kernel icindeki bazi secenekler mevcut olmayabilir.
+Eger eci-doctor.sh kayip secenekler belirlerse, kernelinizi tekrar derlemeniz gerekebilir.@*@*
+ @b{KESINLIKLE} bu secenekleri kernele koymalisiniz (``*''  ``kernel icinde'' icin,
+``M''  ``module'' icin ):@*@*
+@t{USB support --->}@*
+@t{  <M> Support for USB}@*
+@t{  [ ]   USB verbose debug messages}@*
+@t{  --- Miscellaneous USB options}@*
+@t{  [*]   Preliminary USB device filesystem}@*
+@t{  [ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)}@*
+@t{  [ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)}@*
+@t{  --- USB Host Controller Drivers}@*
+@t{  < >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)}@*
+@t{  <M>   UHCI (Intel PIIX4, VIA, ...) support}@*
+@t{  <M>   UHCI Alternate Driver (JE) support}@*
+@t{  <M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support}@*
+@t{  ..}@*
+@t{  --- USB Multimedia devices}@*
+@t{  ..}@*
+@t{  < >   DABUSB driver}@*
+@t{  ..}@*
+@*
+@t{Character devices --->}@*
+@t{  ..}@*
+@t{  [*] Non-standard serial port support}@*
+@t{  <M>   HDLC line discipline support}@*
+@t{  ..}@*
+@*
+@t{Network device support --->}@*
+@t{  ..}@*
+@t{  <M> PPP (point-to-point protocol) support}@*
+@t{  [ ] PPP multilink support (EXPERIMENTAL)}@*
+@t{  [ ] PPP filtering}@*
+@t{  <M> PPP support for async serial ports}@*
+@t{  <M> PPP support for sync tty ports}@*
+@t{  <M> PPP Deflate compression}@*
+@t{  <M> PPP BSD-Compress compression}@*
+@t{  < > PPP over Ethernet (EXPERIMENTAL)}@*
+@t{  < > PPP over ATM (EXPERIMENTAL)}@*
+
+
+@c ******************************* Kurulum *******************************
+
+@node Kurulum, KOnfigurasyon, Baslangic, Top
+@chapter Kurulum
+@menu
+* dabusb nin kaldirilmasi::
+* Surucu kurulumu::
+* Derleme::
+@end menu
+
+@node dabusb nin kaldirilmasi, Surucu kurulumu, Kurulum, Kurulum
+@section dabusb nin kaldirilmasi
+
+Eger modem linux baslarken aktive edilmisse dabusb yi kaldirmaniz gerekecektir.@*
+Aksi takdirde, bu bolumu gecebilirsiniz.@*
+@*
+Hotplug buyuk olasilikla aktif edilmistir, ve hatali olarak modeminizi bir ses aygiti 
+olarak tanir ve  bu ses aygitina destek saglamak icin dabusb yi yukler.@*
+Eger /etc/hotplug/blacklist mevcutsa, duzenlemek icin acin ve 'dabusb' kelimesini iceren
+bir satir ekleyin (kesme isareti yok). Linux u tekrar baslatin.@*
+@*
+Hotplug in kurulu ya da aktif edildigi boyle bir dosyanin nerede oldugunu bulamazsaniz
+konfigure etmek icin baska bir yol daha olmalidir, ama bunu asagidaki metoda gore 
+uygulamalisiniz (bir parca zahmetli):
+
+@itemize @bullet
+@item
+Linux makinenizi modeminizle aciniz @b{takili degil}
+@item
+eciconf.sh veya eciconftxt.sh i kullanarak dabusb modulunu sisteminizden kaldirabilirsiniz.@*
+Ayrica direk olarak remove_dabusb komutunu kullanabilirsiniz (/usr/local/bin icinde varsayilan olarak).@*
+Or, manually type the following command:@*
+@kbd{modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a}@*
+@end itemize
+Eger kernel elle derlenmis ise, kernel icindeki dabusb destegini de kaldirmayi 
+unutmayiniz.
+
+
+@node Surucu kurulumu, Derleme, dabusb nin kaldirilmasi, Kurulum
+@section Surucu kurulumu
+
+Bu sayfadaki en son uyumlu usermode paketini download
+(dagitiminiza gore kaynak kodu veya paket ) ediniz:@*
+@uref{http://eciadsl.flashtux.org/download.php?lang=en}@*
+
+Sahip oldugunuz pakete bagli olarak bu komutlardan birini kullaniniz:@*
+@itemize @bullet
+@item
+Kaynak (.tar.gz): @kbd{tar xvzf /path/eciadsl-usermode-x.y.tar.gz}
+@item
+Kaynak (.tar.bz2): @kbd{tar xvjf /path/eciadsl-usermode-x.y.tar.bz2}
+@item
+RedHat/Mandrake (.rpm): @kbd{rpm -i /path/eciadsl-usermode-x.y-1.i386.rpm}
+@item
+Debian (.deb): @kbd{dpkg -i /path/eciadsl-usermode_x.y-1_i386.deb}
+@item
+Slackware (.tgz): @kbd{installpkg /path/eciadsl-usermode-x.y-i386-1.tgz}
+@item
+Gentoo (.ebuild):@*
+see @uref{http://doc.gentoofr.org/Members/BeTa/eciadsl-gentoo-howto/view}
+@end itemize
+ x.y surum numaralaridir (mesela 0.8)
+@*
+
+@node Derleme, , Surucu kurulumu, Kurulum
+@section Derleme
+
+Eger dagitim temelli paket yuklemis iseniz (Redhat/Mandrake, Debian, Slackware,
+Gentoo), bu adimi gecebilirsiniz.@*
+@*
+Tum yapmaniz gereken bir konsol veya terminal programi calistirmaktir:@*
+@kbd{./configure}@*
+@kbd{make}@*
+As "root": @kbd{make install}@*
+
+ ./configure --help komutunu ayar seceneklerinin bir listesini almak icin kullaniniz. 
+Yaziliminizi varsayilan (/usr/local) yerden farkli bir yere kurmak icin,
+mesela @kbd{--prefix=/opt}  olarak kullanilabilir.@*
+Surucu config dosyalari tercih ettiginiz baska bir dizine kurulabilir (varsayilan /etc/eciadsl)
+--conf-prefix (varsayilan /) VE --conf-fir (varsayilan /etc/eciadsl) parametrelerini kullaniniz.
+mesela:@*
+@kbd{--conf-prefix=/opt --conf-dir=etc/eciadsl}@*
+veya @kbd{--conf-prefix=/opt/eciadsl --conf-dir=etc}@*
+
+Dikkatli olun, --etc-prefix de degistirilebilir (varsayilan / , oyleyse /etc kullanilir). 
+Sadece ne yaptiginizi biliyorsaniz --etc-prefix kullaniniz .@*
+
+ ./configure --help kullanarak diger secenekleri gorunuz.
+
+
+@c ****************************** Konfigurasyon *******************************
+
+@node Konfigurasyon, Baglanti, Kurulum, Top
+@chapter Konfigurasyon
+
+@menu
+* Konfigurasyon araci::
+* Parametre detaylari::
+@end menu
+
+@node Konfigurasyon araci, Parametre detaylari, Konfigurasyon, Konfigurasyon
+@section Konfigurasyon araci
+
+@itemize @bullet
+@item
+Eger sisteminizde Tcl/Tk kurulu ise grafik konfigurasyon aracini 
+calistirabilirsiniz:@*
+@kbd{eciconf.sh}@*
+@*
+Kontrol etmeksizin tum parametreleri giriniz.
+`` synch .bin dosyasini degistirin''..@*
+
+@item
+Aksi takdirde, text mode konfigurasyonunu calistiriniz:@*
+@kbd{eciconftxt.sh}@*
+Surucuyu konfigure etmek icin asagidak adimlari takip ediniz.
+
+@end itemize
+
+
+@node Parametre detaylari, , Konfigurasyon araci, Konfigurasyon
+@section Parametre detaylari
+
+@table @code
+
+@item user
+Servis saglayici tarafindan verilen kullanici ismi@*
+Mesela: kullaniciadi@@clubadsl1
+@*
+@item password
+Servis saglayici tarafindan verilen parola@*
+@*
+@item VPI
+``cevirilen numaranin'' ilk rakami@*
+Mesela windows surucude 8,35 ile ``cevirim''  yapiyorsaniz o halde VIP 8 dir.
+@*
+@item VCI
+``cevirilen numaranin'' ikinci rakami@*
+Mesela windows surucude 8,35 ile ``cevirim''  yapiyorsaniz o halde VCI 35 dir.
+@*
+@item Servis Saglayici DNS
+``Update provider DNS'' kutucugunu isaretleyin and listeden servis saglayicinizi secin.@*
+Eger servis saglayici listede bulunmuyorsa, liste asagisindaki alanlari kullanarak elle 
+DNS sunucunuzu giriniz.@*
+Eger DNS sunucunuzu bilmiyorsaniz, FAQ icindeki bu soruyu okuyunuz:@*
+@uref{http://eciadsl.flashtux.org/faq.php?lang=en#1.6}@*
+@item Modem
+Listeden modeminizi seciniz.@*
+Eger modeminiz listede yoksa, modem sayfasini kontrol ediniz:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+- Eger modeminiz ``desteklememis'' ise, surucu modeminizle birlikte asla calismayacaktir.
+(@b{lutfen, destek konusu icin gelistiricilere soru sormayiniz, baska bir surucu aramak durumundasiniz}).@*
+- Eger modeminiz ``belki desteklenebilir'' ise, detay icin gelistiricilere soru sorunuz.
+@xref{Yapimcilar / Destek}.@*
+@item Synch .bin dosyasi
+Bu secenegi yalnizca startmodem eszamanlilik sorunu yasarsa kullaniniz.@*
+@item PPP modu
+- Fransa kullanicilari icin, varsayilan PPP modu (VCM_RFC2364) olarak seciniz@*
+- Diger kullanicilar icin, servis saglayiciniza uyumlu ppp modunu seciniz.@*
+FAQ icindeki bu soruya bakiniz:@*
+@uref{http://eciadsl.flashtux.org/faq.php?lang=en#5.4}@*
+@item DHCP
+Bu secenegi yalnizca servis saglayiciniz DHCP kullaniyorsa isaretleyiniz.@*
+Eger bilmiyorsaniz, secenegi bos birakiniz.@*
+@item Static IP
+Bu secenegi yalnizca statik IP kullaniyorsaniz isaretleyiniz.@*
+Oyle ise asagiya IP adresi ve gateway adresini giriniz.@*
+Eger bilmiyorsaniz, bu secenegi bos birakiniz.
+
+@end table
+
+
+@c ******************************* Baglanti ********************************
+
+@node Baglanti, Synch .bin olusturulmasi, Konfigurasyon, Top
+@chapter Baglanti
+
+@menu
+* Startmodem::
+* Diger skriptler::
+@end menu
+
+@node Startmodem, Diger skriptler, Baglanti, Baglanti
+@section Startmodem
+
+Internete baglanabilmek icin, bu komutu root olarak kullanin:@*
+@kbd{startmodem | tee log.txt}@*
+
+@subsection Synch sorunu
+
+synch ile problem yasiyorsaniz (eci-load2 timeout/error or synch den sonra
+lcp zamanasimi), asagidaki talimatlari takip ediniz:
+
+@itemize @bullet
+@item
+ .bin paketini buradan download ediniz:@*
+@uref{http://eciadsl.flashtux.org/download.php?lang=en&view=sync}
+@item
+ /etc/eciadsl icine paketi aciniz (root olarak):@*
+@kbd{cd /etc/eciadsl && tar xvzf /path/eciadsl-synch_bin.tar.gz}
+@item
+eciconf.sh veya eciconftxt.sh i calistirin ve baska bir .bin dosyasi secin.
+@item
+Modemi kapatiniz:  @kbd{modprobe -r usb-uhci} (veya usb-ohci) , modemi
+cikartarak/tekrar takarak  (USB kablosunu)<
+@item
+startmodem i tekrar calistirin.@*
+Eger yine de synch sorunu yasarsaniz, ardindan baska bir synch .bin dosyasi deneyiniz.@*
+@b{Onemli:}  @b{TUM} synch .bin dosyalarini deneyebilirsiniz,  .bin dosyasinin yerine ve saglayisina bakmayiniz.@*
+Eger hicbir .bin calismazsa, bu durumda windows altinda kendi .bin dosyanizi olusturmalisiniz.
+@xref{Synch .bin olusturulmasi}.
+@end itemize
+
+startmodem in diger sorunlari icin lutfen, bu FAQ dosyasina bakiniz:@*
+@uref{http://eciadsl.flashtux.org/faq.php?lang=en}
+
+@subsection PPPoE kullanicilari
+
+Eger PPPoE kullaniyorsaniz, tap0 aracaligi ile ADSL modeminizle baglanti kurmak 
+icin rp-pppoe  (http://www.roaringpenguin.com/pppoe) gibi bir PPPoE istemci konfigure 
+etmeli veya kullanmalisiniz.
+
+@node Diger skriptler, , Startmodem, Baglanti
+@section Diger skriptler
+
+@subsection probe_device.sh
+
+startmodem modeminizi bulamazsa bu komutu kullaniniz.
+Bu skript modeminizin VID/PID durumuna bakar ve gosterir.
+Detay icin,lutfen bizimle iletisime geciniz. @xref{Yapimcilar / Destek}.
+
+@subsection eci-doctor.sh
+
+Bu skripti ( @kbd{--usb-init} secenegi ile) eger startmodem ``Modem bulunamadi''
+veya eszamanlilik sorunu gibi diger sorunlari yasarsa kullaniniz.
+
+@subsection probe_synch.sh
+
+Eger sync sorunlarina sahipseniz, tum .bin dosyalarini otomatik olarak test etmek 
+icin bu skript i kullaniniz.
+
+@c *************************** Synch .bin olusturulmasi ****************************
+
+@node Synch .bin olusturulmasi, Yapimcilar / Destek, Baglanti, Top
+@chapter Synch .bin olusturulmasi
+
+@menu
+* Eci Windows surucusu::
+* USB Sniffer::
+* USB paketlerinin windows altinda izlenmesi::
+* Linux altinda log .bin donusumu::
+@end menu
+
+Eger tum .bin dosyalarini denemis ve basari saglayamamis iseniz,
+o halde windows altinda kendi .bin dosyanizi olusturmalisiniz
+
+Aksi takdirde, bu bolumu gecebilirsiniz.
+
+@node Eci Windows surucusu, USB Sniffer, Synch .bin olusturulmasi, Synch .bin olusturulmasi
+@section Eci Windows surucusu
+
+@subsection Download
+
+Eci Windows surucusunu 1.06 surumunu download ediniz (aksi takdirde .bin dosyasi linux altinda
+calismayacaktir):@*
+@uref{http://eciadsl.flashtux.org/download/eci_drv_106_win.zip}@*
+
+@subsection Surucu modifikasyonu
+
+Eger modeminiz bu VID/PID lerden biri degilse Eci Windows icindeki iki dosyayi
+modifiye etmelisiniz:@*
+- VID1/PID1: 0547/2131, VID2/PID2: 0915/8000@*
+- VID1/PID1: 0915/0001, VID2/PID2: 0915/0002@*
+VID/PID tespiti icin, lutfen bu adrese bakiniz:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}.@*
+
+Yapmaniz gereken modifikasyonlar:@*
+@*
+- dosya @strong{gafwload.inf}, satir 24 :@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0547}&PID_@strong{2131}}@*
+VID1 i 0547 ile PID1 i 2131 ile degistiriniz@*
+@*
+- dosya @strong{gafwload.inf}, satir 30 :@*
+@cite{%GSILOAD.DeviceDescAnchor% = GSIUSBLDRANCHOR, USB\VID_@strong{0547}&PID_@strong{2131}}@*
+VID1 i 0547 ile PID1 i 2131 ile degistiriniz@*
+@*
+- dosya @strong{gwausb.inf}, satir 34 :@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0915}&PID_@strong{8000}}@*
+replace 0915 by your VID2 and 8000 by your PID2@*
+@*
+- dosya @strong{gwausb.inf}, satir 42 :@*
+@cite{%ADSLUSB.DeviceDesc%  = ADSLUSB.gspnDefault,    USB\VID_@strong{0915}&PID_@strong{8000}}@*
+VID2 yi 0915 ile PID2 yi 8000 ile degistiriniz@*
+@*
+- dosya @strong{gwausb.inf}, satir 58 :@*
+@cite{HKR, Ndi, DeviceID, 0, "USB\VID_@strong{0915}&PID_@strong{8000}"}@*
+VID2 yi 0915 ile PID2 yi 8000 ile degistiriniz@*
+
+@subsection Kurulum
+
+Setup.exe yi calistirin ve asagidaki talimatlari takip ediniz.@*
+
+@node USB Sniffer, USB paketlerinin windows altinda izlenmesi, Eci Windows surucusu, Synch .bin olusturulmasi
+@section USB Sniffer
+
+Buradan en son USB Sniffer paketini download ediniz ve kurunuz:@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/index.php}@*
+
+Snoopy (USB sniffer) icin burada bir dokuman mevcuttur:@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/doc.en.php}@*
+
+@node USB paketlerinin windows altinda izlenmesi, Linux altinda log .bin donusumu, USB Sniffer, Synch .bin olusturulmasi
+@section USB paketlerinin windows altinda izlenmesi
+
+Internete olan tum otomatik baglantilari kapatin ve usb cihazlari cikartin 
+(modem haric).@*
+@*
+Sniffer i baslatin ve  ``Wan modem'' uzerindeki filtreyi kurun, daha sonra modemi tekrar
+baslatin.@*
+Kirmizi ve yesil led lerin herikisi de yanar yanmaz filtreleri kaldirin.@*
+Izlenen paketler @file{C:\WINxxx\usbsnoop.log} icinde olmalidir@*
+Linux altinda tekrar baslatiniz.
+
+@node Linux altinda log .bin donusumu, , USB paketlerinin windows altinda izlenmesi, Synch .bin olusturulmasi
+@section Linux altinda log .bin donusumu
+
+usbsnoop log dosyasini iceren windows partisyonu veya nereye kopyalamak isterseniz o partisyonu
+mount ediniz.@*
+Bu komutu uygulayiniz:@*
+@kbd{eci_vendor_device.pl usbsnoop.log}@*
+Bu perl skripti log dosyasini kullanir ve yeni bir eci_vendor.bin dosyasi uretir
+(skript usermode paketinde mevcuttur).@*
+Bu komutu uygulayiniz:@*
+@kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
+ve daha sonra bu .bin dosyasini calistirmak icin eciconftxt.sh calistirilmalidir@*
+@*
+startmodem i calistiriniz...@*
+...ve parmaklarinizi  birlestirin :-)
+
+
+@c **************************** Yapimcilar / Destek *****************************
+
+@node Yapimcilar / Destek, , Synch .bin olusturulmasi, Top
+@chapter Yapimcilar / Destek
+
+@ifhtml
+@menu
+* Yapimcilar::
+* Destek alin::
+* Kopyalama hakki::
+@end menu
+@end ifhtml
+@ifnothtml
+@menu
+* Yapimcilar::
+* Destek alin::
+@end menu
+@end ifnothtml
+
+@node Yapimcilar, Destek alin, Yapimcilar / Destek, Yapimcilar / Destek
+@section Yapimcilar
+
+EciAdsl surucusunu yazan:@*
+
+@itemize @bullet
+@item 
+FlashCode
+<@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
+@item
+Jean-S@'ebastien Valette
+<@email{jeanseb.valette@@free.fr, jeanseb.valette AT free.fr}>
+@item
+Benoit Papillault
+<@email{benoit.papillault@@free.fr, benoit.papillault AT free.fr}>
+@item
+Crevetor
+<@email{crevetor@@caramail.com, crevetor AT caramail.com}>
+@item
+Laurent Wandrebeck (low)
+<@email{wandre.l@@free.fr, wandre.l AT free.fr}>
+
+@end itemize
+
+@ifhtml
+@node Destek alin, Kopyalama hakki, Yapimcilar, Yapimcilar / Destek
+@end ifhtml
+@ifnothtml
+@node Destek alin, , Yapimcilar, Yapimcilar / Destek
+@end ifnothtml
+@section Destek alin
+
+Destek istemeden once, surucu ile saglanan dokuman ve FAQ lari okudugunuzdan emin olunuz
+ (/usr/local/doc/eciadsl icine bakiniz, README, INSTALL, TROUBLESHOOTING dosyalari orada 
+ vardir).@*
+
+@itemize @bullet
+@item
+IRC ile destek:@*
+- sunucu: @b{irc.freenode.net}@*
+- kanal: @b{#eci}@*@*
+@item
+EciAdsl forum: @uref{http://eciadsl.sf.net/scripts/forum}@*@*
+@item
+Mail listesi ile destek:@*
+- uye olmak icin,  @email{eci-request@@ml.free.fr} adresine  "subscribe" konulu bir mail yollayiniz@*
+- mailinizi tum uyelere yollamak icin, @email{eci@@ml.free.fr} adresini kullaniniz@*
+- uyelik iptali icin, @email{eci-request@@ml.free.fr} adresine "unsubscribe" konulu mail yollayiniz@*
+
+ZeGuigui ye tesekurler, mail listesi arsivi burada mevcuttur:@*
+@uref{http://liste.eci.free.fr}@*@*
+@item
+EciAdsl destegi icin detayli bilgiye buradan bakabilirsiniz:@*
+@uref{http://eciadsl.flashtux.org/support.php?lang=en}
+
+@end itemize
+
+@ifhtml
+@node Kopyalama hakki, , Destek alin, Yapimcilar / Destek
+@section Kopyalama hakki
+
+Bu dokuman Globespan cipsetli modemler icin serbest bir ADSL USB linux surucusu olan
+, EciADSL surucucu icin bilgi verir.@*
+Bu dokuman EciADSL surucusunun bir parcasidir.@*
+Turkce versiyon Emre Onur KURT 
+<@email{1030215196@@erciyes.edu.tr}>@*
+Kopyalama hakki @copyright{} 2004 FlashCode
+<@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
+@*
+Bu dokuman GNU Genel Yayim Lisansi surum 2 ya da yukarisi
+sartlari altinda kullanilabilir.
+@end ifhtml
+
+@bye
