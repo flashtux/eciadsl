@@ -35,7 +35,7 @@ static int interrupt_buffer_pos = 0;
 */
 int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 							unsigned char *resp, int *resp_size,
-							struct gs707x_dsp *dsp){
+							struct gs7x70_dsp *dsp){
 	int max_resp_size;
 	
 	max_resp_size = *resp_size;

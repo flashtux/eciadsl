@@ -20,7 +20,7 @@
 */
 
 
-struct gs707x_dsp {
+struct gs7x70_dsp {
 	unsigned char next_state;	/*	Next state for download operation */
 	unsigned char is_ready;		/* Is the dsp OK ?	*/
 };

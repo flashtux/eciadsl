@@ -44,4 +44,4 @@ union ep_int_buf {
 
 int parse_interrupt_buffer(unsigned char *buffer,  int buffer_size,
 								unsigned char *resp, int *resp_size,
-								struct gs707x_dsp *dsp);
+								struct gs7x70_dsp *dsp);
