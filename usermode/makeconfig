@@ -22,10 +22,6 @@
 # *                                                                      *
 # ************************************************************************
 
-#
-# target "etc" directory (useful for testing this script)
-#
-
 # <CONFIG>
 BIN_DIR="/usr/local/bin"
 ETC_DIR="/etc"
@@ -40,25 +36,27 @@ if [ "$1" == "--version" -o "$1" == "-v" ]; then
 fi
 
 #
-# check parameters :
+# check parameters
 #
 
 if [ $UID -ne 0 ]; then
-    echo -e "Error: you must be root in order to run this script.\n"
+    echo -e "\nerror: you must be root in order to run this script."
     exit 255
 fi
 
 if [ $# -ne 9 -a $# -ne 10 ]; then
-    echo -e "Error: invalid number of parameters."
-    echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> [<path_bin>]"
+    echo -e "\nerror: invalid number of parameters."
+    echo -e "syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> [<path_bin>]"
     exit 1
 fi
 
-pppoeci=$3
-if [ ! -f ${pppoeci} -o ! -x ${pppoeci} ]; then
-    echo "Error: ${pppoeci} is not a valid executable"
+pppoeci="$3"
+if [ ! -f "${pppoeci}" -o ! -x "${pppoeci}" ]; then
+    echo "error: ${pppoeci} is not a valid executable"
     exit 1
 fi
+
+RET=0
 
 #
 # backup and create resolv.conf
@@ -66,28 +64,28 @@ fi
 
 if [ "$4" != "0" -o "$5" != "0" ]; then
 	if [ -n "$4$5" ]; then
-    	nomresolv=${ETC_DIR}/resolv.conf
-    	if [ -s $nomresolv ]; then
+    	nomresolv="${ETC_DIR}/resolv.conf"
+    	if [ -s" $nomresolv" ]; then
         	nombak="${nomresolv}.bak"
         	numero=0
-        	while [ -s $nombak ]
+        	while [ -s "$nombak" ]
         	do
             	numero=`expr $numero + 1`
             	nombak="${nomresolv}.bak$numero"
         	done
-        	echo -n "Backing up $nomresolv (to $nombak)... "
-        	cp -f $nomresolv $nombak
-        	echo "ok"
+        	echo -n "backing up $nomresolv (to $nombak).. "
+        	cp -f "$nomresolv" "$nombak"
+        	echo "OK"
     	fi
-    	echo -n "Creating $nomresolv..."
-		>$nomresolv
+    	echo -n "creating $nomresolv.."
+		:> "$nomresolv"
 		if [ "$5" != "0" -a -n "$5" ]; then
-	    	echo "nameserver $4" >>$nomresolv
+	    	echo "nameserver $4" >> "$nomresolv"
 		fi
 		if [ "$5" != "0" -a -n "$5" ]; then
-	    	echo "nameserver $5" >>$nomresolv
+	    	echo "nameserver $5" >> "$nomresolv"
 		fi
-    	echo "ok"
+    	echo "OK"
 	fi
 fi
 
@@ -95,34 +93,33 @@ fi
 # create or backup/modify "chap-secrets" and "pap-secrets"
 #
 
-for auth in "chap" "pap"
-{
-    nomsecret=${ETC_DIR}/ppp/${auth}-secrets
+for auth in "chap" "pap"; do
+    nomsecret="${ETC_DIR}/ppp/${auth}-secrets"
     if [ -s $nomsecret ]; then
         nombak="${nomsecret}.bak"
         numero=0
-        while [ -s $nombak ]
+        while [ -s "$nombak" ]
         do
             numero=`expr $numero + 1`
             nombak="${nomsecret}.bak$numero"
         done
-        echo -n "Backing up $nomsecret (to $nombak)... "
-        cp -f $nomsecret $nombak
-        echo "ok"
-        echo -n "Modifying $nomsecret... "
+        echo -n "backing up $nomsecret (to $nombak).. "
+        cp -f "$nomsecret" "$nombak"
+        echo "OK"
+        echo -n "modifying $nomsecret.. "
 		TMPFILE="/tmp/${0##*/}.tmp"
 		TMP=$(echo "$1" | sed "s/\\\/\\\\\\\\\\\/g")
-		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*" $nombak >$nomsecret
-        echo -e "\"$1\"\t*\t\"$2\"\t*" >>$nomsecret
+		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*" $nombak > "$nomsecret"
+        echo -e "\"$1\"\t*\t\"$2\"\t*" >>"$nomsecret"
 		rm -f $TMPFILE
-        echo "ok"
+        echo "OK"
     else
-        echo -n "Creating $nomsecret... "
-        echo "# Secrets for authentication using $auth" >$nomsecret
-        echo -e "\"$1\"\t*\t\"$2\"\t*" >>$nomsecret
-        echo "ok"
+        echo -n "creating $nomsecret.. "
+        echo "# Secrets for authentication using $auth" > "$nomsecret"
+        echo -e "\"$1\"\t*\t\"$2\"\t*" >> "$nomsecret"
+        echo "OK"
     fi
-}
+done
 
 #
 # create or backup/modify "adsl" script
@@ -134,29 +131,34 @@ pid1=`echo $8 | cut -c 5-8`
 vid2=`echo $9 | cut -c 1-4`
 pid2=`echo $9 | cut -c 5-8`
 
-nomadsl=${PPPD_DIR}/peers/adsl
+nomadsl="${PPPD_DIR}/peers/adsl"
 if [ -s $nomadsl ]; then
     nombak="${nomadsl}.bak"
     numero=0
-    while [ -s $nombak ]
-    do
+    while [ -s "$nombak" ]; do
         numero=`expr $numero + 1`
         nombak="${nomadsl}.bak$numero"
     done
-    echo -n "Backing up $nomadsl (to $nombak)... "
-    cp -f $nomadsl $nombak
+    echo -n "backing up $nomadsl (to $nombak).. "
+    cp -f "$nomadsl" "$nombak"
     echo "ok"
-    echo -n "Modifying $nomadsl... "
+    echo -n "modifying $nomadsl.. "
 	TMPFILE="/tmp/${0##*/}.tmp"
 	TMP=$(echo "$3" | sed "s/\//\\\\\//g")
 	echo "s/^pty .\+/pty \\\"$TMP -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2\\\"/" > $TMPFILE
 	echo "s/^user .\+/user \\\"$1\\\"/" >> $TMPFILE
-	sed -f $TMPFILE $nombak > $nomadsl
+	sed -f $TMPFILE "$nombak" > "$nomadsl"
 	rm -f $TMPFILE
-    echo "ok"
+	if [ -s "$nomadsl" ]; then
+	    echo "OK"
+	else
+		echo -e "\nfailed to set up $nomadsl"
+		echo -e "this is a bug, please report this to us, and join your $nombak file\n"
+		RET=1
+	fi
 else
-    echo -n "Creating $nomadsl... "
-    cat <<EOF >$nomadsl
+    echo -n "creating $nomadsl.. "
+    cat <<EOF > "$nomadsl"
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
 # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
 # 07/02/2002 Replace "maxfail 0" by "maxfail 10"
@@ -205,24 +207,25 @@ lcp-echo-interval 0
 # You may need the following, but ONLY as a workaround
 # mtu 1432
 EOF
-    echo "ok"
+    echo "OK"
 fi
 
 #
 # create vidpid file
 #
 
-echo -n "Creating ${ETC_DIR}/eciadsl/vidpid..."
-echo "$vid1 $pid1 $vid2 $pid2" >${ETC_DIR}/eciadsl/vidpid
-echo "ok"
+echo -n "creating ${ETC_DIR}/eciadsl/vidpid.."
+echo "$vid1 $pid1 $vid2 $pid2" > "${ETC_DIR}/eciadsl/vidpid"
+echo "OK"
 
 #
 # change .bin file
 #
 
 if [ $# -eq 10 ]; then
-    echo -n "Modifying .bin link (${ETC_DIR}/eciadsl/synch.bin -> ${10})..."
-    rm ${ETC_DIR}/eciadsl/synch.bin >/dev/null
-    ln -s ${10} ${ETC_DIR}/eciadsl/synch.bin
-    echo "ok"
+    echo -n "modifying .bin link (${ETC_DIR}/eciadsl/synch.bin -> ${10}).."
+    rm -f "${ETC_DIR}/eciadsl/synch.bin" >/dev/null
+    ln -sf ${10} "${ETC_DIR}/eciadsl/synch.bin"
+    echo "OK"
 fi
+exit $RET
