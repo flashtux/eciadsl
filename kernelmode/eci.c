@@ -1170,10 +1170,10 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 		if (lp_newskb) {
 			skb_put(lp_newskb, skb->len) ;
 			memcpy(lp_newskb->data, skb->data, skb->len) ;
-			spin_lock_irqsave (&lp_outinst->txq.lock, flags);
-			__skb_queue_tail (&lp_outinst->txq, lp_newskb);
+			//spin_lock_irqsave (&lp_outinst->txq.lock, flags);
+			skb_queue_tail (&lp_outinst->txq, lp_newskb);
 			tasklet_schedule (&lp_outinst->bh_atm);
-			spin_unlock_irqrestore (&lp_outinst->txq.lock, flags);
+			//spin_unlock_irqrestore (&lp_outinst->txq.lock, flags);
 		} else {
 			ERR_OUT("not enough memory for skb\n") ;
 		}
@@ -1729,7 +1729,8 @@ static void eci_bulk_callback(struct urb *urb)
 	instance = (struct eci_instance *)urb->context;
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
-	//tasklet_schedule(&instance->bh_bulk);
+	if(_uni_cell_list_nbcells(&instance->bulk_cells))
+		tasklet_schedule(&instance->bh_bulk);
 	spin_unlock_bh(&instance->lock);
 }
 /**********************************************************************
