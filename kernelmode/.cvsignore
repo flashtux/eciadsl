@@ -2,3 +2,4 @@ Changelog
 *.orig
 *.rej
 atmtotap
+.project
