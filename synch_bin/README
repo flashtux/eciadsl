@@ -1,3 +1,15 @@
+******  <<< WARNING: >>>  *****************************************************
+**
+**  The former names are DEPRECATED, because they are not friendly since they
+**  do NOT indicate AT ALL the place in where the .bin should work.
+**  For instance: do not try eci_lens.bin because you leave near Lens (France).
+**  This .bin has been generated in Lens, but it should work for some people in
+**  Tchapamawak, and may not work for people leaving in Petaouchnok.
+**  Of course if you live in Lens, try synch05.bin first, this is obvious
+**  (except if DSLAM has changed eheh).
+**
+*******************************************************************************
+
 Available Synch .bin files list:
 	synch00.bin (formerly eci_wan3.bin)
 	synch01.bin (formerly eci_wan3.dmt.bin)
@@ -20,15 +32,6 @@ Available Synch .bin files list:
 	synch18.bin (generated in France/Strasbourg, provider Club-Internet)
 	synch19.bin (generated in France/Antibes)
 	synch20.bin (generated in Italy/Brescia, provider Tiscali)
-
-WARNING:
-the former names are DEPRECATED, because they are not friendly since they do NOT
-indicate AT ALL the place in where the .bin should work.
-For instance: do not try eci_lens.bin because you leave near Lens (France).
-This .bin has been generated in Lens, but it should work for some people in
-Tchapamawak, and may not work for people leaving in Petaouchnok.
-Of course if you live in Lens, try synch05.bin first, this is obvious (except
-if DSLAM has changed eheh).
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider

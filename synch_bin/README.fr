@@ -1,3 +1,16 @@
+******  <<< ATTENTION : >>>  **************************************************
+**
+**  Les anciens noms sont OBSOLETES, ils n'indiquaient aucune certitude quant
+**  aux lieux possibles de l'utilisation des .bin.
+**  Par exemple: n'essayez pas eci_lens.bin simplement parce que vous habitez
+**  Dunkerque.
+**  Le .bin a été généré à Lens mais il peut très bien convenir pour une
+**  utilisation à Tchapamawak, et peut aussi bien ne pas convenir à Petaouchnok.
+**  Bien sûr, si vous habitez Lens (France), synch05.bin est le premier .bin à
+**  essayer (sauf si le DSLAM a changé).
+**
+*******************************************************************************
+
 Liste des fichiers .bin disponibles pour la synchro :
 	synch00.bin (anciennement eci_wan3.bin)
 	synch01.bin (anciennement eci_wan3.dmt.bin)
@@ -20,16 +33,6 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch18.bin (généré en France/Strasbourg, provider Club-Internet)
 	synch19.bin (généré en France/Antibes)
 	synch20.bin (généré en Italie/Brescia, provider Tiscali)
-
-ATTENTION:
-Les anciens noms sont OBSOLETES, ils n'indiquaient aucune certitude quant aux lieux
-possibles de l'utilisation des .bin.
-Par exemple: n'essayez pas eci_lens.bin simplement parce que vous habitez Dunkerque.
-Le .bin a été généré à Lens mais il peut très bien convenir pour une utilisation
-à Tchapamawak, et peut aussi bien ne pas convenir à Petaouchnok.
-Bien sûr, si vous habitez Lens (France), synch05.bin est le premier .bin à essayer
-(sauf si le DSLAM a changé).
-
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
