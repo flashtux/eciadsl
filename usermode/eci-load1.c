@@ -187,7 +187,7 @@ int eci_firm_block_read(FILE *fp, struct eci_firm_block *p)
 	return 1;
 }
 
-int eci_load1(const char * file)
+int eci_load1(const char * file, int vid, int pid)
 {
 	FILE * fp ;
 	struct eci_firm_block block;
@@ -335,18 +335,24 @@ void check_modem()
 void usage()
 {
 	printf("eci-load1 version $Name$\n");
-	printf("usage: eci-load1 eci_firmware.bin\n");
+	printf("usage: eci-load1 eci_firmware.bin [VENDOR_ID PRODUCT_ID\n");
 	exit (-1);
 }
 
 int main(int argc, char *argv[])
 {
 	const char * file = argv[1];
+	int vid=EZUSB_VENDOR, pid=EZUSB_PRODUCT;
 
-	if (argc != 2)
+	if (argc != 2 && argc!= 4)
 		usage();
+	if(argc == 4)
+	{
+		vid = atoi(argv[2]);
+		pid = atoi(argv[3]);
+	}
 
-	if (!eci_load1(file))
+	if (!eci_load1(file, vid, pid))
 	{
 		printf("ECI Load 1 : failed!\n");
 		return -1;
