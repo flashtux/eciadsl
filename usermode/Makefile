@@ -1,4 +1,6 @@
-
+# 23/12/2001 Benoit PAPILLAULT
+#   make the file /etc/ppp/peers/adsl writable for user root (since most of
+#   the time, he must change the "user").
 CFLAGS += -Wall -g
 LDFLAGS += -g -Wall
 
@@ -32,9 +34,9 @@ install: all
 	chmod 500 /usr/local/bin/startmodem 
 	chown root:root /usr/local/bin/startmodem
 	cp adsl /etc/ppp/peers/
-	chmod 500 /etc/ppp/peers/adsl
+	chmod 700 /etc/ppp/peers/adsl
 	chown root:root /etc/ppp/peers/adsl
-	echo "dont forget to edit adsl and chap-secrets files\n"
+	@echo "Don't forget to edit /etc/ppp/peers/adsl and /etc/ppp/chap-secrets files\n"
 
 clean:
 	rm -f ${BIN} *.o 2>/dev/null

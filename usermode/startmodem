@@ -3,7 +3,7 @@
 echo "Init modem ..." ;
 
 echo "	Load Firmware ..." ;
-eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
+/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
 if [ $? -ne 0 ] ; then
 	echo "Failed to load firmware" ;
 	exit -1 ;
@@ -11,7 +11,7 @@ fi ;
 echo "	... Load Firmware OK"
 
 echo "	Setup modem ..." ;
-eci-load2 /usr/local/bin/eci_wan3.bin
+/usr/local/bin/eci-load2 /usr/local/bin/eci_wan3.bin
 if [ $? -ne 0 ] ; then
 	echo "Failed to setup the modem" ;
 	exit -1 ;
@@ -21,12 +21,18 @@ echo "	... Setup Modem OK" ;
 echo "... modem init OK" ;
 
 echo "Connect Modem ..." ;
-pppd call adsl
+nice --20 pppd call adsl updetach
 if [ $? -ne 0 ] ; then
 	echo "Connexion failed" ;
 	exit -1 ;
 fi ;
 echo "... Connect Modem OK" ;
+
+# The default route should be added automatically if no default route
+# already exists. If you already have a default route using your
+# ethernet card, you should configure your ethernet card. 
+
+exit 0;
 
 # Wait until ppp0 get available
 COUNTER=20
