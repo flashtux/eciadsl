@@ -292,7 +292,7 @@ case "$mode" in
 
 "LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH")
 
-	$BIN_DIR/pppoeci $pppoeci_options -vci $vci -vpi $vpi -mode $mode -vendor $vid2 -product $pid2
+	$BIN_DIR/pppoeci $pppoeci_options
 	if [ $? -ne 0 ]; then
     	echo "failed to connect"
     	exit -1
@@ -306,7 +306,7 @@ case "$mode" in
 
 "LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
 
-	$BIN_DIR/pppoeci $pppoeci_options -vci $vci -vpi $vpi -mode $mode -vendor $vid2 -product $pid2
+	$BIN_DIR/pppoeci $pppoeci_options
 	if [ $? -ne 0 ]; then
     	echo "failed to connect"
     	exit -1
@@ -316,6 +316,8 @@ case "$mode" in
 	ifconfig tun0 up
 	wait_for_iface tun0
 	GW=tun0
+	;;
+*)	echo "unknown PPP_MODE ($mode), check your driver configuration"
 	;;
 esac
 
