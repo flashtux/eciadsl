@@ -80,7 +80,7 @@ int usb_block_read(FILE* fp, struct usb_block* p)
 	if ((r = fread(b, sizeof(char), sizeof(b), fp)) != sizeof(char)*sizeof(b))
 	{
 		printf("usb_block_read: read %d bytes instead of %d\n", r, sizeof(char)*sizeof(b));
-		return 0;
+		return(0);
 	}
 
 	p->request_type = b[0];
@@ -96,7 +96,7 @@ int usb_block_read(FILE* fp, struct usb_block* p)
 		{
 			printf("usb_block_read: can't allocate %d bytes\n",
 				   p->size);
-			return 0;
+			return(0);
 		}
 
 		if ((p->request_type & 0x80) == 0)
@@ -104,11 +104,11 @@ int usb_block_read(FILE* fp, struct usb_block* p)
 			{
 				printf("usb_block_read: read %d bytes instead of %d\n",
 					   r, p->size);
-				return 0;
+				return(0);
 			}
 	}
 
-	return 1;
+	return(1);
 }
 
 void print_char(unsigned char c)
@@ -259,7 +259,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 	if (fp == NULL)
 	{
 		perror(file);
-		return 0;
+		return(0);
 	}
 
 	/* compute the file size */
@@ -289,7 +289,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 	{
 		printf("can't find your " GS_NAME "\n");
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 
 	/* initialize the USB device */
@@ -299,7 +299,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		printf("can't set configuration 1\n");
 		pusb_close(dev);
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 
 	/* let some time... is it needed ? */
@@ -310,7 +310,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		printf("can't claim interface 0\n");
 		pusb_close(dev);
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 
 	/* warning : orginal setting is 0,4 (source : Windows driver) */
@@ -320,7 +320,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		printf("can't set interface 0 to use alt setting 4\n");
 		pusb_close(dev);
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 
 	read_endpoint(dev, 0x86, option_verbose);
@@ -341,7 +341,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 			pusb_close(dev);
 #endif
 			fclose(fp);
-			return 0;
+			return(0);
 		}
 
 		if (option_verbose)
@@ -359,7 +359,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 
 			pusb_close(dev);
 			fclose(fp);
-			return 0;
+			return(0);
 		}
 
 		if (r != block.size)
@@ -439,7 +439,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 		{
 			perror("Can't open endpoint 2");
 			pusb_close(dev);
-			return 0;
+			return(0);
 		}
 
 		r = pusb_endpoint_write(ep_data, buf_data, sizeof(buf_data), TIMEOUT);
@@ -448,7 +448,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 			perror("pusb_endpoint_write");
 			pusb_endpoint_close(ep_data);
 			pusb_close(dev);
-			return 0;
+			return(0);
 		}
 
 		pusb_endpoint_close (ep_data);
@@ -471,7 +471,7 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 
 	fclose(fp);
 
-	return 1;
+	return(1);
 }
 
 void version(const int full)
@@ -511,7 +511,7 @@ void sigtimeout()
 int main(int argc, char** argv)
 {
 	const char* file;
-	int status;
+	int status, ret;
 	unsigned int vid2;
 	unsigned int pid2;
 	int i, j;
@@ -584,11 +584,12 @@ int main(int argc, char** argv)
     if (shared_sem == -1)
     {
         perror("eci-load2: failed to create shared semaphore");
-        return -1;
+        return(-1);
     }
 
 	signal(SIGALRM, sigtimeout);
-	if (!eci_load2(file, vid2, pid2, option_verbose, option_timeout))
+	ret=eci_load2(file, vid2, pid2, option_verbose, option_timeout);
+	if (!ret)
 	{
 		printf("ECI load 2: failed\n");
 		fflush(stdout);
@@ -605,7 +606,7 @@ int main(int argc, char** argv)
 	while(errno != ECHILD);
 	alarm(0);
 
-	if (status)
+	if (status || !ret)
 		return(1);
 
 	printf("ECI load 2: success\n");
