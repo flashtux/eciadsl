@@ -30,15 +30,22 @@ How-to pour le driver Linux du modem ECI USB
 	make
 	make install
 
+	Il arrive parfois que le modem soit allumé quand vous 
+	démarrez votre ordinateur, cela est du au module dabusb,
+	il faut l'enlever pour pouvoir installer le driver et faire 
+	fonctionner le modem.
 	Tapez les commandes suivantes en remplacant VERSION
 	par la version de votre noyau Linux : 
+	(pour connaite la version du noyau tapez : uname -r)
+	
 	rm -f /lib/modules/VERSION/dabusb.o.gz
+	( ou rm -f /lib/modules/VERSION/dabusb.o selon les distributions)
 	depmod -a
 
 	Si vous voulez eviter un reboot :
 	- Faite lsmod.
 	- Si vous voyez une ligne dabusb : faites rmmod dabusb
-
+	
 3.2) Configuration de pppd pour l'ouverture de la connexion
 
 3.2.1) Script /etc/ppp/peers/adsl :
@@ -216,6 +223,24 @@ CA NE MARCHE PAS :
 
 		=> retour aux chapitres : 3.2.1 et 3.2.2
 	
+5.3) Vous avez ce message d'erreur : Can't find your ECI Telecom USB ADSL Loader
+
+	5.3.1) message d'erreur 
+	
+	[root@hwi usermode]# ./startmodem
+	/proc/bus/usb: No such file or directory
+	Can't find your ECI Telecom USB ADSL Loader
+	ECI Load 1 : failed!
+	/proc/bus/usb: No such file or directory
+	Can't find your ECI Telecom USB ADSL WAN Modem
+	ECI Load 2 : failed!
+
+	Si vois avez un message qui ressemble a ça, c'est que vous n'avez pas monté le systéme de fichier pour l'usb.
+	
+	5.3.2) Solution 
+	
+	mount -t usbdevfs none /proc/bus/usb
+
 6) Contacts
 
 	Pour toute question, abonnez-vous à la liste de diffusion de ce projet 
