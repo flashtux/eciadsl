@@ -121,7 +121,7 @@ if [ ! -f /proc/bus/usb/devices ]; then
     mount -t usbdevfs none /proc/bus/usb
 	sleep 1
 	mount | grep usbdevfs > /dev/null
-	if [ $? == "0" ]; then
+	if [ $? -eq 0 ]; then
 		echo "couldn't mount usbdevfs"
 	else
 		echo "usbdevfs mounted successfully"
@@ -135,7 +135,7 @@ if [ $? -eq 0 ]; then
     modprobe -r dabusb
 	sleep 1
     lsmod | grep dabusb > /dev/null
-	if [ $? == "0" ]; then
+	if [ $? -eq 0 ]; then
 		echo "couldn't remove dabusb try to rmmod dabusb manually"
 	else
 		echo "dabusb removed successfully"
