@@ -624,5 +624,5 @@ int main(int argc, char** argv)
 	printf("ECI load 2: success\n");
 	fflush(stdout);
 
-	return 0;
+	return(0);
 }

@@ -184,7 +184,7 @@ int eci_firm_block_read(FILE* fp, struct eci_firm_block* p)
 	if ((r = fread(b, sizeof(char), sizeof(b), fp)) != sizeof(char)*sizeof(b))
 	{
 		printf("read %d bytes instead of %d\n", r, sizeof(char)*sizeof(b));
-		return 0;
+		return(0);
 	}
 
 	p->addr = (b[0] << 8) | b[1];
@@ -194,16 +194,16 @@ int eci_firm_block_read(FILE* fp, struct eci_firm_block* p)
 	if (p->content == NULL)
 	{
 		perror("malloc");
-		return 0;
+		return(0);
 	}
 
 	if ((r = fread(p->content, 1, p->len, fp)) != p->len)
 	{
 		printf("read %d bytes instead of %d\n", r, p->len);
-		return 0;
+		return(0);
 	}
 
-	return 1;
+	return(1);
 }
 
 int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
@@ -221,7 +221,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 	if (fp == NULL)
 	{
 		perror(file);
-		return 0;
+		return(0);
 	}
 
 	/* compute the file size */
@@ -237,7 +237,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 	{
 		printf("can't find your " EZUSB_NAME "\n");
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 
 	/* initialize the USB device */
@@ -247,7 +247,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 		printf("can't set configuration 1\n");
 		pusb_close(dev);
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 
 	if (pusb_set_interface(dev, 0, 1) < 0)
@@ -255,7 +255,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 		perror("can't set interface 0 to use alt setting 1\n");
 		pusb_close(dev);
 		fclose(fp);
-		return 0;
+		return(0);
 	}
 #endif
 	block.content = NULL;
@@ -271,7 +271,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 			pusb_close(dev);
 #endif
 			fclose(fp);
-			return 0;
+			return(0);
 		}
 
 		if (option_verbose)
@@ -287,7 +287,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 
 			pusb_close(dev);
 			fclose(fp);
-			return 0;
+			return(0);
 		}
 #endif
 
@@ -299,7 +299,7 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 #endif
 	fclose(fp);
 
-	return 1;
+	return(1);
 }
 
 int check_modem(unsigned short vid2, unsigned short pid2)
@@ -343,7 +343,7 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 	if (dev == NULL)
 	{
 		printf("can't find any " GS_NAME " compatible modem\n");
-		return 0;
+		return(0);
 	}
 
 	gettimeofday(&now, NULL);
@@ -353,7 +353,7 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 		(long) (( (now.tv_sec - start.tv_sec) * 1000) 
 				+ ((now.tv_usec - start.tv_usec) / 1000) ));
 	pusb_close(dev);
-	return 1;
+	return(1);
 }
 
 void version(const int full)
@@ -521,10 +521,10 @@ int main(int argc, char** argv)
 	alarm(0);
 
 	if (status)
-		return 1;
+		return(1);
 
 	printf("ECI load 1: success\n");
 	fflush(stdout);
 		
-	return 0;
+	return(0);
 }
