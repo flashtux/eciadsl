@@ -35,21 +35,21 @@ function commandline_help()
 	echo "  --clean                       clean temporary files then exit"
 	echo "  --disable-make-check          do not check for make"
 	echo "  --disable-gcc-check           do not check for gcc"
-	echo "  --disable-pppd-check          do not check for make (default)"
+	echo "  --disable-pppd-check          do not check for make"
 	echo "  --disable-wish-check          do not check for wish"
 
 	echo "  --disable-make-version        do not check for make version"
 	echo "  --disable-gcc-version         do not check for gcc version"
-	echo "  --disable-pppd-version        do not check for pppd version (default)"
+	echo "  --disable-pppd-version        do not check for pppd version"
 
 	echo "  --enable-make-check           force check for make (default)"
 	echo "  --enable-gcc-check            force check for gcc (default)"
-	echo "  --enable-pppd-check           force check for pppd"
+	echo "  --enable-pppd-check           force check for pppd (default)"
 	echo "  --enable-wish-check           force check for wish (default)"
 
 	echo "  --enable-make-version         force check for make version (default)"
 	echo "  --enable-gcc-version          force check for gcc version (default)"
-	echo "  --enable-pppd-version         force check for pppd version"
+	echo "  --enable-pppd-version         force check for pppd version (default)"
 
 	echo "  --with-kernel-sources={PATH}  where to find the kernel sources (default=$KERNEL_SOURCES_PATH_DEFAULT)"
 
@@ -506,8 +506,8 @@ function maintainer_defaults()
 	then
 		let DEBUG=1
 		let WARNINGS=1
-		let PPPD_CHECK=1
-		let WISH_CHECK=1
+		let PPPD_CHECK=0
+		let WISH_CHECK=0
 		DIST_PREFIX="$(pwd)/dist"
 		DIST_ETC_PREFIX="$(pwd)/dist"
 		DIST_CONF_PREFIX="$(pwd)/dist"
@@ -522,8 +522,8 @@ function rpm_maintainer_defaults()
 	then
 		let DEBUG=1
 		let WARNINGS=1
-		let PPPD_CHECK=1
-		let WISH_CHECK=1
+		let PPPD_CHECK=0
+		let WISH_CHECK=0
 	fi
 }
 
@@ -559,7 +559,7 @@ declare -i QUIET=0 DEBUG=0 WARNINGS=1 MAINTAINER=0
 declare -i PLATFORM_GUESS=1
 declare -i MAKE_CHECK=1 MAKE_CHECK_VERSION=1
 declare -i GCC_CHECK=1 GCC_CHECK_VERSION=1
-declare -i PPPD_CHECK=0 PPPD_CHECK_VERSION=0
+declare -i PPPD_CHECK=1 PPPD_CHECK_VERSION=0
 declare -i WISH_CHECK=1
 DIST_PREFIX_DEFAULT="/usr/local"
 DIST_ETC_PREFIX_DEFAULT="/"
