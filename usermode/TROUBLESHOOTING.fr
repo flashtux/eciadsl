@@ -569,7 +569,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 		K80barbatruc
 	(ce n'est qu'un exemple).
 	Cela veut dire que quand le système entre en init-level 5, il va appeler
-	S01foo, s15bar puis s((dummy.
+	S01foo, s15bar puis s99dummy.
 	De façon identique, quand l'init-level 5 est quitté, les fichiers K* vont
 	être appelés. Selon le système, ils peuvent être appelés par xx croissant
 	ou décroissant, puis par yyyyy.
