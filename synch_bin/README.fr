@@ -145,6 +145,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch47.bin (généré en France/Palaiseau, fournisseur Club Internet, T1.413)
 	synch48.bin (généré en France/Gouzangrez, fournisseur Tele2, T1.413)
 	synch49.bin (généré en Suisse/Bern, fournisseur Sunrise, Multimode)
+	synch50.bin (généré en France/Domont, fournisseur Club Internet, T1.413)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
