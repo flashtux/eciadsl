@@ -29,11 +29,11 @@
 #            Decoding of the USB log file is done case insensitive.
 
 # <CONFIG>
-$BIN_DIR = "/usr/local/bin";
-$ETC_DIR = "/etc";
-$CONF_DIR = "/etc/eciadsl";
-$PPPD_DIR = "/etc/ppp";
-$VERSION = "";
+# $BIN_DIR = "/usr/local/bin";
+# $ETC_DIR = "/etc";
+# $CONF_DIR = "/etc/eciadsl";
+# $PPPD_DIR = "/etc/ppp";
+# $VERSION = "";
 # </CONFIG>
 
 $active = 0;

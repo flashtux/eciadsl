@@ -40,6 +40,14 @@
 #            added 2 functions to correctly and fully display USB descriptors
 #            the output is similar to 'pusb-view'.
 
+# <CONFIG>
+# $BIN_DIR = "/usr/local/bin";
+# $ETC_DIR = "/etc";
+# $CONF_DIR = "/etc/eciadsl";
+# $PPPD_DIR = "/etc/ppp";
+# $VERSION = "";
+# </CONFIG>
+
 $t = 0;
 
 # print_buffer ($buf)
