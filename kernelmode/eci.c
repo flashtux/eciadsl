@@ -60,7 +60,7 @@
                     Debuging Stuf
 ***********************************************************************/
 
-#define DEBUG 1
+//#define DEBUG 1
 #ifdef DEBUG
 
 #define DBG_OUT(fmt, argz...) \
@@ -663,6 +663,8 @@ struct eci_instance 		/*	Private data for driver	*/
 							to INT		*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
 	struct urb		*bulk_urb;	/*	outgoing datas	*/
+	int			bulkisfree;	/*	Teel if bulk urb 
+							available	*/
 	unsigned char 		*interrupt_buffer;
 	unsigned char 		*pooling_buffer;
 	char			iso_celbuf[ATM_CELL_SZ]; /* incomplete cell */
@@ -902,6 +904,10 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			ERR_OUT("not enought memory for bulk buffer\n");
 			return 0;
 		}
+		/*	
+			Now bulk URB AVAILABLE
+		*/
+		out_instance->bulkisfree = 1;
 		DBG_OUT("Vendor Stuff\n");
 		/*
 			Just Reset EP 0x02 (no reset)
@@ -1651,9 +1657,8 @@ static void eci_bh_bulk(unsigned long pinstance)
 	DBG_OUT("eci_bh_bulk IN\n") ;
 	instance = (struct eci_instance *)pinstance;
 	spin_lock_irqsave(&instance->lock , flags);
-	/*if(nbcells)
+	if(instance->bulkisfree)
 	{
-*/
 	buflen = ECI_BULK_BUFFER_SIZE;
 	urb = instance->bulk_urb;	
 /*
@@ -1701,7 +1706,9 @@ static void eci_bh_bulk(unsigned long pinstance)
 	//	kfree(buf);
 	/*	return; 	BIG BUG WITH LOCKING !!!!!	*/
 	}
-	/*}*/
+	else
+		instance->bulkisfree = 0;
+	}
 	spin_unlock_irqrestore(&instance->lock, flags);
 	DBG_OUT("eci_bh_bulk OUT\n") ;
 	return;	
@@ -1721,7 +1728,8 @@ static void eci_bulk_callback(struct urb *urb)
 	//usb_free_urb(urb);
 	spin_lock(&instance->lock);
 	instance = (struct eci_instance *)urb->context;
-	//tasklet_schedule(&instance->bh_bulk);
+	instance->bulkisfree = 1;
+	tasklet_schedule(&instance->bh_bulk);
 	spin_unlock(&instance->lock);
 }
 /**********************************************************************
