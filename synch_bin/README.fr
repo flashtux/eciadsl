@@ -129,6 +129,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch31.bin (généré en Italie/Turin, fournisseur Infostrada, modulation inconnue)
 	synch32.bin (généré en Italie/Pisa, fournisseur Tiscali, G-lite)
 	synch33.bin (généré en France/Avignon, fournisseur Club-Internet, G.DMT)
+	synch34.bin (généré en Suisse/Lucerne, fournisseur Sunrise, modulation inconnue)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !

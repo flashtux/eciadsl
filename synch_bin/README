@@ -129,6 +129,7 @@ Available Synch .bin files list:
 	synch31.bin (generated in Italy/Turin, provider Infostrada, unknown modulation type)
 	synch32.bin (generated in Italy/Pisa, provider Tiscali, G-lite)
 	synch33.bin (generated in France/Avignon, provider Club-Internet, G.DMT)
+	synch34.bin (generated in Switzerland/Lucerne, provider Sunrise, unknown modulation type)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
