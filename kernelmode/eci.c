@@ -2,8 +2,8 @@
 *                                                                            *
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
-*     Author : Valette Jean-Sebastien <jean-sebastien.valette@libertysur.fr  *
-*              Eric Bardes  <email@fournisseur>                         *
+*     Author : Valette Jean-Sebastien <jean-sebastien.valette@free.fr        *
+*              Eric Bardes  <email@fournisseur>                              *
 *                                                                            *
 *     Copyright : GPL                                                        *
 *                                                                            *
@@ -69,7 +69,7 @@
 		##argz \
 	)
 
-#define DUMP_LINES 	100
+#define DUMP_LINES 	64
 
 #define DBG_RAW_OUT(txt, buff, size) \
 	_dumpk( \
@@ -90,31 +90,35 @@ static void _dumpk(
 	unsigned char *	buffer,	/* IN: Buffer to dump	*/
 	size_t		size	/* IN: Buffer length	*/
 ) {
-	unsigned char	lv_format[sizeof(KERN_DEBUG) + (43 * DUMP_LINES) + 1] ; /* 43 = line size */
+	unsigned char	lv_format[( (3+3+3*8+1+8+1)  * DUMP_LINES) + 1] ; 
+/*
+	line = <7>XX:dd dd dd dd dd dd dd dd:aaaaaaaa\n 
+	size=  3 | 3| 3 * 8                |1| 8     |1
+*/
 	unsigned char *	lp_cur = lv_format ;
 	int 		lc_1 ;
 	int		lc_2 ;
-	int		lv_max = (size > DUMP_LINES * 10 ? 
-					DUMP_LINES * 10 : 
+	int		lv_max = (size > DUMP_LINES * 8 ? 
+					DUMP_LINES * 8 : 
 					size) ;
   
 	lv_format[0] = '\0' ;
-	lp_cur += sprintf(lp_cur, "%s:", KERN_DEBUG);
 
 	/* Format the buffer */
-	for (lc_1=0 ; lc_1 < lv_max ; lc_1 += 10) {
+	for (lc_1=0 ; lc_1 < lv_max ; lc_1 += 8) {
+		lp_cur += sprintf(lp_cur, "%s:", KERN_DEBUG);
 		
 		/* Print hexa */
 		for (
 			lc_2 = lc_1 ; 
-			((lc_2 < lv_max) && (lc_2 < lc_1 + 10)) ;
+			((lc_2 < lv_max) && (lc_2 < lc_1 + 8)) ;
 			lc_2++
 		) {
 			sprintf(lp_cur, "%02x ", buffer[lc_2]) ;
 			lp_cur 	+= 3 ; /* wrote 3 chars */
 		}
 		/* Print Padding */
-		for (;lc_2 < lc_1 + 10 ; lc_2++) {
+		for (;lc_2 < lc_1 + 8 ; lc_2++) {
 			sprintf(lp_cur, "   ");
 			lp_cur 	+= 3 ; /* wrote 3 chars */
 		}
@@ -126,7 +130,7 @@ static void _dumpk(
 		/* Print ASCII */
 		for (
 				lc_2 = lc_1;
-				(lc_2 < lv_max) && (lc_2 < lc_1 + 10) ;
+				(lc_2 < lv_max) && (lc_2 < lc_1 + 8) ;
 				lc_2++
 		) {
 			sprintf(
@@ -143,7 +147,7 @@ static void _dumpk(
 
 	/* Print Dump */
 	printk(
-		KERN_DEBUG "D ECI_USB [%s:%d] : %s [%d] %s\n%s\n",
+		KERN_DEBUG "ECI_USB [%s:%d] : %s [%d] %s\n%s\n",
 		file,
 		line,
 		txt,
@@ -1382,7 +1386,7 @@ static void eci_iso_callback(struct urb *urb)
 	unsigned char 		*buf;		/* Working buffer pointer */
 
 	instance = (struct eci_instance *)urb->context;
-	if (!urb->status && urb->actual_length)
+	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
  		if(!(cells = _uni_cell_list_alloc())) {
 			ERR_OUT("Failed to allocate cell list\n");
