@@ -642,7 +642,7 @@ case "$1" in
 					TMP=""
 				fi
         		echo
-        		echo "Type in your provider's gateway IP$TMP: "
+        		echo -n "Type in your provider's gateway IP$TMP: "
 				gateway=""
         		while [ -z "$gateway" ]; do
             		read gateway
