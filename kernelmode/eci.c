@@ -216,9 +216,12 @@ static const unsigned char eci_init_setup_packets[] =
 
 static const struct usb_device_id eci_usb_deviceids[] =
 {
-	{ USB_DEVICE ( ECI_WAN_VENDOR_ID , ECI_WAN_PRODUCT_ID ) } ,
-	{ } 
+	{ USB_DEVICE ( 0x915 , 0x8000 ) } , /* ECI HI FOCUS */
+					    /* ECI B FOCUS  */
+	{ USB_DEVICE ( 0x0915,0xac82 ) } ,  /* EICON DIVA USB */
 };
+
+#define ECI_NB_MODEMS 2
 
 static void eci_init_vendor_callback(struct urb *urb);
 static void eci_int_callback(struct urb *urb);
@@ -741,6 +744,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	/* unused : int dir; */
 	int eci_isourbcnt;
 	int i;	/*	loop counter	*/
+	int pid=0, vid=0; /* for device checking */
 
 
 	DBG_OUT("Probe in\n");
@@ -750,8 +754,20 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 
 	The code Here will have to initialize modem 
 	then claim for wan usb device
+	
+************************************************/
+	for(i=0;i<ECI_NB_MODEMS;i++)
+	{
+		if(eci_usb_deviceids[i].idVendor == dev->descriptor.idVendor
+			&& eci_usb_deviceids[i].idProduct == 
+				dev->descriptor.idProduct)
+		{
+			pid = eci_usb_deviceids[i].idProduct;
+			vid = eci_usb_deviceids[i].idVendor;
+			break;
+		}
+	}
 
-************************************************/								
 	if(dev->descriptor.bDeviceClass == USB_CLASS_VENDOR_SPEC ||
 	   dev->descriptor.idVendor == ECI_WAN_VENDOR_ID ||
 	   dev->descriptor.idProduct == ECI_WAN_PRODUCT_ID )
