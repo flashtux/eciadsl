@@ -893,7 +893,11 @@ Q:	Comment puis-je stopper la connection PPP ?
 --------------------------------------------------------------------------------
 R:	`killall pppd` ou `ifconfig ppp0 down`.
 	Ceci laissera votre modem initialisé.
-	
+
+	Utilisateurs de tun0 (routed IP): `killall pppoeci`.
+
+	Utilisateurs de tap0 (PPPoE): `killall pppoe && killall pppoeci`.
+
 	Si vous voulez vraiment réinitialiser votre modem, déchargez le module qui
 	gère votre HUB USB (`modprobe -r usb-uhci` par exemple). Mais ceci peut
 	causer des problèmes car d'autres périphériques USB peuvent être gérés par
