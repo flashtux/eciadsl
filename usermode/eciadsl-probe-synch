@@ -66,7 +66,7 @@ function reset_usb()
 function init_modem()
 {
 	echo -e "\nLoading firmware.."
-	$BIN_DIR/eci-load1 $ECILOAD1_OPTIONS 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" > /dev/null 2>&1
+	$BIN_DIR/eciadsl-firmware $ECILOAD1_OPTIONS 0x$VID1 0x$PID1 0x$VID2 0x$PID2 "$FIRMWARE" > /dev/null 2>&1
 	if [ $? -eq 0 ]
 	then
 		echo "Firmware loaded"
@@ -112,12 +112,12 @@ fi
 
 echo -e "\nWARNING: if no $CONF_DIR/eciadsl.conf file exists,"
 echo "default VID/PID will be assumed. This eciadsl.conf file is generated using"
-echo "eciconf.sh or eciconftxt.sh, please read the INSTALL file to properly install"
-echo "and configure the driver"
+echo "eciadsl-config-tk or eciadsl-config-text, please read the INSTALL file to"
+echo "properly install and configure the driver"
 echo "This script requires your modem to be supported by the driver, and that"
 echo "you've installed some extra synch .bin (the official synch_bin package for instance)"
 echo "It might be also necessary to unplug/wait/replug your modem before your"
-echo -e "this script and to ensure that no pppd/pppoeci instance is running\n"
+echo -e "this script and to ensure that no pppd/eciadsl-pppoeci instance is running\n"
 
 ECILOAD1_OPTIONS=""
 ECILOAD2_OPTIONS=""
@@ -209,7 +209,7 @@ do
 	fi
 
 	echo -e "\nTesting synch with $DIR/$FILE.."
-	$BIN_DIR/eci-load2 $ECILOAD2_OPTIONS 0x$VID2 0x$PID2 "$DIR/$FILE"
+	$BIN_DIR/eciadsl-synch $ECILOAD2_OPTIONS 0x$VID2 0x$PID2 "$DIR/$FILE"
 	if [ $? -eq 0 ]
 	then
 		test -n "$LISTOK" && LISTOK="$LISTOK\n$FILE" || LISTOK="$FILE"
