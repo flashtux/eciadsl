@@ -5,7 +5,7 @@
 # Licence  : GPL
 #
 # 07/02/2002: added the CVS Id
-# CVS $Id: eciadsl-start,v 1.1 2004/04/23 01:33:41 flashcode Exp $
+# CVS $Id: eciadsl-start,v 1.2 2004/04/23 21:23:15 flashcode Exp $
 # Tag $Name:  $
 #
 # 03/02/2002
@@ -252,7 +252,7 @@ fi
 mount | grep usbdevfs > /dev/null
 if [ $? -ne 0 ]; then
     echo -ne "Loading USB device filesystem... "
-    mount -t usbdevfs none /proc/bus/usb
+    mount -t usbdevfs usbdevfs /proc/bus/usb
     sleep 1
     mount | grep usbdevfs > /dev/null
     if [ $? -eq 0 ]; then
