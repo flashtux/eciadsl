@@ -66,6 +66,8 @@ Sorted according to priority (the upper in the list, the prior):
 -? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
 - code clean up & normalization, string protection in scripts
 - submit driver to GNU/Linux distro managers
+- better distro/services(init.d?) integration using adsl-start/stop instead of startmodem (use a
+  lock file too).
 
 
 0.x:
