@@ -111,17 +111,31 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	u_int16_t eoccode;
 	
 	assert(bufflen < EOC_MAX_LEN);
-	
+/*	          1111 
+	6543 21xx 3210 987x
+	0000 1111 0000 0001
+	0000 0011 0000 0001
+
+	0000 1101 0000 0001
+	0000 0001 0000 0001
+*/		
 	printf("OEC.C - parse_eoc_buffer - START [eocmesval : %04x]\n", eocmesval);
 	
 	for(;i<bufflen;i+=2) {		
 		if(buffer[i] !=0xc0) {
 			/* check for eoc valicode*/
-			if((((buffer[i] << 8 ) | buffer[i+1]) & 0x0F01) != 0x0301) continue;
+			if((((buffer[i] << 8 ) | buffer[i+1]) & 0x0D01) != 0x0101) continue;
 			eoccode = eoc_decode(buffer[i], buffer[i+1]);
-			printf("OEC.C - parse_eoc_buffer - GOOD EOC CODE [%04x]\n", eoccode);
+			printf("OEC.C - parse_eoc_buffer - GOOD EOC CODE [eoccode : %04x| EOC_ADDRESS(eoccode) : %04x]\n", eoccode, EOC_ADDRESS(eoccode));	
 			if(EOC_ADDRESS(eoccode) != EOC_ADDRESS_ATU_R) {
 				continue; /* creapy message or not for us */
+			}
+			eoc_out_buffer_pos+=2;
+			if(eoc_out_buffer_pos < 33) { /* do the echo to ack it */
+				eoc_out_buf[eoc_out_buffer_pos-2] = buffer[i];
+				eoc_out_buf[eoc_out_buffer_pos-1] = buffer[i+1];
+			} else {
+				return -EIO;
 			}
 			if(eocmesval != eoccode) { /* new message */
 				eocmesval = eoccode;
@@ -139,9 +153,9 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								printf("OEC.C - parse_eoc_buffer - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
 									eocstate = _read;
-								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-									eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
-									eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;
+								if(eoc_out_buffer_pos < 33) { /* do the echo to ack it */
+									eoc_out_buf[eoc_out_buffer_pos-2] = (eocmesval & 0xff00) >> 8;
+									eoc_out_buf[eoc_out_buffer_pos-1] = eocmesval & 0x00ff;
 								} else {
 									return -EIO;
 								}
@@ -154,10 +168,11 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 									eocstate = _idle;
 								break;
 						}
-						if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
+						if(eoc_out_buffer_pos < 33) { /* do the echo to ack it */
 							printf("OEC.C - parse_eoc_buffer - PREREAD [eoc_out_buffer_pos < 30]\n");							
-							eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
-							eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;						} else {
+							eoc_out_buf[eoc_out_buffer_pos-2] = (eocmesval & 0xff00) >> 8;
+							eoc_out_buf[eoc_out_buffer_pos-1] = eocmesval & 0x00ff;
+						} else {
 							return -EIO;
 						}
 						break;
@@ -165,9 +180,9 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 					printf("OEC.C - parse_eoc_buffer - IDLE [eocstate : _idle]\n");
 					if(eocmescnt >=2) /* execute third time with same message */
 						eoc_execute(eocmesval);
-					if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-						eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
-						eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;
+					if(eoc_out_buffer_pos < 33) { /* do the echo to ack it */
+						eoc_out_buf[eoc_out_buffer_pos-2] = (eocmesval & 0xff00) >> 8;
+						eoc_out_buf[eoc_out_buffer_pos-1] = eocmesval & 0x00ff;
 					} else {
 						return -EIO;
 					}
@@ -178,9 +193,9 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 							case EOC_OPCODE_NEXT:
 								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
-								if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-									eoc_out_buf[eoc_out_buffer_pos++] = (mes & 0xff00) >> 8;
-									eoc_out_buf[eoc_out_buffer_pos++] = mes & 0xff;
+								if(eoc_out_buffer_pos < 33) { /* do the echo to ack it */
+									eoc_out_buf[eoc_out_buffer_pos-2] = (mes & 0xff00) >> 8;
+									eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
 								} else {
 									return -EIO;
 								}
@@ -216,12 +231,13 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  			eocoutbuff[i] = 0x0c;
  	}
  	for(i=0; i < eoc_out_buffer_pos; i++) {
- 		eocoutbuff[i] = eoc_out_buf[i++];
+ 		eocoutbuff[i] = eoc_out_buf[i];
  	}
  	eoc_out_buffer_pos = 0;
 	printf("OEC.C - get_oec_answer - END \n");
 }
 
 int has_eocs(){
+	printf("OEC.C - has_eocs  [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	return (eoc_out_buffer_pos);
 }
