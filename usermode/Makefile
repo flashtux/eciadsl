@@ -70,7 +70,6 @@ install_scripts:
 	echo "s/PPPD_DIR=.\+/PPPD_DIR=\"$$pppddir\"/" >> $(TMP_DIR)/sh.sed; \
 	echo "s/VERSION=.\+/VERSION=\"$$version\"/" >> $(TMP_DIR)/sh.sed;
 	@for FILE in $(SCRIPTS); do \
-	echo $$FILE; \
 		head -50 $$FILE | grep -E "^exec wish" > /dev/null; \
 		if [ $$? -eq 0 ]; then \
 			sed -f $(TMP_DIR)/tcl.sed $$FILE > $(TMP_DIR)/$$FILE; \
@@ -135,8 +134,7 @@ ppp_peer:
 		echo "modifying existing $(PPPD_DIR)/peers/adsl.."; \
 		USER=`grep -E "^user[ \t]+" $(PPPD_DIR)/peers/adsl`; \
 		grep -v -E "^user[ \t]+" adsl > $(PPPD_DIR)/peers/adsl; \
-		echo -e "$$USER\n$$PERSIST" >> $(PPPD_DIR)/peers/adsl; \
-		grep "^persist" $(PPPD_DIR)/peers/adsl > /dev/null || echo -e "persist\n" >> $(PPPD_DIR)/peers/adsl; \
+		echo -e "$$USER" >> $(PPPD_DIR)/peers/adsl; \
 	else \
 		echo "creating $(PPPD_DIR)/peers/adsl.."; \
 		$(INSTALL_DATA) adsl $(PPPD_DIR)/peers/adsl; \

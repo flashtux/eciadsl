@@ -124,14 +124,14 @@ set file [open "$CONF_DIR/providers.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
 	set line [string trim [gets $file]]
-	regsub -all {[\t]+} $line {^} line
-	if {"$line"!="" && ![regexp {^[ \t]*#} $line]} {
+	regsub -all {[ \t]+} $line {^} line
+	if {"$line"!="" && "$line"!="^" && ![regexp {^[ \t]*#} $line]} {
 		set pos1 0
 		set pos2 [string first "^" "$line" [expr $pos1+1]]
 		set pos3 [string first "^" "$line" [expr $pos2+1]]
-		set pos4 [string first "#" "$line" [expr $pos3+1]]
+		set pos4 [string first "^" "$line" [expr $pos3+1]]
 		if {$pos4!=-1} {
-			# skip trailing comment
+			# skip trailing blanks
 			set pos4 [expr $pos4-1]
 		} else {
 			set pos4 end
@@ -209,16 +209,16 @@ set file [open "$CONF_DIR/modems.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
 	set line [string trim [gets $file]]
-	regsub -all {[\t]+} $line {^} line
-	if {"$line"!="" && ![regexp {^[ \t]*#} $line]} {
+	regsub -all {[ \t]+} $line {^} line
+	if {"$line"!="" && "$line"!="^" && ![regexp {^[ \t]*#} $line]} {
 		set pos1 0
 		set pos2 [string first "^" "$line" [expr $pos1+1]]
 		set pos3 [string first "^" "$line" [expr $pos2+1]]
 		set pos4 [string first "^" "$line" [expr $pos3+1]]
 		set pos5 [string first "^" "$line" [expr $pos4+1]]
-		set pos6 [string first "#" "$line" [expr $pos5+1]]
+		set pos6 [string first "^" "$line" [expr $pos5+1]]
 		if {$pos6!=-1} {
-			# skip trailing comment
+			# skip trailing blanks
 			set pos6 [expr $pos6-1]
 		} else {
 			set pos6 end
