@@ -748,7 +748,7 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 
 #ifdef __USE_ATM__
 	if(i->atm_dev) 	{
-		atm_dev_shutdown(i->atm_dev);
+		shutdown_atm_dev(i->atm_dev);
 		i->atm_dev = 0;
 	}
 #endif	
