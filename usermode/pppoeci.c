@@ -180,6 +180,8 @@ static const char id[] = "@(#) $Id$";
 
 /* USB level */
 #define DATA_TIMEOUT 300
+int data_timeout=0;
+
 #include "modem.h"
 
 /* max size of data endpoint (Windows driver uses 448). */
@@ -220,7 +222,7 @@ pid_t this_process;		/* always the current process pid */
 
 /* predeclarations */
 
-int aal5_read(unsigned char *cell_buf, size_t count,
+int aal5_read(unsigned char *cell_buf, /*size_t count,*/
 				unsigned int vpi, unsigned int vci,
 				unsigned int pti, int fdout);
 
@@ -571,7 +573,7 @@ int ppp_write(int fd, unsigned char *buf, int n)
  * an AAL5 frame.
  */
 
-int cell_read(unsigned char *cellbuf, size_t count, int fdout)
+int cell_read(unsigned char *cellbuf, /*size_t count,*/ int fdout)
 {
 	unsigned int vpi, vci, pti;
 
@@ -581,7 +583,7 @@ int cell_read(unsigned char *cellbuf, size_t count, int fdout)
 	pti = ( cellbuf[3] & 0x0f);
 
 	/* filling our AAL5 frame */
-	return(aal5_read(cellbuf + CELL_HDR, CELL_DATA, vpi, vci, pti, fdout));
+	return(aal5_read(cellbuf + CELL_HDR, /*CELL_DATA,*/ vpi, vci, pti, fdout));
 }
 
 int cell_write(unsigned char *cellbuf, unsigned char *buf, int n,
@@ -616,7 +618,7 @@ int cell_write(unsigned char *cellbuf, unsigned char *buf, int n,
  * (0 otherwise)
  */
 
-int aal5_read(unsigned char *cell_buf, size_t count,
+int aal5_read(unsigned char *cell_buf, /*size_t count,*/
 		unsigned int vpi, unsigned int vci, unsigned int pti, int fdout)
 {
 	static unsigned char buf[64 * 1024];
@@ -804,7 +806,7 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 			printf("Writing %d bytes to USB\n", ptr);
 	}
 */
-	ret = pusb_endpoint_write(epdata, bigbuf, ptr, DATA_TIMEOUT);
+	ret = pusb_endpoint_write(epdata, bigbuf, ptr, data_timeout);
 /*
 	ret = pusb_endpoint_submit_write (epdata, bigbuf, ptr, 0);
 */
@@ -853,7 +855,7 @@ int decode_usb_pkt(unsigned char *buf, int len)
 	while ((rlen - pos) >= CELL_SIZE)
 	{
 
-		if ((r = cell_read(rbuf + pos, CELL_SIZE, gfdout)) < 0)
+		if ((r = cell_read(rbuf + pos, /*CELL_SIZE,*/ gfdout)) < 0)
 		{
 			rlen -= pos;
 			if (rlen != 0)
@@ -1104,7 +1106,7 @@ void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 		dump(outbuf, sizeof(outbuf));
 */
 		if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
-							 sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
+							 sizeof(outbuf), data_timeout) != sizeof(outbuf))
 		{
 			message("error on sending vendor device URB");
 			perror("error: can't send vendor device!");
@@ -1209,8 +1211,8 @@ void handle_urb(pusb_urb_t urb)
   and init_ep_data_int()
 */
 
-void handle_ep_data_in_ep_int(pusb_endpoint_t ep_data_in,
-							  pusb_endpoint_t ep_int, int fdout)
+void handle_ep_data_in_ep_int(/*pusb_endpoint_t ep_data_in,
+							  pusb_endpoint_t ep_int, int fdout*/)
 {
 	pusb_urb_t urb;
 
@@ -1226,7 +1228,7 @@ void handle_ep_data_in_ep_int(pusb_endpoint_t ep_data_in,
 		   to a memory block allocated by malloc(), so we need to call free().
 		   However, this is a bad design in general, since allocated memory
 		   should be freed by the "module" that allocate it (ie pusb).
-		   Anyway, its a quick fix.
+		   Anyway, it's a quick fix.
 		*/
 
 		free (urb);
@@ -1280,7 +1282,9 @@ void* fn_handle_ep_data_out(void* ignored)
 	/* when the thread is terminating, we need to exit the whole process */
 	exit(0);
 
-	return(NULL);
+	return(ignored);
+/* this tricks C compiler, return() is never matched, and
+   void* ignored is now used */
 }
 
 void version(const int full)
@@ -1294,35 +1298,41 @@ void version(const int full)
 void usage(const int ret)
 /* if 'error' is 0, usage() hasn't to quit with an <0 error code */
 {
-
+	int i;
 
 	fprintf(stderr,	"usage:\n"
 					"       pppoeci [<switch>..] -vpi num -vci num -vendor hex -product hex\n");
 	fprintf(stderr,	"switches:\n"
 					"       -alt <num>           force the use of an alternate method to set USB interface\n"
-                    "       -mode <name>         PPP encapsulation method (LLC_RFC2364 or LLC_SNAP_RFC1483)\n"
-					"       -v or --verbosity    defines the verbosity level [0-2] (enables logging)\n"
-					"       -f or --logfile      defines the log filename to use (default " LOG_FILE ")\n"
-					"       -h or --help         this message\n"
-					"       -V or --version      displays the version number then exit\n"
+					"       -dto <num>           override default DATA_TIMEOUT value\n"
+                    "       -mode <name>         PPP encapsulation method (see below)\n"
+					"       -v or --verbosity    define the verbosity level [0-2] (enables logging)\n"
+					"       -f or --logfile      define the log filename to use (default " LOG_FILE ")\n"
+					"       -h or --help         display this message then exit\n"
+					"       -V or --version      display the version number then exit\n"
 					"\n");
-	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci that\n"
-					"your provider is using (for instance: 8.35 for France, 0.38 for UK).\n"
+	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
+					"by provider. For instance: 8.35 for France, 0.38 for UK.\n"
 					"\n");
-	fprintf(stderr,	"The vendor and product are hexadecimal values (4-digit max with a leading 0x)\n"
-					"They define the vendor ID and product ID (for instance: 0x0915/0x8000 for\n"
-					"an ECI Telecom USB ADSL Wan Modem).\n"
+	fprintf(stderr,	"The vendor and product are hexadecimal values (4-digit with a leading 0x)\n"
+					"They define the vendor ID and product ID. For instance: -vendor 0x0915\n"
+					"-product 0x8000 for an ECI Telecom USB ADSL Wan Modem.\n"
 					"\n");
-	fprintf(stderr,	"The encapsulation mode may change depending on the country/provider/modem.\n"
-					"If you experience LCP requests timeout at connect time, try another one\n"
-					"(eg: LLC_RFC2364 for switzerland). The default is VC Multiplexed PPP (none)\n\n");
+	fprintf(stderr,	"The encapsulation mode may differ depending on the country/provider/modem.\n"
+					"If you experience LCP requests timeout or IOCTL errors at connect time, try\n"
+					"another one (e.g.: LLC_RFC2364 for Switzerland).\n"
+					"VC Multiplexed PPP (none).\n");
+	fprintf(stderr, "Possible values:\n");
+	for (i = 0; i < modes_count; i++)
+		fprintf(stderr, "    %s%s\n", mode_name[i], (i == frame_type)?" (default)":"");
+					
 	_exit(ret);
 }
 
 void sig_term(int sig)
 {
 	snprintf(errText, ERR_BUFSIZE,
-			"SIGTERM received.. exiting");
+			"SIGTERM (%d) received.. exiting", sig);
 	fatal_error(ERR_SIGTERM, errText);
 }
 
@@ -1385,6 +1395,9 @@ int main(int argc, char *argv[])
 		if ((strcmp(argv[i], "-alt") == 0) && (i + 1 < argc))
 			get_signed_value(argv[++i], &pusb_set_interface_alt);
 		else
+		if ((strcmp(argv[i], "-dto") == 0) && (i + 1 < argc))
+			get_signed_value(argv[++i], &data_timeout);
+		else
 		if ((strcmp(argv[i], "--version") == 0) || (strcmp(argv[i], "-V") == 0))
 			version(0);
 		else
@@ -1426,20 +1439,29 @@ int main(int argc, char *argv[])
 	if (my_vci == 0xffff || my_vpi == 0xffff
 		|| verbose < 0 || verbose > 2
 		|| vendor == 0 || product == 0
-		|| pusb_set_interface_alt < 0)
+		|| pusb_set_interface_alt < 0
+		|| data_timeout < 0
+		)
 		usage(-1);
 
 	if (verbose)
+	{
 		fprintf(stderr, "Using:\n"
 						" vpi.vci=%d.%d\n"
 						" vendor/product=0x%04x/0x%04x\n"
-						"%s"
 						" verbose level=%d\n"
 						" log file=%s (%sabled)\n",
 						my_vpi, my_vci, vendor, product,
-						pusb_set_interface_alt?" pusb_set_interface_alt=\n":"",
 						verbose, logfile,
 						verbose?"en":"dis");
+		if (pusb_set_interface_alt)
+			fprintf(stderr, " pusb_set_interface_alt=%d\n", pusb_set_interface_alt);
+		if (data_timeout)
+			fprintf(stderr, " data timeout=%d\n", data_timeout);
+	}
+	if (!data_timeout)
+		data_timeout=DATA_TIMEOUT;
+						
 
 	/* duplicate in and out fd */
 	fdin  = dup(0);
@@ -1688,7 +1710,7 @@ int main(int argc, char *argv[])
 	  Relay data betwwen ep_data_in (USB) =>  fdout (PPP)
 	*/
 
-	handle_ep_data_in_ep_int(ep_data_in, ep_int, fdout);
+	handle_ep_data_in_ep_int(/*ep_data_in, ep_int, fdout*/);
 
 	/* we release all the interface we'd claim before exiting */
 	if (pusb_release_interface(fdusb, 0) < 0)
@@ -1702,4 +1724,3 @@ int main(int argc, char *argv[])
 
 	return(0);
 }
-
