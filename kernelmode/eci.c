@@ -64,7 +64,7 @@
 
 #define DBG_OUT(fmt, argz...) \
 	printk( \
-		KERN_DEBUG __FILE__ "__LINE__" fmt, \
+		KERN_DEBUG __FILE__ "" fmt, \
 		##argz \
 	)
 
@@ -213,6 +213,8 @@ static void eci_init_vendor_callback(struct urb *urb);
 static void eci_ep_int_callback(struct urb *urb);
 static void eci_iso_callback(struct urb *urb);
 static void _eci_send_init_urb(struct urb *eciurb);
+
+
 
 
 /**********************************************************************
@@ -459,9 +461,10 @@ struct eci_instance 		/*	Private data for driver	*/
 	const unsigned char	*setup_packets; /* 	For init	*/
 	struct urb		*isourbs;	/*	For Iso transfer */
 	struct urb		*vendor_urb;	/*	For init and Answer 
-							to INTi		*/
+							to INT		*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
-	unsigned char		interrupt_buffer[32];	
+	char 			*interrupt_buffer;
+
 
 	/* -- Transmission Elements -- */
 	spinlock_t		tx_q_lock ;
@@ -639,8 +642,13 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		}
 	/*	interval tacken from cat /proc/bus/usb/devices values	*/
 		out_instance->interrupt_urb = eciurb;
+		if(!(out_instance->interrupt_buffer=kmalloc(64,GFP_KERNEL)))
+		{
+			ERR_OUT("Can't allocate int buffer\n");
+			return 0;
+		}
 		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
-			&out_instance->interrupt_buffer,32,
+			&out_instance->interrupt_buffer,64,
 			eci_ep_int_callback,out_instance,3);
 		if(usb_submit_urb(eciurb))
 		{
@@ -903,8 +911,15 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 #endif /* __USE_ATM__ */
 
 /*******************************************************************************
+
+
 		
 		USB functions
+
+
+
+
+
 
 *******************************************************************************/
 
@@ -954,6 +969,17 @@ static void _eci_send_init_urb(struct urb *eciurb)
 		DBG_OUT("URB Sent \n");
 		instance->setup_packets += 
 			(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
+	}
+	else
+	{	/*	gotta free urb and buffer !	*/
+		kfree(eciurb->transfer_buffer);
+		if(!(eciurb->transfer_buffer = kmalloc(34+8, GFP_KERNEL)))
+		{
+			ERR_OUT("Can't alloc buffer for interrupt polling\n");
+			return;
+		}
+		eciurb->setup_packet = eciurb->transfer_buffer  +34;	
+		instance->vendor_urb = eciurb;
 	}
 }
 
@@ -1045,12 +1071,29 @@ static void eci_init_vendor_callback(struct urb *urb)
 static void eci_ep_int_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
+	struct urb *eci_vendor;
+	int i; 		/*loop counter	*/
+	int outi;
+	unsigned char *out_buf, *in_buf, b1, b2;
+	static int eci_int_count;
+	static unsigned char replace_b1[] = { 0x73, 0x73, 0x63, 0x63,
+		0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63 , 0x63 };
+	static unsigned char replace_b2[] = { 0x11, 0x11, 0x13, 0x13,
+		0x13, 0x13, 0x11, 0x11, 0x1, 0x1, 0x1, 0x01 };
+	static unsigned char eci_int_outbuf[34] = {
+		0xff, 0xff, 
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
+		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc
+	}; 
+
 
 	/*	DBG_OUT("Int callBack in\n"); Too much debug info	*/
 	instance = (struct eci_instance *) urb->context;
 	if(urb->actual_length)
 	{
-		if(urb->actual_length!=32)
+		if(urb->actual_length!=64)
 		{	/*		Synchronisation 
 					Check Data returned by int urb
 					and send Next Vendor
@@ -1062,16 +1105,37 @@ static void eci_ep_int_callback(struct urb *urb)
 			_eci_send_init_urb(instance->vendor_urb);
 		}
 		else
-		{	/*	Already synchronized just answer	*/
+		{
+/*	
+	
+	Already synchronized just answer	
+
+	Here what we do :
+		Send the received buffer exept for 0x7311 which is
+		replaced by 0x6313, 0x6301, 0x6313 , 0x6353 
+		and again from start.
+		Thanxs benoit papillault for the algo. 
+
+*/
+			in_buf = instance->interrupt_buffer;
+			out_buf = instance->vendor_urb->transfer_buffer;
+			for(i=0;i<15;i++)
+			{
+				b1 = in_buf[6+2*i+0];
+				b2 =  in_buf[6+2*i+1];
+				if( b1 != 0x0c || b2 !=0x0c)
+				{
+
+					eci_int_count %= 12;
+					out_buf[10 + outi++]=
+							replace_b1[eci_int_count];
+					out_buf[10 + outi++]=
+						replace_b2[eci_int_count++];;
+				}
+			}
 			DBG_OUT("EP INT received 32 bytes\n");
 		}
 	}
-#ifdef DEBUG
-/*	else				// Too much debug info
-	{
-		DBG_OUT("Received int with no data\n");
-	}	*/
-#endif /* DEBUG */
 	DBG_OUT("Int callBack out\n");
 }
 
