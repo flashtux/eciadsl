@@ -198,13 +198,13 @@ case "$mode" in
 "LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH"|"LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
 	# load tap/tun module
 	echo -e "\nloading TAP/TUN support"
-	modprobe -l | grep -E "/tun[^a-z0-9\-_]" > /dev/null
+	modprobe -l | grep -E "/tun\." > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "warning: tun module doesn't exist"
 	else
 		modprobe tun
 		sleep 2
-    	lsmod | grep -E "^tun[^a-z0-9\-_]" > /dev/null
+    	lsmod | grep -E "^tun[ \t]" > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "couldn't load tun module"
 		else
