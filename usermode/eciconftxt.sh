@@ -86,7 +86,7 @@ case "$1" in
     for bin in $(find $CONF_DIR -type f -name "*.bin"); do
 		case "$bin" in
 		*firmware*)	;;
-		*)			test "$bin" != "$CONF_DIR/synch.bin" && fichiers_bin="$fichiers_bin$bin|";;
+		*)			fichiers_bin="$fichiers_bin$bin|";;
 		esac
     done
     $0 @menu@ "$fichiers_bin"

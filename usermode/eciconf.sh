@@ -353,10 +353,8 @@ proc add_bins {chemin} {
     if {$returncode != 0} {
     } else {
         foreach bin $bin_trouves {
-            if {$lien_bin_final != $bin && ![regexp "firmware" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
-                if {[string compare $bin $nom_bin_actuel] != 0} {
-                    .bloc2.listebin.liste.contenu insert end $bin
-                }
+            if {![regexp "firmware" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
+                .bloc2.listebin.liste.contenu insert end $bin
             }
         }
     }
