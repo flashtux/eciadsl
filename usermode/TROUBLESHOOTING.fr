@@ -798,6 +798,9 @@ R:	Les principes de configuration et de compilation du noyau sont les mêmes
 		mknod /dev/net/tun0 c 10 200
 		ln -s /dev/net/tun0 /dev/net/tun
 
+	Utilisateurs de PPPoE: lisez le fichier INSTALL.fr, il y a un outil
+	supplémentaire à installer et configurer.
+
 
 5.4
 ================================================================================

@@ -774,6 +774,9 @@ A:	The kernel configuration and compilation principles are still the same
 		mknod /dev/net/tun0 c 10 200
 		ln -s /dev/net/tun0 /dev/net/tun
 
+	PPPoE users: read the INSTALL file, there's some software you need to
+	install and configure.
+
 
 5.4
 ================================================================================
