@@ -581,7 +581,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	for them or check the cnx package available from the download section at the
 	official eciadsl website.
 
-	Making it possible using init.d:
+	Making it possible using init.d and the cnx script:
 
 	Pre-requisites:
 	 - ECIADSL driver installed and configured
@@ -941,3 +941,18 @@ A:	`killall pppd` or `ifconfig ppp0 down`.
 	because some other USB devices may belong to this module (!), and you may
 	encounter problems re-starting startmodem (need to run it twice or maybe to
 	unplug/replug your modem then launch `startmodem`).
+
+
+5.12
+================================================================================
+Q:	Is it possible to run startmodem as any user?
+
+--------------------------------------------------------------------------------
+A:	Simply ensure that sudo is installed on your system.
+	Edit your /etc/sudoers file and add a line:
+		username ALL=NOPASSWD:/usr/local/bin/startmodem
+	where username is the name of the user you want to allow to run startmodem.
+	You can do this for many users or different scripts, adding the same line
+	with a relevant username and script path/name.
+	Granted users can now run startmodem, typing:
+		sudo startmodem

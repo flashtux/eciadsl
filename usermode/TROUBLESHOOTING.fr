@@ -592,7 +592,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 	cherchez-les sur google ou téléchargez l'archive cnx, disponible dans la
 	section "téléchargement" du site officiel eciadsl.
 
-	Configuration par init.d:
+	Configuration par init.d avec le script cnx:
 
 	Pré-requis:
 	 - le driver ECIADSL est installé et configuré
@@ -973,3 +973,18 @@ R:	`killall pppd` ou `ifconfig ppp0 down`.
 	ce module (!), et vous pouvez rencontrer des problèmes en relançant
 	startmodem (besoin de le relancer plusieurs fois ou peut-être de
 	débrancher/rebrancher votre modem et relancer ensuite `startmodem`).
+
+
+5.12
+================================================================================
+Q:	Est-il possible de lancer startmodem sans être root?
+
+--------------------------------------------------------------------------------
+A:	Assurez-vous que sudo est installé sur votre système.
+	Ajoutez la ligne suivante dans /etc/sudoers:
+		utilisateur ALL=NOPASSWD:/usr/local/bin/startmodem
+	remplacez utilisateur par le nom de l'utilisateur qui doit pouvoir utiliser
+	startmodem.
+	Vous pouvez faire de me pour plusieurs utilisateurs ou scripts différents.
+	L'utilisateur peut dorénavant lancer startmodem ainsi:
+		sudo startmodem
