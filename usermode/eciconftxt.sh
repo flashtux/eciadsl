@@ -552,12 +552,14 @@ case "$1" in
 			"")		if [ -n "$prev_use_dhcp" ]; then
 						use_dhcp="$prev_use_dhcp"
 						echo "DHCP usage unchanged"
+					else
+						use_dhcp="no"
 					fi
 					;;
 			*)		use_dhcp=""
+					echo -e "Invalid answer, try again\n"
 					;;
 			esac
-           	test -z "$use_dhcp" && echo -e "Invalid answer, try again\n"
         done
 
 		staticip="$prev_staticip"
@@ -593,12 +595,14 @@ case "$1" in
 						fi
 						if [ -n "$foo" ]; then
 							echo "Static IP usage unchanged"
+						else
+							foo="no"
 						fi
-						;;
+					;;
 				*)		foo=""
+						echo -e "Invalid answer, try again\n"
 						;;
 				esac
-            	test -z "$foo" && echo -e "Invalid answer, try again\n"
         	done
 
 			if [ "$foo" == "yes" ]; then
@@ -690,12 +694,8 @@ case "$1" in
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
 
-echo         $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2"
-echo		"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware"
-echo		"$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
-
         $BIN_DIR/makeconfig "$mode" "$user" "$password" "$BIN_DIR/pppoeci" $dns1 $dns2 \
-			"$vpi" "$vci" "$vid1$pid1" "$vid2pid2" "$binfile" "$firmware" \
+			"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware" \
 			"$staticip" "$gateway" "$use_dhcp" "$modem" "$provider"
         if [ $? -eq 0 ]; then
             echo
