@@ -217,6 +217,10 @@ void eoc_execute(u_int16_t eocmesval) {
 					break;
 				default:
 					eoc_encode(EOC_OPCODE_UTC);
+					eoc_out_buffer_pos+=2;
+					eoc_encode(EOC_OPCODE_UTC);
+					eoc_out_buffer_pos+=2;
+					eoc_encode(EOC_OPCODE_UTC);					
 					break;
 			}
 			break;

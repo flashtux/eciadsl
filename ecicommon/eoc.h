@@ -104,9 +104,11 @@ struct eoc_registers {
 
 
 void eoc_init(void); 
-
-int has_eocs(void);
-
+u_int16_t eoc_decode(unsigned char b1, unsigned char b2);
+void eoc_execute(u_int16_t eocmesval);
+int eoc_read_next();
+void eoc_write_data(u_int16_t code);
 int parse_eoc_buffer(unsigned char *buffer, int bufflen);
-
 void get_oec_answer(unsigned char *eocoutbuff);
+int has_eocs(void);
+void eoc_encode(u_int16_t eoc_opcode);
