@@ -74,7 +74,7 @@ case "$1" in
         echo "WARNING: no .bin file found in ${CONF_DIR} or subdirectories"
         echo "Please check your driver installation !"
         echo "Skipping .bin selection..."
-        > $tmpbin
+        :> $tmpbin
         exit 255
     fi
     for bin in $(find ${CONF_DIR} -type f -name "*.bin"); do
