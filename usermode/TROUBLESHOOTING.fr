@@ -994,7 +994,7 @@ R:	Vous devez débrancher manuellement le modem, attendre quelques secondes
 Q:	Puis-je utiliser ce driver sous *BSD ?
 
 --------------------------------------------------------------------------------
-R:	Un portage u driver est en cours de développement.
+R:	Un portage du driver est en cours de développement.
 	Pas officiellement supporté !
 
 
