@@ -35,6 +35,10 @@
 # CVS $Id$
 # Tag $Name$
 
+# 11/03/2002 Benoit PAPILLAULT
+#            added 2 functions to correctly and fully display USB descriptors
+#            the output is similar to 'pusb-view'.
+
 $t = 0;
 
 # print_buffer ($buf)
@@ -60,6 +64,135 @@ sub print_buffer {
 		}
 		print "\n";
 	}
+}
+
+# print_one_descriptor ($sbuf)
+# this function prints only one descriptors
+
+sub print_one_descriptor {
+	my ($buf) = @_;
+
+	my $descriptor_type = ord (substr($buf, 1, 1));
+
+# Here are the value of $descriptor_type defined by USB 1.1
+# 1 => DEVICE
+# 2 => CONFIGURATION
+# 3 => STRING
+# 4 => INTERFACE
+# 5 => ENDPOINT
+	
+	if ($descriptor_type eq 1) { # DEVICE Descriptor
+		
+		$bDeviceClass    = ord(substr $buf,4,1);
+		$bDeviceSubClass = ord(substr $buf,5,1);
+		$bDeviceProtocol = ord(substr $buf,6,1);
+
+		$idVendor = ord(substr $buf, 8,1) + ord(substr $buf, 9,1) * 256;
+		$idProduct = ord(substr $buf,10,1) + ord(substr $buf,11,1) * 256;
+		$bcdDevice = ord(substr $buf,12,1) . "." . ord(substr $buf,13,1);
+
+		$bNumConfigurations = ord(substr $buf,17,1);
+		
+		print "Device: VendorID=0x"	. sprintf("%04x",$idVendor)
+			. " ProductID=0x" . sprintf("%04x",$idProduct)
+				. " Class=" . sprintf("%02x/%02x/%02x", $bDeviceClass,
+									  $bDeviceSubClass, $bDeviceProtocol) 
+					. ", " . $bNumConfigurations . " configuration(s)\n";
+		
+	} elsif ($descriptor_type eq 2) { # CONFIGURATION Descriptor
+
+		$bNumInterfaces = ord(substr $buf,4,1);
+		$bConfigurationValue = ord(substr $buf,5,1);
+		$iConfiguration = ord(substr $buf,6,1);
+		$MaxPower = 2 * ord(substr $buf,8,1);
+		
+		print "  configuration " . $iConfiguration
+			. ", " . $bNumInterfaces . " interface(s) [$iConfiguration], "
+				. $MaxPower . "mA\n";
+		
+	} elsif ($descriptor_type eq 3) { # STRING Descriptor
+		
+		if ($index != 0) {
+			
+			$l = ord(substr $buf, 0, 1);
+			
+			$s = "";
+			for ($i=2; $i<length($buf) && $i<$l ;$i+=2) {
+				$s .= substr $buf, $i, 1;
+			}
+			
+			print "\tSTRING DESCRIPTOR $index: $s\n";
+		}
+
+	} elsif ($descriptor_type eq 4) { # INTERFACE Descriptor
+
+# interface 0 alt 0 class ff/ff/ff, 3 endpoint(s) []
+
+		$bInterfaceNumber = ord(substr $buf,2,1);
+		$bAlternateSetting = ord(substr $buf,3,1);
+		$bNumEndpoints = ord(substr $buf,4,1);
+		$bInterfaceClass = ord(substr $buf,5,1);
+		$bInterfaceSubClass = ord(substr $buf,6,1);
+		$bInterfaceProtocol = ord(substr $buf,7,1);
+		$iInterface = ord(substr $buf,8,1);
+
+		print "    interface $bInterfaceNumber alt $bAlternateSetting "
+			. "class " . sprintf("%02x/%02x/%02x", $bInterfaceClass,
+								 $bInterfaceSubClass, $bInterfaceProtocol)
+				. ", $bNumEndpoints endpoint(s) [$iInterface]\n";
+
+	} elsif ($descriptor_type eq 5) { # ENDPOINT Descriptor
+
+# endpoint 0x88 [Isoc] 1008 bytes 1 ms
+
+		$bEndpointAddress = ord(substr $buf,2,1);
+		$bmAttributes = ord(substr $buf,3,1);
+		$wMaxPacketSize = ord(substr $buf,4,1) + ord(substr $buf,5,1) * 256;
+		$bInterval = ord(substr $buf,6,1);
+
+		$endpoint_type = $bmAttributes & 3;
+		if ($endpoint_type eq 0) {
+			$endpoint_str = "Ctrl";
+		} elsif ($endpoint_type eq 1) {
+			$endpoint_str = "Isoc";
+		} elsif ($endpoint_type eq 2) {
+			$endpoint_str = "Bulk";
+		} elsif ($endpoint_type eq 3) {
+			$endpoint_str = "Intr";
+		}
+
+		print "      endpoint 0x" . sprintf("%02x", $bEndpointAddress)
+			. "[$endpoint_str] $wMaxPacketSize bytes $bInterval ms\n";
+
+	} else {
+		print "\tDESCRIPTOR type $descriptor_type, length "
+			. length($buf) ."\n";
+	}
+}
+
+# print_descriptor ($buf)
+# this function prints a block containing several descriptors
+
+sub print_descriptor {
+	my ($buf) = @_;
+
+	do {
+# the first byte is the length of the first block
+		my $l = ord(substr($buf, 0, 1));
+
+# check the validity of $l
+		if ($l <= 0 || $l > length($buf)) {
+			print "incorrect l value\n";
+			last;
+		}
+
+# we extract and print the first block
+		my $sbuf = substr ($buf, 0, $l);
+		print_one_descriptor($sbuf);
+
+# we remove the first block from the 'big' block.
+		$buf = substr ($buf, $l);
+	} while (length($buf) > 0);
 }
 
 # For each URB, we have the following fields ($urb is the original URB number)
@@ -309,35 +442,7 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			exit;
 		}
 
-		$descriptor_type = ord (substr $buf, 1);
-
-		if ($descriptor_type eq 1) { # DEVICE Descriptor
-
-			$idVendor = ord(substr $buf, 8,1) + ord(substr $buf, 9,1) * 256;
-			$idProduct = ord(substr $buf,10,1) + ord(substr $buf,11,1) * 256;
-			$bcdDevice = ord(substr $buf,12,1) . "." . ord(substr $buf,13,1);
-
-			print "DEVICE DESCRIPTOR: Vendor/Product ID="
-				. sprintf("%04X/%04X", $idVendor, $idProduct)
-					. " rev=$bcdDevice\n";
-
-		} elsif ($descriptor_type eq 2) { # CONFIGURATION Descriptor
-		} elsif ($descriptor_type eq 3) { # STRING Descriptor
-
-			if ($index != 0) {
-
-				$l = ord(substr $buf, 0, 1);
-				
-				$s = "";
-				for ($i=2; $i<length($buf) && $i<$l ;$i+=2) {
-					$s .= substr $buf, $i, 1;
-				}
-					
-				print "STRING DESCRIPTOR $index: $s\n";
-			}
-
-		} elsif ($descriptor_type eq 4) { # INTERFACE Descriptor
-		} elsif ($descriptor_type eq 5) { # ENDPOINT Descriptor
-		}
+		print "URB $k:\n";
+		print_descriptor ($buf);
 	}
 }
