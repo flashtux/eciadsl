@@ -30,7 +30,12 @@ static int eocreadpar;		/*	0 odd, 1 even	*/
 static int eocreadcnt;		/* readcounter	*/	
 static int eocreadpos;		/* position index in readed register	*/
 static int eocreadlen;		/* length inread register	*/
+static int eocwritepar;		/*	0 odd, 1 even	*/
+static int eocwritecnt;		/* readcounter	*/	
+static int eocwritepos;		/* position index in readed register	*/
+static int eocwritelen;		/* length inread register	*/
 static char *eocnextrw;		/*	pointer to data that will be read or write */
+
 
 static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
@@ -125,6 +130,13 @@ void eoc_execute(u_int16_t eocmesval) {
 			eocreadlen = 30;
 			eocnextrw = &(eocregs.ATURconfig[0]);
 			break;
+		case EOC_OPCODE_WRITE_0:
+			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_WRITE_0]\n");
+			eocstate = _prewrite;
+			oecwritepar = eocwritecnt = oecwritepos = eocmescnt = oecmesval = eocstate= 0;
+			eocwritelen = 8;
+			eocnextrw = &(eocregs.vendorID[0]);
+			break;
 	}
 	printf("OEC.C - eco_execute - END   [eocmesval : %04x]\n", eocmesval);
 }
@@ -216,6 +228,23 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								printf("OEC.C - parse_eoc_buffer - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 							case EOC_OPCODE_HOLD:
 								printf("OEC.C - parse_eoc_buffer - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
+								if(eocmescnt >= 2) 
+									eocstate = _idle;
+								break;
+						}
+						break;
+				case _prewrite:
+					printf("EC.C - parse_eoc_buffer - PREWRITE[eocstate : _prewrite]\n");
+					switch(EOC_OPCODE(eocmesval)) {
+							case EOC_OPCODE_NEXT:
+								printf("OEC.C - parse_eoc_buffer - PREWRITE - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
+								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
+									eocstate = _write;
+								break;
+							case EOC_OPCODE_RTN:
+								printf("OEC.C - parse_eoc_buffer - PREWRITE [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+							case EOC_OPCODE_HOLD:
+								printf("OEC.C - parse_eoc_buffer - PREWRITE [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 								if(eocmescnt >= 2) 
 									eocstate = _idle;
 								break;
