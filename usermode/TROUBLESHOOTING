@@ -801,3 +801,18 @@ Q:	Can I use this driver under GNU/Hurd, Darwin, QNX or BeOS or other systems?
 
 --------------------------------------------------------------------------------
 A:	No.
+
+
+5.11
+================================================================================
+Q:	How can I stop the PPP connection?
+
+--------------------------------------------------------------------------------
+A:	`killall pppd` or `ifconfig ppp0 down`.
+	This will leave your modem still initialized.
+	
+	If you really want to reset your modem, unload the module which manages your
+	USB HUB (`modprobe -r usb-uhci` for instance). But this may lead to problems
+	because some other USB devices may belong to this module (!), and you may
+	encounter problems re-starting startmodem (need to run it twice or maybe to
+	unplug/replug your modem then launch `startmodem`).
