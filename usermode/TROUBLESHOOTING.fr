@@ -714,7 +714,7 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 
 	Maintenant vous en savez un peu plus sur le fonctionnement des init-level
 	vous pouvez donc créer les liens symboliques vers /etc/init.d dans
-	/etc/rc.d/rc5.d.
+	/etc/rc.d/rc5.d :
 		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
@@ -799,7 +799,7 @@ R:	Tapez les commandes suivantes :
 		  <M>	PPP BSD-Compress compression
 		  < >	PPP over Ethernet (EXPERIMENTAL)
 		  < >	PPP over ATM (EXPERIMENTAL)
-		 ..
+		  ..
 
 	En fonction du type d'encapsulation PPP utilisé par votre fournisseur
 	d'accès, il vous sera peut-être nécessaire d'apporter quelques autres
@@ -862,7 +862,6 @@ R:	Les principes de configuration et de compilation du noyau sont les mêmes
 	    	..
 	    	<M> Universal TUN/TAP device driver support
 	    	..
-
 		<M> PPP (point-to-point protocol) support
 		..
 		<M> PPP over ATM (EXPERIMENTAL)

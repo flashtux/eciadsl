@@ -682,7 +682,7 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 	reverse order (by xx decreasingly).
 
 	Now you know how all this stuff works, you can make the relevant links to
-	/etc/init.d in /etc/rc.d/rc5.d.
+	/etc/init.d in /etc/rc.d/rc5.d:
 		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
@@ -764,7 +764,7 @@ A:	Type the following commands:
 		  <M>	PPP BSD-Compress compression
 		  < >	PPP over Ethernet (EXPERIMENTAL)
 		  < >	PPP over ATM (EXPERIMENTAL)
-		 ..
+		  ..
 
 	Following the kind of PPP encapulsation your provider uses, you may need
 	extra settings in your kernel configuration. PPPoE or IPoATM users, please
@@ -825,7 +825,6 @@ A:	The kernel configuration and compilation principles are still the same
 	    	..
 	    	<M> Universal TUN/TAP device driver support
 	    	..
-
 		<M> PPP (point-to-point protocol) support
 		..
 		<M> PPP over ATM (EXPERIMENTAL)

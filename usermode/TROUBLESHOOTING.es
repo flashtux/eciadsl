@@ -741,7 +741,7 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	en forma ascendente), o en un el orden inverso (por xx en modo descendente).
 
 	Ahora usted sabe cómo todo este material trabaja, usted puede hacer los
-	enlaces pertinentes a /etc/init.d en /etc/rc.d/rc5.d.
+	enlaces pertinentes a /etc/init.d en /etc/rc.d/rc5.d:
 		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
@@ -827,7 +827,7 @@ R:	Digite los siguientes comandos:
 		  <M> PPP BSD-Compress compression
 		  < > PPP over Ethernet (EXPERIMENTAL)
 		  < > PPP over ATM (EXPERIMENTAL)
-		 ..
+		  ..
 
 	Siguiendo el tipo de encapsulado de PPP que su proveedor utiliza, usted
 	puede necesitar parámetros adicionales en su configuración del kernel.
@@ -890,7 +890,6 @@ R:	La configuración del kernel y principios de la compilación todavía son los
     	 ..
     	 <M> Universal TUN/TAP device driver support
     	 ..
-
 	  <M> PPP (point-to-point protocol) support
 	  ..
 	  <M> PPP over ATM (EXPERIMENTAL)
