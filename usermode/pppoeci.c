@@ -356,7 +356,7 @@ void message(const char* text)
 
 void fatal_error(const error_codes err, const char* text)
 {
-	if (text)
+	if (text && verbose)
 		message(text);
 	exit(-err);
 }
@@ -1742,7 +1742,7 @@ int main(int argc, char** argv)
 
 	fdusb = pusb_search_open(vendor, product);
 
-	if (fdusb == NULL && verbose)
+	if (fdusb == NULL)
 		fatal_error(ERR_FOUNDING_MODEM, "where is this crappy modem?!");
 
 	/* debug message */
