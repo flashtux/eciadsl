@@ -8,6 +8,7 @@
 
 #include "semaphore.h"
 
+#define _XOPEN_SOURCE
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -24,7 +25,7 @@ int semaphore_init(semunptr count)
     if (sem == -1)
         return -1;
 
-    if (semctl(sem, 0, SETVAL, *count) == -1)
+    if (semctl(sem, 0, SETVAL, count) == -1)
         return(-1);
 
     return(sem);
@@ -60,7 +61,7 @@ int semaphore_decr(int sem, int val)
 
 int semaphore_done(int sem)
 {
-   union semun un;
+   semun un;
  
    if (semctl(sem, 0, IPC_RMID, un) == -1)
         return(-1);
