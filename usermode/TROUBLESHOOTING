@@ -525,10 +525,10 @@ Q:	Switching from Linux to Windows, I cannot use my modem and have to
 	re-install the Windows driver to make it working again.
 
 --------------------------------------------------------------------------------
-A:	Unload all USB modules related to you modem when leaving Linux. This could be
-	done automatically, through the USB manager of your Linux distribution maybe,
-	or using init.d, (think of chaining modules unloading using the post-remove
-	or pre-remove commands in /etc/modules.conf file).
+A:	Unload all USB modules related to you modem when leaving Linux. This could
+	be done automatically, through the USB manager of your Linux distribution
+	maybe, or using init.d, (think of chaining modules unloading using the
+	post-remove	or pre-remove commands in /etc/modules.conf file).
 
 	If it still doesn't work, you have to manually unplug you modem, wait for a
 	few seconds	so that it's resetted, and replug it. Then, you can use it under
