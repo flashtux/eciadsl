@@ -121,6 +121,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch23.bin (généré en Italie/Sardaigne/Cagliari, fournisseur Tiscali, G.DMT)
 	synch24.bin (généré au Pérou, fournisseur Telefonica del Peru, modulation inconnue)
 	synch25.bin (généré en France, Saint-Cloud, fournisseur Wanadoo)
+	synch26.bin (généré en Italie, Carmagnola/Torino, fournisseur Telecom (Alice))
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
