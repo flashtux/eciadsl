@@ -1656,11 +1656,11 @@ static void eci_bh_bulk(unsigned long pinstance)
 			for(i=53; i < 64; i++) buf[bufpos + i] = 0xff;
 			bufpos += 64;
 			DBG_OUT("Bufpos = %d\n", bufpos);
-			_uni_cell_free(lp_cell) ;
+			_uni_cell_free(cell) ;
 		}
 		else
 		{
-			if (cell) _uni_cell_free(lp_cell) ;
+			if (cell) _uni_cell_free(cell) ;
 			break;
 		}
 		/*if(_uni_cell_list_crs_next(&cell)) break;*/
@@ -2153,9 +2153,7 @@ static uni_cell_t * _uni_cell_fromRaw(
 static void _uni_cell_free(
 		uni_cell_t * pcell
 ) {
-	/*
 	DBG_OUT("_uni_cell_free in\n") ;
-	*/
 	if (pcell) {
 		/*
 		spin_lock(&gl_ucells_lock) ;
@@ -2166,9 +2164,7 @@ static void _uni_cell_free(
 		spin_unlock(&gl_ucells_lock) ;
 		*/
 	}
-	/*
 	DBG_OUT("_uni_cell_free out\n") ;
-	*/
 }
 
 /*----------------------------------------------------------------------*/
