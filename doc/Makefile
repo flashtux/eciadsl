@@ -27,6 +27,9 @@ all: $(base).dvi $(base).html $(base).ps $(base).txt \
 
 %.html: %.tex %.aux
 	latex2html -dir $(pwd) -nonavigation -noauto_link -ascii_mode -show_section_numbers -split 0 $<
+# we removed reference to howto.html
+	sed s/howto.html// howto.html > tmp.html
+	mv tmp.html howto.html
 
 %.ps: %.dvi 
 	dvips -f $< > $@
