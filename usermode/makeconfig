@@ -244,7 +244,7 @@ then
 
     echo -n "modifying $pppdconffile.. "
 	TMP=$(echo "$pppoeci" | sed "s/\//\\\\\//g")
-	echo "s/^pty .\+/pty \\\"$TMP -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode\\\"/" > $TMPFILE
+	echo "s/^pty .\+/pty \\\"$TMP -alt 4 -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode\\\"/" > $TMPFILE
 	TMP=$(echo "$username" | sed "s/\//\\\\\//g")
 	echo "s/^user .\+/user \\\"$TMP\\\"/" >> $TMPFILE
 	sed -f $TMPFILE "$backupfile" > "$tmppppdconffile"
@@ -267,7 +267,7 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "$pppoeci -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode -alt 4"
+pty "$pppoeci -alt 4 -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode"
 sync
 user "$username"
 noaccomp
