@@ -62,6 +62,7 @@ void eoc_execute(u_int16_t eocmesval) {
 			eocreadlen = 2;
 			break;			
 		default:
+			
 			/* break; useless	*/
 	}
 }
@@ -109,7 +110,6 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
 			}
 			if(eocmesval != eoccode) { /* new message */
 				eocmesval = eoccode;
-				eocstate = idle;
 				eocmescnt = 0;
 				continue;
 			} else {
