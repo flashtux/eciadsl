@@ -31,6 +31,8 @@ Future versions:
 
   - submit driver to *BSD distro managers
   ? new USB implementation (benoit)
+  - change configuration file /etc/eciadsl/eciadsl.conf to a shell parsable
+  with VAR="value" and comments only
 
 v 0.6:
 
