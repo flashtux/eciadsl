@@ -1,10 +1,10 @@
 #!/bin/sh
 #
-# ECI Linux driver configuration script.
-# Same goal as eciconf.sh, but can be run in a terminal / console.
+# EciAdsl Linux driver configuration script.
+# Same goal as eciadsl-config-tk, but can be run in a terminal / console.
 #
 # Usage :
-#   eciconftxt.sh <file.bin>   change quickly .bin file to sync
+#   eciadsl-config-text <file.bin>   change quickly .bin file to sync
 #   without parameter : interactive mode for configuration
 #
 # Author   : FlashCode <flashcode@flashtux.org>
@@ -211,19 +211,19 @@ case "$1" in
     vid1pid1="$vid1pid1|????????"
     vid2pid2="$vid2pid2|????????"
 
-    echo -e "\n===== Welcome to the Eci Adsl Linux driver configuration =====\n"
+    echo -e "\n===== Welcome to the EciAdsl Linux driver configuration =====\n"
     echo -e "At any time, press Ctrl+C to quit this script without saving modifications.\n"
-    echo -e "Tip: you can run eciconftxt.sh with a .bin file as parameter to change\nyour .bin quickly.\n"
+    echo -e "Tip: you can run eciadsl-config-text with a .bin file as parameter to change\nyour .bin quickly.\n"
 
     $0 @menu@ "$menu1"
 	ret=$?
 	test $ret -eq 255 && exit 1
     config=$ret
 
-    ### Global Eci Adsl configuration ###
+    ### Global EciAdsl configuration ###
 
     if [ $config -eq 1 ]; then
-        echo -e "\n===> Eci Adsl driver setup <===\n"
+        echo -e "\n===> EciAdsl driver setup <===\n"
 
         user=""
         while [ -z "$user" ]; do
@@ -434,8 +434,8 @@ case "$1" in
 
 		echo
         echo "If your modem was not listed (or if you want to overwrite defaults),"
-        echo "you can enter your own VID1/PID1/VID2/PID2 (use probe_device.sh to"
-		echo "get them):"
+        echo "you can enter your own VID1/PID1/VID2/PID2 (use eciadsl-probe-device"
+		echo "to get them):"
 
 		echo
 		echo -n "VID1 currently "
@@ -573,7 +573,7 @@ case "$1" in
 		if [ -n "$prev_mode" ]; then
 			modes="$modes|$previous ($prev_mode)"
 		fi
-		for LINE in $($BIN_DIR/pppoeci --modes 2>&1 | cut -d ' ' -f 1); do
+		for LINE in $($BIN_DIR/eciadsl-pppoeci --modes 2>&1 | cut -d ' ' -f 1); do
 			modes="$modes|$LINE"
 		done
 	    modes="$modes"
@@ -745,22 +745,22 @@ case "$1" in
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
 
-        $BIN_DIR/makeconfig "$mode" "$user" "$password1" "$BIN_DIR/pppoeci" "$dns1" "$dns2" \
+        $BIN_DIR/eciadsl-makeconfig "$mode" "$user" "$password1" "$BIN_DIR/eciadsl-pppoeci" "$dns1" "$dns2" \
 			"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware" \
 			"$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"
         if [ $? -eq 0 ]; then
             echo
-            echo "==== eciconftxt.sh: Configuration updated with success !"
-            echo "You can now run startmodem (as root) to connect to the internet."
+            echo "==== eciadsl-config-text: Configuration updated with success !"
+            echo "You can now run eciadsl-config-text (as root) to connect to the internet."
         else
-            echo "*** makeconfig reports error(s), please fix the problem and run eciconftxt.sh again."
+            echo "*** eciadsl-makeconfig reports error(s), please fix the problem and run eciadsl-config-text again."
         fi
         echo
     elif [ $config -eq 2 ]; then
         echo
         echo "Please unplug your modem and then press ENTER"
         read pause
-        remove_dabusb
+        eciadsl-remove-dabusb
         echo
     else
         $0 @bin@
@@ -776,7 +776,7 @@ case "$1" in
 
 *)
     # .bin change
-	$BIN_DIR/makeconfig --synch "$1"
+	$BIN_DIR/eciadsl-makeconfig --synch "$1"
 	exit $?
 	;;
 esac
