@@ -27,7 +27,7 @@
 @titlepage
 @title Driver EciAdsl - Guide d'installation
 @subtitle Driver Linux libre pour modems ADSL USB bas@'es sur chipset Globespan
-@subtitle Doc pour EciAdsl v0.8 - 25 janvier 2004
+@subtitle Doc pour EciAdsl v0.8 - 09 mars 2004
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -494,7 +494,7 @@ Lancez setup.exe et suivez les instructions.@*
 @section Sniffeur USB
 
 T@'el@'echargez et installez la derni@`ere version du sniffeur USB ici :@*
-@uref{http://benoit.papillault.free.fr/usbsnoop/index.fr.php}@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/index.php.fr}@*
 
 La documentation de Snoopy (le sniffeur USB) est disponible ici :@*
 @uref{http://benoit.papillault.free.fr/usbsnoop/doc.fr.php}@*
