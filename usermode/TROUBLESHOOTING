@@ -723,7 +723,14 @@ A:	Verify that you modem is supported and that the installation and
 	or	-mode LLC_RFC2364
 	or	-mode LLC_SNAP_RFC1483
 
-	It may worth trying the -alt 4 option too.
+	FYI:
+		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX
+		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		SNAP is an encapsulation layer more, between ethernet and LLC or
+		between IP and LLC.
+
+	It may worth trying the -alt 4 option too (or other values, depending on
+	your hardware).
 
 	Also jump to the previous question.
 

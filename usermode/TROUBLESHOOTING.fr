@@ -709,7 +709,7 @@ R:	Vérifiez si votre modem est supporté. Si votre modem n'est pas dans la liste
 	Chaque patch inclut les instructions pour son utilisation.
 	Le fichier README explique comment appliquer un patch sur les sources du
 	driver.
-	Ces patchs seront intégrés à la version officielle d'ici peu.
+	Ces patchs seront intégrés à la version officielle dès que possible.
 
 	Les utilisateurs de Belgique ou d'Italie : regardez les sites suivants pour
 	des patchs spécifiques :
@@ -734,7 +734,7 @@ R:	Vérifiez que votre modem est supporté et que l'installation et la
 
 	Essayez d'autres .bin de synchronisation.
 
-	Regardez les précédentes questions.
+	Regardez les questions précédentes.
 	
 	Vous pouvez aussi utiliser ces options pour l'appel de pppoeci dans le
 	fichier /etc/ppp/peers/adsl:
@@ -742,7 +742,14 @@ R:	Vérifiez que votre modem est supporté et que l'installation et la
 	ou	-mode LLC_RFC2364
 	ou	-mode LLC_SNAP_RFC1483
 
-	Vous pouvez aussi essayer l'option -alt 4.
+	Pour info:
+		RFC1483 VC-MUX (ou null) PPPoA == RFC2364 VC-MUX
+		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		SNAP est une couche d'encapsulation supplémentaire, entre ethernet et LLC
+		our entre IP et LLC.
+
+	Vous pouvez aussi essayer l'option -alt 4 (ou d'autres valeurs, qui
+	dépendent de votre matériel).
 
 	Regardez aussi la question précédente.
 
