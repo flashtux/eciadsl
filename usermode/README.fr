@@ -67,8 +67,9 @@ Infos à nous communiquer :
 	      (at aussi le type de modulation que votre fournisseur supporte)
 		- les .bin de synchronisation que vous avez essayés
 	- votre modem (fabricant/modèle)
-	- votre position géographique (pays/département/ville), votre fournisseur
-	  d'accès
+	- votre position géographique (pays/département/ville)
+	- votre fournisseur d'accès et les protocoles de communication PPP ainsi
+	  que d'authentification utilisés
 	- votre niveau d'expérience (par exemple : débutant, quelques notions,
 	  confirmé, expérimenté, gourou)
 

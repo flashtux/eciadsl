@@ -101,7 +101,8 @@ R:	Voir la question précédente.
 	alors il y a un problème entre votre matériel/BIOS/config noyau. Vous pouvez
 	désactiver le support APIC dans le noyau ou au boot, mais cela peut venir
 	de conflits IRQ entre les périphériques, ou d'un autre problème de
-	configuration du noyau.
+	configuration du noyau, ou encore: désactivez/activez le support USB Legacy
+	dans le BIOS.
 
 	Voir aussi la question sur le module dabusb. Si dabusb est chargé, vous ne
 	pourrez pas utiliser votre modem avec le driver.
@@ -121,6 +122,8 @@ R:	Vérifiez votre configuration USB. Cela pourrait être lié à l'absence de
 	boot, ajoutez cette ligne:
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
 
+	Nota: il n'y aura rien dans /proc/bus/usb tant qu'aucun module de
+	contrôleur USB n'aura été chargé.
 
 2.1
 ================================================================================
@@ -684,7 +687,7 @@ R:	Tapez les commandes suivantes :
 	support pour les modules soit activé.
 	Faites aussi un make -s bzImage si le support PPP ou USB était dans le noyau
 	au lieu d'être en modules !
-	Vous pouvez compiler tous les modules de controleurs USB mais vous devez
+	Vous pouvez compiler tous les modules de contrôleurs USB mais vous devez
 	impérativement n'utiliser que celui qui correspond à votre matériel !
 	DABUSB doit être désactivé.
 

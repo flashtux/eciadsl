@@ -100,7 +100,7 @@ A:	Jump to the previous question.
 	there's a problem between you hardware/BIOS/kernel config. It may worth
 	disabling APIC support in kernel or at boot time, but it may come from other
 	IRQ conflicts between hardware devices, or some other kernel configuration
-	issue.
+	issue, or also to disable/enable USB legacy support in BIOS.
 
 	Also check the question that deals with the dabusb module, if dabusb is
 	loaded, you won't be able to use your modem with this driver.
@@ -119,6 +119,9 @@ A:	Check your system's USB configuration. This may be due to a lack of support
 	This can be set in your /etc/fstab. To get his automounted at boot time,
 	add this line:
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
+
+	Nota: there will be nothing in /proc/bus/usb until a host controller module
+	is also loaded.
 
 
 2.1

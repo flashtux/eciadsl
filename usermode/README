@@ -64,7 +64,8 @@ Provide use these info:
 		  type that your provider supports)
 		- the synch .bin you've tried
 	- your modem brand/model
-	- you location (country/state/region/town), your provider
+	- you location (country/state/region/town)
+	- your provider and the PPP encapsulation/authentication protocol used
 	- your Linux experience level (for instance: newbie, average, confirmed,
 	  experienced, guru)
 
