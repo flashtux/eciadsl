@@ -25,7 +25,7 @@
 \baselineskip=16pt
 
 \title{\huge{How-to Linux driver for the ECI USB ADSL modem or Globespan based modems}}
-\author{Bertrand Rougier, Thierry De Baere, Florent Manens, Benoît Papillault, FlashCode\\
+\author{FlashCode, Bertrand Rougier, Thierry De Baere, Florent Manens, Benoît Papillault\\
 \\Translated from french to english by \htmladdnormallink{\textbf{Red prophet}}{mailto:boristheblade@freesurf.fr}}
 
 \begin{document}
@@ -107,7 +107,6 @@ $ uname -r
     \item kernel 2.4.17 : ok [usb-uhci]
     \item kernel 2.4.18 : ok [usb-uhci]
     \item kernel 2.4.19 : ok [usb-uhci]
-    \item kernel 2.5.0 : ok [usb-uhci]
     \end{itemize}
 
 Other kernels are being tested.
@@ -276,13 +275,13 @@ lcp-echo-interval 0
 \label{cha:TODO}
 
     \begin{tabular}{ll}
-    - If your ISP is wanadoo :&
+    - For example in France, if your ISP is Wanadoo :&
     replace :\\
         & user "\textit{adsl@adsl}"\\
     &by :\\
         &user "\textit{ fti/your\_login@fti}"\\
 
-    - If your ISP is club-internet :&
+    - For example in France, if your ISP is Club Internet :&
     replace :\\
         &user "\textit{adsl@adsl}"\\
     &by :\\
@@ -303,8 +302,8 @@ lcp-echo-interval 0
 
 
     \begin{tabular}{ll}
-      For wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
-      For club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
+      For Wanadoo and Club Internet "Full is beautiful" :&     \textit{ /etc/ppp/chap-secrets}\\
+      For Club Internet (except "Full is beautiful") :&   \textit{ /etc/ppp/pap-secrets}\\
     \end{tabular}
 
 
@@ -313,8 +312,8 @@ lcp-echo-interval 0
 
 
     \begin{tabular}{ll}
-For wanadoo       :& \textit{ fti/your\_login@fti * your\_password *}\\
-For club-internet :& \textit{ your\_login@clubadsl1 * your\_password *}\\
+For Wanadoo       :& \textit{ fti/your\_login@fti * your\_password *}\\
+For Club Internet :& \textit{ your\_login@clubadsl1 * your\_password *}\\
     \end{tabular}
 
 
@@ -393,18 +392,18 @@ by unplugging and replugging the modem, and then restart: \textit{./startmodem})
 On the other hand, if the freeze is systematically on the same packet after several attempts,\\
 you will have to change the .bin file, which is used to synchronize the modem.
 Some pregenerated .bin files are available here :
-\htmladdnormallink{http://eciadsl.flashtux.org/download.php#sync}{http://eciadsl.flashtux.org/download.php#sync}
+\htmladdnormallink{http://eciadsl.flashtux.org/download.php}{http://eciadsl.flashtux.org/download.php}
 If none of the .bin work, you will have to create your own.
 (please refer to the documentation available at the above link)
 
 There are two ways to change your .bin :
 
     \subsubsection{1 :}
-        With a driver's version > 0.5 (CVS ou >= 0.6) :\\
+        With a driver's version > 0.5 (CVS or >= 0.6) :\\
         it is possible to change it in eciconftxt.sh
 
     \subsubsection{2 :}
-        With any version of the driver, you can do the following :\\
+        With a driver's version <= 0.5, you can do the following :\\
         overwrite /etc/eciadsl/eci_wan3.bin by another .bin\\
 
     	Example :
@@ -434,42 +433,9 @@ nameserver 194.117.200.15
 nameserver 194.117.200.10
 \end{verbatim}
 
-        For 9 Telecom :\\
-\begin{verbatim}
-nameserver 212.30.96.108
-nameserver 213.203.124.146
-\end{verbatim}
-
-        For Cegetel :\\
-\begin{verbatim}
-nameserver 194.6.128.3
-nameserver 194.6.128.4
-\end{verbatim}
-
-        For World Online :\\
-\begin{verbatim}
-nameserver 212.83.128.3
-nameserver 212.83.128.4
-\end{verbatim}
-
-        For Telecom Italia :\\
-\begin{verbatim}
-nameserver 212.216.112.112
-nameserver 212.216.172.62
-\end{verbatim}
-
-        For Tiscali Italia :\\
-\begin{verbatim}
-nameserver 195.130.224.18
-nameserver 195.130.225.129
-\end{verbatim}
-
-        For Pipex UK :\\
-\begin{verbatim}
-nameserver 158.43.240.4
-nameserver 158.43.240.3
-\end{verbatim}
-
+        For other providers, look at eciconf.sh (or eciconftxt.sh).\\
+        Other DNS servers are in the providers.db file (driver's version CVS or >= 0.6).
+        
         If there aren't the two lines beginning by "nameserver", then create them.
 
     \subsubsection{Action 2 :}
@@ -513,7 +479,7 @@ lcp-echo-failure 10
 
             \textit{/etc/ppp/peers/adsl}\\
             and\\
-            \textit{/etc/ppp/chap-secrets} (wanadoo) or \textit{/etc/ppp/pap-secrets} (club-internet)\par
+            \textit{/etc/ppp/chap-secrets} (Wanadoo and Club Internet "Full is beautiful") or \textit{/etc/ppp/pap-secrets} (Club Internet except "Full is beautiful")\par
 
         => Back to chapters : \ref{cha:peers} et \ref{cha:TODO}
 

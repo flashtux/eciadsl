@@ -24,7 +24,7 @@
 \baselineskip=16pt
 
 \title{\huge{How-to du driver Linux pour modems ECI USB ADSL ou bas\'es sur puce Globespan}}
-\author{Bertrand Rougier, Thierry De Baere, Florent Manens, Beno\^{\i}t Papillault, FlashCode}
+\author{FlashCode, Bertrand Rougier, Thierry De Baere, Florent Manens, Beno\^{\i}t Papillault}
 
 \begin{document}
 \pagenumbering{arabic}
@@ -108,7 +108,6 @@ $ uname -r
     \item kernel 2.4.17 : ok [usb-uhci]
     \item kernel 2.4.18 : ok [usb-uhci]
     \item kernel 2.4.19 : ok [usb-uhci]
-    \item kernel 2.5.0 : ok [usb-uhci]
     \end{itemize}
 
 D'autres noyaux sont en cours de test.
@@ -152,7 +151,7 @@ $ make
     des librairies Tcl/Tk.
     
     Si vous n'avez pas X ou Tcl/Tk installé, vous pouvez lancer eciconftxt.sh
-    (meme outil qu'eciconf.sh mais en mode texte pour console / terminal).
+    (m\^eme outil qu'eciconf.sh mais en mode texte pour console / terminal).
 
     Il arrive parfois que le modem soit allum\'e quand vous 
     d\'emarrez votre ordinateur, cela est dû au module dabusb,
@@ -279,13 +278,13 @@ lcp-echo-interval 0
 \label{cha:faire}
 
     \begin{tabular}{ll}
-    - si vous \^etes abonn\'e wanadoo :&
+    - Par exemple en france, si vous \^etes abonn\'e Wanadoo :&
     remplacer :\\
         & user "\textit{adsl@adsl}"\\
     &par :\\
         &user "\textit{ fti/votre\_login@fti}"\\
 
-    - si vous \^etes abonn\'e club-internet :&
+    - Par exemple en france, si vous \^etes abonn\'e Club Internet :&
     remplacer :\\
         &user "\textit{adsl@adsl}"\\
     &par :\\
@@ -306,8 +305,8 @@ lcp-echo-interval 0
     
     
     \begin{tabular}{ll}
-      Pour wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
-      Pour club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
+      Pour Wanadoo et Club Internet "Full is beautiful" :&     \textit{ /etc/ppp/chap-secrets}\\
+      Pour Club Internet (except\'e "Full is beautiful") :&   \textit{ /etc/ppp/pap-secrets}\\
     \end{tabular}
     
     
@@ -316,8 +315,8 @@ lcp-echo-interval 0
     
     
     \begin{tabular}{ll}
-Pour wanadoo       :& \textit{ fti/votre\_login@fti * votre\_password *}\\
-Pour club-internet :& \textit{ votre\_login@clubadsl1 * votre\_password *}\\
+Pour Wanadoo       :& \textit{ fti/votre\_login@fti * votre\_password *}\\
+Pour Club Internet :& \textit{ votre\_login@clubadsl1 * votre\_password *}\\
     \end{tabular}
     
     
@@ -399,7 +398,7 @@ d\'ebut en d\'ebranchant et en rebranchant le modem, il faut ensuite refaire : \
 Par contre si le blocage est syst\'ematiquement sur le m\^eme paquet apr\`es plusieurs tentatives,\\
 il faut changer le fichier .bin qui sert \`a synchroniser le modem.
 Des fichiers .bin "tout pr\^ets" sont disponibles ici :
-\htmladdnormallink{http://eciadsl.flashtux.org/download.php#sync}{http://eciadsl.flashtux.org/download.php#sync}
+\htmladdnormallink{http://eciadsl.flashtux.org/download.php}{http://eciadsl.flashtux.org/download.php}
 Si aucun .bin ne fonctionne, vous devez alors cr\'eer votre propre .bin
 (voir sur la page ci-dessus la documentation)
 
@@ -410,7 +409,7 @@ Il y a 2 façons de changer le .bin :
         le changement se fait dans eciconftxt.sh
     
     \subsubsection{Façon 2 :}
-        Avec toutes les versions du driver, vous pouvez effectuer ceci :\\
+        Avec une version du driver <= 0.5, vous pouvez effectuer ceci :\\
         \'ecraser le fichier /etc/eciadsl/eci_wan3.bin par un autre .bin\\
         
         Exemple :
@@ -428,7 +427,7 @@ cp /mon_chemin/eci_wan3.bordeaux.bin /etc/eciadsl/eci_wan3.bin
         A ce jour :
         
 %       \begin {tabular}{l} ptete que e v mettre un tableau apr\`es ... on verra
-        Chez wanadoo :\\
+        Chez Wanadoo :\\
 \begin{verbatim}
 nameserver 193.252.19.3
 nameserver 193.252.19.4
@@ -440,46 +439,13 @@ nameserver 194.117.200.15
 nameserver 194.117.200.10
 \end{verbatim}
 
-        Chez 9 Telecom :\\
-\begin{verbatim}
-nameserver 212.30.96.108
-nameserver 213.203.124.146
-\end{verbatim}
-
-        Chez Cegetel :\\
-\begin{verbatim}
-nameserver 194.6.128.3
-nameserver 194.6.128.4
-\end{verbatim}
-
-        Chez World Online :\\
-\begin{verbatim}
-nameserver 212.83.128.3
-nameserver 212.83.128.4
-\end{verbatim}
-
-        Chez Telecom Italia :\\
-\begin{verbatim}
-nameserver 212.216.112.112
-nameserver 212.216.172.62
-\end{verbatim}
-
-        Chez Tiscali Italia :\\
-\begin{verbatim}
-nameserver 195.130.224.18
-nameserver 195.130.225.129
-\end{verbatim}
-
-        Chez Pipex UK :\\
-\begin{verbatim}
-nameserver 158.43.240.4
-nameserver 158.43.240.3
-\end{verbatim}
-
+        Pour les autres, voir eciconf.sh (ou eciconftxt.sh).\\
+        Les serveurs DNS sont stockés dans le fichier providers.db (version driver CVS ou >= 0.6).
+        
         Si ce n'est pas le cas, cr\'eer ces 2 lignes dans le fichier.
     
     \subsubsection{Action 2 :}
-        faire : nslookup www.wanadoo.fr
+        Faire : nslookup www.wanadoo.fr
         
         si pas de r\'eponse et que ppp0 est toujours la dans ifconfig :\\
         Vous avez sûrement un probl\`eme de routage :\\
@@ -519,7 +485,7 @@ lcp-echo-failure 10
         
             \textit{/etc/ppp/peers/adsl}\\
             et\\
-            \textit{/etc/ppp/chap-secrets} (wanadoo) ou \textit{/etc/ppp/pap-secrets} (club-internet)\par
+            \textit{/etc/ppp/chap-secrets} (Wanadoo et Club Internet "Full is beautiful") ou \textit{/etc/ppp/pap-secrets} (Club Internet except\'e "Full is beautiful")\par
 
         => retour aux chapitres : \ref{cha:peers} et \ref{cha:faire}
     
@@ -556,7 +522,7 @@ Tous les moyens de faire appel au support sont ici :
 
 \subsection{Liste de diffusion}
 
-Pour toute question, abonnez vous \`a la liste de diffusion de ce projet
+Pour toute question, abonnez-vous \`a la liste de diffusion de ce projet
 en envoyant un mail vide \`a
 \htmladdnormallink{\textbf{eci-request@ml.free.fr}}{mailto:eci-request@ml.free.fr?subject=subscribe}
 avec comme sujet \textbf{subscribe} et postez ensuite vos remarques ou
