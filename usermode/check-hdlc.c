@@ -16,8 +16,7 @@
 #include <sys/ioctl.h>
 
 /* for ident(1) command */
-static char id[] =
-	"@(#) $Id$";
+static const char id[] = "@(#) $Id$";
 
 int get_master_slave_ptmx(int *master, int *slave)
 {
