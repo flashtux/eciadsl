@@ -766,16 +766,37 @@ A:	Verify that your modem is supported. If your modem isn't in the list of
 	Check which PPP protocol/encapsulation is used under Windows by your
 	provider. Also check if DHCP is used by your provider or if you use a
 	static IP.
-	Use eciconf.sh or eciconftxt.sh to properly use it. If it's	not supported
+	Use eciconf.sh or eciconftxt.sh to properly use it. If it's not supported
 	by the driver or if you are uncertain, get the latest version of the driver
 	or contact us.
 
 	FYI:
 		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX
 		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		RFC1483 BRIDGED ETH with NO FCS (ethernet over ADSL, ETHoA or ETHoATM)
+		    is a mode typically used to encapsulate ethernet frames, and
+		    is often used in conjunction to PPPoE, ethernet static IP, or
+		    DHCP over ADSL.
+		    This mode is very flexible, either your provider gives you a
+		    user/password to connect with PPPoE, or a static IP and gateway,
+		    or you use a DHCP client to connect.  
+		VCM RFC1483 BRIDGED ETH is a similar mode to RFC1483 BRIDGED ETH 
+		    with NO FCS but not so widely used.
+		LLC RFC1483 ROUTED IP is used for direct transmition of IP datagrams
+		    over ADSL (IPoATM or IPoA) typically in the case of static IP, this
+		    protocol requires a static IP and a gateway given by your provider.
+		VCM RFC1483 ROUTED IP is a similar mode to LLC RFC1483 ROUTED IP
+		    but not so widely used.
+
 		SNAP is an encapsulation layer more, between ethernet and LLC or
 		between IP and LLC.
-	<TODO: complete the list of currently supported PPP modes>
+		
+		For more information, please refer to the control application of your
+		modem under Windows, it should list the mode used, or to your provider.
+
+		You can also read RFC1483 and RFC2364 which describe all theses
+		modes in detail.
+
 
 5.5
 ================================================================================
