@@ -584,7 +584,11 @@ static inline uni_cell_t * _aal5_get_next(aal5_t *) ;
 
 
 /* -- Interface -- */
-static int eci_atm_open(struct atm_vcc *vcc,short vpi, int vci);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
+static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci);
+#else
+static int eci_atm_open(struct atm_vcc *vcc);
+#endif
 static void eci_atm_close(struct atm_vcc *vcc);
 static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg);
 static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb);
