@@ -329,13 +329,13 @@ struct uni_cell {
 static uni_cell_t * _uni_cell_alloc(void) ;
 
 /* Create New Cell from raw */
-static uni_cell_t * _uni_cell_fromRaw(size_t, byte*) ;
+static inline uni_cell_t * _uni_cell_fromRaw(size_t, byte*) ;
 
 /* Free an UNI Cell 	*/
-static void _uni_cell_free(uni_cell_t *) ;
+static inline void _uni_cell_free(uni_cell_t *) ;
 
 /* Format a cell */
-static int _uni_cell_format(
+static inline int _uni_cell_format(
 	int,			/* IN: VPI			*/
 	int,			/* IN: VCI			*/
 	bool,			/* IN: Flag for last cell	*/
@@ -367,12 +367,12 @@ static inline byte * _uni_cell_getPayload(
 ) ;
 
 /* Set HEC of header */
-static void _uni_cell_setHEC(
+static inline void _uni_cell_setHEC(
 	uni_cell_t *		/* in: the cell			*/
 ) ;
 
 /* Check HEC of header */
-static bool _uni_cell_chkHEC(
+static inline bool _uni_cell_chkHEC(
 	byte *			/* in: raw cell data		*/
 ) ;
 
@@ -401,16 +401,16 @@ static spinlock_t		gl_ucells_lock 	= SPIN_LOCK_UNLOCKED ;
 /*-- F U N C T I O N S -------------------------------------------------*/
 
 /* Init a queue */
-static int _uni_cell_qinit(uni_cell_q_t *) ;
+static inline int _uni_cell_qinit(uni_cell_q_t *) ;
 
 /* Alloc a new queue */
-static uni_cell_q_t * _uni_cell_qalloc(void) ;
+static inline uni_cell_q_t * _uni_cell_qalloc(void) ;
 
 /* Free a queue */
-static void _uni_cell_qfree(uni_cell_q_t *) ;
+static inline void _uni_cell_qfree(uni_cell_q_t *) ;
 
 /* Check if the queue is empty */
-static bool _uni_cell_qisempty(uni_cell_q_t *) ; 
+static inline bool _uni_cell_qisempty(uni_cell_q_t *) ; 
 
 /* Push new UNI Cell in Queue */
 static int _uni_cell_qpush(
@@ -419,10 +419,10 @@ static int _uni_cell_qpush(
 ) ;
 
 /* Pop an UNI Cell from Queue */
-static uni_cell_t * _uni_cell_qpop(uni_cell_q_t *) ;
+static inline uni_cell_t * _uni_cell_qpop(uni_cell_q_t *) ;
 
 /* Get UNI Cell on head of Queue */
-static uni_cell_t * _uni_cell_qhead(uni_cell_q_t *) ;
+static inline uni_cell_t * _uni_cell_qhead(uni_cell_q_t *) ;
 
 /*----------------------------------------------------------------------*/
 
@@ -446,16 +446,16 @@ typedef const uni_cell_t * uni_cell_list_crs_t ;
 /*-- F U N C T I O N S -------------------------------------------------*/
 
 /* Init a list */
-static int _uni_cell_list_init(uni_cell_list_t *) ;
+static inline int _uni_cell_list_init(uni_cell_list_t *) ;
 
 /* Reset a list */
-static void inline _uni_cell_list_reset(uni_cell_list_t *) ;
+static inline void inline _uni_cell_list_reset(uni_cell_list_t *) ;
 
 /* Alloc a new list */
-static uni_cell_list_t * _uni_cell_list_alloc(void) ;
+static inline uni_cell_list_t * _uni_cell_list_alloc(void) ;
 
 /* Free a list (free each cells) */
-static void _uni_cell_list_free(uni_cell_list_t *) ;
+static inline void _uni_cell_list_free(uni_cell_list_t *) ;
 
 /* Get number of Cells in list (<0 : error)*/
 static inline int _uni_cell_list_nbcells(uni_cell_list_t *) ;
@@ -467,16 +467,16 @@ static inline const uni_cell_t * _uni_cell_list_first(uni_cell_list_t *) ;
 static inline const uni_cell_t * _uni_cell_list_last(uni_cell_list_t *) ;
 
 /* Extract First cell of list */
-static uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *) ;
+static inline uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *) ;
 
 /* Insert a new cell at the beginning of the list */
-static int _uni_cell_list_insert(uni_cell_list_t *, uni_cell_t *) ;
+static inline int _uni_cell_list_insert(uni_cell_list_t *, uni_cell_t *) ;
 
 /* Add a new cell at the end of the list */
-static int _uni_cell_list_append(uni_cell_list_t *, uni_cell_t *) ;
+static inline int _uni_cell_list_append(uni_cell_list_t *, uni_cell_t *) ;
 
 /* Concatenate 2 lists (reset second list) */
-static int _uni_cell_list_cat(uni_cell_list_t*, uni_cell_list_t*) ;
+static inline int _uni_cell_list_cat(uni_cell_list_t*, uni_cell_list_t*) ;
 
 /* Move cursor forward */
 static inline int _uni_cell_list_crs_next(uni_cell_list_crs_t *) ;
@@ -527,16 +527,16 @@ struct aal5 {
 /*-- F U N C T I O N S -------------------------------------------------*/
 
 /* Init a new AAL5 Frame */
-static int _aal5_init(aal5_t *) ;
+static inline int _aal5_init(aal5_t *) ;
 	
 /* Alloc a new AAL5 frame */
-static aal5_t * _aal5_alloc(void) ;
+static inline aal5_t * _aal5_alloc(void) ;
 
 /* Free an AAL5 frame */
-static void _aal5_free(aal5_t *) ;
+static inline void _aal5_free(aal5_t *) ;
 
 /* Reset an AAL5 frame */
-static void _aal5_clean(aal5_t *) ;
+static inline void _aal5_clean(aal5_t *) ;
 
 /* Get VPI from AAL5 */
 static inline int _aal5_getVpi(
@@ -567,13 +567,13 @@ static inline bool _aal5_isvalid(
 static inline int _aal5_getNbCell(aal5_t*) ;
 
 /* Append a new cell */
-static int _aal5_add_cell(
+static inline int _aal5_add_cell(
 	aal5_t *,		/* IN: the frame		*/
 	uni_cell_t *		/* IN: the new cell		*/
 ) ;
 
 /* Get Next Cell of the AAL5 frame */
-static uni_cell_t * _aal5_get_next(aal5_t *) ;
+static inline uni_cell_t * _aal5_get_next(aal5_t *) ;
 
 
 /* -- Interface -- */
@@ -2017,7 +2017,7 @@ static u32 _calc_crc(
  * Alloc a new UNI cell : 
  * 	Check if any availlable in unused list else create it
  */
-static uni_cell_t * _uni_cell_alloc(void) {
+static inline uni_cell_t * _uni_cell_alloc(void) {
 	
 	uni_cell_t *lp_cell = NULL ;
 	
@@ -2058,7 +2058,7 @@ static uni_cell_t * _uni_cell_alloc(void) {
  * Built a new UNI cell from raw data
  * Warning : buffer size MUST be ATM_CELL_SZ bytes
  */
-static uni_cell_t * _uni_cell_fromRaw(
+static inline uni_cell_t * _uni_cell_fromRaw(
 		size_t	szbuffer,	/* IN: buffer length = 53	*/
 		byte *	buffer		/* IN: Raw Cell data		*/
 ) {
@@ -2097,7 +2097,7 @@ static uni_cell_t * _uni_cell_fromRaw(
  * Free a UNI cell :
  * 	Insert it in Unused cells list
  */
-static void _uni_cell_free(
+static inline void _uni_cell_free(
 		uni_cell_t * pcell
 ) {
 	if (pcell) {
@@ -2115,7 +2115,7 @@ static void _uni_cell_free(
 /*----------------------------------------------------------------------*/
 
 /* Format a cell */
-static int _uni_cell_format(
+static inline int _uni_cell_format(
 	int			vpi,	/* IN: VPI			*/
 	int			vci,	/* IN: VCI			*/
 	bool			islast,	/* IN: Flag for last cell	*/
@@ -2348,7 +2348,7 @@ static int _err_pos[] = {
 } ;
 
 /* Set HEC of header */
-static void _uni_cell_setHEC(
+static inline void _uni_cell_setHEC(
 	uni_cell_t *	pcell	/* in: the cell			*/
 ) {
 	byte	lv_accum = 0 ;
@@ -2368,7 +2368,7 @@ static void _uni_cell_setHEC(
 /*----------------------------------------------------------------------*/
 
 /* Check HEC of header */
-static bool _uni_cell_chkHEC(
+static inline bool _uni_cell_chkHEC(
 	byte *	raw			/* in: raw cell data		*/
 ) {
 	byte	lv_syndrome ;
@@ -2419,7 +2419,7 @@ static bool _uni_cell_chkHEC(
 /*----------------------------------------------------------------------*/
 
 /* Init a queue */
-static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
+static inline int _uni_cell_qinit(uni_cell_q_t *pcellq) {
 
 	/* Check Interface */
 	if (!pcellq) {
@@ -2436,7 +2436,7 @@ static int _uni_cell_qinit(uni_cell_q_t *pcellq) {
 /*----------------------------------------------------------------------*/
 
 /* Alloc a new queue */
-static uni_cell_q_t * _uni_cell_qalloc(void) {
+static inline uni_cell_q_t * _uni_cell_qalloc(void) {
 	
 	uni_cell_q_t * lp_cellq = NULL ;
 
@@ -2464,7 +2464,7 @@ static uni_cell_q_t * _uni_cell_qalloc(void) {
  * Free a queue :
  * 	free also each remaining cells
  */
-static void _uni_cell_qfree(uni_cell_q_t *pcellq) {
+static inline void _uni_cell_qfree(uni_cell_q_t *pcellq) {
 
 	uni_cell_t *	lp_cell 	= NULL ;
 	uni_cell_t *	lp_cellnxt 	= NULL ;
@@ -2493,7 +2493,7 @@ static void _uni_cell_qfree(uni_cell_q_t *pcellq) {
 /*
  * Check if the queue is empty
  */
-static bool _uni_cell_qisempty(
+static inline bool _uni_cell_qisempty(
 		uni_cell_q_t * pcellq
 ) {
 	return (pcellq->nbcells == 0) ;
@@ -2504,7 +2504,7 @@ static bool _uni_cell_qisempty(
 /*
  * Push new UNI Cell in Queue
  */
-static int _uni_cell_qpush(
+static inline int _uni_cell_qpush(
 		uni_cell_t *	pcell,	/* IN: Cell to insert	*/
 		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
 ) {
@@ -2536,7 +2536,7 @@ static int _uni_cell_qpush(
  * Pop an UNI Cell from Queue :
  * 	return NULL when empty or invalid queue
  */
-static uni_cell_t * _uni_cell_qpop(
+static inline uni_cell_t * _uni_cell_qpop(
 		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
 ) {
 	uni_cell_t * lp_cell = NULL ;
@@ -2565,7 +2565,7 @@ static uni_cell_t * _uni_cell_qpop(
  * Get the UNI Cell on head Queue :
  * 	return NULL when empty or invalid queue
  */
-static uni_cell_t * _uni_cell_qhead(
+static inline uni_cell_t * _uni_cell_qhead(
 		uni_cell_q_t *	pcellq	/* IN: Target queue	*/
 ) {
 	uni_cell_t * lp_cell = NULL ;
@@ -2593,7 +2593,7 @@ static uni_cell_t * _uni_cell_qhead(
 /*----------------------------------------------------------------------*/
 
 /* Init a list */
-static int _uni_cell_list_init(uni_cell_list_t *plist) {
+static inline int _uni_cell_list_init(uni_cell_list_t *plist) {
 	if (!plist) return -EINVAL ;
 	memset(plist, 0x00, sizeof(uni_cell_list_t)) ;
 	return 0 ;
@@ -2624,7 +2624,7 @@ static inline void _uni_cell_list_reset(uni_cell_list_t *plist) {
 
 /* Alloc a new list */
 
-static uni_cell_list_t * _uni_cell_list_alloc(void) {
+static inline uni_cell_list_t * _uni_cell_list_alloc(void) {
 	uni_cell_list_t * lp_list = NULL ;
 
 	lp_list = kmalloc(sizeof(uni_cell_list_t), GFP_ATOMIC) ;
@@ -2641,7 +2641,7 @@ static uni_cell_list_t * _uni_cell_list_alloc(void) {
 
 /* Free a list (free each cells) */
 
-static void _uni_cell_list_free(uni_cell_list_t *plist) {
+static inline void _uni_cell_list_free(uni_cell_list_t *plist) {
 
 	if (!plist) return ;
 
@@ -2682,7 +2682,7 @@ static inline const uni_cell_t * _uni_cell_list_last(uni_cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Extract First cell of list */
-static uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *plist) {
+static inline uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *plist) {
 	uni_cell_t * lp_cell = NULL ;
 
 	if (!plist || !plist->first) return NULL ;
@@ -2703,7 +2703,7 @@ static uni_cell_t * _uni_cell_list_extract(uni_cell_list_t *plist) {
 
 /* Insert a new cell at the beginning of the list */
 
-static int _uni_cell_list_insert(uni_cell_list_t *plist, uni_cell_t *pcell) {
+static inline int _uni_cell_list_insert(uni_cell_list_t *plist, uni_cell_t *pcell) {
 	if (!plist || !pcell) return -EINVAL ;
 
 	/* Manage empty list case */
@@ -2724,7 +2724,7 @@ static int _uni_cell_list_insert(uni_cell_list_t *plist, uni_cell_t *pcell) {
 
 /* Add a new cell at the end of the list */
 
-static int _uni_cell_list_append(uni_cell_list_t *plist, uni_cell_t *pcell) {
+static inline int _uni_cell_list_append(uni_cell_list_t *plist, uni_cell_t *pcell) {
 	if (!plist || !pcell) return -EINVAL ;
 
 	pcell->next = NULL ;
@@ -2745,7 +2745,7 @@ static int _uni_cell_list_append(uni_cell_list_t *plist, uni_cell_t *pcell) {
 /*----------------------------------------------------------------------*/
 
 /* Concatanate 2 lists */
-static int _uni_cell_list_cat(
+static inline int _uni_cell_list_cat(
 		uni_cell_list_t *phead,
 		uni_cell_list_t *ptail) {
 	if (!phead || !ptail) return -EINVAL ;
@@ -3008,7 +3008,7 @@ static int _aal5_to_cells(
 /*----------------------------------------------------------------------*/
 
 /* Init a new AAL5 Frame */
-static int _aal5_init(aal5_t * paal5) {
+static inline int _aal5_init(aal5_t * paal5) {
 	
 	if (!paal5) return -EINVAL ;
 
@@ -3030,7 +3030,7 @@ static int _aal5_init(aal5_t * paal5) {
 /*----------------------------------------------------------------------*/
 
 /* Alloc a new AAL5 frame */
-static aal5_t * _aal5_alloc(void) {
+static inline aal5_t * _aal5_alloc(void) {
 	aal5_t * lp_aal5 = NULL ;
 
 	lp_aal5 = kmalloc(sizeof(aal5_t), GFP_ATOMIC) ;
@@ -3047,7 +3047,7 @@ static aal5_t * _aal5_alloc(void) {
 /*----------------------------------------------------------------------*/
 
 /* Free an AAL5 frame */
-static void _aal5_free(aal5_t *paal5) {
+static inline void _aal5_free(aal5_t *paal5) {
 	uni_cell_t *	lp_cell = NULL ;
 	
 	if (!paal5) return ;
@@ -3067,7 +3067,7 @@ static void _aal5_free(aal5_t *paal5) {
 /*----------------------------------------------------------------------*/
 
 /* Reset a AA5 frame */
-static void _aal5_clean(aal5_t *paal5) {
+static inline void _aal5_clean(aal5_t *paal5) {
 	uni_cell_t *	lp_cell = NULL ;
 
 	if (!paal5) return ;
@@ -3150,7 +3150,7 @@ static inline int _aal5_getNbCell(
 /*----------------------------------------------------------------------*/
 
 /* Append a new cell */
-static int _aal5_add_cell(
+static inline int _aal5_add_cell(
 	aal5_t *	paal5,		/* IN: the frame		*/
 	uni_cell_t *	pcell		/* IN: the new cell		*/
 ) {
@@ -3244,7 +3244,7 @@ static int _aal5_add_cell(
 /*----------------------------------------------------------------------*/
 
 /* Get Next Cell of the AAL5 frame */
-static uni_cell_t * _aal5_get_next(aal5_t *paal5) {
+static inline uni_cell_t * _aal5_get_next(aal5_t *paal5) {
 	
 	uni_cell_t * lp_cell ;
 	
