@@ -74,6 +74,14 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
 				continue;
 			}
 			if(++oecmescnt>2) {
+				if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
+					eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+					eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+					eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+				} else {
+					return -EIO;
+				}
+				
 				switch(eocstate) {
 					case idle:
 						eoc_execute(eocmesval);
@@ -82,6 +90,7 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
 			}
 		}
 	}
+	return 0;
 }
 
 /* 
