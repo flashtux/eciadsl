@@ -374,7 +374,7 @@ R:	Voir la question précédente.
 	/var/log/messages ou /var/log/ppp après avoir lancé startmodem.
 
 	Si la route par défaut (UG) est eth0, supprimez-là :
-		route del default -net eth0
+		route del default dev eth0
 	ou supprimez la ligne passerelle ("gateway") de votre
 	/etc/sysconfig/network, ou encore désactivez votre réseau LAN avant de
 	lancer startmodem.
