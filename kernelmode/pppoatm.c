@@ -66,6 +66,13 @@ static char *bad_options[] = {
 static int open_device_pppoatm(void);
 static int set_line_discipline_pppoatm(int fd);
 
+/*
+	Funtion : setdevname_pppoatm
+	IN : cp = device name
+	OUT : 	1 means we handle the device
+		0 means we dont
+	
+*/
 
 
 static int setdevname_pppoatm(const char *cp)
@@ -87,11 +94,12 @@ static int setdevname_pppoatm(const char *cp)
 		return 0;
 	}
 	/*if (!dev_set_ok())
-		return -1;*/
+		return 1;*/
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
-	strlcpy(devnam, cp, sizeof devnam);
+//	strlcpy(devnam, cp, sizeof devnam);
+	strlcpy(devnam, "pppoatm", sizeof devnam);
 	info("devnam = %s", devnam);
-	devstat.st_mode = S_IFSOCK;
+	// devstat.st_mode = S_IFSOCK;
 	if(the_channel != &pppoatm_channel) {
 		info("registering channel\n");
 		the_channel = &pppoatm_channel;
@@ -103,7 +111,8 @@ static int setdevname_pppoatm(const char *cp)
 		lcp_wantoptions[0].neg_pcompression = 0;
 	}
 	info("PPPoATM setdevname_pppoatm - SUCCESS");
-	device_got_set = 1;
+	// device_got_set = 1;
+	modem = 0;
 	return 1;
 }
 
@@ -143,9 +152,10 @@ static int open_device_pppoatm(void)
 	struct atm_qos qos;
 
 	info("open device pppoatm\n");
-	if (!device_got_set)
-		no_device_given_pppoatm();
-	fd = socket(AF_ATMPVC, SOCK_DGRAM, 0);
+	strlcpy(ppp_devnam, devnam,sizeof((ppp_devnam)));
+/*	if (!device_got_set)
+		no_device_given_pppoatm();*/
+	fd = socket(AF_ATMPVC, SOCK_DGRAM , 0);
 	if (fd < 0)
 		fatal("failed to create socket: %m");
 	memset(&qos, 0, sizeof qos);
@@ -187,13 +197,8 @@ static void pre_close_restore_pppoatm(int fd)
 
 int generic_establish_ppp (int fd)
 {
-    return -1;
+    return 0;
 }
-
-
-
-
-
 
 static int set_line_discipline_pppoatm(int fd)
 {
@@ -226,7 +231,7 @@ static int set_line_discipline_pppoatm(int fd)
 	}
 	flags = fcntl(dev_fd, F_GETFL);
 	if(flags == -1 || fcntl(dev_fd, F_SETFL, flags | O_NONBLOCK) == -1)
-		warn("Couldn't set /dev/pp (channel) to non block: %m");
+		warn("Couldn't set /dev/ppp (channel) to non block: %m");
 	ifunit = req_unit;
 	info("ifunit = %d", ifunit);
 	/*x = ioctl( dev_fd, PPPIOCNEWUNIT, &ifunit);
