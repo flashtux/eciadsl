@@ -1,7 +1,7 @@
 
 ATTENTION : LISEZ LE WARNING QUI SUIT AVANT DE LIRE LE RESTE DU DOCUMENT!
 
-
+->
 
 
 
@@ -63,6 +63,36 @@ ATTENTION : LISEZ LE WARNING QUI SUIT AVANT DE LIRE LE RESTE DU DOCUMENT!
 **  voyez aucun .bin généré là où vous résidez. ESSAYEZ LES TOUS!
 **
 *******************************************************************************
+
+
+MAINTENANT VOUS POUVEZ LIRE LA SUITE!
+
+->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Liste des fichiers .bin disponibles pour la synchro :
 	synch00.bin (anciennement eci_wan3.bin)
