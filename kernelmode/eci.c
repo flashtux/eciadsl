@@ -31,10 +31,6 @@
 #include <linux/kernel.h>
 #include <linux/version.h>
 
-/*
- * replaced by slab as advived by gcc
- #include <linux/malloc.h>
- */
 #include <linux/slab.h>
 #include <linux/errno.h>
 
@@ -60,7 +56,6 @@
                     Debuging Stuf
 ***********************************************************************/
 
-//#define DEBUG 1
 #ifdef DEBUG
 
 #define DBG_OUT(fmt, argz...) \
@@ -1320,16 +1315,11 @@ static void _eci_send_init_urb(struct urb *eciurb)
 static void eci_init_vendor_callback(struct urb *urb)
 {
 	struct eci_instance *instance;
-	/* unused: struct usb_device	*dev; */
 	int size;
-	/* unused: int i; */
-	/* unused: unsigned char *buffer; */
 
 	DBG_OUT("init callback called !\n");
 	instance = (struct eci_instance *) urb->context;
 	spin_lock_bh(&instance->lock);
-/*	dev = instance->usb_wan_dev;
-	DBG_OUT("dev = %p\n", dev);	unused */
 
 /*
 	If urb status is set warn about it, else do what we gotta do
@@ -1501,7 +1491,6 @@ static void eci_iso_callback(struct urb *urb)
 	struct eci_instance 	*instance;	/* Driver private structre */
 	int 			i;		/* Frame Counter	*/
  	int 			pos;		/* Buffer curent pos counter */
- 	//struct uni_cell_list	*cells;		/* New computed queue of cell */
 	struct uni_cell 	*cell;		/* Working cell		*/
 	unsigned char 		*buf;		/* Working buffer pointer */
 	int 			received = 0;	/* boolean for cell in frames */
@@ -1510,10 +1499,6 @@ static void eci_iso_callback(struct urb *urb)
 	spin_lock_bh(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
- 		/*if(!(cells = _uni_cell_list_alloc())) {
-			ERR_OUT("Failed to allocate cell list\n");
-			goto end;
-		}*/
 		for (i=0;i<ECI_NB_ISO_PACKET;i++)
 		{
 			if (!urb->iso_frame_desc[i].status &&
@@ -1643,13 +1628,10 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 
 static void eci_bh_bulk(unsigned long pinstance)
 {
-	//not used: int 		ret;		/* counter			*/
-	/*not used:int 		nbcell;*/	/* cellcount expected		*/
 	unsigned	char *buf;	/* urb buffer			*/
 	int		i;		/* loop counter			*/
 	int		buflen;		/* urb buffer len		*/
 	int		bufpos;		/* position in urb buffer	*/
-	//not used: int		nbcells;	/* number of cell to be sent 	*/
 	uni_cell_list_crs_t	cell;	/* current computed cell	*/
 	struct urb	*urb;		/* urb pointer to sent urb	*/
 	struct eci_instance *instance;	/* pointer to instance		*/
@@ -1662,18 +1644,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 	{
 	buflen = ECI_BULK_BUFFER_SIZE;
 	urb = instance->bulk_urb;	
-/*
-	if(!(urb = usb_alloc_urb(0)))
-	{
-		ERR_OUT("Can't alloc urb !!\n");
-		return(0);
-	}
-	if(!(buf=(unsigned char *)kmalloc(buflen, GFP_KERNEL)))
-	{
-		ERR_OUT("Can't allocate bulk urb Buffer\n");
-		return(0);
-	}
-*/
 	buf = urb->transfer_buffer;
 	DBG_OUT("Buf = %p\n", buf);
 	bufpos = 0;
@@ -1695,7 +1665,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 	FILL_BULK_URB(urb, instance->usb_wan_dev, 
 		usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 		buf, bufpos, eci_bulk_callback, instance);
-	//urb->transfer_flags = USB_QUEUE_BULK;
 	if(usb_submit_urb(urb))
 	{
 	/*
@@ -1704,8 +1673,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 			list 
 	*/
 		ERR_OUT("Can't submit bulk urb\n");
-	//	kfree(buf);
-	/*	return; 	BIG BUG WITH LOCKING !!!!!	*/
 	}
 	else
 		instance->bulkisfree = 0;
@@ -1725,8 +1692,6 @@ static void eci_bulk_callback(struct urb *urb)
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
 	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
-	//kfree(urb->transfer_buffer);
-	//usb_free_urb(urb);
 	instance = (struct eci_instance *)urb->context;
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
