@@ -35,7 +35,7 @@ switches:
 
   --disable-make-check          do not check for make
   --disable-gcc-check           do not check for gcc
-  --disable-pppd-check          do not check for make
+  --disable-pppd-check          do not check for pppd
   --disable-wish-check          do not check for wish
 
   --disable-make-version        do not check for make version
