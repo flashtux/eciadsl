@@ -748,7 +748,7 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 
 #ifdef __USE_ATM__
 	if(i->atm_dev) 	{
-		atm_dev_deregister(i->atm_dev);
+		atm_dev_shutdown(i->atm_dev);
 		i->atm_dev = 0;
 	}
 #endif	
@@ -1561,8 +1561,7 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 			}
 		}
 	}
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))		
-#else
+#if (!(LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)))
 	usb_fill_int_urb(urb, instance->usb_wan_dev, usb_rcvintpipe(instance->usb_wan_dev, ECI_INT_EP), 
 			instance->interrupt_buffer,64,
 			eci_int_callback,instance,3);
@@ -1570,6 +1569,7 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 			ERR_OUT("error couldn't send interrupt urb in int callback\n");
 			goto erreure;
 		}
+#endif
 	spin_unlock(&instance->lock);
 }
 
