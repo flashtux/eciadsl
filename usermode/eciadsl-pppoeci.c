@@ -1877,7 +1877,7 @@ int main(int argc, char** argv)
 	if (use_DataIn_ISO_Urb)
 		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_iso_ep, O_RDWR);
 	else
-		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_bulk_ep, O_RDWR);
+		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_in2_ep, O_RDWR);
 	
 	if (ep_data_in == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_DATA_IN,
