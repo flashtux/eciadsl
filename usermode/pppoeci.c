@@ -145,6 +145,8 @@ const char* mode_name[] =
 	"VCM_RFC1483_ROUTED_IP"
 };
 
+encapsulation_mode default_frame_type=VCM_RFC2364;
+
 #ifdef USE_BIG_ENDIAN
 #define HDLC_HEADER (short)0xff03
 #else
@@ -1353,7 +1355,7 @@ void display_modes(void)
 {
 	int i;
 	for (i = 0; i < modes_count; i++)
-		fprintf(stderr, "%s%s\n", mode_name[i], (i == frame_type)?" (default)":"");
+		fprintf(stderr, "%s%s\n", mode_name[i], (i == default_frame_type)?" (default)":"");
 }
 
 void usage(const int ret)
@@ -1534,7 +1536,7 @@ int main(int argc, char** argv)
 			}
 		}
 		else
-			frame_type = VCM_RFC2364;
+			frame_type = default_frame_type;
 	}
 
 	if (pusb_set_interface_alt < 0
