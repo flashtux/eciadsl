@@ -569,6 +569,15 @@ Q:	eci-doctor.sh affiche :
 R:	Il peut y avoir beaucoup de raisons à cela! Prenez contact avec nous.
 
 
+4.14
+================================================================================
+Q:	Mes taux de transfert sont très bas (2-5KO/sec au lieu de 40KO/sec par
+	exemple)
+
+--------------------------------------------------------------------------------
+R:	Essayez un autre .bin de synchro.
+
+
 5.0
 ================================================================================
 Q:	Est-il possible de lancer startmodem au démarrage de Linux ?
