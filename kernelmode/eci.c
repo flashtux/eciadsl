@@ -60,7 +60,7 @@
                     Debuging Stuf
 ***********************************************************************/
 
-#define DEBUG 1
+//#define DEBUG 1
 #ifdef DEBUG
 
 #define DBG_OUT(fmt, argz...) \
@@ -1203,6 +1203,7 @@ static void eci_bh_atm (unsigned long param) {
 	int lv_rc ;
 	
 	DBG_OUT("eci_bh_atm IN\n") ;
+	spin_lock(&lp_instance->lock);
 	if (!(lp_vcc = lp_instance->pcurvcc)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
 	       return ;
@@ -1220,6 +1221,7 @@ static void eci_bh_atm (unsigned long param) {
 		}
 		dev_kfree_skb (lp_skb);
 	}
+	spin_unlock(&lp_instance->lock);
 	DBG_OUT("eci_bh_atm OUT\n") ;
 }
 /*----------------------------------------------------------------------*/
@@ -1404,6 +1406,7 @@ static void eci_int_callback(struct urb *urb)
 
 	/*	DBG_OUT("Int callBack in\n"); Too much debug info	*/
 	instance = (struct eci_instance *) urb->context;
+	spin_lock(&instance->lock);
 	if(urb->actual_length)
 	{
 		if(urb->actual_length!=64)
@@ -1471,13 +1474,16 @@ static void eci_int_callback(struct urb *urb)
 			DBG_RAW_OUT("EP INT datas :",in_buf, 64); */
 		}
 	}
+	spin_unlock(&instance->lock);
 	/*	DBG_OUT("Int callBack out\n");	*/
 }
 
 static void eci_bh_iso(unsigned long instance)
 {
+	spin_lock(&(((struct eci_instance *)instance)->lock));
  	eci_atm_receive_cell(((struct eci_instance *)instance),
 		&(((struct eci_instance *)instance)->iso_cells));
+	spin_unlock(&(((struct eci_instance *)instance)->lock));
 }
 
 static void eci_iso_callback(struct urb *urb)
@@ -1640,6 +1646,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 
 	DBG_OUT("eci_bh_bulk IN\n") ;
 	instance = (struct eci_instance *)pinstance;
+	spin_lock(&instance->lock);
 	/*if(nbcells)
 	{
 */
@@ -1686,6 +1693,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 		return;
 	}
 	/*}*/
+	spin_unlock(&instance->lock);
 	DBG_OUT("eci_bh_bulk OUT\n") ;
 	return;	
 }
@@ -1702,8 +1710,10 @@ static void eci_bulk_callback(struct urb *urb)
 	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
 	//kfree(urb->transfer_buffer);
 	//usb_free_urb(urb);
+	spin_lock(&instance->lock);
 	instance = (struct eci_instance *)urb->context;
 	//tasklet_schedule(&instance->bh_bulk);
+	spin_unlock(&instance->lock);
 }
 /**********************************************************************
 		END USB CODE
