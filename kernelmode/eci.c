@@ -1854,7 +1854,7 @@ static int eci_atm_receive_cell(
 	for(i=0; i< VCC_HTABLE_SIZE; i++) {
 		head = &vcc_hash[i];
 		sk_for_each(s, node, head) {
-				vcc = s->sk_ protinfo.af_atm;
+				vcc = atm_sk(s);
 				if(vcc->dev == pinstance) break;
 		}
 		if(vcc->dev == pinstance) break;
