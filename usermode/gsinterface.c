@@ -26,7 +26,8 @@ int (*pF_gsSetControl)(unsigned char*);
 void (*pF_gsGetResponse)(unsigned char*);
 void (*pF_allocateGSint)(void);
 void (*pF_deallocateGSint)(void);
-void (*pF_getAal5HeaderStructure)(unsigned char*, struct aal5_header_st*);
+void (*pF_getAal5HeaderStructure)(const unsigned char*,
+                                  struct aal5_header_st*);
 
 /* set eci modem chipset - kolja */
 void set_eci_modem_chipset(char* chipset){
@@ -71,6 +72,8 @@ void deallocateGSint(void){
 	pF_deallocateGSint();
 }
 
-void getAal5HeaderStructure(unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut){
+void getAal5HeaderStructure(const unsigned char* aal5Header,
+                            struct aal5_header_st* aal5HeaderOut)
+{
 	pF_getAal5HeaderStructure(aal5Header, aal5HeaderOut);
 }

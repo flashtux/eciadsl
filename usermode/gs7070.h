@@ -60,6 +60,7 @@ GS7070ControlReg* allocategs7070ctlreg(char matchhi, char matchlow, char replace
 void deallocategs7070ctlreg(GS7070ControlReg* gscr);
 void allocateGS7070int(void);
 void deallocateGS7070int(void);
-void getAal5HeaderStructure7070(unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut);
+void getAal5HeaderStructure7070(const unsigned char* aal5Header,
+                                struct aal5_header_st* aal5HeaderOut);
 
 #endif

@@ -117,7 +117,7 @@ int  gsSetControl(unsigned char* buffer);
 void gsGetResponse(unsigned char* buffer);
 void allocateGSint(void);
 void deallocateGSint(void);
-void getAal5HeaderStructure(unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut);
+void getAal5HeaderStructure(const unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut);
 
 
 /* set eci modem_chipset - kolja */

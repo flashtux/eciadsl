@@ -357,7 +357,9 @@ void deallocateGS7070int(){
 }
 
 /* get structure for aal5 header */
-void getAal5HeaderStructure7070(unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut){
+void getAal5HeaderStructure7070(const unsigned char* aal5Header,
+                                struct aal5_header_st* aal5HeaderOut)
+{
 	aal5HeaderOut->vpi = ( aal5Header[0] <<  4) | (aal5Header[1] >> 4);
 	aal5HeaderOut->vci = ((aal5Header[1] & 0x0f) << 12) | (aal5Header[2] << 4) | (aal5Header[3] >> 4);
 	aal5HeaderOut->pti = ( aal5Header[3] & 0x0f);
