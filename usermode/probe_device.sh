@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # probe device's VIDs and PIDs
-VERSION="0.0.1"
+VERSION="0.0.2"
 
 
 function version()
@@ -16,10 +16,130 @@ function commandlinehelp()
 	echo "          $BASE [<switch>..]"
 	echo "switches:"
 	echo "          --dry-run              test mode (only perform neutral operations)"
-	echo "          --batch <device name>  batch mode (non interactive)"
 	echo "          --version              show version number then exit"
 	echo "          --help                 show this help then exit"
 	exit $1
+}
+
+function display_device()
+{
+	test -n "$PRODUCT" && echo -n " $PRODUCT" || echo -n " ?"
+	test -n "$MANUFACTURER" && echo -n "$MANUFACTURER"
+	test -n "$ID" && echo " ($ID)" || echo " (?$SEP?)"
+	test -n "$ID_TABLE" && ID_TABLE="$ID_TABLE|$ID" || ID_TABLE="$ID"
+	test -n "$PRODUCT_TABLE" && PRODUCT_TABLE="$PRODUCT_TABLE|$PRODUCT" || PRODUCT_TABLE="$PRODUCT"
+	test -n "$MANUFACTURER_TABLE" && MANUFACTURER_TABLE="$MANUFACTURER_TABLE|$MANUFACTURER" || MANUFACTURER_TABLE="$MANUFACTURER"
+}
+
+function list_devices()
+{
+	let CNT=0
+	ID_TABLE=""
+	PRODUCT_TABLE=""
+	MANUFACTURER_TABLE=""
+	local ID=""
+	local PRODUCT=""
+	local MANUFACTURER=""
+	local OLDIFS=$IFS
+	IFS=$'\n'
+	for LINE in $(cat $DEVICES)
+	do
+		case ${LINE:0:2} in
+		"T:")	
+				test $CNT -ne 0 && display_device
+				let CNT+=1
+				echo -n "$CNT: "
+				ID=""
+				PRODUCT=""
+				MANUFACTURER=""
+				;;
+		"P:")	
+				if [ -z "$ID" ]
+				then
+					ID=$(echo "$LINE" | grep -i "prodid=" | awk '{print $2,$3}')
+					if [ $? -eq 0 -a -n "$ID" ]
+					then
+						ID=$(echo "$ID" | tr -s ' ' '=' | cut -d '=' -f 2,4 | tr -s '=' $SEP)
+					fi
+				fi
+				;;
+		"S:")	
+				if [ -z "$PRODUCT" ]
+				then
+					PRODUCT=$(echo "$LINE" | grep -i "product=" | cut -d '=' -f 2-)
+				fi
+				if [ -z "$MANUFACTURER" ]
+				then
+					MANUFACTURER=$(echo "$LINE" | grep -i "manufacturer=" | cut -d '=' -f 2-)
+					if [ $? -eq 0 -a -n "$MANUFACTURER" ]
+					then
+						MANUFACTURER=" / $MANUFACTURER"
+					fi
+				fi
+				;;
+		esac
+	done
+	IFS=$OLDIFS
+	test $CNT -ne 0 && display_device
+	if [ $CNT -lt 1 ]
+	then
+		echo "no USB device found!"
+		exit 1
+	fi
+}
+
+function get_ID()
+{
+	OLDIFS=$IFS
+	IFS="|"
+	let CNT=0
+	ID=""
+	for LINE in $ID_TABLE
+	do
+		let CNT+=1
+		if [ $CNT -eq $DEVNUM ]
+		then
+			test -n "$LINE" && ID="$LINE"
+			break
+		fi
+	done
+	IFS=$OLDIFS
+}
+
+function get_product()
+{
+	OLDIFS=$IFS
+	IFS="|"
+	let CNT=0
+	PRODUCT="?"
+	for LINE in $PRODUCT_TABLE
+	do
+		let CNT+=1
+		if [ $CNT -eq $DEVNUM ]
+		then
+			test -n "$LINE" && PRODUCT="$LINE"
+			break
+		fi
+	done
+	IFS=$OLDIFS
+}
+
+function get_manufacturer()
+{
+	OLDIFS=$IFS
+	IFS="|"
+	let CNT=0
+	MANUFACTURER=""
+	for LINE in $MANUFACTURER_TABLE
+	do
+		let CNT+=1
+		if [ $CNT -eq $DEVNUM ]
+		then
+			test -n "$LINE" && MANUFACTURER="$LINE"
+			break
+		fi
+	done
+	IFS=$OLDIFS
 }
 
 
@@ -30,23 +150,13 @@ VID1="????"
 PID1="????"
 VID2="????"
 PID2="????"
-DEVICE=""
-declare -i TESTONLY=0 BATCHMODE=0
+SEP=":"
+declare -i TESTONLY=0 RET=0 CNT
 
 while [ -n "$1" ]
 do
 	case "$1" in
 		"--dry-run")	let TESTONLY=1;;
-		"--batch")		let BATCHMODE=1
-						if [ -n "$2" ]
-						then
-							shift
-							DEVICE="$@"
-							break
-						else
-							echo "missing arguments for switch $1"
-							commandlinehelp 1
-						fi;;
 		"--version")	version;;
 		"--help")		commandlinehelp 0;;
 		*)				echo "unrecognized switch $1"
@@ -58,107 +168,83 @@ done
 
 if [ $UID -ne 0 ]
 then
-	test $BATCHMODE -eq 0 && echo -e "\nyou must be root to run this script!"
+	echo -e "\nyou must be root to run this script!"
 	exit 1
 fi
 
 # disclaimer
-if [ $BATCHMODE -eq 0 ]
-then
-	echo -e "\nWARNING: before probing, please ensure that your USB devices are plugged"
-	echo "in and that your system's USB support is properly configured"
-fi
+echo -e "\nWARNING: before probing, please ensure that your USB devices are plugged"
+echo "in and that your system's USB support is properly configured"
 
 if [ ! -f "$DEVICES" ]
 then
-	test $BATCHMODE -eq 0 && echo -e "\nUSB devices file not found!"
+	echo -e "\nUSB devices file not found!"
 	exit 1
 fi
 
 # list USB devices
-if [ $BATCHMODE -eq 0 ]
-then
-	echo -e "\nYour USB devices:"
-	BUFFER=$(grep -i product "$DEVICES")
-	declare -i LINES=0
-	OLDIFS=$IFS
-	IFS=$'\n'
-	for LINE in $BUFFER
-	do
-	let LINES+=1
-	echo -n "$LINES: "
-	echo $LINE | cut -d '=' -f 2-
-	done
-	if [ $LINES -lt 1 ]
-	then
-		echo "no USB device found!"
-		exit 1
-	fi
+echo -e "\nyour USB devices:"
+list_devices
 
-	# prompt for a device
+# prompt for a device number
+echo -en "\nenter device to probe (1-$CNT): "
+read DEVNUM
+while [ $DEVNUM -lt 1 -o $DEVNUM -gt $CNT ]
+do
+	echo "incorrect value"
 	echo -en "\nenter device to probe (1-$LINES): "
 	read DEVNUM
-	while [ $DEVNUM -lt 1 -o $DEVNUM -gt $LINES ]
-	do
-		echo "incorrect value"
-		echo -en "\nenter device to probe (1-$LINES): "
-		read DEVNUM
-	done
+done
 
-	# get device
-	let LINES=0
-	DEVICE=""
-	for LINE in $BUFFER
-	do
-		let LINES+=1
-		if [ $LINES -eq $DEVNUM ]
-		then
-			DEVICE="$(echo $LINE | cut -d '=' -f 2-)"
-			break
-		fi
-	done
-	IFS=$OLDIFS
-else
-	grep -B2 "$DEVICE" "$DEVICES"  > /dev/null 2>&1 || exit 1
-fi
+# get device info from table
+get_ID
+get_product
+get_manufacturer
 
-# get IDs
-BUFFER=$(grep -B2 "$DEVICE" "$DEVICES" | grep -i vendor | tr -s ' ' '=')
-if [ $? -ne 0 ]
+# get VID1/PID1
+if [ ${#ID} -eq 9 -a "${ID:4:1}" == "$SEP" ]
 then
-	test $BATCHMODE -ne 0 && exit 1
+	VID1=${ID:0:4}
+	PID1=${ID:5:4}
 else
-	VID1=$(echo $BUFFER | cut -d '=' -f 3)
-	PID1=$(echo $BUFFER | cut -d '=' -f 5)
+	echo -e "\ncannot determine VID1/PID1 for device $PRODUCT$MANUFACTURER ($ID)"
+	exit 1
 fi
 
 type $BIN > /dev/null 2>&1
 if [ $? -ne 0 ]
 then
-	test $BATCHMODE -eq 0 && echo -e "\ncannot find $BIN in \$PATH, test mode assumed"
-	let TESTONLY=1
+	echo -e "\ncannot find $BIN in \$PATH, test mode assumed"
+	let RET+=1
+#	let TESTONLY=1
 fi
 
 if [ $TESTONLY -eq 0 ]
 then
-	eci-load1 0x$VID1 0x$PID1 0xDEAD 0xFACE > /dev/null 2>&1
-	BUFFER=$(grep -B2 "$DEVICE" "$DEVICES" | grep -i vendor | tr -s ' ' '=')
-	if [ $? -ne 0 ]
+	echo -e "\nprobing, please wait.."
+	$BIN 0x$VID1 0x$PID1 0xDEAD 0xFACE > /dev/null 2>&1
+
+	# list USB devices
+	echo -e "\nyour USB devices now:"
+	list_devices
+
+	# get device info from table
+	get_ID
+	get_product
+	get_manufacturer
+
+	if [ ${#ID} -eq 9 -a "${ID:4:1}" == "$SEP" ]
 	then
-		test $BATCHMODE -ne 0 && exit 1
+		VID2=${ID:0:4}
+		PID2=${ID:5:4}
 	else
-		VID2=$(echo $BUFFER | cut -d '=' -f 3)
-		PID2=$(echo $BUFFER | cut -d '=' -f 5)
+		echo -e "\ncannot determine VID2/PID2 for device $PRODUCT$MANUFACTURER ($ID)"
+		let RET+=1
 	fi
 fi
 
 # display results
-test $BATCHMODE -eq 0 && echo -e "\nprobed USB device: $DEVICE"
-if [ $BATCHMODE -eq 0 ]
-then 
-	echo "VID1=$VID1, PID1=$PID1"
-	echo "VID2=$VID2, PID2=$PID2"
-else
-	echo "$VID1 $PID1 $VID2 $PID2"
-fi
-exit 0
+echo -e "\nprobed USB device: $PRODUCT$MANUFACTURER"
+echo "VID1=$VID1, PID1=$PID1"
+echo "VID2=$VID2, PID2=$PID2"
+exit $RET
