@@ -137,7 +137,12 @@ if [ -s $nomadsl ]; then
     cp -f $nomadsl $nombak
     echo "ok"
     echo -n "Modifying $nomadsl... "
-    sed s£"^pty \".*"£"pty \"$3 -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2\""£ $nomadsl | sed s£"^user \".*"£"user \"$1\""£ >$nomadsl
+	TMPFILE="/tmp/${0##*/}.tmp"
+	TMP=$(echo "$3" | sed "s/\//\\\\\//g")
+	echo "s/^pty .\+/pty \\\"$TMP -vpi $6 -vci $7 -vendor 0x$vid2 -product 0x$pid2\\\"/" > $TMPFILE
+	echo "s/^user .\+/user \\\"$1\\\"/" >> $TMPFILE
+	sed -f $TMPFILE $nombak > $nomadsl
+	rm -f $TMPFILE
     echo "ok"
 else
     echo -n "Creating $nomadsl... "
