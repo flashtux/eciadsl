@@ -428,15 +428,15 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 				printf("\n");
 			}
 		}
-		if (block.request_type == 0x80 && block.request == 0xd7
-			 && block.index == 0x85d6)
+		if (block.request_type == 0xc0 && block.request == 0xd7
+			 && block.index == 0x856d)
 		{
 			printf("Progress indicator is %02x ", block.buf[0]);
 			if(block.buf[0] == 0x1 || block.buf[0] == 0x2 
 						|| block.buf[0] == 0xa0) {
 				printf("No Signal !\n");
 			} else {
-				printf("Training...");
+				printf("Training...\n");
 			}
 		}
 #ifndef TESTECI
