@@ -18,6 +18,7 @@
 #define HDLC_HEADER (short)0x03ff
 #endif
 
+#define PPP_BUF_SIZE (64*1024)
 
 /*
 	From usermode/util.c
@@ -86,6 +87,7 @@ static int open_atmdevice(char * cp)
 		fprintf(stderr,"error openning atm socket\n");
 		return 0;
 	}
+	qos.txtp.max_sdu = qos.rxtp.max_sdu = PPP_BUF_SIZE;
 
 /*	info("open device pppoatm\n"); */
 	
