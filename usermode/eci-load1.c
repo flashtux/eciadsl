@@ -135,7 +135,6 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <sys/time.h>
 #include <sys/types.h>
 #include <sys/signal.h>
@@ -145,12 +144,15 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 
 #include "pusb.h"
 #include "modem.h"
+#include "util.h"
 
 #define TIMEOUT 1000
 #define ECILOAD_TIMEOUT 20
 
 /* just for testing without USB */
 /*#define TESTECI*/
+
+extern struct config_t config;
 
 struct eci_firm_block
 {
@@ -362,12 +364,16 @@ void version(const int full)
 void usage(const int ret)
 {
 	printf("usage:\n");
-	printf("       eci-load1 [<switch>..] [VID1 PID1 VID2 PID2] <firmware.bin>\n");
+	printf("       eci-load1 [<switch>..] [[VID1 PID1 VID2 PID2] <firmware.bin>]\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
 	printf("       -h or --help      show this help message then exit\n");
 	printf("       -V or --version   show version information then exit\n");
 	printf("       -t or --timeout   override the default timeout value (in sec)\n");
+	printf("if ALL other parameters are omitted, the ones from "
+			CONF_PATH CONF_DIR "/eciadsl.conf are assumed\n");
+	printf("if only the firmware.bin is passed, default VID/PID for ECI HiFocus modem\n");
+	printf("are assumed if no VID/PID can be found in the config file");
 	_exit(ret);
 }
 
@@ -387,16 +393,6 @@ void fail(void)
 	_exit(-1);
 }
 
-void get_unsigned_value(const char* param, unsigned int* var)
-{
-	unsigned int value;
-	char* chk;
-
-	value = (unsigned int) strtoul(param, &chk, 10);
-	if (! *chk)
-		*var = value;
-}
-
 int main(int argc, char** argv)
 {
 	const char* file;
@@ -407,6 +403,10 @@ int main(int argc, char** argv)
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
 	pid_t child_pid;
+
+	/* read the configuration file */
+
+	read_config_file();
 
 	/* parse command line options */
 
@@ -435,22 +435,49 @@ int main(int argc, char** argv)
 	if (argc == 2)
 	{
 		file = argv[1];
-		vid1 = EZUSB_VENDOR;
-		pid1 = EZUSB_PRODUCT;
-		vid2 = GS_VENDOR;
-		pid2 = GS_PRODUCT;
+		if (config.vid1)
+			vid1 = config.vid1;
+		else
+			vid1 = EZUSB_VENDOR;
+		if (config.pid1)
+			pid1 = config.pid1;
+		else
+			pid1 = EZUSB_PRODUCT;
+		if (config.vid2)
+			vid2 = config.vid2;
+		else
+			vid2 = GS_VENDOR;
+		if (config.pid2)
+			pid2 = config.pid2;
+		else
+			pid2 = GS_PRODUCT;
 	}
 	else
 	if (argc == 6)
 	{
 		file = argv[5];
-		vid1 = strtoul(argv[1], NULL, 0);
-		pid1 = strtoul(argv[2], NULL, 0);
-		vid2 = strtoul(argv[3], NULL, 0);
-		pid2 = strtoul(argv[4], NULL, 0);
+		get_hexa_value(argv[1], (unsigned int*)&vid1);
+		get_hexa_value(argv[2], (unsigned int*)&pid1);
+		get_hexa_value(argv[3], (unsigned int*)&vid2);
+		get_hexa_value(argv[4], (unsigned int*)&pid2);
 	}
 	else
-		usage(-1);
+	{
+		if (config.vid1 && config.pid1 && config.vid2 && config.pid2
+			&& config.firmware)
+		{
+			vid1 = config.vid1;
+			pid1 = config.pid1;
+			vid2 = config.vid2;
+			pid2 = config.pid2;
+			file = config.firmware;
+		}
+		else
+		{
+			printf("no default parameters found in config file, couldn't assume default values\n");
+			usage(-1);
+		}
+	}
 
 	signal(SIGALRM, sigtimeout);
 	alarm(option_timeout?option_timeout:ECILOAD_TIMEOUT);

@@ -25,7 +25,6 @@
 #define _GNU_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <fcntl.h>
 #include <sys/time.h>
 #include <unistd.h>
@@ -36,6 +35,7 @@
 
 #include "pusb.h"
 #include "modem.h"
+#include "util.h"
 
 #define TIMEOUT 2000
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enough */
@@ -43,6 +43,8 @@
 
 /* just for testing without USB */
 /*#define TESTECI*/
+
+extern struct config_t config;
 
 struct usb_block
 {
@@ -468,12 +470,16 @@ void version(const int full)
 void usage(const int ret)
 {
 	printf("usage:\n");
-	printf("       eci-load2 [<switch>..] [VID2 PID2] <synch.bin>\n");
+	printf("       eci-load2 [<switch>..] [[VID2 PID2] <synch.bin>]\n");
 	printf("switches:\n");
 	printf("       -v or --verbose   be verbose\n");
 	printf("       -h or --help      show this help message then exit\n");
 	printf("       -V or --version   show version information then exit\n");
 	printf("       -t or --timeout   override the default timeout value (in sec)\n");
+	printf("if ALL other parameters are omitted, the ones from "
+			CONF_PATH CONF_DIR "/eciadsl.conf are assumed\n");
+	printf("if only the synch.bin is passed, default VID/PID for ECI HiFocus modem\n");
+	printf("are assumed if no VID/PID can be found in the config file");
 	_exit(ret);
 }
 
@@ -491,16 +497,6 @@ void sigtimeout()
 	exit(-1);
 }
 
-void get_unsigned_value(const char* param, unsigned int* var)
-{
-	unsigned int value;
-	char* chk;
-
-	value = (unsigned int) strtoul(param, &chk, 10);
-	if (! *chk)
-		*var = value;
-}
-
 int main(int argc, char** argv)
 {
 	const char* file;
@@ -509,6 +505,12 @@ int main(int argc, char** argv)
 	int i, j;
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
+
+	/* read the configuration file */
+
+	read_config_file();
+
+	/* parse command line options */
 
 	for (i = 1, j = 1; i < argc; i++)
 	{
@@ -532,20 +534,38 @@ int main(int argc, char** argv)
 
 	argc = j;
 	
-	if (argc != 4 && argc != 2)
-		usage(-1);
-
 	if (argc == 2)
 	{
 		file = argv[1];
-		vid2 = GS_VENDOR;
-		pid2 = GS_PRODUCT;
+		if (config.vid2)
+			vid2 = config.vid2;
+		else
+			vid2 = GS_VENDOR;
+		if (config.pid2)
+			pid2 = config.pid2;
+		else
+			pid2 = GS_PRODUCT;
+	}
+	else
+	if (argc == 4)
+	{
+		file = argv[3];
+		get_hexa_value(argv[1], (unsigned int*)&vid2);
+		get_hexa_value(argv[2], (unsigned int*)&pid2);
 	}
 	else
 	{
-		file = argv[3];
-		vid2 = strtoul(argv[1], NULL, 0);
-		pid2 = strtoul(argv[2], NULL, 0);
+		if (config.vid2 && config.pid2 && config.synch)
+		{
+			vid2 = config.vid2;
+			pid2 = config.pid2;
+			file = config.synch;
+		}
+		else
+		{
+			printf("no default parameters found in config file, couldn't assume default values\n");
+			usage(-1);
+		}
 	}
 
 	signal(SIGUSR1, sigusr1);
@@ -568,7 +588,7 @@ int main(int argc, char** argv)
 	alarm(0);
 
 	if (status)
-		return 1;
+		return(1);
 
 	printf("ECI load 2: success\n");
 	fflush(stdout);

@@ -37,6 +37,14 @@
 #error "ETC_DIR must be defined"
 #endif
 
+#ifndef CONF_PATH
+#error "CONF_PATH must be defined"
+#endif
+
+#ifndef CONF_DIR
+#error "CONF_DIR must be defined"
+#endif
+
 /*
 #define AND &&
 #define OR ||
