@@ -512,7 +512,7 @@ fi
 
 # check for /var/log or /tmp partitions full (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
-# check for $(ETC_DIR)/resolv.conf validity (TODO)
+# check for $ETC_DIR/resolv.conf validity (TODO)
 # check for an already running pppd & pppoeci, while no ppp0 (TODO)
 # check for $PPPD_DIR/pap-secrets too (TODO)
 # check for either pap-secrets or chap-secrets, how? (TODO)
