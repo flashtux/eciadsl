@@ -1,6 +1,5 @@
 /* pppoatm.c - pppd plugin to implement PPPoATM protocol.
  *
- * Copyright 2002 VAlette jean-sebastien <jeanseb.valette@free.fr>
  * Copyright 2000 Mitchell Blank Jr.
  * Based in part on work from Jens Axboe and Paul Mackerras.
  *
@@ -9,10 +8,10 @@
  *  as published by the Free Software Foundation; either version
  *  2 of the License, or (at your option) any later version.
  */
-#include "pppd.h"
-#include "pathnames.h"
-#include "fsm.h" /* Needed for lcp.h to include cleanly */
-#include "lcp.h"
+#include "../../pppd.h"
+#include "../../pathnames.h"
+#include "../../fsm.h" /* Needed for lcp.h to include cleanly */
+#include "../../lcp.h"
 #include <atm.h>
 //#include <linux/atm.h>
 #include <linux/atmdev.h>
@@ -83,7 +82,7 @@ static int setdevname_pppoatm(const char *cp)
 {
 	struct sockaddr_atmpvc addr;
 	//int fd;
-	extern struct stat devstat;
+	//extern struct stat devstat;
 	/*if (device_got_set) {
 		info("device already set");
 		return 1;
@@ -100,10 +99,10 @@ static int setdevname_pppoatm(const char *cp)
 	/*if (!dev_set_ok())
 		return 1;*/
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
-	strlcpy(devnam, cp, sizeof devnam);
-	//strlcpy(devnam, "ppp", sizeof devnam);
+//	strlcpy(devnam, cp, sizeof devnam);
+	strlcpy(devnam, "pppoatm", sizeof devnam);
 	info("devnam = %s", devnam);
-	devstat.st_mode = S_IFSOCK;
+	// devstat.st_mode = S_IFSOCK;
 	if(the_channel != &pppoatm_channel) {
 		info("registering channel\n");
 		the_channel = &pppoatm_channel;
@@ -224,6 +223,50 @@ static int set_line_discipline_pppoatm(int fd)
 	if (ioctl(fd, ATM_SETBACKEND, &be) < 0)
 		fatal("ioctl(ATM_SETBACKEND): %m");
 
+//	if(ioctl(fd, PPPIOCGCHAN,&index) == -1)
+//	{
+//		error("Couldn't get channel number: %m");
+//		goto set_disc_err;
+//	}
+//	info("using channel %d", index);
+//	dev_fd = open("/dev/ppp", O_RDWR);
+//	if (dev_fd < 0) {
+//		error("Couldn't reopen /dev/ppp: %m");
+//		goto set_disc_err;
+//	}
+//	info("new fd : %d", dev_fd) ;
+//	if(ioctl(dev_fd, PPPIOCATTCHAN,&index) == -1)
+//	{
+//		error("Couldn't attach channel number: %d", index);
+//		goto set_disc_err_close;
+//	}
+//	flags = fcntl(dev_fd, F_GETFL);
+//	if(flags == -1 || fcntl(dev_fd, F_SETFL, flags | O_NONBLOCK) == -1)
+//		warn("Couldn't set /dev/ppp (channel) to non block: %m");
+//
+//	set_ppp_fd(dev_fd);
+//	
+//	ifunit = req_unit;
+//	info("ifunit = %d", ifunit);
+//	/*x = ioctl( dev_fd, PPPIOCNEWUNIT, &ifunit);
+//	if(x<0 && req_unit >= 0 && errno == EEXIST)
+//	{
+//		warn("Couldn't allocate PPP unit %d as it is already in use");
+//		ifunit = -1;
+//		x = ioctl( dev_fd, PPPIOCNEWUNIT, &ifunit);
+//	}
+//	if(x < 0)
+//	{
+//		error("Couldn't create new ppp unit %m");
+//		goto set_disc_err_close;
+//	}
+//	add_fd(fd);
+//	if(ioctl(fd, PPPIOCCONNECT, &ifunit) <0)
+//	{
+//		error("Couoldn't attach to PPP unit %d: %m", ifunit);
+//		goto set_disc_err_close;
+//	}*/
+//	return dev_fd ;
 	return generic_establish_ppp(fd) ;
 
 set_disc_err_close:
@@ -239,6 +282,11 @@ static void reset_line_discipline_pppoatm(int fd)
 	//atm_backend_t be = ATM_BACKEND_RAW;
 	/* 2.4 doesn't support this yet */
 	/*(void) ioctl(fd, ATM_SETBACKEND, &be);*/
+//	close(dev_fd);
+//	dev_fd = -1;
+//	if(ifunit >=0 && ioctl(dev_fd, PPPIOCDETACH) <0)
+//		error("Couldn't release ppp unit: %m");
+//	remove_fd(dev_fd);
 	generic_disestablish_ppp(fd) ;
 }
 
@@ -257,8 +305,8 @@ static void send_config_pppoatm(int mtu, u_int32_t asyncmap,
 	strlcpy(ifr.ifr_name, ifname, sizeof(ifr.ifr_name));
 	ifr.ifr_mtu = mtu;
 	if (ioctl(sock, SIOCSIFMTU, (caddr_t) &ifr) < 0)
-		//warn("ioctl(SIOCSIFMTU): %m");
-		fatal("ioctl(SIOCSIFMTU): %m");
+		warn("ioctl(SIOCSIFMTU): %m");
+		//fatal("ioctl(SIOCSIFMTU): %m");
 	(void) close (sock);
 }
 
