@@ -22,7 +22,9 @@ Sorted according to priority (the upper in the list, the prior):
   -? fix ETC_DIR use (separate installation and syst configuration uses)
   -? updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
   - some more checks in ./configure (see TODO inside)
+  - --with-kernel=<PATH> in ./configure
 + unify websites: eciadsl.sf.net update/move to flashtux
+- update the spec file
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)

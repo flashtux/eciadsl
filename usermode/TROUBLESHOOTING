@@ -127,12 +127,42 @@ Q:	ecidoctor reports me that the DABUSB module is loaded, or startmodem says
 A:	You can remove the dabusb module from your system using eciconf.
 
 	You can also directly call remove_dabusb.
+
 	Or, manually, unplug your modem, then type the following commands:
 		modprobe -r dabusb
 		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
 		depmod -a
+
+	If the module cannot be removed, try to enter init 1 mode (close all apps,
+	then in console mode, login as root then type `init 1`, now run
+	remove_dabusb).
+
 	If this kernel has been compiled by hand, don't forget to remove dabusb
 	support from the kernel configuration too.
+
+
+================================================================================
+Q:	No way to remove dabusb! at each boot, it is loaded again!
+
+--------------------------------------------------------------------------------
+A:	Jump to the previous question, but use the manual method.
+
+
+================================================================================
+Q:	I try to remove the dabusb module, but always get:
+	dabusb: Device or resource busy
+
+--------------------------------------------------------------------------------
+A:	Jump to the previous question.
+
+
+================================================================================
+Q:	My modem seems initialized at boot, the LEDs are flashing or fixed. Do this
+	mean that my system recognized my modem and that I don't have to install
+	the driver?
+
+--------------------------------------------------------------------------------
+A:	No! This is not friendly at all.
 
 
 ================================================================================
@@ -256,6 +286,8 @@ A:	Jump to the previous question.
 
 	If the default route (UG) is set to eth0, remove it:
 		route del default -net eth0
+	or remove the "gateway" line from your /etc/sysconfig/network, or disable
+	your LAN network before launching startmodem.
 
 	If the default route is NOT set to ppp0 even if ppp0 is up:
 		route add default dev ppp0
@@ -332,21 +364,25 @@ A:	Is your USB chipset an old VIA one? Some are known to be buggy and to have
 
 ================================================================================
 Q:	I see strange characters on the terminal/console after startmodem completes,
-	and I get no PPP connection.
+	and I get no PPP connection:
+	Connect Modem ...
+	~ÿ}#ְ!}!}!} }4}"}&} } } } }%}&רןpֶ}
 
 --------------------------------------------------------------------------------
 A:	You are not drunk, pppd cannot communicate with pppoeci (part of the driver)
-	and it must come from a bad pppd version, from a bad ppp configuration in
-	kernel, or because you're using the driver on a non supported system.
+	and it must come from a bad pppd version, from a bad ppp configuration
+	inside the kernel, or because you're using the driver on a non supported
+	system.
 
 
 ================================================================================
 Q:	Is this possible to launch startmodem at boot time?
 
 --------------------------------------------------------------------------------
-A:	Yes it is, using init.d. Some pre-configured scripts/configurations are
-	available, ask google for them or check the cnx package available from the
-	download section at the official eciadsl website.
+A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
+	users. Some pre-configured scripts/configurations are available, ask google
+	for them or check the cnx package available from the download section at the
+	official eciadsl website.
 
 
 ================================================================================
@@ -564,3 +600,20 @@ Q:	Can I use this driver under GNU/Hurd, Darwin, QNX or BeOS or other systems?
 
 --------------------------------------------------------------------------------
 A:	No.
+
+
+================================================================================
+Q:	eciconf.sh immediately fails, saying:
+	wish: command not found
+
+--------------------------------------------------------------------------------
+A:	Install tcl/tk, or run eciconftxt.sh.
+
+
+================================================================================
+Q:	After a few minutes of Internet access, nothing seems to work anymore. No
+	IP ping, neither http access nor nslookup.
+
+--------------------------------------------------------------------------------
+A:	Often seen on some recent distros (MDK9, Slackware 8.1 and RH8).
+	Think it's network/firewall related, but not sure.
