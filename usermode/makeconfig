@@ -104,12 +104,16 @@ for auth in "chap" "pap"
         cp -f $nomsecret $nombak
         echo "ok"
         echo -n "Modifying $nomsecret... "
-        echo -e "\"$1\"\t*\t\"$2\"\t*\t" >>$nomsecret
+		TMPFILE="/tmp/${0##*/}.tmp"
+		TMP=$(echo "$1" | sed "s/\\\/\\\\\\\\\\\/g")
+		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*" $nombak >$nomsecret
+        echo -e "\"$1\"\t*\t\"$2\"\t*" >>$nomsecret
+		rm -f $TMPFILE
         echo "ok"
     else
         echo -n "Creating $nomsecret... "
         echo "# Secrets for authentication using $auth" >$nomsecret
-        echo -e "\"$1\"\t*\t\"$2\"\t*\t" >>$nomsecret
+        echo -e "\"$1\"\t*\t\"$2\"\t*" >>$nomsecret
         echo "ok"
     fi
 }
