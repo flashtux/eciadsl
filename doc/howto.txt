@@ -1,0 +1,47 @@
+How-to pour le driver Linux du modem ECI USB
+
+1) A qui s'adresse ce document ?
+
+Ce document s'adresse à tous les possesseurs du modem
+ECI USB voulant l'utiliser sous Linux.
+
+2) Configuration requise
+
+Assurez vous d'abord vous possédez un noyau Linux 
+de version superieure ou egale a 2.4.7-10
+
+Distributions où le driver fonctionne : 
+Mandrake Linux 8.1 (noyau 2.4.8-26mk)
+Redhat Linux 7.2 (noyau 2.4.7-10)
+
+Distributions où le driver ne fonctionne pas :
+Redhat Linux 7.1 (noyau 2.4.2-2)
+ 
+Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
+avec un autre distribution ou avec un noyau plus ancien,
+n'hésitez pas a contacter à nous contacter.
+
+3) Procédure d'installation (à ne faire qu'une seule fois)
+
+Connectez vous en tant que root puis tapez :
+make
+make install
+
+Tapez les commandes suivantes en remplacant VERSION par la version de votre noyau Linux : 
+rm -f /lib/modules/VERSION/dabusb.o.gz
+depmod -a
+
+4) Procédure de connection (à reproduire à chaque connection Internet)
+
+rmmod usb-uhci
+modprobe usb-uhci
+mount -t usbdevfs none /proc/bus/usb
+startmodem>log
+
+5) Contacts
+
+Pour toute question, abonnez-vous à la liste de diffusion de ce projet 
+en envoyant un mail vide à eci-request@ml.free.fr?subject=subscribe
+et postez ensuite vos remarques ou suggestions à eci@ml.free.fr 
+  
+
