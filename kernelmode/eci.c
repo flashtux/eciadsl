@@ -778,17 +778,17 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 		usb_free_urb(i->bulk_urb);
 		i->bulk_urb = 0;
 	}
-	if(i->bh_bulk) {
-		tasklet_disable(i->bh_bulk);
-		i->bh_bulk = 0;
+	if(i->bh_bulk.func) {
+		tasklet_disable(&i->bh_bulk);
+		i->bh_bulk.func = 0;
 	}
-	if(i->bh_iso) {
-		tasklet_disable(i->bh_iso);
-		i->bh_iso = 0;
+	if(i->bh_iso.func) {
+		tasklet_disable(&i->bh_iso);
+		i->bh_iso.func = 0;
 	}
-	if(i->bh_atm) {
-		tasklet_disable(i->bh_atm);
-		i->bh_atm = 0;
+	if(i->bh_atm.func) {
+		tasklet_disable(&i->bh_atm);
+		i->bh_atm.func = 0;
 	}
 	_uni_cell_list_free(&i->iso_cells);
 	_uni_cell_list_free(&i->bulk_cells);
