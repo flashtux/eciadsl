@@ -1596,7 +1596,7 @@ int main(int argc, char** argv)
 						my_vpi, my_vci, vendor, product,
 						verbose, logfile,
 						verbose?"en":"dis");
-		if (pusb_set_interface_alt)
+		if (pusb_set_interface_alt > -1)
 			fprintf(stderr, " pusb_set_interface_alt=%d\n", pusb_set_interface_alt);
 		if (data_timeout)
 			fprintf(stderr, " data timeout=%d\n", data_timeout);
@@ -1820,7 +1820,7 @@ int main(int argc, char** argv)
 
 	/* set interface */
 
-	if (pusb_set_interface_alt != -1)
+	if (pusb_set_interface_alt > -1)
 		if (pusb_set_interface(fdusb, 0, pusb_set_interface_alt) < 0)
 		{
 			snprintf(errText, ERR_BUFSIZE,
