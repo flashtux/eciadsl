@@ -112,13 +112,13 @@ case "$1" in
 	OLDIFS="$IFS"
 	IFS="
 "
-	for LINE in $(grep -v -E "[ \t]#" "$providers_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$providers_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
 		providers="$providers|$LINE"
 	done
-	for LINE in $(grep -v -E "[ \t]#" "$providers_db" | tr -s "\t" "|" | cut -d '|' -f 2); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$providers_db" | tr -s "\t" "|" | cut -d '|' -f 2); do
 		servers_dns1="$servers_dns1|$LINE"
 	done
-	for LINE in $(grep -v -E "[ \t]#" "$providers_db"| tr -s "\t" "|" | cut -d '|' -f 3); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$providers_db"| tr -s "\t" "|" | cut -d '|' -f 3); do
 		servers_dns2="$servers_dns2|$LINE"
 	done
     providers="$providers|Other"
@@ -129,13 +129,13 @@ case "$1" in
     modems="Select your modem"
     vid1pid1="*"
     vid2pid2="*"
-	for LINE in $(grep -v -E "[ \t]#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 1); do
 		modems="$modems|$LINE"
 	done
-	for LINE in $(grep -v -E "[ \t]#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 2); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 2); do
 		vid1pid1="$vid1pid1|$LINE"
 	done
-	for LINE in $(grep -v -E "[ \t]#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 3); do
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d '|' -f 3); do
 		vid2pid2="$vid2pid2|$LINE"
 	done
 	IFS="$OLDIFS"
