@@ -281,6 +281,7 @@ typedef unsigned char byte ;
 /*-- C O N S T A N T S -------------------------------------------------*/
 /*-- V A R I A B L E S -------------------------------------------------*/
 /*-- F U N C T I O N S -------------------------------------------------*/
+static void eci_bh_atm (unsigned long param);
 
 /*----------------------------------------------------------------------*/
 
@@ -654,6 +655,8 @@ struct eci_instance 		/*	Private data for driver	*/
 	unsigned char 		*pooling_buffer;
 	char			iso_celbuf[ATM_CELL_SZ]; /* incomplete cell */
 	int			iso_celbuf_pos;/*	Pos in cell buf	*/
+	struct tasklet_struct	bh_atm;		/*	outgoing datas	BH */
+	struct sk_buff_head	txq;		/*	outgoing datas Q */
 	
 	/* -- test -- */
 	struct atm_vcc		*pcurvcc ;
@@ -891,6 +894,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 #ifdef __USE_ATM__
 
 	DBG_OUT(" doing ATM\n");
+	memset(&out_instance->bh_atm, 0, sizeof(out_instance->bh_atm)) ;
+	out_instance->bh_atm.func	= eci_bh_atm ;
+	out_instance->bh_atm.data	= (unsigned long) out_instance ;
+	skb_queue_head_init (&out_instance->txq) ;
+
 
 	out_instance->pcurvcc 		= NULL ;
 	out_instance->pbklogaal5	= NULL ;
@@ -1065,6 +1073,9 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 {
 	struct eci_instance *	lp_outinst	= NULL ;
 	int			lv_rc		= 0 ;
+
+	struct sk_buff		*lp_newskb = NULL;
+	unsigned long		flags;
 	
 	DBG_OUT("eci_atm_send in\n");
 
@@ -1094,7 +1105,7 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	/* Manage Send */
 	switch (vcc->qos.aal) {
 	case ATM_AAL5:
-		DBG_OUT("Manage new AAL5 data\n") ;
+/*		DBG_OUT("Manage new AAL5 data\n") ;
 		lv_rc = _eci_tx_aal5(vcc->vpi, vcc->vci, lp_outinst, skb) ;
 		if (lv_rc) {
 			ERR_OUT("_eci_tx_aal5 failed\n") ;
@@ -1102,6 +1113,19 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 		} else {
 			atomic_inc(&vcc->stats->tx) ;
 			DBG_OUT("AAL5 sent\n") ;
+		}
+*/
+		DBG_OUT("queue AAL5 data for bh_atm\n") ;
+		lp_newskb = alloc_skb (skb->len, in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
+		if (lp_newskb) {
+			skb_put(lp_newskb, skb->len) ;
+			memcpy(lp_newskb->data, skb->data, skb->len) ;
+			spin_lock_irqsave (&lp_outinst->txq.lock, flags);
+			__skb_queue_tail (&lp_outinst->txq, lp_newskb);
+			tasklet_schedule (&lp_outinst->bh_atm);
+			spin_unlock_irqrestore (&lp_outinst->txq.lock, flags);
+		} else {
+			ERR_OUT("not enough memory for skb\n") ;
 		}
 		break ;
 
@@ -1128,6 +1152,32 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 /*----------------------------------------------------------------------*/
 
 /* -- Private Functions ------------------------------------------------*/
+static void eci_bh_atm (unsigned long param) {
+	struct eci_instance * lp_instance = (struct eci_instance *)param ;
+	struct sk_buff *lp_skb = NULL ;
+	struct atm_vcc *lp_vcc = NULL ;
+	int lv_rc ;
+	
+	DBG_OUT("eci_bh_atm IN\n") ;
+	if (!(lp_vcc = lp_instance->pcurvcc)) {
+	       ERR_OUT("No VC ready no dequeue\n") ;
+	       return ;
+	}
+
+	while ((lp_skb = skb_dequeue(&lp_instance->txq))) {
+		DBG_OUT("Manage new AAL5 data\n") ;
+		lv_rc = _eci_tx_aal5(lp_vcc->vpi, lp_vcc->vci, lp_instance, lp_skb) ;
+		if (lv_rc) {
+			ERR_OUT("_eci_tx_aal5 failed\n") ;
+			atomic_inc(&lp_vcc->stats->tx_err) ;
+		} else {
+			atomic_inc(&lp_vcc->stats->tx) ;
+			DBG_OUT("AAL5 sent\n") ;
+		}
+		dev_kfree_skb (lp_skb);
+	}
+	DBG_OUT("eci_bh_atm OUT\n") ;
+}
 /*----------------------------------------------------------------------*/
 
 
