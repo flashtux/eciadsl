@@ -8,7 +8,6 @@
 
 #include "semaphore.h"
 
-#define _XOPEN_SOURCE
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
@@ -17,15 +16,39 @@
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
-int semaphore_init(union semun **count)
+/*
+  09/12/2003 Benoit PAPILLAULT
+
+  We define union semun here (in .c file) since it's not needed in .h
+  file.  Currently <sys/sem.h> includes <bits/sem.h> where union semun
+  is not defined, but _SEM_SEMUN_UNDEFINED is set to 1.
+*/
+
+#if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
+/* l'union semun est définie en incluant <sys/sem.h> */
+#else
+/* d'après X/OPEN nous devons la définir nous-même */
+union  semun
+{
+   int val;                           /* value for SETVAL */
+   struct semid_ds *buf;              /* buffer for IPC_STAT & IPC_SET */
+   unsigned short int *array;         /* array for GETALL & SETALL */
+   struct seminfo *__buf;             /* buffer for IPC_INFO */
+};
+#endif
+
+int semaphore_init(int count)
 {
     int sem;
+    union semun un;
 
     sem = semget(IPC_PRIVATE, 1, 0666);
     if (sem == -1)
         return -1;
 
-    if (semctl(sem, 0, SETVAL, count) == -1)
+    un.val = count;
+
+    if (semctl(sem, 0, SETVAL, un) == -1)
         return(-1);
 
     return(sem);
@@ -62,6 +85,8 @@ int semaphore_decr(int sem, int val)
 int semaphore_done(int sem)
 {
    union semun un;
+
+   /* union semun is ignored when used with IPC_RMID */
  
    if (semctl(sem, 0, IPC_RMID, un) == -1)
         return(-1);

@@ -54,7 +54,6 @@ char* exec_filename;
 /* the shared semaphore, defined as a global variable */
 
 int shared_sem = -1;
-union semun *shared_sem_data;
 
 /*		Synchronisation variables	*/
 int sync_started = 0;
@@ -632,14 +631,7 @@ int main(int argc, char** argv)
 	}
 
     /* create the shared semaphore with a count of 0 */
-	shared_sem_data=malloc(sizeof(union semun));
-	if (!shared_sem_data)
-	{
-        printf("ECI load 2: unable to allocate semaphore data structure");
-		fflush(stdout);
-        return(-1);
-	}
-    shared_sem = semaphore_init(&shared_sem_data);
+    shared_sem = semaphore_init(0);
     if (shared_sem == -1)
     {
         printf("ECI load 2: failed to create shared semaphore");

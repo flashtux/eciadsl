@@ -7,30 +7,22 @@
   License  : GPL
 
   $Id$
+
+  TODO list:
+  - document the use of "union" in semaphore.c
+  - document why we define "union" in semaphore.h
+  - document semaphore_init(int count)
+  - make a separate test program
 */
-
-#if defined(__GNU_LIBRARY__) && defined(_SEM_SEMUN_UNDEFINED)
-/* l'union semun est définie en incluant <sys/sem.h> */
-#else
-/* d'après X/OPEN nous devons la définir nous-même */
-typedef union  semun
-{
-   int val;                           /* value for SETVAL */
-   struct semid_ds *buf;              /* buffer for IPC_STAT & IPC_SET */
-   unsigned short int *array;         /* array for GETALL & SETALL */
-   struct seminfo *__buf;             /* buffer for IPC_INFO */
-};
-#endif
-
-typedef union semun* semunptr;
 
 /*
   semaphore_init:
 
-  create a semaphore and return the semaphore id or -1 in case of errors
+  create a semaphore and return the semaphore id initialized with the
+  specified count or -1 in case of errors
 */
 
-int semaphore_init(union semun  **count);
+int semaphore_init(int count);
 
 /*
   semaphore_incr:

@@ -13,7 +13,9 @@
     added support for /dev/ptyXX. There was previously only /dev/ptmx
 */
 
-#define _XOPEN_SOURCE /* for grantpt in <stdlib.h> */
+/*
+  We need -D_XOPEN_SOURCE for grantpt in <stdlib.h>
+*/
 
 #include <stdio.h>
 #include <stdlib.h>
