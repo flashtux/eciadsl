@@ -64,7 +64,7 @@
 
 #define DBG_OUT(fmt, argz...) \
 	printk( \
-		KERN_DEBUG __FILE__ "" fmt, \
+		KERN_DEBUG __FILE__ " " fmt, \
 		##argz \
 	)
 
@@ -285,6 +285,8 @@ typedef unsigned char byte ;
 
 #define ATM_CELL_HDR		(size_t)5	/* Cell Header lenght	*/
 #define ATM_CELL_PAYLOAD	(size_t)48	/* Cell Payload length	*/
+#define ATM_CELL_SZ \
+	(size_t)ATM_CELL_HDR + ATM_CELL_PAYLOAD	/* Full Cell Length	*/
 
 /*-- T Y P E S ---------------------------------------------------------*/
 
@@ -296,7 +298,7 @@ struct uni_cell {
 	 * Do not insert any thing before
 	 * To keep &uni_cell = &raw
 	 */
-	byte 		raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD] ;
+	byte 		raw[ATM_CELL_SZ] ;
 
 	/* -- for queue managements -- */
 	uni_cell_t * 	next ;
@@ -327,22 +329,22 @@ static int _uni_cell_format(
 /* 
  * Get VPI from cell (-1 if error) 
  */
-static int _uni_cell_getVpi(
+static inline int _uni_cell_getVpi(
 	uni_cell_t *		/* IN: the cell			*/
 ) ;
 
 /* Get VCI from cell (-1 if error) */
-static int _uni_cell_getVci(
+static inline int _uni_cell_getVci(
 	uni_cell_t *		/* IN: the cell			*/
 ) ;
 
 /* check if this is the last cell (true on error) */
-static bool _uni_cell_islast(
+static inline bool _uni_cell_islast(
 	uni_cell_t *		/* in: the cell			*/
 ) ;
 
 /* Get The Payload */
-static byte * _uni_cell_getPayload(
+static inline byte * _uni_cell_getPayload(
 	uni_cell_t *		/* in: the cell			*/
 ) ;
 
@@ -438,24 +440,27 @@ static void _aal5_free(aal5_t *) ;
 static void _aal5_clean(aal5_t *) ;
 
 /* Get VPI from AAL5 */
-static int _aal5_getVpi(
+static inline int _aal5_getVpi(
 	aal5_t *		/* IN: the frame		*/
 ) ;
 
 /* Get VCI from AAL5 */
-static int _aal5_getVci(
+static inline int _aal5_getVci(
 	aal5_t *		/* IN: the frame		*/
 ) ;
 
 /* check if this is the frame is completed */
-static bool _aal5_iscomplete(
+static inline bool _aal5_iscomplete(
 	aal5_t *		/* IN: the frame		*/
 ) ;
 
 /* check if this is the frame is valid */
-static bool _aal5_isvalid(
+static inline bool _aal5_isvalid(
 	aal5_t *		/* IN: the frame		*/
 ) ;
+
+/* Get the number of cells in the AAL5 frame */
+static inline int _aal5_getNbCell(aal5_t*) ;
 
 /* Append a new cell */
 static int _aal5_add_cell(
@@ -480,12 +485,6 @@ static int _eci_tx_aal5(
 		struct eci_instance *, struct sk_buff *
 ) ;
 static void _eci_bulk_callback(struct urb *) ;
-
-/* Interface ATM/USB */
-static int _eci_usb_send_urb(
-	struct eci_instance*,	/* IN: ref to mod info	*/
-	aal5_t*			/* IN: ref to AAL5 to send */
-) ;
 
 /*
  * Send data from USB (single uni cell) to ATM
@@ -1304,7 +1303,10 @@ static int eci_usb_send_urb(struct eci_instance *instance, struct aal5 *aal5)
 	struct urb	*urb;		/*	urb pointer to sent urb	*/
 
 	nbcell = aal5->nbcells;	/*	Must be change to use	*/
+	/*
 	buflen = ATM_CELL_PAYLOAD * 
+	*/
+	buflen = ATM_CELL_SZ * 
 			aal5->nbcells;	/*	abstraction function	*/
 	if(!(buf=(unsigned char *)kmalloc(buflen, GFP_KERNEL)))
 	{
@@ -1314,10 +1316,19 @@ static int eci_usb_send_urb(struct eci_instance *instance, struct aal5 *aal5)
 	bufpos = ret = 0;
 	while((cell = _aal5_get_next(aal5)))
 	{
+		/* Attention il faut ausi tenir compte du header
 		if( memcpy(buf + bufpos, cell->raw, ATM_CELL_PAYLOAD) ==
 			ATM_CELL_PAYLOAD)
+		*/
+		if (memcpy(
+				buf + bufpos, 
+				_uni_cell_getPayload(cell), 
+				ATM_CELL_SZ) != NULL)
 		{
+			/*
 			bufpos += ATM_CELL_PAYLOAD;
+			*/
+			bufpos += ATM_CELL_SZ;
 			ret++;
 		}
 		else
@@ -1425,6 +1436,7 @@ static int _eci_tx_aal5(
 		struct sk_buff *	pskb	
 ) {
 	size_t		lv_szdata	= 0 ;
+	size_t		lv_szpadd	= 0 ;
 	byte *		lp_data		= NULL ;
 	byte		lv_aal5trl[ATM_CELL_PAYLOAD] ;
 	u32		lv_crc32	= 0 ;
@@ -1464,6 +1476,15 @@ static int _eci_tx_aal5(
 	 *
 	 */
 
+	/* Compute size of padding */
+	lv_szpadd = (lv_szdata 
+			+ ATM_AAL5_TRAILER 
+			+ ATM_CELL_PAYLOAD - 1) 
+		/ ATM_CELL_PAYLOAD ;
+	lv_szpadd = (ATM_CELL_PAYLOAD * lv_szpadd) 
+		- ATM_AAL5_TRAILER 
+		- lv_szdata ;
+	
 	/* Set the padding and reset Control */
 	memset(lv_aal5trl, 0, ATM_CELL_PAYLOAD - 6) ;
 	
@@ -1471,18 +1492,28 @@ static int _eci_tx_aal5(
 	lv_aal5trl[ATM_CELL_PAYLOAD - 6] = (lv_szdata & 0xffff) >> 8 ;
 	lv_aal5trl[ATM_CELL_PAYLOAD - 5] = (lv_szdata & 0x00ff) ;
 
-	/* Set the CRC after compute */
+	/* 
+	 * Set the CRC after compute 
+	 */
+	/* CRC for Datas */
 	lv_crc32 = _calc_crc(
 				lp_data,
 				lv_szdata,
 				-1) ;
+	
+	/* CRC for padding */
+	for (lc_1 = 0 ; lc_1 < lv_szpadd ; lc_1++)
+		lv_crc32 = _calc_crc("\0", 1, lv_crc32) ;
+	
+	/* CRC for trailer */
 	lv_crc32 = ~ _calc_crc(
-			lv_aal5trl,
-			4,
+			lv_aal5trl 
+			+ (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER),
+			ATM_AAL5_TRAILER - 4,
 			lv_crc32) ;
 
 	lv_aal5trl[ATM_CELL_PAYLOAD - 4] = lv_crc32 >> 24 ;
-	lv_aal5trl[ATM_CELL_PAYLOAD - 3] = (lv_crc32 & 0x00ff0000) >> 12 ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 3] = (lv_crc32 & 0x00ff0000) >> 16 ;
 	lv_aal5trl[ATM_CELL_PAYLOAD - 2] = (lv_crc32 & 0x0000ff00) >> 8 ;
 	lv_aal5trl[ATM_CELL_PAYLOAD - 1] = (lv_crc32 & 0x000000ff) ;
 
@@ -1547,98 +1578,8 @@ static int _eci_tx_aal5(
 		return lv_rc ;
 	}
 
-	/* lp_aal5 is free by _eci_usb_send_urb */
-	return _eci_usb_send_urb(pinstance, lp_aal5) ;
-}
-
-/*----------------------------------------------------------------------
- * 
- * Forward the UNI Cell array to USB layer
- * Map each cells into happend bulk buffers
- * Here the Bulk payload is 64 bytes so we pad to FF
- *
- */
-static int _eci_usb_send_urb(
-	struct eci_instance *	pinstance,	/* IN: ref to mod info	*/
-	aal5_t *		paal5		/* IN: AAL5 to send	*/
-) {
-	int		lv_rc		= 0 ;
-	struct urb *	lp_eciurb 	= NULL ;
-	byte *		lp_buffer	= NULL ;
-	uni_cell_t *	lp_cell		= NULL ;
-	const size_t	lc_szcell	= ATM_CELL_HDR + ATM_CELL_PAYLOAD ;		
-
-	DBG_OUT("_eci_usb_send_urb in\n") ;
-	
-	/* Check Interface */
-	if (!pinstance || !paal5 || !_aal5_iscomplete(paal5)) {
-		ERR_OUT("Interface Error\n") ;
-		return -EINVAL ;
-	}
-
-	/* Send all cells in tx q */
-	while ((lp_cell = _aal5_get_next(paal5))) {
-		/*
-		 * Encapsulate the cells into Bulk data buffer
-		 *
-		 */
-		lp_buffer = (byte*) kmalloc(lc_szcell, GFP_KERNEL) ;
-		if (!lp_buffer) {
-			ERR_OUT("not enought memory to send the cell\n") ;
-			/* we continue to empty the queue */
-			continue ;
-		}
-
-		memcpy(
-			lp_buffer, 
-			_uni_cell_getPayload(lp_cell), 
-			lc_szcell) ;
-
-
-		/* Alloc the new URB */
-		lp_eciurb = usb_alloc_urb(0) ;
-		if (!lp_eciurb) {
-			ERR_OUT("Not enought Memory for iso urb") ;
-			kfree(lp_buffer) ;
-			/* we continue to empty the queue */
-			continue ;
-
-		}
-
-		/* Init the New URB */
-		FILL_BULK_URB(
-				lp_eciurb,
-				pinstance->usb_wan_dev,
-				usb_sndbulkpipe(
-					pinstance->usb_wan_dev, 
-					ECI_BULK_PIPE),
-				lp_buffer,
-				lc_szcell,
-				_eci_bulk_callback,
-				pinstance
-		) ;
-
-		/* Submit the new URB to the USB host */
-
-		lv_rc = usb_submit_urb(lp_eciurb) ;
-		if (lv_rc) {
-			/*
-			 * lv_rc == -6 == -ENXIO
-			 * This error means that this urb is already queued
-			 * It should be ignored ???
-			 */
-			ERR_OUT("usb_submit_urb failed [%d]\n", lv_rc) ;
-			usb_free_urb(lp_eciurb) ;
-			kfree(lp_buffer) ;
-			/* we continue to empty the queue */
-			continue ;
-		}
-		DBG_OUT("Bulk URB %p sent\n", lp_eciurb) ;
-	}
-	
-	DBG_OUT("_eci_usb_send_urb out\n") ;
-
-	return 0 ;
+	/* lp_aal5 is free by eci_usb_send_urb */
+	return eci_usb_send_urb(pinstance, lp_aal5) ;
 }
 
 /*----------------------------------------------------------------------
@@ -2010,7 +1951,8 @@ static int _uni_cell_format(
 	memcpy(lp_cell, pdata, size) ;
 
 	/* Fill the padding if needed */
-	if ((lv_padd = ATM_CELL_PAYLOAD - size) > 0)
+	lv_padd = ATM_CELL_PAYLOAD - size ;
+	if (lv_padd > 0)
 		memset(lp_cell + size, 0, lv_padd) ;
 
 	/*
@@ -2022,7 +1964,7 @@ static int _uni_cell_format(
 /*----------------------------------------------------------------------*/
 
 /* Get VPI from cell */
-static int _uni_cell_getVpi(
+static inline int _uni_cell_getVpi(
 		uni_cell_t *		pcell	/* IN: the cell		*/
 ) {
 	byte *	lp_raw = NULL ;
@@ -2051,7 +1993,7 @@ static int _uni_cell_getVpi(
 /*----------------------------------------------------------------------*/
 
 /* Get VCI from cell */
-static int _uni_cell_getVci(
+static inline int _uni_cell_getVci(
 		uni_cell_t *		pcell	/* IN: the cell		*/
 ) {
 	byte *	lp_raw = NULL ;
@@ -2082,7 +2024,7 @@ static int _uni_cell_getVci(
 /*----------------------------------------------------------------------*/
 
 /* check if this is the last cell */
-static bool _uni_cell_islast(
+static inline bool _uni_cell_islast(
 		uni_cell_t *		pcell	/* IN: the cell		*/
 ) {
 	bool lv_res ;
@@ -2107,7 +2049,7 @@ static bool _uni_cell_islast(
 /*----------------------------------------------------------------------*/
 
 /* Get The Payload */
-static byte * _uni_cell_getPayload(
+static inline byte * _uni_cell_getPayload(
 		uni_cell_t *		pcell	/* in: the cell		*/
 ) {
 	/*
@@ -2373,7 +2315,7 @@ static aal5_t * _aal5_alloc(void) {
 	aal5_t * lp_aal5 = NULL ;
 
 	lp_aal5 = kmalloc(sizeof(aal5_t), GFP_KERNEL) ;
-	if (lp_aal5) return NULL ;
+	if (!lp_aal5) return NULL ;
 	
 	if (_aal5_init(lp_aal5)) {
 	       kfree(lp_aal5) ;
@@ -2425,7 +2367,7 @@ static void _aal5_clean(aal5_t *paal5) {
 /*----------------------------------------------------------------------*/
 
 /* Get VPI from AAL5 */
-static int _aal5_getVpi(
+static inline int _aal5_getVpi(
 	aal5_t * paal5			/* IN: the frame		*/
 ) {
 	if (!paal5 || !paal5->is_valid) return -1 ;
@@ -2435,7 +2377,7 @@ static int _aal5_getVpi(
 /*----------------------------------------------------------------------*/
 
 /* Get VCI from AAL5 */
-static int _aal5_getVci(
+static inline int _aal5_getVci(
 	aal5_t * paal5			/* IN: the frame		*/
 ) {
 	if (!paal5 || !paal5->is_valid) return -1 ;
@@ -2445,7 +2387,7 @@ static int _aal5_getVci(
 /*----------------------------------------------------------------------*/
 
 /* check if this is the frame is completed */
-static bool _aal5_iscomplete(
+static inline bool _aal5_iscomplete(
 	aal5_t * paal5			/* IN: the frame		*/
 ) {
 	return (paal5 ? paal5->is_complete : false) ;
@@ -2454,12 +2396,22 @@ static bool _aal5_iscomplete(
 /*----------------------------------------------------------------------*/
 
 /* check if this is the frame is valid */
-static bool _aal5_isvalid(
+static inline bool _aal5_isvalid(
 	aal5_t * paal5			/* IN: the frame		*/
 ) {
 	return (paal5 && paal5->is_complete ? paal5->is_valid : false) ;
 }
 
+/*----------------------------------------------------------------------*/
+
+/* Get the number of cells in the AAL5 frame */
+static inline int _aal5_getNbCell(
+	aal5_t * paal5			/* IN: the frame		*/
+) {
+	return (paal5 ? paal5->nbcells : -1 ) ;
+}
+	
+		
 /*----------------------------------------------------------------------*/
 
 /* Append a new cell */
@@ -2476,7 +2428,7 @@ static int _aal5_add_cell(
 
 	if (!_uni_cell_islast(pcell)) {
 		/* compute crc */
-		paal5->_crc 	= ~ _calc_crc(
+		paal5->_crc 	= _calc_crc(
 					pcell->raw + ATM_CELL_HDR,
 					ATM_CELL_PAYLOAD,
 					paal5->_crc) ;
@@ -2484,8 +2436,8 @@ static int _aal5_add_cell(
 		paal5->is_complete = true ;
 		
 		/* check given length */
-		lv_length = (pcell->raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD - 6] << 8)
-			+ (pcell->raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD - 5]) ;
+		lv_length = (pcell->raw[ATM_CELL_SZ - 6] << 8)
+			+ (pcell->raw[ATM_CELL_SZ - 5]) ;
 		lv_length = (lv_length + 8 + 
 				ATM_CELL_PAYLOAD - 1) / ATM_CELL_PAYLOAD ;
 		if (lv_length != (paal5->nbcells + 1)) {
@@ -2500,10 +2452,10 @@ static int _aal5_add_cell(
 					paal5->_crc) ;
 
 		/* compare to given crc */
-		lv_crc = (pcell->raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD - 4] << 24)
-			+ (pcell->raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD - 3] << 12)
-			+ (pcell->raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD - 2] << 8)
-			+ (pcell->raw[ATM_CELL_HDR + ATM_CELL_PAYLOAD - 1]) ;
+		lv_crc =  ((pcell->raw[ATM_CELL_SZ - 4] << 24)	& 0xff000000)
+			+ ((pcell->raw[ATM_CELL_SZ - 3] << 16)	& 0x00ff0000)
+			+ ((pcell->raw[ATM_CELL_SZ - 2] << 8 )	& 0x0000ff00)
+			+ ((pcell->raw[ATM_CELL_SZ - 1])	& 0x000000ff);
 
 		if (lv_crc != paal5->_crc) {
 			ERR_OUT("Invalid crc field in trailer\n") ;
