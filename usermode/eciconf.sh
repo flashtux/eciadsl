@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/wish
 # ****************************************************************************
 # *                                                                          *
 # *   eciconf - Tcl/tk GUI for ECI Linux driver configuration (makeconfig)   *
@@ -119,23 +119,19 @@ bind .bloc1.fai.majdns.checkbox <Leave> {popstate}
 pack .bloc1.fai.majdns.checkbox -side left
 pack .bloc1.fai.majdns  -side top -anchor w
 
-set providers {
-	"Wanadoo"			"193.252.19.3"		"193.252.19.4"
-	"Club Internet"		"194.117.200.15"	"194.117.200.10"
-	"9 Telecom"			"212.30.96.108"		"213.203.124.146"
-	"Cegetel"			"194.6.128.3"		"194.6.128.4"
-	"World Online"		"212.83.128.3"		"212.83.128.4"
-	"Telecom Italia"	"212.216.112.112"	"212.216.172.62"
-	"Tiscali Italia"	"195.130.224.18"	"195.130.225.129"
-	"Pipex UK"			"158.43.240.4"		"158.43.240.3"
-	"Bluewin"			"195.186.1.111"		"195.186.4.111"
-	"Belgacom"			"195.238.2.21"		"195.238.2.22"
-	"Bezeq Intl."		"192.115.106.11"	"192.115.106.10"
-    "Infostrada"        "193.70.192.25"     "193.70.152.25"
-    "Sunrise"           "194.158.230.53"    "194.158.230.54"
-    "Econophone"        "212.53.96.200"     "212.53.100.250"
-	"other"				""	""
+list providers
+set file [open "$CONF_DIR/providers.db" r]
+fconfigure $file -buffering line
+while {[eof $file]!=1} {
+	set line [gets $file]
+	if {"$line"!=""} {
+		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 1]
+		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 2]
+		lappend providers [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 3]
+	}
 }
+close $file
+lappend providers "other" "" ""
 
 frame .bloc1.fai.liste
 listbox .bloc1.fai.liste.contenu -yscrollcommand {.bloc1.fai.liste.scroll set} -width 27 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
@@ -197,28 +193,21 @@ frame .bloc1.modem
 label .bloc1.modem.libelle -text "Select your modem:" -relief groove -background "#ffcc99" -width 46
 pack .bloc1.modem.libelle
 
-set modems {
-			"Archtek UGW-8000"					"0915"	"0001"	"0915"	"0002"
-			"Askey USB-ADSL"					"1690"	"0205"	"0915"	"0206"
-			"Aztech 100U"						"0509"	"0801"	"0915"	"0802"
-			"BT Voyager"						"1690"	"0203"	"0915"	"0204"
-			"Cypress Globespan ADSL USB G7000"	"0915"	"0001"	"0915"	"0002"
-			"Digicom MichelAngelo"				"0547"	"2131"	"0915"	"8000"
-			"ECI HiFocus/B-Focus"				"0547"	"2131"	"0915"	"8000"
-			"Eicon Diva"						"071d"	"ac81"	"0915"	"ac82"
-			"Ericsson hm120dp"					"08ea"	"00c9"	"0915"	"00ca"
-			"Fujitsu FDX310"					"0e60"	"0101"	"0915"	"0102"
-			"GVC BB039"							"0915"	"0001"	"0915"	"0002"
-			"Siemens Santis"					"0915"	"0001"	"0915"	"0002"
-			"Topcom Webr@cer 850"				"0915"	"0001"	"0915"	"0002"
-			"Topcom XPlorer 850"				"0547"	"2131"	"0915"	"8000"
-			"US Robotics 8500"					"0baf"	"00e6"	"0915"	"00e7"
-			"Webpower Ipmdatacom"				"0915"	"0001"	"0915"	"0002"
-			"Wisecom ad80usg or EA100"			"0915"	"0001"	"0915"	"0002"
-			"Xentrix USB"						"0e60"	"0100"	"0915"	"0101"
-			"Zyxel Prestige 630-41"				"0547"	"2131"	"0915"	"8000"
-			"other"								""		""		""		""
+list modems
+set file [open "$CONF_DIR/modems.db" r]
+fconfigure $file -buffering line
+while {[eof $file]!=1} {
+	set line [gets $file]
+	if {"$line"!=""} {
+		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 1]
+		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 2]
+		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 3]
+		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 4]
+		lappend modems [exec echo "$line" | tr -s "\t" "^" | cut -d "^" -f 5]
+	}
 }
+close $file
+lappend modems "other" "" "" "" ""
 
 frame .bloc1.modem.liste
 listbox .bloc1.modem.liste.contenu -yscrollcommand {.bloc1.modem.liste.scroll set} -width 43 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
