@@ -405,7 +405,8 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		if ($size != length ($buf)) {
 			print "XXX ";
 		}
-		print "BULK/INT $transfer_direction endpoint=$endpoint size=$size\n";
+		print "BULK/INT $transfer_direction endpoint="
+			. sprintf("%02x",$endpoint) . " size=$size\n";
 		if ($display_buffer) {
 			print_buffer ($buf);
 		}
@@ -426,7 +427,8 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			if ($size != length ($buf)) {
 				print "XXX ";
 			}
-			print "ISO $transfer_direction endpoint=$endpoint size=$size\n";
+			print "ISO $transfer_direction endpoint="
+				. sprintf("%02x",$endpoint) . " size=$size\n";
 			if ($display_buffer) {
 				print_buffer ($buf);
 			}
