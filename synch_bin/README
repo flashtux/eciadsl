@@ -1,14 +1,16 @@
-Synch .bin files list:
-	synch0.bin (formerly eci_wan3.bin)
-	synch1.bin (formerly eci_wan3.dmt.bin)
-	synch2.bin (formerly eci_paris19_9telecom.bin)
-	synch3.bin (formerly eci_bordeaux_wanadoo.bin)
-	synch4.bin (formerly eci_montsoult_clubinternet.bin)
-	synch5.bin (formerly eci_lens.bin (56 Ko) eci_telecom_italia.bin)
-	synch6.bin (formerly eci_wisecom_italia.bin)
-	synch7.bin (formerly eci_libero_italia.bin)
-	synch8.bin (formerly eci_telecom_italia.bin)
-	synch9.bin (formerly eci_uk.bin)
+Available Synch .bin files list:
+	synch00.bin (formerly eci_wan3.bin)
+	synch01.bin (formerly eci_wan3.dmt.bin)
+	synch02.bin (formerly eci_paris19_9telecom.bin)
+	synch03.bin (formerly eci_bordeaux_wanadoo.bin)
+	synch04.bin (formerly eci_montsoult_clubinternet.bin)
+	synch05.bin (formerly eci_lens.bin (56 Ko) eci_telecom_italia.bin)
+	synch06.bin (formerly eci_wisecom_italia.bin)
+	synch07.bin (formerly eci_libero_italia.bin)
+	synch08.bin (formerly eci_telecom_italia.bin)
+	synch09.bin (formerly eci_uk.bin or eci_ca.bin)
+	synch10.bin (formerly eci_ca2.bin)
+	synch11.bin (formerly eci_foggia.webpower.bin)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
