@@ -37,6 +37,7 @@ set titre_fenetre "ECI Linux driver configuration v0.6-pre6"
 
 wm title . $titre_fenetre
 
+
 #
 # ===== Check is user is 'root' =====
 #
@@ -53,6 +54,9 @@ if {[string compare $current_user "root"] != 0} {
     exit
 }
 
+
+# default values
+
 set username "username@domain"
 set password ""
 set vpi "8"
@@ -68,6 +72,59 @@ set use_staticip "no"
 set staticip ""
 set gateway ""
 set mode ""
+set synch ""
+set firm ""
+set modem ""
+set provider ""
+
+# try to get previously defined values
+
+set file -1
+catch {set file [open "$CONF_DIR/eciadsl.conf" r]}
+if {$file!=-1} {
+	fconfigure $file -buffering line
+	while {[eof $file]!=1} {
+		set line [string trim [gets $file]]
+		regsub -all {[\t]+} $line { } line
+		set line [string trim $line]
+		if {"$line"!="" && ![regexp {^#} $line]} {
+			set pos1 0
+			set pos2 [string first "=" "$line" [expr $pos1+1]]
+			if {$pos2!=-1} {
+				# skip trailing blanks
+				set pos2 [expr $pos2-1]
+			} else {
+				set pos2 end
+			}
+			set entry [string trim [string range "$line" $pos1 $pos2]]
+			set value [string trim [string range "$line" [expr $pos2+2] end]]
+			switch $entry {
+				PPPD_USER	{ set username "$value" }
+				VID1		{ set vid1 "$value" }
+				PID1		{ set pid1 "$value" }
+				VID2		{ set vid2 "$value" }
+				PID2		{ set pid2 "$value" }
+				VPI			{ set vpi "$value" }
+				VCI			{ set vci "$value" }
+				MODE		{ set mode "$value" }
+				SYNCH		{ set synch "$value" }
+				FIRM		{ set firm "$value" }
+				USE_DHCP	{ set use_dhcp "$value" }
+				STATICIP	{ set staticip "$value" }
+				GATEWAY		{ set gateway "$value" }
+				MODEM		{ set modem "$value" }
+				PROVIDER	{ set provider "$value" }
+			}		
+		}
+	}
+	close $file
+	if {"$gateway"!="" && "$staticip"!="" && "$use_dhcp"!="yes"} {
+		set use_staticip "yes"
+	} else {
+		set staticip ""
+		set gateway ""
+	}
+}
 
 #
 # ===== modem logo =====
@@ -148,6 +205,7 @@ bind .bloc1.fai.majdns.checkbox <Leave> {popstate}
 pack .bloc1.fai.majdns.checkbox -side left
 pack .bloc1.fai.majdns  -side top -anchor w
 
+# build the list of providers
 list providers
 set file [open "$CONF_DIR/providers.db" r]
 fconfigure $file -buffering line
@@ -173,6 +231,7 @@ while {[eof $file]!=1} {
 close $file
 lappend providers "Other" "" ""
 
+# fill the widget with the list of providers
 frame .bloc1.fai.liste
 listbox .bloc1.fai.liste.contenu -yscrollcommand {.bloc1.fai.liste.scroll set} -width 27 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
 .bloc1.fai.liste.contenu configure -exportselection 0
@@ -181,6 +240,24 @@ set len [llength $providers]
 while {$i<$len} {
 	.bloc1.fai.liste.contenu insert end [lindex $providers $i]
 	incr i 3
+}
+# previously defined provider set?
+if {"$provider"!=""} {
+	set selected_provider [expr [lsearch $providers $provider]/3]
+	if {$selected_provider!=-1} {
+		.bloc1.fai.liste.contenu selection set $selected_provider
+		.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
+	}
+} else {
+	set selected_provider -1
+}
+# no previous provider or bad one
+if {"$provider"=="" || $selected_provider==-1} {
+	# set Other provider if at least one DNS has been set
+	if {"$dns1"!="" || "$dns2"!=""} {
+		.bloc1.fai.liste.contenu selection set [expr $len/3-1]
+		.bloc1.fai.liste.contenu see [.bloc1.fai.liste.contenu curselection]
+	}
 }
 
 scrollbar .bloc1.fai.liste.scroll -command ".bloc1.fai.liste.contenu yview"
@@ -231,6 +308,7 @@ frame .bloc1.modem
 label .bloc1.modem.libelle -text "Select your modem:" -relief groove -background "#ffcc99" -width 46
 pack .bloc1.modem.libelle
 
+# build the list of modems
 list modems
 set file [open "$CONF_DIR/modems.db" r]
 fconfigure $file -buffering line
@@ -260,15 +338,33 @@ while {[eof $file]!=1} {
 close $file
 lappend modems "Other" "" "" "" ""
 
+# fill the widget with the list of modems
 frame .bloc1.modem.liste
 listbox .bloc1.modem.liste.contenu -yscrollcommand {.bloc1.modem.liste.scroll set} -width 43 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
 .bloc1.modem.liste.contenu configure -exportselection 0
-
 set i 0
 set len [llength $modems]
 while {$i<$len} {
 	.bloc1.modem.liste.contenu insert end [lindex $modems $i]
 	incr i 5
+}
+# previously defined modem set?
+if {"$modem"!=""} {
+	set selected_modem [expr [lsearch $modems $modem]/5]
+	if {$selected_modem!=-1} {
+		.bloc1.modem.liste.contenu selection set $selected_modem
+		.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
+	}
+} else {
+	set selected_modem -1
+}
+# no previous modem or bad one
+if {"$modem"=="" || $selected_modem==-1} {
+	# set Other provider if at least one VID/PID has been set
+	if {"$vid1"!="" || "$pid1"!="" || "$vid2"!="" || "$pid2"!=""} {
+		.bloc1.modem.liste.contenu selection set [expr $len/5-1]
+		.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
+	}
 }
 
 scrollbar .bloc1.modem.liste.scroll -command ".bloc1.modem.liste.contenu yview"
@@ -337,17 +433,14 @@ bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to 
 bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
-set lien_bin_final "$CONF_DIR/synch.bin"
-set nom_bin_actuel [exec ls -l "$lien_bin_final" | sed "s/.*->\ //" ]
-
-label .bloc2.listebin.actuel -text "Current .bin: $nom_bin_actuel" -relief sunken -width 48 -anchor w
+label .bloc2.listebin.actuel -text "Current .bin: $synch" -relief sunken -width 48 -anchor w
 
 frame .bloc2.listebin.liste
 listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scroll set" -width 45 -height 4 -foreground darkgray -selectbackground lightgray -selectforeground darkgray
 .bloc2.listebin.liste.contenu configure -exportselection 0
 
 proc add_bins {chemin} {
-	global .bloc2.listebin nom_bin_actuel lien_bin_final
+	global .bloc2.listebin
 
     set returncode [catch {exec find $chemin -name "*.bin" } bin_trouves]
     if {$returncode != 0} {
@@ -361,8 +454,8 @@ proc add_bins {chemin} {
 }
 
 add_bins "$CONF_DIR"
-
 .bloc2.listebin.liste.contenu selection set 0
+
 set bin_choisi [.bloc2.listebin.liste.contenu curselection]
 set bin_initial $bin_choisi
 bind .bloc2.listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eci-load2 !)"}
@@ -439,8 +532,12 @@ while {$i<$len} {
 	.bloc2.modes.liste.contenu insert end [lindex $modes $i]
 	incr i
 }
-.bloc2.modes.liste.contenu selection set 0
-
+set selected_mode [lsearch $modes $mode]
+if {$selected_mode==-1} {
+	set selected_mode 0
+}
+.bloc2.modes.liste.contenu selection set $selected_mode
+.bloc2.modes.liste.contenu see [.bloc2.modes.liste.contenu curselection]
 
 scrollbar .bloc2.modes.liste.scroll -command ".bloc2.modes.liste.contenu yview"
 
@@ -475,6 +572,7 @@ proc onclick_use_staticip {} {
 		.bloc2.modes.gateway.edit configure -state normal -foreground black -background lightblue
 		.bloc2.modes.staticip.label configure -foreground black
 		.bloc2.modes.gateway.label configure -foreground black
+		focus .bloc2.modes.staticip.edit
 	} else {
 		.bloc2.modes.staticip.edit configure -state disabled -background lightgray
 		.bloc2.modes.gateway.edit configure -state disabled -background lightgray
@@ -527,6 +625,37 @@ frame .boutons
 button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig} -state disabled -background lightgray
 bind .boutons.create <Enter> {pushstate "Save modifications then quit: select a modem first"}
 bind .boutons.create <Leave> {popstate}
+
+proc enable_create_button {} {
+	global .boutons.create
+
+	.boutons.create configure -state normal -background lightgreen
+	bind .boutons.create <Enter> {pushstate "Save settings: write configuration files and set synch .bin if enabled, then quit"}
+	bind .boutons.create <Leave> {popstate}
+}
+
+proc enable_vid_pid {} {
+	global .bloc1.modem.vidpid1.entryvid .bloc1.modem.vidpid1.entrypid
+	global .bloc1.modem.vidpid2.entryvid .bloc1.modem.vidpid2.entrypid
+	global .bloc1.modem.vidpid1.labelvid .bloc1.modem.vidpid1.labelpid
+	global .bloc1.modem.vidpid2.labelvid .bloc1.modem.vidpid2.labelpid
+
+	.bloc1.modem.vidpid1.entryvid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vidpid1.entrypid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vidpid2.entryvid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vidpid2.entrypid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vidpid1.labelvid configure -foreground black
+	.bloc1.modem.vidpid1.labelpid configure -foreground black
+	.bloc1.modem.vidpid2.labelvid configure -foreground black
+	.bloc1.modem.vidpid2.labelpid configure -foreground black
+}
+
+# if all VID/PID are already set, enable the CREATE button
+if {"$modem"!="" && "$vid1"!="" && "$pid1"!="" && "$vid2"!="" && "$pid2"!=""} {
+	enable_vid_pid
+	enable_create_button
+}
+
 
 frame .boutons.espace -width 20
 button .boutons.dabusb -text {Remove Dabusb} -background "#ffccff" -command {run_dabusb} -padx 10
@@ -602,29 +731,18 @@ proc run_makeconfig_synch {} {
 }
 
 proc run_makeconfig {} {
-	global majfai majbin BIN_DIR nom_bin_actuel
-	global mode use_staticip use_dhcp staticip gateway
+	global majfai majbin BIN_DIR synch firm
+	global mode use_staticip use_dhcp staticip gateway modem provider
 	global username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2
 
-    if {[string compare $majfai "oui"] == 0} {
-        set srvdns1 $dns1
-        set srvdns2 $dns2
-    } else {
-        set srvdns1 0
-        set srvdns2 0
-    }
     if {[string compare $majbin "oui"] == 0} {
-        set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
-        set synch [.bloc2.listebin.liste.contenu get $numero_bin_choix]
-    } else {
-		set synch "$nom_bin_actuel"
+        set synch [.bloc2.listebin.liste.contenu get [.bloc2.listebin.liste.contenu curselection]]
     }
-	set firm ""
 	if {"$use_staticip"=="no"} {
 		set staticip ""
 		set gateway ""
 	}
-    set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$srvdns1" "$srvdns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" $staticip $gateway $use_dhcp} sortie]
+    set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" $staticip $gateway $use_dhcp "$modem" "$provider"} sortie]
     if {$returncode != 0} {
         conf_report "non" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
     } else {
@@ -697,15 +815,17 @@ proc invert_fai {} {
 
     if {"$majfai"=="oui"} {
     	.bloc1.fai.liste.contenu configure -foreground black -selectbackground "#00ccff" -selectforeground black
-		.bloc1.fai.liste.contenu selection clear 0 [expr [llength $providers]-1]
 		if {$fai_choisi!=""} {
 	    	.bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
 			.bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
 	    	.bloc1.fai.dns1.label configure -foreground black
 	    	.bloc1.fai.dns2.label configure -foreground black
+			.bloc1.fai.liste.contenu selection clear 0 [expr [llength $providers]-1]
 			.bloc1.fai.liste.contenu selection set $fai_choisi
 		} else {
-			.bloc1.fai.liste.contenu selection set 0
+			if {[.bloc1.fai.liste.contenu curselection]==""} {
+				.bloc1.fai.liste.contenu selection set 0
+			}
 		}
 		select_provider
     } else {
@@ -755,12 +875,8 @@ proc invert_bin {} {
 }
 
 proc select_modem {} {
-	global .bloc1.modem.liste.contenu .boutons.create
-	global .bloc1.modem.vidpid1.entryvid .bloc1.modem.vidpid1.entrypid
-	global .bloc1.modem.vidpid2.entryvid .bloc1.modem.vidpid2.entrypid
-	global .bloc1.modem.vidpid1.labelvid .bloc1.modem.vidpid1.labelpid
-	global .bloc1.modem.vidpid2.labelvid .bloc1.modem.vidpid2.labelpid
-	global modems vid1 pid1 vid2 pid2
+	global .bloc1.modem.liste.contenu
+	global modems vid1 pid1 vid2 pid2 modem
 
 	set index [.bloc1.modem.liste.contenu curselection]
 	if {"$index"!=""} {
@@ -768,39 +884,34 @@ proc select_modem {} {
 		set pid1 [lindex $modems [expr $index*5+2]]
 		set vid2 [lindex $modems [expr $index*5+3]]
 		set pid2 [lindex $modems [expr $index*5+4]]
-		.bloc1.modem.vidpid1.entryvid configure -state normal -foreground black -background lightblue
-		.bloc1.modem.vidpid1.entrypid configure -state normal -foreground black -background lightblue
-		.bloc1.modem.vidpid2.entryvid configure -state normal -foreground black -background lightblue
-		.bloc1.modem.vidpid2.entrypid configure -state normal -foreground black -background lightblue
-		.bloc1.modem.vidpid1.labelvid configure -foreground black
-		.bloc1.modem.vidpid1.labelpid configure -foreground black
-		.bloc1.modem.vidpid2.labelvid configure -foreground black
-		.bloc1.modem.vidpid2.labelpid configure -foreground black
-		.boutons.create configure -state normal -background lightgreen
-		bind .boutons.create <Enter> {pushstate "Save settings: write configuration files and set synch .bin if enabled, then quit"}
-		bind .boutons.create <Leave> {popstate}
+		set modem [.bloc1.modem.liste.contenu get $index]
+		enable_vid_pid
+		enable_create_button
+		focus .bloc1.modem.vidpid1.entryvid
 	}
 }
 
 proc select_provider {} {
-	global .bloc1.fai.liste.contenu
-	global providers dns1 dns2 majfai
+	global .bloc1.fai.liste.contenu .bloc1.fai.dns1.entry
+	global providers dns1 dns2 majfai provider
 
 	set index [.bloc1.fai.liste.contenu curselection]
 	if {"$index"!=""} {
 		set dns1 [lindex $providers [expr $index*3+1]]
 		set dns2 [lindex $providers [expr $index*3+2]]
+	    set provider [.bloc1.fai.liste.contenu get $index]
 		if {"$majfai"=="oui"} {
 			.bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
 			.bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
 			.bloc1.fai.dns1.label configure -foreground black
 			.bloc1.fai.dns2.label configure -foreground black
+			focus .bloc1.fai.dns1.entry
 		}
 	}
 }
 
 proc select_mode {} {
-	global .bloc2.modes.liste.contenu modes
+	global .bloc2.modes.liste.contenu modes mode
 
 	set index [.bloc2.modes.liste.contenu curselection]
 	if {"$index"!=""} {
