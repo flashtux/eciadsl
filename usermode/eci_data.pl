@@ -40,14 +40,6 @@
 #            added 2 functions to correctly and fully display USB descriptors
 #            the output is similar to 'pusb-view'.
 
-# <CONFIG>
-$BIN_DIR = "/usr/local/bin";
-$ETC_DIR = "/etc";
-$CONF_DIR = "/etc/eciadsl";
-$PPPD_DIR = "/etc/ppp";
-$VERSION = "";
-# </CONFIG>
-
 $t = 0;
 
 # print_buffer ($buf)
@@ -98,7 +90,7 @@ sub print_one_descriptor {
 
 		$idVendor = ord(substr $buf, 8,1) + ord(substr $buf, 9,1) * 256;
 		$idProduct = ord(substr $buf,10,1) + ord(substr $buf,11,1) * 256;
-		$bcdDevice = ord(substr $buf,12,1) . "." . ord(substr $buf,13,1);
+#		$bcdDevice = ord(substr $buf,12,1) . "." . ord(substr $buf,13,1);
 
 		$bNumConfigurations = ord(substr $buf,17,1);
 		
@@ -111,7 +103,7 @@ sub print_one_descriptor {
 	} elsif ($descriptor_type eq 2) { # CONFIGURATION Descriptor
 
 		$bNumInterfaces = ord(substr $buf,4,1);
-		$bConfigurationValue = ord(substr $buf,5,1);
+#		$bConfigurationValue = ord(substr $buf,5,1);
 		$iConfiguration = ord(substr $buf,6,1);
 		$MaxPower = 2 * ord(substr $buf,8,1);
 		
@@ -210,6 +202,7 @@ sub print_descriptor {
 #                      AND when transfer_direction is 'in '
 # $urb_list{$urb}{'type'} = 'VENDOR_DEVICE' / 'BULK_OR_INTERRUPT'
 #                           / 'ISO_TRANSFER' / 'GET_DESCRIPTOR_FROM_DEVICE'
+#                           / 'SELECT_CONFIGURATION'
 # $urb_list{$urb}{'endpoint"}
 # $urb_list{$urb}{'transfer_direction'} = 'in ' / 'out'
 # $urb_list{$urb}{'buf'}
@@ -217,6 +210,9 @@ sub print_descriptor {
 # $urb_list{$urb}{'request'}
 # $urb_list{$urb}{'value'}
 # $urb_list{$urb}{'index'}
+# $urb_list{$urb}{'configure'} defined only for SELECT_CONFIGURATION
+# $urb_list{$urb}{'interface'} defined only for SELECT_CONFIGURATION
+# $urb_list{$urb}{'alt'}       defined only for SELECT_CONFIGURATION
 
 undef ($urb_direction);
 
@@ -268,8 +264,14 @@ while (<>) {
 
 	if (/URB_FUNCTION_GET_DESCRIPTOR_FROM_DEVICE/) {
 		$urb_list{$urb}{'type'} = "GET_DESCRIPTOR_FROM_DEVICE";
+        $urb_list{$urb}{'transfer_direction'} = 'out';
 		next;
 	}
+
+    if (/URB_FUNCTION_SELECT_CONFIGURATION/) {
+        $urb_list{$urb}{'type'} = "SELECT_CONFIGURATION";
+        next;
+    }
 
 	if (/endpoint[ \t]+0x([0-9a-f]+)/i) {
 		$urb_list{$urb}{'endpoint'} = hex($1);
@@ -289,6 +291,21 @@ while (<>) {
 		next;
 	}
 
+    if (/Interface\[0\]: InterfaceNumber[ \t]+=[ \t]+([0-9a-f]+)/i) {
+        $urb_list{$urb}{'interface'} = $1;
+        next;
+    }
+
+    if (/Interface\[0\]: AlternateSetting[ \t]+=[ \t]+([0-9a-f]+)/i) {
+        $urb_list{$urb}{'alt'} = $1;
+        next;
+    }
+
+    if (/ConfigurationDescriptor[ \t]+=[ \t]+0x[0-9a-f]+[ \t]+\(([a-z]+)\)/i) {
+        $urb_list{$urb}{'configure'} = $1;
+        next;
+    }
+
 	if (/TransferBufferLength[ \t]+=[ \t]+([0-9a-f]+)/i) {
 		if (defined ($urb_list{$urb}{'transfer_direction'})) {
 			$transfer_direction = $urb_list{$urb}{'transfer_direction'};
@@ -301,6 +318,9 @@ while (<>) {
 				&& ($urb_direction eq 'in ')) {
 				$urb_list{$urb}{'length'} = $1;
 			}
+		} else {
+			print "Fatal error: URB $urb has undefined transfer_direction\n";
+			exit ;
 		}
 		next;
 	}
@@ -358,6 +378,8 @@ print "Displaying ...\n";
 foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 
 	$k = $urb_t{$t};
+# $kd is to be used for nice displaying of the value of $k
+    $kd = sprintf("%4d", $k);
 
 	if (!defined ($urb_list{$k}{'type'})) {
 		next;
@@ -387,7 +409,7 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			exit;
 		}
 
-		print "URB $k: ";
+		print "URB $kd: ";
 		if ($transfer_direction eq 'in ') {
 			print "$transfer_direction request_type=0xc0 ";
 		} else {
@@ -410,7 +432,7 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		$buf = $urb_list{$k}{'buf'};
 		$size = hex($urb_list{$k}{'length'});
 
-		print "URB $k: ";
+		print "URB $kd: ";
 		if ($size != length ($buf)) {
 			print "XXX ";
 		}
@@ -432,7 +454,7 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		$size = hex($urb_list{$k}{'length'});
 
 		if ($size != 0) {
-			print "URB $k: ";
+			print "URB $kd: ";
 			if ($size != length ($buf)) {
 				print "XXX ";
 			}
@@ -453,7 +475,27 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			exit;
 		}
 
-		print "URB $k:\n";
+		print "URB $kd:\n";
 		print_descriptor ($buf);
-	}
+	} elsif ($type eq "SELECT_CONFIGURATION") {
+
+        $configure = $urb_list{$k}{'configure'};
+
+        if ($configure eq "configure") {
+            $interface = $urb_list{$k}{'interface'};
+            $alt       = $urb_list{$k}{'alt'};
+            
+            if (defined($interface) && defined($alt)) {
+                print "URB $kd: configure interface $interface alt $alt\n";
+            } else {
+                print "Fatal error: URB $k has undefined interface/alt\n";
+                exit;
+            }
+        } elsif ($configure eq "unconfigure") {
+            print "URB $kd: unconfigure\n";
+        } else {
+            print "Fatal error: URB $k has invalid ($configure)\n";
+            exit;
+        }
+    }
 }
