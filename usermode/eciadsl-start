@@ -249,17 +249,17 @@ fi
 
 # ===== Mount usbdevfs if needed ======
 
-mount | grep usbdevfs > /dev/null
-if [ $? -ne 0 ]; then
-    echo -ne "Loading USB device filesystem... "
-    mount -t usbdevfs usbdevfs /proc/bus/usb
-    sleep 1
-    mount | grep usbdevfs > /dev/null
-    if [ $? -eq 0 ]; then
-        echo "Warning: couldn't mount usbdevfs"
-    else
-        echo "mounted successfully"
-    fi
+if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
+	echo "Preliminary USB device filesystem is missing... trying to mount" ;
+	mount -t usbdevfs usbdevfs /proc/bus/usb
+    if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
+		echo "Preliminary USB device filesystem: failed to load" ;
+		fatal ;
+	else
+		echo "Preliminary USB device filesystem is now OK" ;
+	fi
+else
+	echo "Preliminary USB device filesystem is OK" ;
 fi
 
 # ===== Check if dabusb is loaded =====

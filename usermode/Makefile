@@ -1,5 +1,8 @@
 include Makefile.config
 
+# for debugging with gdb, uncomment the following line
+#CFLAGS += -g
+
 PPPD_DIR = $(ETC_DIR)/ppp
 ROOT ?= /
 RPM_ARCH ?= i386,i686
@@ -21,7 +24,7 @@ eciadsl-firmware: eciadsl-firmware.o pusb.o util.o
 eciadsl-synch: eciadsl-synch.o pusb.o util.o semaphore.o
 eciadsl-pppoeci: eciadsl-pppoeci.o pusb.o gs7070.o util.o
 pppatm: pppatm.o 
-	cc $(LDFLAGS) -latm -o pppatm pppatm.o
+	$(CC) $(LDFLAGS) -latm -o pppatm pppatm.o
 eciadsl-eeprom: eciadsl-eeprom.o pusb.o
 eciadsl-check-hdlc: eciadsl-check-hdlc.o
 eciadsl-check-hdlc-bug: eciadsl-check-hdlc-bug.o
@@ -32,12 +35,12 @@ eciadsl-pppoeci.o: eciadsl-pppoeci.c util.h pusb.h gs7070.h modem.h config.h
 gs7070.o: gs7070.c gs7070.h
 util.o: util.c modem.h config.h util.h
 semaphore.o: semaphore.c semaphore.h
-	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o semaphore.o semaphore.c
+	$(CC) $(CFLAGS)  -D _XOPEN_SOURCE -c -o semaphore.o semaphore.c
 eciadsl-eeprom.o: eciadsl-eeprom.c pusb.h modem.h config.h
 eciadsl-check-hdlc.o: eciadsl-check-hdlc.c
-	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc.o eciadsl-check-hdlc.c
+	$(CC) $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc.o eciadsl-check-hdlc.c
 eciadsl-check-hdlc-bug.o: eciadsl-check-hdlc-bug.c
-	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc-bug.o eciadsl-check-hdlc-bug.c
+	$(CC) $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc-bug.o eciadsl-check-hdlc-bug.c
 
 check:
 	@if [ "$(PRODUCT_VERSION)" != "$$(cat VERSION)" ]; then \

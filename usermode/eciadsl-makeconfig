@@ -270,6 +270,8 @@ defaultroute
 pty "$pppoeci -alt 4 -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode"
 sync
 user "$username"
+
+default-asyncmap
 noaccomp
 nopcomp
 noccp

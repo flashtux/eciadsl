@@ -27,6 +27,10 @@ PPPD_DIR="/etc/ppp"
 VERSION=""
 # </CONFIG>
 
+# define the usb devices path for Suse 9.1
+DEVICES=/proc/bus/usb/devices
+DEVICES_SUSE=/proc/bus/usb/devices_please-use-sysfs-instead
+
 if [ "$1" == "--version" -o "$1" == "-v" ]; then
 	echo "$VERSION"
 	exit 0
@@ -71,6 +75,36 @@ function fatal () {
 	exit -1;
 }
 
+# use only DEVICES throughout the rest of this script
+if [ ! -f "${DEVICES}" ] && [ -f "${DEVICES_SUSE}" ]; then
+	echo "Warning: using ${DEVICES_SUSE}"
+	DEVICES="${DEVICES_SUSE}"
+fi
+
+# use the proper USB modules name according to the running kernel version
+case `uname -r` in
+    2.4.*)
+        UHCI=usb-uhci
+        UHCI_BIS=uhci
+        OHCI=usb-ohci
+        KERNEL_TYPE=2.4
+        ;;
+    2.5.* | 2.6.*)
+        UHCI=uhci-hcd
+        UHCI_BIS=
+        OHCI=ohci-hcd
+        KERNEL_TYPE=2.6
+        ;;
+    *)
+        KERNEL_TYPE=unknown
+        ;;
+esac
+
+if [ "${KERNEL_TYPE}" = "unknown" ]; then
+  echo "unable to detect kernel type"
+  exit
+fi
+
 if [ ! -d /proc/bus/usb ]; then
 	echo "Support for USB is missing... trying to load" ;
 	modprobe usbcore
@@ -79,22 +113,27 @@ if [ ! -d /proc/bus/usb ]; then
 		echo "Support for USB: failed to load" ;
 		fatal;
 	else
-		echo "Support for USB is OK" ;
+		echo "Support for USB is now OK" ;
 	fi
 else
 	echo "Support for USB is OK" ;
 fi
 
 # mount usbdevfs is this is not the case
-if [ ! -f /proc/bus/usb/devices ]; then
+# warning: on 2.6 kernels, there is no /proc/bus/usb/devices file even
+# if usbfs is mounted!
+
+# check if there is a mounted filesystem which is either of type
+# "usbfs" or "usbdevfs".
+
+if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
 	echo "Preliminary USB device filesystem is missing... trying to mount" ;
-	mount -t usbdevfs none /proc/bus/usb
-	sleep 1
-	if [ ! -f /proc/bus/usb/devices ]; then
+	mount -t usbdevfs usbdevfs /proc/bus/usb
+    if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
 		echo "Preliminary USB device filesystem: failed to load" ;
 		fatal ;
 	else
-		echo "Preliminary USB device filesystem is OK" ;
+		echo "Preliminary USB device filesystem is now OK" ;
 	fi
 else
 	echo "Preliminary USB device filesystem is OK" ;
@@ -117,92 +156,156 @@ else
 	echo "dabusb module is not loaded: OK";
 fi
 
-# check for the ehci-hcd module
-lsmod | grep "^ehci-hcd" > /dev/null
-if [ $? -eq 0 ]; then
-	echo "ehci-hcd module is loaded: trying to unload!" ;
-	modprobe -r ehci-hcd
-	sleep 1
-	lsmod | grep "^ehci-hcd" > /dev/null
-	if [ $? -eq 0 ]; then
-		echo "ehci-hcd module cannot be unloaded, verify if it is busy";
-		fatal;
-	else
-		echo "ehci-hcd module unloaded: OK";
-	fi
-else
-	echo "ehci-hcd module is not loaded: OK";
-fi
+# usage: check_usb_support OHCI
+# return 0 if OHCI is properly handled by the running kernel
+# OHCI can be replaced by UHCI or EHCI
 
-# try to locate UHCI controller
-uhci=0
-# directly check for the UHCI driver (avoid to use /proc/pci if there is none)
-grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-if [ $? -ne 0 ]; then
-	if [ -f /proc/pci ]; then
-		grep -A 4 USB /proc/pci | grep I/O > /dev/null
-		if [ $? -eq 0 ]; then
-		# ok, we have a UHCI controller, check if the linux driver is loaded
-			grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-			if [ $? -ne 0 ]; then
-				echo "UHCI support is missing... trying to load" ;
-				modprobe usb-uhci
-				modprobe uhci
-				sleep 2
-				grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-				if [ $? -ne 0 ]; then
-					echo "UHCI support: failed to load" ;
-				else
-					echo "UHCI support is OK" ;
-					uhci=1 ;
-				fi
-			else
-				echo "UHCI support is OK" ;
-				uhci=1 ;
-			fi
-		fi
-	else
-		echo "You don't have /proc/pci. I cannot check for a UHCI controller";
-	fi
-else
-	echo "UHCI support is OK" ;
-	uhci=1;
-fi
+check_usb_support() {
 
-# try to locate OHCI controller
-ohci=0
-grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-if [ $? -ne 0 ]; then
-	if [ -f /proc/pci ]; then
-		grep -A 4 USB /proc/pci | grep memory > /dev/null
-		if [ $? -eq 0 ]; then
-		# ok, we have a OHCI controller, check if the linux driver is loaded
-			grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-			if [ $? -ne 0 ]; then
-				echo "OHCI support is missing... trying to load" ;
-				modprobe usb-ohci
-				sleep 2
-				grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-				if [ $? -ne 0 ]; then
-					echo "OHCI support: failed to load" ;
-				else
-					echo "OHCI support is OK" ;
-					ohci=1 ;
-				fi
-			else
-				echo "OHCI support is OK" ;
-				ohci=1 ;
-			fi
-		fi
+#  echo "check_usb_support $@"
+
+  USB_C="$1"
+
+  case "${KERNEL_TYPE}" in
+      2.4)
+          grep "^S:  Product=" "${DEVICES}" | grep -q "${USB_C}"
+          ;;
+      2.6)
+          case "${USB_C}" in
+              UHCI) DRIVER="uhci_hcd";;
+              OHCI) DRIVER="ohci_hcd";;
+              EHCI) DRIVER="ehci_hcd";;
+          esac
+
+          [ -d "/sys/bus/pci/drivers/${DRIVER}" ]
+
+          ;;
+  esac
+
+}
+
+need_usb_support_proc_pci() {
+
+#    echo "need_usb_support_proc_pci $@"
+
+    USB_C="$1"
+
+    case "${USB_C}" in
+        UHCI) KW="I/O";;
+        OHCI) KW="memory";;
+        EHCI) echo "EHCI cannot be detected using /proc/pci"; return 1;
+    esac
+
+    grep -A 3 "USB Controller" /proc/pci | grep -q "${KW}"
+}
+
+need_usb_support_lspci() {
+
+#    echo "need_usb_support_lspci $@"
+
+    USB_C="$1"
+
+    lspci -v | grep "USB Controller" | grep -q "${USB_C}"
+}
+
+need_usb_support_sys() {
+
+#    echo "need_usb_support_sys $@"
+
+    USB_C="$1"
+
+    case "${USB_C}" in
+        UHCI) CLASS="0x0c0300";;
+        OHCI) CLASS="0x0c0310";;
+        EHCI) CLASS="0x0c0320";;
+    esac
+
+    grep -q "${CLASS}" /sys/bus/pci/devices/*/class
+}
+
+# usage: need_usb_support OHCI
+# return 0 if OHCI is needed on the running machine
+# OHCI can be replaced by UHCI or EHCI
+
+need_usb_support() {
+
+    USB_C="$1"
+
+    if [ -d /sys/bus/pci ]; then
+        need_usb_support_sys "$@"
+    elif [ -f /proc/pci ]; then
+        need_usb_support_proc_pci "$@"
+    elif which lspci > /dev/null 2>&1; then
+        need_usb_support_lspci "$@"
     else
-		echo "You don't have /proc/pci. I cannot check for a OHCI controller";
-	fi
+        echo "cannot check if ${USB_C} is needed"
+    fi
+}
+
+
+# check for OHCI. We try to loaded OHCI module only if there are OHCI
+# controllers that are not handled by the running kernel.
+
+# - if modem is detected in /proc/bus/usb/devices, we are done
+# - check if OHCI support is active (using /proc/bus/usb/devices on 2.4
+#   and /sys/bus/pci/drivers/*_hcd on 2.6)
+# - if yes, we are done
+# - if no, check if we need OHCI support (using /sys/bus/pci/devices/*/class
+#   or lspci or /proc/pci [we might detecte EHCI as OHCI... but since there is
+#   always an OCHI controller along EHCI, it is OK)
+#   - if no, we are done
+#   - if yes, try to load OHCI module
+#     - check if OHCI support is active
+#     - if yes, we are done
+#     - if no, we failed.
+# - redo the same with UHCI
+# - do not mess with EHCI since it's only for USB 2.0 devices and all our
+#   modems are USB 1.1
+
+uhci=0
+if check_usb_support UHCI; then
+    echo "UHCI support is OK"
+    uhci=1
 else
-	echo "OHCI support is OK" ;
-	ohci=1;
+    if need_usb_support UHCI; then
+        echo "UHCI support is missing... trying to load"
+        modprobe "${UHCI}"
+        if [ -n "${UHCI_BIS}" ]; then
+            modprobe "${UHCI_BIS}"
+        fi
+        sleep 2
+        if check_usb_support UHCI; then
+            echo "UHCI support is now OK"
+            uhci=1
+        else
+            echo "UHCI support failed to load"
+        fi
+    else
+        echo "UHCI support is not needed"
+    fi
 fi
 
-if [ $uhci -eq 0 -a $ohci -eq 0 ]; then
+ohci=0
+if check_usb_support OHCI; then
+    echo "OHCI support is OK"
+    ohci=1
+else
+    if need_usb_support OHCI; then
+        echo "OHCI support is missing... trying to load"
+        modprobe "${OHCI}"
+        sleep 2
+        if check_usb_support OHCI; then
+            echo "OHCI support is now OK"
+            ohci=1
+        else
+            echo "OHCI support failed to load"
+        fi
+    else
+        echo "OHCI support is not needed"
+    fi
+fi
+
+if [ "$uhci" -eq 0 -a "$ohci" -eq 0 ]; then
 	echo "I found no USB controller" ;
 	fatal;
 fi
@@ -260,9 +363,11 @@ if [ $? -ne 0 ]; then
 	./eciadsl-check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: failed to load" ;
-		echo "You should check your kernel config with: cd /usr/src/linux ; make menuconfig" ;
-		echo "and look under Character devices for Non-standard serial port support and" ;
-		echo "HDLC line discipline support" ;
+        cat <<EOF
+You should check your kernel config with: cd /usr/src/linux ; make
+menuconfig and look under Character devices for Non-standard serial
+port support and HDLC line discipline support
+EOF
 		fatal;
 	fi
 # here, HDLC support is OK, but maybe some alias are missing
@@ -290,10 +395,12 @@ fi
 # check for the HDLC bug
 "$BIN_DIR/eciadsl-check-hdlc-bug" > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-	echo "HDLC support is buggy, you should apply the HDLC patch to your \
-kernel source. See the howto in the doc directory or on \
-http://eciadsl.sourceforge.net/ in the Documentation section for further \
-instructions." ;
+    cat <<EOF
+HDLC support is buggy, you should apply the HDLC patch to your kernel
+source. See the howto in the doc directory or on
+http://eciadsl.sourceforge.net/ in the Documentation section for
+further instructions.
+EOF
 else
 	echo "HDLC support is OK (no bug)" ;
 fi
@@ -315,7 +422,7 @@ test -z "$pid2" && pid2="8000"
 
 # check for the EZUSB chip
 ezusb=0
-grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
+grep "^P:  Vendor=$vid1 ProdID=$pid1" "${DEVICES}" > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
@@ -384,7 +491,7 @@ else
 fi
 
 # check for the Globespan chip
-grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
+grep "^P:  Vendor=$vid2 ProdID=$pid2" "${DEVICES}" > /dev/null
 if [ $? -ne 0 ]; then
 	echo "I cannot find your ADSL modem: Fatal"
 	fatal;

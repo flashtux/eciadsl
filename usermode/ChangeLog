@@ -3,6 +3,15 @@ EciAdsl - Driver for USB ADSL modems with Globespan chipset
 
 ChangeLog - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
 
+2004-11-01 Benoit PAPILLAULT <benoit.papillault@free.fr>
+
+	* Updated eciadsl-doctor to work on 2.6 kernels properly.
+	Tested on 2.6.7 with OHCI and 2.4.27 with UHCI.
+	* Corrected eciadsl-doctor to properly mount /proc/bus/usb if needed.
+	* Corrected platform_guess.c to properly detect endian-ness. Tested
+	on x86/ppc machine.
+	* Added default-asyncmap option to eciadsl-makeconfig
+	* Replace harcoded cc by $(CC) in Makefile
 
 Version 0.10 (under dev!):
    * renamed scripts (with "eciadsl-" prefix)
