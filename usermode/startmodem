@@ -1,14 +1,49 @@
 #!/bin/sh
 
+echo "Checking USB system ..."
+
+if [ ! -d /proc/bus/usb ]; then
+	modprobe usbcore
+fi
+
+# mount usbdevfs is this is not the case
+if [ ! -f /proc/bus/usb/devices ]; then
+	mount -t usbdevfs none /proc/bus/usb
+fi
+
+# try to locate UHCI controller
+grep -A 4 USB /proc/pci | grep I/O > /dev/null
+if [ $? -eq 0 ]; then
+	modprobe usb-uhci
+fi
+
+# try to locate OHCI controller
+grep -A 4 USB /proc/pci | grep memory > /dev/null
+if [ $? -eq 0 ]; then
+	modprobe usb-ohci
+fi
+
 echo "Init modem ..." ;
 
-echo "	Load Firmware ..." ;
-/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
-if [ $? -ne 0 ] ; then
-	echo "Failed to load firmware" ;
-	exit -1 ;
-fi ;
-echo "	... Load Firmware OK"
+# check for the EZ-USB chips. If it's not there, maybe the firmware is 
+# already loaded ... so continue.
+
+grep "^P:  Vendor=0547 ProdID=2131" /proc/bus/usb/devices > /dev/null
+if [ $? -eq 0 ]; then
+	echo "	Load Firmware ..." ;
+	/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
+	if [ $? -ne 0 ] ; then
+		echo "Failed to load firmware" ;
+		exit -1 ;
+	fi ;
+	echo "	... Load Firmware OK"
+fi
+
+grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null
+if [ $? -ne 0 ]; then
+	echo "I can't find your modem... sorry :-("
+	exit -1;
+fi
 
 echo "	Setup modem ..." ;
 /usr/local/bin/eci-load2 /usr/local/bin/eci_wan3.bin

@@ -9,7 +9,7 @@ debug
 kdebug 1
 noipdefault
 defaultroute
-pty "/usr/local/bin/pppoeci -vpi 8 -vci 35"
+pty "/usr/local/bin/pppoeci -v 1 -vpi 8 -vci 35"
 sync
 user "adsl@adsl"
 noaccomp
@@ -20,7 +20,10 @@ holdoff 1
 maxfail 0
 usepeerdns
 noauth
-lcp-echo-interval 600
-lcp-echo-failure 10
-mtu 1432
+# You may need lcp-echo feature. But that's optionnal.
+# lcp-echo-interval 600
+# lcp-echo-failure 10
+
+# You may need the following. But only as a workaround
+# mtu 1432
 
