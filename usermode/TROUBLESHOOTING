@@ -97,9 +97,10 @@ A:	See 1.4.
 	/var/log/messages. If you see such lines appearing during the last boot:
 		kernel: usb_control/bulk_msg: timeout
 		kernel: usb.c: USB device not accepting new address=2 (error=-110)
-	there's a problem between you hardware/BIOS/kernel config. It may worth
-	disabling APIC support in kernel or at boot time, but it may come from other
-	IRQ conflicts between hardware devices, or some other kernel configuration
+	there's a problem between you hardware/BIOS/kernel config, it's an
+	interrupts issue. It may worth disabling APIC support in kernel or at boot
+	time (use noapic when booting the kernel, but it may come from other IRQ
+	conflicts between hardware devices, or some other kernel configuration
 	issue, or also to disable/enable USB legacy support in BIOS.
 
 	Also check the question that deals with the dabusb module, if dabusb is

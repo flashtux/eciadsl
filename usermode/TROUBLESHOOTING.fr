@@ -98,9 +98,10 @@ R:	Voir la question 1.4.
 	le boot :
 		kernel: usb_control/bulk_msg: timeout
 		kernel: usb.c: USB device not accepting new address=2 (error=-110)
-	alors il y a un problème entre votre matériel/BIOS/config noyau. Vous pouvez
-	désactiver le support APIC dans le noyau ou au boot, mais cela peut venir
-	de conflits IRQ entre les périphériques, ou d'un autre problème de
+	alors il y a un problème de configuration des IRQ entre votre matériel/
+	BIOS/config noyau. Vous pouvez désactiver le support APIC dans le noyau ou
+	au boot (en utilisant l'option noapic au boot du kernel), mais cela peut
+	venir de conflits IRQ entre les périphériques, ou d'un autre problème de
 	configuration du noyau, ou encore: désactivez/activez le support USB Legacy
 	dans le BIOS.
 
