@@ -23,8 +23,10 @@ function commandline_help()
 	echo "switches:"
 	echo "  --prefix={PATH}               set runtime base directory (default=$DIST_PREFIX_DEFAULT)"
 	echo "  --etc-prefix={PATH}           system config base directory (default=$DIST_ETC_DEFAULT)"
-	echo "  --conf-prefix={PATH}          set conf base directory (default=$DIST_CONF_DEFAULT)"
+	echo "  --conf-prefix={PATH}          set conf base directory (default=$DIST_CONF_PREFIX_DEFAULT)"
 	echo "  --conf-dir={DIR}              set conf directory (default=$DIST_CONF_DIR_DEFAULT)"
+	echo "  --doc-prefix={PATH}           set conf base directory (default=$DIST_DOC_PREFIX_DEFAULT)"
+	echo "  --doc-dir={DIR}               set conf directory (default=$DIST_DOC_DIR_DEFAULT)"
 	echo "  --disable-debug               disable debug messages at runtime (default)"
 	echo "  --enable-debug                enable debug messages at runtime"
 	echo "  --disable-warnings            disable most warnings at compilation"
@@ -437,9 +439,11 @@ function configure_dot()
 	echo "PREFIX = $DIST_PREFIX" >> "$MAKEFILE_CONFIG"
 	echo "ETC_PREFIX = $DIST_ETC_PREFIX" >> "$MAKEFILE_CONFIG"
 	echo "CONF_PREFIX = $DIST_CONF_PREFIX" >> "$MAKEFILE_CONFIG"
+	echo "DOC_PREFIX = $DIST_DOC_PREFIX" >> "$MAKEFILE_CONFIG"
 	echo "BIN_DIR = \$(PREFIX)$DIST_BIN_DIR" >> "$MAKEFILE_CONFIG"
 	echo "ETC_DIR = \$(ETC_PREFIX)$DIST_ETC_DIR" >> "$MAKEFILE_CONFIG"
 	echo "CONF_DIR = \$(CONF_PREFIX)$DIST_CONF_DIR" >> "$MAKEFILE_CONFIG"
+	echo "DOC_DIR = \$(DOC_PREFIX)$DIST_DOC_DIR" >> "$MAKEFILE_CONFIG"
 	if [ $WARNINGS -eq 1 ]
 	then
 		echo "CFLAGS += -pedantic -Wall -W" >> "$MAKEFILE_CONFIG"
@@ -477,6 +481,8 @@ function configure_dot()
 	echo "#define ETC_DIR \"$DIST_ETC_DIR\"" >> "$CFGTMPFILE"
 	echo "#define CONF_PATH \"$DIST_CONF_PREFIX\"" >> "$CFGTMPFILE"
 	echo "#define CONF_DIR \"$DIST_CONF_DIR\"" >> "$CFGTMPFILE"
+	echo "#define DOC_PATH \"$DIST_DOC_PREFIX\"" >> "$CFGTMPFILE"
+	echo "#define DOC_DIR \"$DIST_DOC_DIR\"" >> "$CFGTMPFILE"
 	echo "#endif" >> "$CFGTMPFILE"
 	diff "$CFGTMPFILE" "$CFGFILE" > /dev/null 2>&1
 	if [ $? -eq 0 ]
@@ -503,6 +509,7 @@ function maintainer_defaults()
 		DIST_PREFIX="$(pwd)/dist"
 		DIST_ETC_PREFIX="$(pwd)/dist"
 		DIST_CONF_PREFIX="$(pwd)/dist"
+		DIST_DOC_PREFIX="$(pwd)/dist"
 	fi
 }
 
@@ -543,9 +550,11 @@ declare -i WISH_CHECK=1
 DIST_PREFIX_DEFAULT="/usr/local"
 DIST_ETC_PREFIX_DEFAULT="/"
 DIST_CONF_PREFIX_DEFAULT="/"
+DIST_DOC_PREFIX_DEFAULT="$DIST_PREFIX_DEFAULT"
 DIST_BIN_DIR_DEFAULT="/bin"
 DIST_ETC_DIR_DEFAULT="/etc"
 DIST_CONF_DIR_DEFAULT="/etc/eciadsl"
+DIST_DOC_DIR_DEFAULT="/doc/eciadsl"
 DIST_PREFIX=""
 DIST_ETC_PREFIX=""
 DIST_CONF_PREFIX=""
@@ -567,6 +576,10 @@ do
 									DIST_CONF_PREFIX="$PARAM";;
 		"--conf-dir="*)				check_param "$1"
 									DIST_CONF_DIR="$PARAM";;
+		"--doc-prefix="*)			check_param "$1"
+									DIST_DOC_PREFIX="$PARAM";;
+		"--doc-dir="*)				check_param "$1"
+									DIST_DOC_DIR="$PARAM";;
 		"--with-kernel-sources="*)	check_param "$1"
 									KERNEL_SOURCES_PATH="$PARAM";;
 		"--disable-make-check")		let MAKE_CHECK=0;;
@@ -613,9 +626,11 @@ done
 test -z "$DIST_PREFIX" && DIST_PREFIX="$DIST_PREFIX_DEFAULT"
 test -z "$DIST_ETC_PREFIX" && DIST_ETC_PREFIX="$DIST_ETC_PREFIX_DEFAULT"
 test -z "$DIST_CONF_PREFIX" && DIST_CONF_PREFIX="$DIST_CONF_PREFIX_DEFAULT"
+test -z "$DIST_DOC_PREFIX" && DIST_DOC_PREFIX="$DIST_DOC_PREFIX_DEFAULT"
 test -z "$DIST_BIN_DIR" && DIST_BIN_DIR="$DIST_BIN_DIR_DEFAULT"
 test -z "$DIST_ETC_DIR" && DIST_ETC_DIR="$DIST_ETC_DIR_DEFAULT"
 test -z "$DIST_CONF_DIR" && DIST_CONF_DIR="$DIST_CONF_DIR_DEFAULT"
+test -z "$DIST_DOC_DIR" && DIST_DOC_DIR="$DIST_DOC_DIR_DEFAULT"
 test -z "$KERNEL_SOURCES_PATH" && KERNEL_SOURCES_PATH="$KERNEL_SOURCES_PATH_DEFAULT"
 
 # display a summary of the settings
@@ -626,12 +641,16 @@ display 1 -n "system conf files prefix path = $DIST_ETC_PREFIX "
 default_or_user "$DIST_ETC_PREFIX" "$DIST_ETC_PREFIX_DEFAULT"
 display 1 -n "driver conf files prefix path = $DIST_CONF_PREFIX "
 default_or_user "$DIST_CONF_PREFIX" "$DIST_CONF_PREFIX_DEFAULT"
+display 1 -n "driver doc files prefix path = $DIST_DOC_PREFIX "
+default_or_user "$DIST_DOC_PREFIX" "$DIST_DOC_PREFIX_DEFAULT"
 display 1 -n "binaries directory = $DIST_BIN_DIR "
 default_or_user "$DIST_BIN_DIR" "$DIST_BIN_DIR_DEFAULT"
 display 1 -n "system conf files directory = $DIST_ETC_DIR "
 default_or_user "$DIST_ETC_DIR" "$DIST_ETC_DIR_DEFAULT"
 display 1 -n "driver conf files directory = $DIST_CONF_DIR "
 default_or_user "$DIST_CONF_DIR" "$DIST_CONF_DIR_DEFAULT"
+display 1 -n "driver doc files directory = $DIST_DOC_DIR "
+default_or_user "$DIST_DOC_DIR" "$DIST_DOC_DIR_DEFAULT"
 display 1 -n "kernel sources path = $KERNEL_SOURCES_PATH "
 default_or_user "$KERNEL_SOURCES_PATH" "$KERNEL_SOURCES_PATH_DEFAULT"
 
@@ -639,9 +658,11 @@ default_or_user "$KERNEL_SOURCES_PATH" "$KERNEL_SOURCES_PATH_DEFAULT"
 test "${DIST_PREFIX:${#DIST_PREFIX}-1}" != "/" && DIST_PREFIX="$DIST_PREFIX/"
 test "${DIST_ETC_PREFIX:${#DIST_ETC_PREFIX}-1}" != "/" && DIST_ETC_PREFIX="$DIST_ETC_PREFIX/"
 test "${DIST_CONF_PREFIX:${#DIST_CONF_PREFIX}-1}" != "/" && DIST_CONF_PREFIX="$DIST_CONF_PREFIX/"
+test "${DIST_DOC_PREFIX:${#DIST_DOC_PREFIX}-1}" != "/" && DIST_DOC_PREFIX="$DIST_DOC_PREFIX/"
 test "${DIST_BIN_DIR:0:1}" == "/" && DIST_BIN_DIR="${DIST_BIN_DIR:1}"
 test "${DIST_ETC_DIR:0:1}" == "/" && DIST_ETC_DIR="${DIST_ETC_DIR:1}"
 test "${DIST_CONF_DIR:0:1}" == "/" && DIST_CONF_DIR="${DIST_CONF_DIR:1}"
+test "${DIST_DOC_DIR:0:1}" == "/" && DIST_DOC_DIR="${DIST_DOC_DIR:1}"
 test "${KERNEL_SOURCES_PATH:${#KERNEL_SOURCES_PATH}:1}" == "/" && KERNEL_SOURCES_PATH="${KERNEL_SOURCES_PATH:1}"
 
 # start configuring!

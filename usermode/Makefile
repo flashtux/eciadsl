@@ -6,6 +6,7 @@ PPPD_DIR = $(ETC_DIR)/ppp
 TARGETS = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
 SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh probe_synch.sh\
 			remove_dabusb makeconfig eci_vendor_device.pl eci_data.pl eci_uc.pl
+DOCS	= README INSTALL TROUBLESHOOTING README.fr INSTALL.fr TROUBLESHOOTING.fr BUGS TODO
 
 TMP_DIR = inst
 TMP_FILE = Makefile.tmp
@@ -47,7 +48,7 @@ install-strip: install
 		fi; \
 	done
 
-install_no_system_fixes: all install_dirs install_scripts uninstall_old_bin_files
+install_no_system_fixes: all install_dirs install_scripts install_docs uninstall_old_bin_files
 	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif providers.db modems.db $(CONF_DIR)
 	$(INSTALL_EXEC) $(TARGETS) $(BIN_DIR)
 
@@ -90,12 +91,19 @@ install_scripts:
 		$(INSTALL_EXEC) $(TMP_DIR)/$$FILE $(BIN_DIR); \
 	done
 
+install_docs:
+	@for FILE in $(DOCS); do \
+		$(INSTALL_DATA) $$FILE $(DOC_DIR); \
+	done
+
 install_dirs:
 	if [ -n "$(PREFIX)" -a "$(PREFIX)" != "/" ]; then $(INSTALL_DIR) $(PREFIX); fi
 	if [ -n "$(ETC_PREFIX)" -a "$(ETC_PREFIX)" != "/" ]; then $(INSTALL_DIR) $(ETC_PREFIX); fi
 	if [ -n "$(CONF_PREFIX)" -a "$(CONF_PREFIX)" != "/" ]; then $(INSTALL_DIR) $(CONF_PREFIX); fi
+	if [ -n "$(DOC_PREFIX)" -a "$(DOC_PREFIX)" != "/" ]; then $(INSTALL_DIR) $(DOC_PREFIX); fi
 	$(INSTALL_DIR) $(BIN_DIR)
 	$(INSTALL_DIR) $(CONF_DIR)
+	$(INSTALL_DIR) $(DOC_DIR)
 	$(INSTALL_DIR) $(PPPD_DIR)
 	$(INSTALL_DIR) $(PPPD_DIR)/peers
 
@@ -134,7 +142,7 @@ modules_conf:
 		fi; \
 	fi
 
-uninstall: uninstall_old_bin_files uninstall_dirs uninstall_bin uninstall_scripts
+uninstall: uninstall_old_bin_files uninstall_dirs uninstall_bin uninstall_scripts uninstall_docs
 	$(RM) $(CONF_DIR)/modemeci.gif
 	@echo "the driver has been uninstalled"
 
@@ -146,6 +154,11 @@ uninstall_bin:
 uninstall_scripts:
 	@for FILE in $(SCRIPTS); do \
 		$(RM) $(BIN_DIR)/$$FILE; \
+	done
+
+uninstall_docs:
+	@for FILE in $(DOCS); do \
+		$(RM) $(DOC_DIR)/$$FILE; \
 	done
 
 uninstall_old_bin_files:
@@ -162,6 +175,7 @@ uninstall_old_bin_files:
 
 uninstall_dirs:
 	$(RM) -r $(CONF_DIR)
+	$(RM) -r $(DOC_DIR)
 
 debian: all
 	@dpkg-buildpackage -rfakeroot
