@@ -12,18 +12,24 @@ INSTALLDIR=/lib/modules/`uname -r`/misc
 
 INCDIR := -I$(KERNELDIR)/include  -include $(KERNELDIR)/include/linux/modversions.h
 
-all: atmtotap eci.o
+CFLAGS += -O2 -Wall
+
+default: eci.o converter
 
 eci.o: eci.c usb_packets.h
 	$(CC) $(MODCFLAGS) -c $(INCDIR) eci.c
 
-install:
-	@mkdir -p $(INSTALLDIR)
-	cp eci.o  $(INSTALLDIR)
-	depmod -a 
-
 atmtotap: atmtotap.c
 	$(CC) -lpthread -latm -o atmtotap atmtotap.c
 
+install:
+	@mkdir -p $(INSTALLDIR)
+	cp eci.o  $(INSTALLDIR)
+	depmod -a
+
+uninstall:
+	$(RM) $(INSTALLDIR)/eci.o
+	depmod -a
+
 clean:
-	rm -f atmtotap *.o *.so
+	$(RM) -rf eci.o converter

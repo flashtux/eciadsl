@@ -4,8 +4,9 @@
 *                                                                            *
 *     Author : Valette Jean-Sebastien <jeanseb.valette@free.fr>              *
 *              Eric Bardes  <eric.bardes@wanadoo.fr>                         *
+*              Benoit PAPILLAULT <benoit.papillault@free.fr>                 *
 *                                                                            *
-*     Copyright : GPL                                                        *
+*     License : GPL                                                          *
 *                                                                            *
 *                                                                            *
 *****************************************************************************/
@@ -848,7 +849,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 	struct usb_device *dev= interface_to_usbdev(interface);	
 #endif 
 	struct eci_instance *out_instance= NULL;
-	struct urb *eciurb, *tmpurb;
+	struct urb *eciurb;
 	/* unused : int dir; */
 	int eci_isourbcnt;
 	int i;	/*	loop counter	*/
@@ -1139,7 +1140,8 @@ static int eci_atm_open(struct atm_vcc *vcc) {
 	int vpi = vcc->vpi;
 	int vci = vcc->vci;
 #endif
-	int lv_rc ;
+
+  int lv_rc;
 	
 	DBG_OUT("eci_atm_open: vpi:%d vci:%d\n", vpi, vci);
 
@@ -1233,9 +1235,6 @@ static int eci_atm_ioctl(struct atm_dev *dev,unsigned int cmd, void *arg)
 static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb) {
 	struct eci_instance *	lp_outinst	= NULL ;
 	int			lv_rc		= 0 ;
-
-	struct sk_buff		*lp_newskb = NULL;
-	/* unsigned long		flags; */
 
 /*
   DBG_OUT("eci_atm_send: vpi:%d vci:%d\n",vcc->vpi, vcc->vci);
@@ -1344,24 +1343,47 @@ static void eci_bh_atm (unsigned long param)
   setup_packets. The last URB is followed by a single zero byte
 */
 
-static void _eci_send_init_urb(struct urb *eciurb) {
+static void _eci_send_init_urb(struct urb *eciurb)
+{
 	struct eci_instance *instance;
 	unsigned char *setuppacket;
 	unsigned int pipe;
-	int size;
-DBG_OUT("SEND INIT URB\n");
+  static int n = 0; /* block number */
+
+  /* URB setup fields */
+  unsigned char  request_type;
+  unsigned char  request;
+  unsigned short value;
+  unsigned short index;
+  unsigned short size;
+
 	instance = eciurb->context;
 	if(instance->state == ECI_STATE_REMOVING) return;		
-	if(instance->setup_packets[0] != 0) {
+	if(instance->setup_packets[0] != 0)
+  {
+    /* where 64 * 1024 - 8 comes from? */
 		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
 		memcpy(setuppacket, instance->setup_packets,8);
+
+    /* increments the block number */
+    n++;
+
+    /* values in setup_packets are in little endian (USB standards) */
+    request_type = instance->setup_packets[0];
+    request      = instance->setup_packets[1];
+    value        = instance->setup_packets[2]|(instance->setup_packets[3]<<8);
+    index        = instance->setup_packets[4]|(instance->setup_packets[5]<<8);
+    size         = instance->setup_packets[6]|(instance->setup_packets[7]<<8);
+
+    DBG_OUT("Block %3d: request_type=%02x request=%02x value=%04x index=%04x size=%04x\n",
+            n, request_type, request, value, index, size);
+
 			/*
 				If write URB then read the buffer and
 				set endpoint else just set enpoint
 			*/
-		size = (instance->setup_packets[7] << 8 ) |
-			instance->setup_packets[6];			
-		if(setuppacket[0] & 0x80) {
+
+		if(request_type & 0x80) {
 			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
 		} else {
 			memcpy(eciurb->transfer_buffer, instance->setup_packets+8,size);
@@ -1380,7 +1402,7 @@ DBG_OUT("SEND INIT URB\n");
 				return;
 			}
 			instance->setup_packets += 
-				(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
+				(request_type & 0x80) ? 8 : 8 + size;
 		} else {	/*	gotta free urb and buffer !	*/
 			kfree(eciurb->transfer_buffer);
 			eciurb->transfer_buffer = 0;
@@ -1494,19 +1516,15 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 */
 	instance = (struct eci_instance *) urb->context;
 	spin_lock(&instance->lock);
-	if(urb->actual_length) {
-		if(urb->actual_length!=64){
-			/*		Synchronisation 
-					Check Data returned by int urb
-					and send Next Vendor
-			*/
-/*
-			DBG_OUT( "EP INT received %d bytes\n",	urb->actual_length);
-			DBG_OUT("Calling _eci_send_init_urb from Int \n");
-			DBG_RAW_OUT("Int buffer",urb->transfer_buffer,urb->actual_length);
-*/
-			_eci_send_init_urb(instance->vendor_urb);
-		} else {
+
+  /* if we are synchronizing, send the next vendor URB if packet
+     length is 16 */
+  if (urb->actual_length == 16)
+    _eci_send_init_urb(instance->vendor_urb);
+      
+
+	if(urb->actual_length == 64)
+  {
 /*	
 	Already synchronized just answer	
 	Here what we do :
@@ -1645,8 +1663,8 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 #endif
 				}
 			}
-		}
-	}
+  }
+
 #if (!(LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0)))
 	usb_fill_int_urb(urb, instance->usb_wan_dev, usb_rcvintpipe(instance->usb_wan_dev, ECI_INT_EP), 
 			instance->interrupt_buffer,64,
@@ -1841,10 +1859,10 @@ static void eci_bh_bulk(unsigned long pinstance) {
 		usb_fill_bulk_urb(urb, instance->usb_wan_dev, 
 			usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 			buf, bufpos, eci_bulk_callback, instance);
-/*
+
     DBG_OUT("usb_submit_urb\n");
     DBG_RAW_OUT("buf", buf, bufpos);
-*/
+
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
 		if(usb_submit_urb(urb))	{

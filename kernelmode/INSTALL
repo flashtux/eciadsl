@@ -1,0 +1,31 @@
+11/05/2004 Benoit PAPILLAULT <benoit.papillault@free.fr>
+
+Check your kernel configuration, you need at least:
+
+- IP over ATM (need to be detailed)
+
+
+First:
+	setup tap0 device and PPP's IP over ATM support in kernel config.
+Second:
+	setup pppd tu use pppoe over tap0 device
+Third:
+	Compile kernelmode driver using following command line :
+
+  $ cd kernelmode
+  $ make KERNELDIR=/lib/modules/2.4.22-ben2/build
+  # make install
+
+-	Compile or download usermode binary for eci-load1.
+  $ cd usermode
+  $ make eci-load1
+
+- Load the kernel module (run the following command in a root shell):
+	# modprobe eci
+	# eci-load1 /where/is/the/firm/firm01.bin
+	wait for the synch then
+
+The proper pppd command using standard plugin should be:
+
+  # modprobe pppoatm
+  # pppd plugin pppoatm.so 8.35 noauth debug updetach noproxyarp usepeerdns noipdefault defaultroute user "eu1014078@tele2.fr"

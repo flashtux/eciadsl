@@ -1,0 +1,11 @@
+04/05/2004 Benoit PAPILLAULT <benoit.papillault@free.fr>
+
+Comments on the kernelmode driver for GlobeSpan based USB modem
+===============================================================
+
+- usb_packets.h , usb_packets_dmt.h should be real .h files
+  (add #ifndef, add proper C structure)
+
+- choice between DMT and non DMT code should be done at usage time
+  (with a module parameter) and not at compile time (using a Makefile
+  settings)
