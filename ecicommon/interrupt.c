@@ -78,7 +78,8 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 			case 0xF0:
 				dsp->is_ready = (buffer[2] << 8 ) | buffer[3];
 				dsp->next_state = (buffer[4] << 8 )| buffer[5];
-				DBG_OUT("DSP READY %d\Next state %2x", dsp->is_ready, p->nextstate);
+				DBG_OUT("DSP READY %d\Next state %2x", dsp->is_ready, 
+						dsp->nextstate);
 				break;
 			default:
 				break;
