@@ -37,7 +37,7 @@ union ep_int_buf {
 									 go one by one step, some are unused -- 1*/
 		unsigned char unknown1[2];	/* 2 unknown bytes  -- 2 -- 3*/
 		unsigned char eoc[36];		/* 36 byte eoc buffer -- 4 -- 39*/
-		unsigned char unknown2[88];	/* 2 unknown bytes  -- 40 -- 128*/
+		unsigned char status_buffer[24];	/* 2 unknown bytes  -- 40 -- 64*/
 	}buffer;
 };
 
