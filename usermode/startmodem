@@ -75,9 +75,9 @@ fi
 if [ $? -eq 0 ]; then
 	echo "	Load Firmware ...";
 	if [ $# != "4" ]; then	
-	/usr/local/bin/eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin;
+	/usr/local/bin/eci-load1 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
 	else
-	/usr/local/bin/eci-load1 0x$1 0x$2 0x$3 0x$4 /usr/local/bin/eci_firm_kit_wanadoo.bin;
+	/usr/local/bin/eci-load1 0x$1 0x$2 0x$3 0x$4 /etc/eciadsl/eci_firm_kit_wanadoo.bin;
 	fi
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load firmware" ;
@@ -98,9 +98,9 @@ fi
 
 echo "	Setup modem ..." ;
 if [ $# != "4" ]; then
-/usr/local/bin/eci-load2 /usr/local/bin/eci_wan3.bin;
+/usr/local/bin/eci-load2 /etc/eciadsl/eci_wan3.bin;
 else
-/usr/local/bin/eci-load2 0x$3 0x$4 /usr/local/bin/eci_wan3.bin;
+/usr/local/bin/eci-load2 0x$3 0x$4 /etc/eciadsl/eci_wan3.bin;
 fi
 if [ $? -ne 0 ] ; then
 	echo "Failed to setup the modem" ;
