@@ -39,7 +39,7 @@
 
 \subsection{Who was that document written for ?}
 
-That document was written for all the ADSL ECI USB modem owners ( or a modem equipped with a
+That document was written for all the ADSL ECI USB modem owners (or a modem equipped with a
 GLOBESPAN chip) wanting to use it under Linux.
 You will find the updated version of this document at this URL :
 \htmladdnormallink{http://eciadsl.flashtux.org}{http://eciadsl.flashtux.org},
@@ -62,11 +62,14 @@ and the commands to type as root are preceded by \#.
 
     Distributions in which the driver is known to work properly :
     \begin{itemize}
+    \item   Mandrake Linux 9.0 (kernel 2.4.19)
     \item   Mandrake Linux 8.1 (kernel 2.4.8-26mk)
+    \item   Redhat Linux 8.0
     \item   Redhat Linux 7.2 (kernel 2.4.7-10)
     \item   Debian 2.2 or up (kernel 2.4.0 mimimun)
     \item   Slackware
-    \item   etc...
+    \item   Gentoo
+    \item   ...
     \end{itemize}
 
     Distributions in which the driver is known to not work at all :
@@ -74,7 +77,8 @@ and the commands to type as root are preceded by \#.
     \item   Redhat Linux 7.1 (kernel 2.4.2-2)
     \end{itemize}
 
-    The driver is currently being adapted for *Bsd and MacOs X.\\
+    The driver is ok on MacOs X (\htmladdnormallink{http://www.hifocus.net}{http://www.hifocus.net})
+    and currently being adapted for *Bsd.\\
     Contact the \htmladdnormallink{developers}{http://eciadsl.flashtux.org/support.php}
     to know more about the progress of the adaptation.
 
@@ -104,9 +108,10 @@ $ uname -r
     \item kernel 2.4.14 : ok [usb-uhci]
     \item kernel 2.4.15 : ok [usb-uhci]
     \item kernel 2.4.16 : ok [usb-uhci]
-    \item kernel 2.4.17 : ok [usb-uhci]
-    \item kernel 2.4.18 : ok [usb-uhci]
-    \item kernel 2.4.19 : ok [usb-uhci]
+    \item kernel 2.4.17 : ok [usb-uhci, ohci]
+    \item kernel 2.4.18 : ok [usb-uhci, ohci]
+    \item kernel 2.4.19 : ok [usb-uhci, ohci]
+    \item kernel 2.4.20 : ok [usb-uhci, ohci]
     \end{itemize}
 
 Other kernels are being tested.
@@ -130,18 +135,36 @@ List of tested versions:
 
 \section {Installation procedure (to do only once)}
 
-Reference : the archive \textit{usermode-X.Y.tgz} is accessible at
+Reference : the archive \textit{eciadsl-usermode-X.Y-src.tar.gz, or .rpm, or .deb} is accessible at
 \htmladdnormallink{http://eciadsl.flashtux.org}{http://eciadsl.flashtux.org},
 in the Download section.
 
-\subsection{Driver preparation}
+\subsection{Driver compilation/installation}
 
-    Login as root then type :
+    For RedHat/Mandrake package (.rpm) :
 
 \begin{verbatim}
-$ cd usermode
+# rpm -i eciadsl-usermode-X.Y.rpm
+\end{verbatim}
+
+    For Debian package (.deb) :
+
+\begin{verbatim}
+# dpkg -i eciadsl-usermode-X.Y.deb
+\end{verbatim}
+
+    For sources package (.tar.gz or .tar.bz2) :
+
+\begin{verbatim}
+$ cd eciadsl-usermode-X.Y-src
+$ ./configure    (only for version >= 0.6)
 $ make
 # make install
+\end{verbatim}
+
+    For all packages :
+
+\begin{verbatim}
 # eciconf.sh     (or eciconftxt.sh)
 \end{verbatim}
 
@@ -213,7 +236,7 @@ $ make clean dep modules
 
 \subsection{pppd configuration for starting connection}
 
-If you used eciconf.sh, you can go to the section 4.
+If you used eciconf.sh or eciconftxt.sh, you can go to the section 4.
 
 \subsubsection{Script /etc/ppp/peers/adsl :}
 \label{cha:peers}
@@ -329,16 +352,16 @@ For Club Internet :& \textit{ your\_login@clubadsl1 * your\_password *}\\
 It's very simple, the startmodem script does almost everything :
 
 \begin{verbatim}
-$ /usr/local/bin/startmodem | tee log.txt
+# /usr/local/bin/startmodem | tee log.txt
 \end{verbatim}
 
 IT DOESN'T WORK : If you can't surf the web after one of the 3
-procedures, please refer to the \ref{cha:problems} chapter.
+procedures, please refer to the FAQ :
+\htmladdnormallink{http://eciadsl.flashtux.org/faq.php?lang=en}{http://eciadsl.flashtux.org/faq.php?lang=en}
 
 \subsection{Automatic during Linux booting}
 
-Will come in the future driver's verions. Useless as long as
-the driver is in beta stages.
+See this page : \htmladdnormallink{http://eciadsl.flashtux.org/faq.php?lang=en#5.0}{http://eciadsl.flashtux.org/faq.php?lang=en#5.0}
 
 \subsection{Automatic reconnection when disconnected}
 
@@ -349,174 +372,20 @@ the HDLC module isn't bugged. You can easily do it with
 \textit{/etc/ppp/peers/adsl} file. Restart pppd, and normally,
 your connection should be operational 24/7.
 
-\section{Known Issues}
-\label{cha:problems}
-
-The driver is shipped with a diagnostic util for the most common
-errors. To use it, go in the \textit{usermode} folder of the drivers'
-archive and type \textit{./eci-doctor.sh}.
-
-\begin{verbatim}
-# cd usermode
-# ./eci-doctor.sh
-\end{verbatim}
-
-If everything is correct, eci-doctor will return the following messages:
-
-\begin{verbatim}
-Support for USB is OK
-Preliminary USB device filesystem is OK
-UHCI support is OK
-/dev/ppp is OK
-HDLC support is OK
-HDLC support is OK (no bug)
-/etc/ppp/chap-secrets is OK
-PPP connection is OK
-Default route over ppp0 is OK
-Everything is OK
-\end{verbatim}
-
-Before contacting the diffusion list or whoever, please read the following.
-Otherwise, don't forget to attach the \textit{log.txt}
-obtained when executing startmodem.
-
-Describe your problems and the solutions you found on the diffusion list
-eci@ml.free.fr We shall incorporate them HERE.
-
-\subsection{Eci-load2 can't get synchronization // freezing at packet 259 (or any other packet)}
-
-It can happen that the driver can't get synchronization.
-Restart the driver (We advise you restarting from the beginning
-by unplugging and replugging the modem, and then restart: \textit{./startmodem})
-
-On the other hand, if the freeze is systematically on the same packet after several attempts,\\
-you will have to change the .bin file, which is used to synchronize the modem.
-Some pregenerated .bin files are available here :
-\htmladdnormallink{http://eciadsl.flashtux.org/download.php}{http://eciadsl.flashtux.org/download.php}
-If none of the .bin work, you will have to create your own.
-(please refer to the documentation available at the above link)
-
-There are two ways to change your .bin :
-
-    \subsubsection{1 :}
-        With a driver's version > 0.5 (CVS or >= 0.6) :\\
-        it is possible to change it in eciconftxt.sh
-
-    \subsubsection{2 :}
-        With a driver's version <= 0.5, you can do the following :\\
-        overwrite /etc/eciadsl/eci_wan3.bin by another .bin\\
-
-    	Example :
-\begin{verbatim}
-cp /my_path/eci_wan3.bordeaux.bin /etc/eciadsl/eci_wan3.bin
-\end{verbatim}
-
-\subsection{The PPP connection is fine, I can see ppp0 with ifconfig, but I can't go on the internet}
-
-    \subsubsection{Action 1 :}
-        Check that your DNS are right :
-        in \textit{/etc/resolv.conf}
-        there are two lines beginning by "nameserver".
-
-        Until now :
-
-%       \begin {tabular}{l} ptete que e v mettre un tableau après ... on verra
-        For wanadoo :\\
-\begin{verbatim}
-nameserver 193.252.19.3
-nameserver 193.252.19.4
-\end{verbatim}
-
-        For Club Internet :\\
-\begin{verbatim}
-nameserver 194.117.200.15
-nameserver 194.117.200.10
-\end{verbatim}
-
-        For other providers, look at eciconf.sh (or eciconftxt.sh).\\
-        Other DNS servers are in the providers.db file (driver's version CVS or >= 0.6).
-        
-        If there aren't the two lines beginning by "nameserver", then create them.
-
-    \subsubsection{Action 2 :}
-        Type : nslookup www.wanadoo.fr
-
-        If you get no answer and ppp0 is still mentionned by ifconfig :\\
-        You surely have a routing problem :\\
-        type route -n, you'll get an output like the following :\\
-
-        \begin{tabular}{llllllll}
-        Destination  &   Gateway    &    Genmask     &    Indic& Metric& Ref &   Use& Iface\\
-        127.0.0.0   &    0.0.0.0    &     255.0.0.0   &    U  &   0  &    0    &    0 &lo\\
-        0.0.0.0    &     212.194.0.1  &   0.0.0.0    &     UG  &  0  &    0    &    0 &ppp0\\
-        \end{tabular}
-
-        The last line is important, because it is the default Gateway that gives you access to the
-        Internet...
-
-        If there isn't any gateway, you can't get to the net, so type in the shell :
-\begin{verbatim}
-# route add default dev ppp0
-\end{verbatim}
-
-        It should work.
-
-\subsection{pppd stops on an error : LCP timeout}
-
-    1st case : you have a timeout problem with the PPP connection :
-
-        \textit{Édit etc/ppp/peers/adsl}
-
-        UN-comment the last 2 lines :
-\begin{verbatim}
-lcp-echo-interval 600
-lcp-echo-failure 10
-\end{verbatim}
-
-    2nd case : you have an authentification problem (PPP doesn't always tell it explicitly)
-
-        Correct your scripts :\\
-
-            \textit{/etc/ppp/peers/adsl}\\
-            and\\
-            \textit{/etc/ppp/chap-secrets} (Wanadoo and Club Internet "Full is beautiful") or \textit{/etc/ppp/pap-secrets} (Club Internet except "Full is beautiful")\par
-
-        => Back to chapters : \ref{cha:peers} et \ref{cha:TODO}
-
-\subsection{You get that error message : Can't find your ECI Telecom USB ADSL Loader}
-
-    \subsubsection{Error Message }
-    \begin{verbatim}
-    [root@hwi usermode]# ./startmodem
-    /proc/bus/usb: No such file or directory
-    Can't find your ECI Telecom USB ADSL Loader
-    ECI Load 1 : failed!
-    /proc/bus/usb: No such file or directory
-    Can't find your ECI Telecom USB ADSL WAN Modem
-    ECI Load 2 : failed!
-    \end{verbatim}
-
-    If you get a message that looks like the one above, it's because you didn't mount the filesystem for USB.
-
-    \subsubsection{Solution }
-\begin{verbatim}
-# mount -t usbdevfs none /proc/bus/usb
-\end{verbatim}
-
-\subsection{Messages "Timeout USB" once connected}
-
-    Add "mtu 1432" in your /etc/ppp/peers/adsl script (or UN-comment it).
+For other deconnections (USB problems for example), you can download
+a reconnection script, available here :
+\htmladdnormallink{http://eciadsl.flashtux.org/download.php?lang=en&view=reco}{http://eciadsl.flashtux.org/download.php?lang=en&view=reco}
 
 \section{Contacts}
 
 \subsection{Support}
 
 All the ways to contact the support are here :
-\htmladdnormallink{http://eciadsl.flashtux.org/support.php}{http://eciadsl.flashtux.org/support.php}
+\htmladdnormallink{http://eciadsl.flashtux.org/support.php?lang=en}{http://eciadsl.flashtux.org/support.php?lang=en}
 
-\subsection{Diffusion list}
+\subsection{Mailing list}
 
-For any question, subscribe to this project's diffusion list
+For any question, subscribe to this project's mailing list
 sending a blank mail to :
 \htmladdnormallink{\textbf{eci-request@ml.free.fr}}{mailto:eci-request@ml.free.fr?subject=subscribe}
 with \textbf{subscribe} in the subject field, then post your remarks or suggestions to :
