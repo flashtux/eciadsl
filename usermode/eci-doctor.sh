@@ -106,7 +106,7 @@ if [ $? -ne 0 ]; then
 				fi
 			else
 				echo "UHCI support is OK" ;
-				uhci=1 ; 
+				uhci=1 ;
 			fi
 		fi
 	else
@@ -276,19 +276,32 @@ else
 	echo "dabusb module is not loaded: OK";
 fi
 
+if [ -e /etc/eciadsl/vidpid ]; then
+    vid1=`cat /etc/eciadsl/vidpid | cut -f1 -d' '` ;
+    pid1=`cat /etc/eciadsl/vidpid | cut -f2 -d' '` ;
+    vid2=`cat /etc/eciadsl/vidpid | cut -f3 -d' '` ;
+    pid2=`cat /etc/eciadsl/vidpid | cut -f4 -d' '` ;
+    echo "vid/pid read from /etc/eciadsl/vidpid: $vid1/$pid1 $vid2/$pid2" ;
+else
+    vid1="0547" ;
+    pid1="2131" ;
+    vid2="0915" ;
+    pid2="8000" ;
+fi
+
 # check for the EZUSB chip
 ezusb=0
-grep "^P:  Vendor=0547 ProdID=2131" /proc/bus/usb/devices > /dev/null
+grep "^P:  Vendor=$vid1 ProdID=$pid1" /proc/bus/usb/devices > /dev/null
 if [ $? -eq 0 ]; then
 	ezusb=1 ;
 	echo "Loading EZ-USB firmware... ";
-	/usr/local/bin/eci-load1 /etc/eciadsl/eci_firm_kit_wanadoo.bin
+	/usr/local/bin/eci-load1 0x$vid1 0x$pid1 0x$vid2 0x$pid2 /etc/eciadsl/eci_firm_kit_wanadoo.bin
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load EZ-USB firmware" ;
 		fatal ;
 	fi ;
 	echo "Loading the GlobeSpan firmware..." ;
-	/usr/local/bin/eci-load2 /etc/eciadsl/eci_wan3.bin
+	/usr/local/bin/eci-load2 0x$vid2 0x$pid2 /etc/eciadsl/eci_wan3.bin
 	if [ $? -ne 0 ] ; then
 		echo "Failed to load GlobeSpan firmware" ;
 		fatal ;
@@ -309,7 +322,7 @@ fi
 # user "TheUser"
 # user 'TheUser'
 
-# check for an existing user param. The actual user param may be 
+# check for an existing user param. The actual user param may be
 # within "" or not.
 user=`grep "^user" /etc/ppp/peers/adsl | awk '{print $2}'`
 if [ "$user" = "" ]; then
@@ -347,7 +360,7 @@ else
 fi
 
 # check for the Globespan chip
-grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null
+grep "^P:  Vendor=$vid2 ProdID=$pid2" /proc/bus/usb/devices > /dev/null
 if [ $? -ne 0 ]; then
 	echo "I cannot find your ADSL modem: Fatal"
 	fatal;
@@ -404,7 +417,7 @@ if [ "$PPP" = "" ]; then
 			rm /tmp/ppp.log
 			fatal;
 		fi
-		# check for invalid password 
+		# check for invalid password
 		grep 'CHAP authentication failed' /tmp/ppp.log > /dev/null
 		if [ $? -eq 0 ]; then
 			echo "CHAP authentication failed: check your user in /etc/ppp/peers/adsl and the matching password in /etc/ppp/chap-secrets" ;
