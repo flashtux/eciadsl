@@ -179,6 +179,11 @@ static void _dumpk(
 #define ECI_NB_BULK_PKT 10
 #define ECI_BULK_BUFFER_SIZE (64 * ECI_NB_BULK_PKT)
 
+#define ECI_STATE_PROBING 0
+#define ECI_STATE_SYNCHRONIZING 1
+#define ECI_STATE_RUNNING 2
+#define ECI_STATE_REMOVING 3
+
 /**********************************************************************
                     Globals	
 ***********************************************************************/
@@ -673,6 +678,7 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct usb_device 	*usb_wan_dev;
 	struct atm_dev		*atm_dev;
 	int 			minor;
+	int state;	/* Device state */
 	wait_queue_head_t 	eci_wait;	/*	no more used	*/
 	const unsigned char	*setup_packets; /* 	For init	*/
 	struct urb		*isourbs[ECI_NB_ISO_PACKET];
@@ -745,7 +751,7 @@ static int __init eci_init(void) {
 */
 static int _eci_cleanup_instance(struct eci_instance *i) {
 	int cnt;
-
+	i->state = ECI_STATE_REMOVING;
 #ifdef __USE_ATM__
 	if(i->atm_dev) 	{
 		shutdown_atm_dev(i->atm_dev);
@@ -859,6 +865,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 			if(out_instance) {
 				memset(out_instance, 0, sizeof(struct eci_instance));
 				spin_lock_init(&out_instance->lock);
+				out_instance->state = ECI_STATE_PROBING;
 				out_instance->usb_wan_dev= dev;
 				out_instance->setup_packets = eci_init_setup_packets;
 				out_instance->iso_celbuf_pos = 0 ;
@@ -1019,6 +1026,7 @@ static int eci_usb_probe(struct usb_interface *interface,
 		*/
 		eciurb->context = out_instance;
 		out_instance->vendor_urb = eciurb;
+		out_instance->state = ECI_STATE_SYNCHRONIZING;
 		_eci_send_init_urb(eciurb);
 	
 	} else {
@@ -1319,20 +1327,22 @@ static void _eci_send_init_urb(struct urb *eciurb) {
 		usb_fill_control_urb(eciurb, instance->usb_wan_dev, pipe, 
 			setuppacket, eciurb->transfer_buffer, size, eci_init_vendor_callback,
 			instance);
+		if(instance->state != ECI_STATE_REMOVING)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))			
-		if(usb_submit_urb(eciurb)) {
+			if(usb_submit_urb(eciurb)) {
 #else
-		if(usb_submit_urb(eciurb, GFP_ATOMIC)) {
+			if(usb_submit_urb(eciurb, GFP_ATOMIC)) {
 #endif
-			ERR_OUT("error couldn't send init urb\n");
-			return;
+				ERR_OUT("error couldn't send init urb\n");
+				return;
+			}
+			instance->setup_packets += 
+				(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
+		} else {	/*	gotta free urb and buffer !	*/
+			kfree(eciurb->transfer_buffer);
+			eciurb->transfer_buffer = 0;
+			instance->state = ECI_STATE_RUNNING;
 		}
-		instance->setup_packets += 
-			(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
-	} else {	/*	gotta free urb and buffer !	*/
-		kfree(eciurb->transfer_buffer);
-		eciurb->transfer_buffer = 0;
-	}
 }
 /*
 		This one is called to handle the modem sync.
@@ -1574,10 +1584,11 @@ static void eci_int_callback(struct urb *urb, struct pt_regs *regs) {
 						instance->usb_wan_dev, usb_pipecontrol(0),
 						(unsigned char*) &dr,	eci_outbuf,
 						sizeof(eci_outbuf),	eci_control_callback,dr);
+					if(instance->state != ECI_STATE_REMOVING)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))						
-					usb_submit_urb(instance->vendor_urb);
+						usb_submit_urb(instance->vendor_urb);
 #else
-					usb_submit_urb(instance->vendor_urb, GFP_ATOMIC);
+						usb_submit_urb(instance->vendor_urb, GFP_ATOMIC);
 #endif
 				}
 			}
@@ -1686,10 +1697,11 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
+	if(instance->state != ECI_STATE_REMOVING)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
-	usb_submit_urb(urb);
+		usb_submit_urb(urb);
 #else
-	usb_submit_urb(urb, GFP_ATOMIC);
+		usb_submit_urb(urb, GFP_ATOMIC);
 #endif
 	spin_unlock(&instance->lock);	
 }
