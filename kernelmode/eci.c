@@ -902,10 +902,11 @@ static int eci_usb_probe(struct usb_interface *interface,
 			eciurb->transfer_flags = USB_ISO_ASAP;
 #else
 			eciurb->transfer_flags = URB_ISO_ASAP;
+			eciurb->interval = 1;
 #endif
 			eciurb->number_of_packets = ECI_NB_ISO_PACKET;
 			eciurb->complete = eci_iso_callback;
-			eciurb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE;
+			eciurb->transfer_buffer_length = ECI_ISO_BUFFER_SIZE; 
 			for(i=0;i < ECI_NB_ISO_PACKET; i ++) {
 				eciurb->iso_frame_desc[i].offset = 
 					i * ECI_ISO_PACKET_SIZE;
@@ -1600,7 +1601,7 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 	int 			received = 0;	/* boolean for cell in frames */
 
 	instance = (struct eci_instance *)urb->context;
-	spin_lock_bh(&instance->lock);
+	spin_lock(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length) {
 		DBG_OUT("Data in iso packet \n");
 		for (i=0;i<ECI_NB_ISO_PACKET;i++) {
@@ -1676,7 +1677,7 @@ static void eci_iso_callback(struct urb *urb, struct pt_regs *regs) {
 #else
 	usb_submit_urb(urb, GFP_ATOMIC);
 #endif
-	spin_unlock_bh(&instance->lock);	
+	spin_unlock(&instance->lock);	
 }
 
 static int eci_usb_send_urb(struct eci_instance *instance, 
@@ -1756,7 +1757,7 @@ static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 		ERR_OUT("Error on Bulk URB, status %d\n", urb->status);
 	}
 	instance = (struct eci_instance *)urb->context;
-	spin_lock_bh(&instance->lock);
+	spin_lock(&instance->lock);
 	instance->bulkisfree = 1;
 	if(_uni_cell_list_nbcells(&instance->bulk_cells)) {
 		tasklet_schedule(&instance->bh_bulk);
@@ -1767,7 +1768,7 @@ static void eci_bulk_callback(struct urb *urb, struct pt_regs *regs) {
 		DBG_OUT("Rescheduling ATM BH from bulk callback");
 		tasklet_schedule(&instance->bh_atm);
 	}
-	spin_unlock_bh(&instance->lock);
+	spin_unlock(&instance->lock);
 }
 /**********************************************************************
 		END USB CODE
