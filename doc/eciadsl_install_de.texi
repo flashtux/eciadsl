@@ -1,0 +1,633 @@
+\input texinfo  @c -*-texinfo-*-
+@c %**start of header
+@setfilename eciadsl_install_de.info
+@settitle EciAdsl - Freier ADSL USB Linuxtreiber
+@c %**end of header
+
+@c EciAdsl documentation (german version)
+@c
+@c Copyright (c) 2004 by FlashCode <flashcode@flashtux.org>
+@c German Version by Thorsten Hirsch <t.hirsch@web.de>
+@c
+@c Permission is granted to copy, distribute and/or modify this document
+@c under the terms of the GNU Free Documentation License, Version 1.2
+@c or any later version published by the Free Software Foundation;
+@c with no Invariant Sections, no Front-Cover Texts, and no Back-Cover Texts.
+@c A copy of the license is included in the section entitled "GNU
+@c Free Documentation License".
+
+@c pdf : texi2pdf eciadsl_install_de.texi
+@c html: makeinfo --html --no-split --number-sections eciadsl_install_de.texi
+
+@c tex
+@c \overfullrule=0pt
+@c end tex
+
+@documentlanguage de
+
+@titlepage
+@title EciAdsl-Treiber - Installationsanweisung
+@subtitle Freier ADSL USB Linuxtreiber f@"ur Globespan-Chipsatz basierte Modems
+@subtitle Doku f@"ur EciAdsl v0.8 - March, 09 2004
+
+@author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
+@page
+
+Dies ist eine Anleitung zum EciAdsl-Treiber, einem freien ADSL USB Linuxtreiber f@"ur Modems, die auf einem Globespan Chipsatz basieren.@*
+Diese Anleitung ist Teil des EciAdsl-Treibers.@*
+@*
+Die aktuellste Version dieses Dokuments befindet sich hier:@*
+@uref{http://eciadsl.flashtux.org/doc.php?lang=en}@*
+@*
+Copyright @copyright{} 2004 FlashCode
+<@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
+@*
+Dieses Dokument darf entsprechend der Bestimmungen der GNU General Public License (Version 2 oder h@"oher) genutzt werden.
+
+@end titlepage
+
+@everyheading @thischapter @| @|
+@everyfooting @thistitle @| @| Page @thispage
+
+@contents
+
+@node Top, Einfuehrung, (dir), (dir)
+@menu
+* Einfuehrung:: Was ist der EciAdsl-Treiber?
+* Installation:: Wie installiert man den Treiber?
+* Konfiguration:: So konfiguriert man den Treiber
+* Verbindung:: Mit dem Internet verbinden
+* Erzeugen von synch .bin Dateien:: So erzeugen Sie sich Ihre eigenen .bin Dateien zur Synchronisierung
+* Autoren / Support:: Kontaktieren Sie die Autoren um Support zu erhalten
+@end menu
+
+
+@c ******************************* Einfuehrung *******************************
+
+@node Einfuehrung, Installation, Top, Top
+@chapter Einfuehrung
+@menu
+* Beschreibung::
+* Voraussetzungen::
+@end menu
+
+@node Beschreibung, Voraussetzungen, Einfuehrung, Einfuehrung
+@section Beschreibung
+
+EciAdsl ist ein freier Linuxtreiber um Ihren Computer mit dem Internet zu
+verbinden, wenn Sie ein ADSL USB Modem mit GlobeSpan-Chipsatz besitzen.@*
+Andere Betriebssysteme wie *BSD sind in Entwicklung (f@"ur weitere Informationen
+kontaktieren Sie bitte die Autoren - @xref{Autoren / Support}.)@*
+@*
+Die EciAdsl Treiber Homepage befindet sich hier:@*
+@uref{http://eciadsl.flashtux.org}@*
+@*
+Eine aktuelle Liste mit unterst@"utzten Modems ist hier zu finden:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en&supported=yes}
+
+@node Voraussetzungen, , Beschreibung, Einfuehrung
+@section Voraussetzungen
+
+@subsection Pakete
+
+Um den EciAdsl zu installieren, werden folgende Pakete/Programme ben@"otigt:@*
+
+@itemize @bullet
+@item
+Ein GNU/Linux System (x86 Architektur) mit Standard-Tools
+(MDK9/RH8/top-aktuelle/exotische haben evtl. (l@"osbare) Probleme,
+*BSD und andere Systeme werden noch nicht offiziell unterst@"utzt)
+@item
+USB 1.1 Hardwareunterst@"utzung
+@item
+Linux kernel 2.4.x (>=2.4.18-pre3 oder <2.4.18-pre3+N_HDLC Patch
+wird empfohlen um die automatische pppd-Wiedereinwahl nutzen zu
+k@"onnen)
+@item
+USB Unterst@"utzung (als Module):
+@itemize @minus
+@item
+general USB support
+@item
+USB preliminary fs
+@item
+HUB USB controller ALS MODUL
+@item
+keine Aktivierung des Moduls dabusb
+@end itemize
+@item
+PPP Unterst@"utzung (zusammen mit dem pppd usermode Paket >=2.4.0)
+@item
+zur Installation aus dem Quellcode heraus: Standardentwicklungspakete
+(Linux Quellcode in /usr/src/linux, GNU Software, z.B. gcc>=2.91.66, 
+GNU make, etc.)
+@item
+USB Modem (auf GlobeSpan-Chip basiert)
+@item
+bash (>=2.x.x)
+@item
+optional: tcl/tk >= 8.x.x, perl
+@item
+root Berechtigungen (zumindest f@"ur die Treiberinstallation)
+
+@end itemize
+
+@subsection Kernel
+
+Wenn Sie die aktuellste Mandrake/Redhat-Distribution mit dem Stan-
+dardkernel verwenden, k@"onnen Sie dieses Kapitel @"uberspringen.@*
+Bei anderen Distribution k@"onnen einige Optionen im Kernel fehlen.
+Wenn eci-doctor.sh fehlende Optionen entdeckt, m@"ussen Sie Ihren Kernel
+neu kompilieren.@*@*
+Folgende Einstellungen @b{m@"ussen} aktiviert werden ("*" steht f@"ur
+"fest im Kernel", "M" steht f@"ur "als Modul"):@*@*
+@t{USB support --->}@*
+@t{  <M> Support for USB}@*
+@t{  [ ]   USB verbose debug messages}@*
+@t{  --- Miscellaneous USB options}@*
+@t{  [*]   Preliminary USB device filesystem}@*
+@t{  [ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)}@*
+@t{  [ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)}@*
+@t{  --- USB Host Controller Drivers}@*
+@t{  < >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)}@*
+@t{  <M>   UHCI (Intel PIIX4, VIA, ...) support}@*
+@t{  <M>   UHCI Alternate Driver (JE) support}@*
+@t{  <M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support}@*
+@t{  ..}@*
+@t{  --- USB Multimedia devices}@*
+@t{  ..}@*
+@t{  < >   DABUSB driver}@*
+@t{  ..}@*
+@*
+@t{Character devices --->}@*
+@t{  ..}@*
+@t{  [*] Non-standard serial port support}@*
+@t{  <M>   HDLC line discipline support}@*
+@t{  ..}@*
+@*
+@t{Network device support --->}@*
+@t{  ..}@*
+@t{  <M> PPP (point-to-point protocol) support}@*
+@t{  [ ] PPP multilink support (EXPERIMENTAL)}@*
+@t{  [ ] PPP filtering}@*
+@t{  <M> PPP support for async serial ports}@*
+@t{  <M> PPP support for sync tty ports}@*
+@t{  <M> PPP Deflate compression}@*
+@t{  <M> PPP BSD-Compress compression}@*
+@t{  < > PPP over Ethernet (EXPERIMENTAL)}@*
+@t{  < > PPP over ATM (EXPERIMENTAL)}@*
+
+
+@c ******************************* Installation *******************************
+
+@node Installation, Konfiguration, Einfuehrung, Top
+@chapter Installation
+@menu
+* dabusb entfernen::
+* Treiberinstallation::
+* Kompilieren::
+@end menu
+
+@node dabusb entfernen, Treiberinstallation, Installation, Installation
+@section dabusb entfernen
+
+Wenn das Modem beim Starten von Linux aktiviert wird, muss dabusb entfernt
+werden. Bleibt das Modem deaktiviert, k@"onnen Sie diesen Abschnitt @"uberspringen.@*
+@*
+Hotplug ist evtl. aktiviert, und es erkennt f@"alschlicherweise das Modem
+als Audioger@"at und l@"adt das dabusb Modul um es zu aktivieren.@*
+Wenn /etc/hotplug/blacklist existiert, editieren Sie die Datei und f@"ugen
+Sie eine Zeile mit dem Inhalt 'dabusb' (ohne Anf@"uhrungszeichen) hinzu. 
+Starten Sie Linux neu.@*
+@*
+K@"onnen Sie keine Dateien finden, in denen hotplug installiert und aktiviert
+wird, muss es einen anderen Weg geben, auf dem dabusb geladen wird.
+Es kann aber auf jeden Fall mit der folgenden Methode deaktiviert
+werden:
+
+@itemize @bullet
+@item
+Fahren Sie Linux hoch, wobei das Modem @b{nicht} mit dem Rechner verbunden
+sein darf!@*
+@item
+Nun k@"onnen Sie das dabusb Modul mit eciconf.sh oder eciconftxt.sh
+entfernen oder direkt remove_dabusb (standardm@"a@ss{}ig zu finden in 
+/usr/local/bin) aufrufen.@*
+Eine weitere M@"oglichkeit stellt das folgende Kommando dar:@*
+@kbd{modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a}@*
+@end itemize
+Wurde der Kernel per Hand kompiliert, vergessen Sie nicht, das dabusb
+Modul in der Konfiguration zu deaktivieren.
+
+
+@node Treiberinstallation, Kompilieren, dabusb entfernen, Installation
+@section Treiberinstallation
+
+Laden Sie das aktuellste stable usermode Paket herunter (Quellcode
+oder das Paket f@"ur Ihre Distribution) von dieser Seite:@*
+@uref{http://eciadsl.flashtux.org/download.php?lang=en}@*
+
+Je nach Paket benutzen Sie eines der folgenden Kommandos:@*
+@itemize @bullet
+@item
+Sources (.tar.gz): @kbd{tar xvzf /path/eciadsl-usermode-x.y.tar.gz}
+@item
+Sources (.tar.bz2): @kbd{tar xvjf /path/eciadsl-usermode-x.y.tar.bz2}
+@item
+RedHat/Mandrake (.rpm): @kbd{rpm -i /path/eciadsl-usermode-x.y-1.i386.rpm}
+@item
+Debian (.deb): @kbd{dpkg -i /path/eciadsl-usermode_x.y-1_i386.deb}
+@item
+Slackware (.tgz): @kbd{installpkg /path/eciadsl-usermode-x.y-i386-1.tgz}
+@item
+Gentoo (.ebuild):@*
+siehe @uref{http://doc.gentoofr.org/Members/BeTa/eciadsl-gentoo-howto/view}
+@end itemize
+wobei x.y f@"ur die jeweilige Version steht (z.B.: 0.8)
+@*
+
+@node Kompilieren, , Treiberinstallation, Installation
+@section Kompilieren
+
+Haben Sie das distributionsspezifische Paket (Redhat/Mandrake, Debian,
+Slackware, Gentoo) installiert, k@"onnen Sie diesen Abschnitt @"uberspringen.@*
+@*
+Ansonsten m@"ussen Sie nur folgendes in einer Konsole/Terminal aufrufen:@*
+@kbd{./configure}@*
+@kbd{make}@*
+Als "root": @kbd{make install}@*
+
+@kbd{./configure --help} gibt eine Liste aller Parameter aus. Wenn Sie die
+Software bspw. an einen anderen Platz als /usr/local installieren wollen,
+benutzen Sie bspw.  @kbd{--prefix=/opt}.@*
+Die Konfigurationsdateien des Treibers k@"onnen mit den Parametern
+-conf-prefix (Standard: /) und -conf-fir (Standard: etc/eciadsl) ein-
+gestellt werden, bspw.:@*
+@kbd{--conf-prefix=/opt --conf-dir=etc/eciadsl}@*
+oder @kbd{--conf-prefix=/opt/eciadsl --conf-dir=etc}@*
+
+Vorsicht mit -etc-prefix, das auch ge@"andert werden kann. Standard ist
+hier /, was bedeutet, dass /etc benutzt wird. Es wird benutzt um die
+Systemkonfigurationsdateien wie resolv.conf oder die von pppd zu fin-
+den. Benutzen Sie -etc-prefix nur wenn Sie wissen was Sie tun!@*
+
+
+@c ****************************** Konfiguration *******************************
+
+@node Konfiguration, Verbindung, Installation, Top
+@chapter Konfiguration
+
+@menu
+* Konfigurationstool::
+* Details zu den Parametern::
+@end menu
+
+@node Konfigurationstool, Details zu den Parametern, Konfiguration, Konfiguration
+@section Konfigurationstool
+
+@itemize @bullet
+@item
+Wenn Tcl/Tk auf Ihrem System installiert ist, k@"onnen Sie das
+grafische Konfigurationstool verwenden:
+@kbd{eciconf.sh}@*
+@*
+Geben Sie alle Parameter ein und achten Sie nicht weiter auf die
+Meldung ``Change synch .bin file''.@*
+
+@item
+Andernfalls benutzen Sie das Konfigurationstool im Textmodus:@*
+@kbd{eciconftxt.sh}@*
+Folgen Sie einfach den Anweisungen um den Treiber zu konfigurieren.
+
+@end itemize
+
+
+@node Details zu den Parametern, , Konfigurationstool, Konfiguration
+@section Details zu den Parametern
+
+@table @code
+
+@item user
+Benutzername, der Ihnen vom Provider zugewiesen wurde@*
+z.B.: username@@clubadsl1
+@*
+@item password
+das dazugeh@"orige Passwort, das Ihnen Ihr Provider gegeben hat@*
+@*
+@item VPI
+die erste der zu w@"ahlenden Nummern@*
+Wenn der Windowstreiber bspw. die Zahlen 8, 35 w@"ahlt, geh@"ort hier
+die 8 hin.
+@*
+@item VCI
+die zweite zu w@"ahlende Nummer@*
+In unserem Beispiel w@"are dies die 35.
+@*
+@item Provider DNS
+IP-Adresse(n) des/der DNS-Server, die Ihr Provider benutzt@*
+Aktivieren Sie "Update provider DNS" und w@"ahlen Sie Ihren
+Provider aus der Liste aus. Ist er nicht aufgef@"uhrt, m@"ussen Sie
+die IP-Adresse(n) manuell eingeben. Wenn Sie die IP-Adressen
+des/der DNS-Server Ihres Providers nicht wissen, lesen Sie die
+folgende Frage in den FAQ:@*
+@uref{http://eciadsl.flashtux.org/faq.php?lang=en#1.6}@*
+@*
+Bei T-Online w@"aren hier die folgenden Adressen einzutragen:@*
+212.185.253.9 und 194.25.2.129@*
+@item Modem
+W@"ahlen Sie Ihr Modem aus der Liste aus.@*
+Ist Ihr Modem nicht in der Liste, schauen Sie bitte hier nach:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+- Steht Ihr Modem unter ``not supported'', wird Ihr Modem von EciAdsl
+nie unterst@"utzt werden. @b{Bitte fragen Sie in diesem Fall auch
+nicht die Entwickler} - suchen Sie stattdessen bitte einen
+anderen Treiber f@"ur Ihr Modem.@*
+- Ist Ihr Modem unter "maybe supported" zu finden, k@"onnen Sie die
+Entwickler nach dem aktuellen Stand der Unterst@"utzung fragen.
+@xref{Autoren / Support}.@*
+@item Synch .bin file
+W@"ahlen Sie diese Option nur, wenn startmodem keine Synchronisierung
+des Modems bewerkstelligen kann.@*
+@item PPP mode
+- Benutzer in Frankreich w@"ahlen hier VCM_RFC2364.@*
+- Alle anderen m@"ussen die f@"ur den jeweiligen Provider zutreffende
+Option ausw@"ahlen. Schauen Sie hierzu bitte in den FAQ nach:@*
+@uref{http://eciadsl.flashtux.org/faq.php?lang=en#5.4}@*
+- Kunden mit einem T-DSL-Anschluss w@"ahlen hier die Option
+RFC1483 BRIDGED ETH with NO FCS@*
+@item DHCP
+W@"ahlen Sie diese Option wenn Ihr Provider Ihnen eine IP-Adresse
+per DHCP zuweist. Bei T-DSL trifft dies bspw. nicht zu.@*
+@item Static IP
+W@"ahlen Sie dies wenn Sie eine statische IP-Adresse benutzen.@*
+Geben Sie diese und das Gateway anschlie@ss{}end ein.@*
+Im Zweifelsfall lassen Sie diese Option deaktiviert.
+
+@end table
+
+
+@c ******************************* Verbindung ********************************
+
+@node Verbindung, Erzeugen von synch .bin Dateien, Konfiguration, Top
+@chapter Verbindung
+
+@menu
+* Startmodem::
+* Weitere Skripte::
+@end menu
+
+@node Startmodem, Weitere Skripte, Verbindung, Verbindung
+@section Startmodem
+
+Um eine Internetverbindung herzustellen, geben Sie das folgende
+Kommando als root ein:@*
+@kbd{startmodem | tee log.txt}@*
+
+@subsection Probleme mit der Synchronisierung
+
+Bei Problemen mit der Synchronisierung (eci-load2 timeout/error oder lcp timeouts
+nach Synchronisierung), folgen Sie diesen Anweisungen:
+
+@itemize @bullet
+@item
+Download des .bin Pakets:@*
+@uref{http://eciadsl.flashtux.org/download.php?lang=en&view=sync}
+@item
+das Paket als root in /etc/eciadsl entpacken:@*
+@kbd{cd /etc/eciadsl && tar xvzf /path/eciadsl-synch_bin.tar.gz}
+@item
+mit eciconf.sh oder eciconftxt.sh eine andere .bin Datei w@"ahlen
+@item
+R@"ucksetzen des Modems: entweder @kbd{modprobe -r usb-uhci && modprobe
+usb-uhci} (bzw. usb-ohci) oder das USB-Kabel kurzzeitig entfernen
+@item
+startmodem erneut aufrufen@*
+Gibt es immer noch synch-Probleme, benutzen Sie eine andere synch
+.bin Datei. Sie k@"onnen @b{ALLE} synch .bin Dateien benutzen, die Ihnen
+zur Verf@"ugung gestellt werden.@*
+Falls keine funktioniert, m@"ussen Sie Ihre eigene .bin Datei unter
+Windows erzeugen.
+@xref{Erzeugen von synch .bin Dateien}.
+@end itemize
+
+Bei anderen Problemen mit startmodem, schauen Sie bitte in den FAQ:@*
+@uref{http://eciadsl.flashtux.org/faq.php?lang=en}
+
+@subsection PPPoE Benutzer
+
+Verwendet Ihr Provider PPPoE, m@"ussen Sie einen PPPoE-Client installieren und
+konfigurieren, bspw. rp-pppoe (http://www.roaringpenguin.com/pppoe), um
+eine Modemverbindung via tap0 herstellen zu k@"onnen.
+
+@node Weitere Skripte, , Startmodem, Verbindung
+@section Weitere Skripte
+
+@subsection probe_device.sh
+
+Benutzen Sie dieses Skript wenn startmodem Ihr Modem nicht findet.
+Dieses Skript sucht nach der VID/PID Ihres Modems und zeigt diese an.
+F@"ur weitere Details kontaktieren Sie bitte die Entwickler. @xref{Autoren / Support}.
+
+@subsection eci-doctor.sh
+
+Benutzen Sie dieses Skript (mit der Option @kbd{--usb-init}) falls
+startmodem ein anderes Problem hat als ``Modem not found'' oder Probleme
+mit der Synchronisierung.
+
+@subsection probe_synch.sh
+
+Wenn Sie Probleme mit der Synchronisierung haben, k@"onnen Sie dieses
+Skript benutzen um automatisch alle synch .bin Dateien durchzuprobieren.
+
+@c *************************** Erzeugen von synch .bin Dateien ****************************
+
+@node Erzeugen von synch .bin Dateien, Autoren / Support, Verbindung, Top
+@chapter Erzeugen von synch .bin Dateien
+
+@menu
+* Eci Windowstreiber::
+* USB Sniffer::
+* USB Pakete unter Windows ``sniffen''::
+* Konvertieren der log Datei in eine synch .bin Datei::
+@end menu
+
+Wenn Sie Probleme mit der Synchronisierung haben und alle .bin Da-
+teien ausprobiert haben, m@"ussen Sie sich Ihre eigene .bin Datei unter
+Windows erzeugen.
+
+Andernfalls k@"onnen Sie dieses Kapitel komplett @"uberspringen.
+
+@node Eci Windowstreiber, USB Sniffer, Erzeugen von synch .bin Dateien, Erzeugen von synch .bin Dateien
+@section Eci Windowstreiber
+
+@subsection Download
+
+Benutzen Sie den Eci Windowstreiber f@"ur Ihr Modem (andernfalls
+w@"urde Ihre .bin Datei nicht unter Linux funktionieren). Version 1.06
+des Windowstreibers k@"onnen Sie hier herunterladen:@*
+@uref{http://eciadsl.flashtux.org/download/eci_drv_106_win.zip}@*
+
+@subsection Treibermodifizierung
+
+Wenn Ihr Modem keine der folgenden VID/PID-Kombinationen besitzt, m@"us-
+sen Sie eine Änderung in den Treiberdateien vornehmen.@*
+- VID1/PID1: 0547/2131, VID2/PID2: 0915/8000@*
+- VID1/PID1: 0915/0001, VID2/PID2: 0915/0002@*
+Um Ihre VID/PID herauszubekommen, schauen Sie bitte hier nach:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}.@*
+@*
+Folgendes m@"ussen Sie modifizieren:@*
+@*
+- in der Datei @strong{gafwload.inf}, Zeile 24:@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0547}&PID_@strong{2131}}@*
+ersetzen Sie 0547 mit Ihrer VID1 und 2131 mit Ihrer PID1@*
+- in der Datei @strong{gafwload.inf}, Zeile 30:@*
+@cite{%GSILOAD.DeviceDescAnchor% = GSIUSBLDRANCHOR, USB\VID_@strong{0547}&PID_@strong{2131}}@*
+ersetzen Sie 0547 mit Ihrer VID1 und 2131 mit Ihrer PID1@*
+- in der Datei @strong{gwausb.inf}, Zeile 34:@*
+@cite{ExcludeFromSelect = USB\VID_@strong{0915}&PID_@strong{8000}}@*
+ersetzen Sie 0915 mit Ihrer VID2 und 8000 mit Ihrer PID2@*
+- in der Datei @strong{gwausb.inf}, Zeile 42:@*
+@cite{%ADSLUSB.DeviceDesc%  = ADSLUSB.gspnDefault,    USB\VID_@strong{0915}&PID_@strong{8000}}@*
+ersetzen Sie 0915 mit Ihrer VID2 und 8000 mit Ihrer PID2@*
+- in der Datei @strong{gwausb.inf}, Zeile 58:@*
+@cite{HKR, Ndi, DeviceID, 0, "USB\VID_@strong{0915}&PID_@strong{8000}"}@*
+ersetzen Sie 0915 mit Ihrer VID2 und 8000 mit Ihrer PID2
+
+@subsection Installation
+
+Rufen Sie setup.exe auf und folgen Sie den Anweisungen.@*
+
+@node USB Sniffer, USB Pakete unter Windows ``sniffen'', Eci Windowstreiber, Erzeugen von synch .bin Dateien
+@section USB Sniffer
+
+Laden Sie sich die neueste Version des USB sniffers herunter und installieren Sie sie:@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/index.php}@*
+
+Die Dokumentation f@"ur den USB sniffer (``Snoopy'') finden Sie hier:@*
+@uref{http://benoit.papillault.free.fr/usbsnoop/doc.en.php}@*
+
+@node USB Pakete unter Windows ``sniffen'', Konvertieren der log Datei in eine synch .bin Datei, USB Sniffer, Erzeugen von synch .bin Dateien
+@section USB Pakete unter Windows ``sniffen''
+
+Deaktivieren Sie die automatische Interneteinwahl und entfernen Sie
+alle USB-Ger@"ate au@ss{}er dem Modem.@*
+@*
+Starten Sie den sniffer, w@"ahlen Sie die Zeile aus, die f@"ur Ihr Modem
+steht (z.B. ``Wan modem'') und klicken Sie auf ``Install''.
+Anschlie@ss{}end m@"ussen Sie das Modem kurz vom Rechner trennen und
+wieder anschlie@ss{}en. Sobald das Modem mit der Synchronisierung fertig
+ist (achten Sie auf die LEDs am Modem), klicken Sie auf ``Uninstall''.@*
+Eventuell m@"ussen Sie das Modem auch wieder vom Rechner trennen, da-
+mit der Sniffer keine weiteren Pakete mitschreibt.@*
+Die abgeh@"orten USB-Pakete sollten nun in @file{C:\WINxxx\usbsnoop.log} zu
+finden sein.@*
+Booten Sie anschlie@ss{}end Linux.@*
+
+@node Konvertieren der log Datei in eine synch .bin Datei, , USB Pakete unter Windows ``sniffen'', Erzeugen von synch .bin Dateien
+@section Konvertieren der log Datei in eine synch .bin Datei
+
+Mounten Sie die Windowspartition und kopieren Sie die Datei
+usbsnoop.log auf die Linuxpartition. Rufen Sie anschlie@ss{}end auf:@*
+@kbd{eci_vendor_device.pl usbsnoop.log}@*
+Dieses Perlskript geht die Logdatei durch und erzeugt eine neue Datei
+namens eci_vendor.bin. (das Perlskript befindet sich im Paket usermode).@*
+Rufen Sie das folgende Kommando auf:@*
+@kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
+und benutzen Sie anschlie@ss{}end eciconftxt.sh um die neue synch .bin
+Datei zu aktivieren.@*
+@*
+Starten Sie nun startmodem...@*
+...und dr@"ucken Sie die Daumen! ;-)
+
+
+@c **************************** Autoren / Support *****************************
+
+@node Autoren / Support, , Erzeugen von synch .bin Dateien, Top
+@chapter Autoren / Support
+
+@ifhtml
+@menu
+* Autoren::
+* Hier bekommen Sie Support::
+* Copyright::
+@end menu
+@end ifhtml
+@ifnothtml
+@menu
+* Autoren::
+* Hier bekommen Sie Support::
+@end menu
+@end ifnothtml
+
+@node Autoren, Hier bekommen Sie Support, Autoren / Support, Autoren / Support
+@section Autoren
+
+EciAdsl Treiber wurde geschrieben von:@*
+
+@itemize @bullet
+@item 
+FlashCode
+<@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
+@item
+Jean-S@'ebastien Valette
+<@email{jeanseb.valette@@free.fr, jeanseb.valette AT free.fr}>
+@item
+Benoit Papillault
+<@email{benoit.papillault@@free.fr, benoit.papillault AT free.fr}>
+@item
+Crevetor
+<@email{crevetor@@caramail.com, crevetor AT caramail.com}>
+@item
+Laurent Wandrebeck (low)
+<@email{wandre.l@@free.fr, wandre.l AT free.fr}>
+
+@end itemize
+
+@ifhtml
+@node Hier bekommen Sie Support, Copyright, Autoren, Autoren / Support
+@end ifhtml
+@ifnothtml
+@node Hier bekommen Sie Support, , Autoren, Autoren / Support
+@end ifnothtml
+@section Hier bekommen Sie Support
+
+Bitte lesen Sie die vollst@"andige Dokumentation und die FAQ bevor Sie
+nach Support fragen. Sehen Sie sich ebenfalls in /usr/local/doc/eciadsl
+die Dateien README, INSTALL und TROUBLESHOOTING an.@*
+
+@itemize @bullet
+@item
+Support im IRC:@*
+- server: @b{irc.freenode.net}@*
+- channel: @b{#eci}@*@*
+@item
+EciAdsl Forum: @uref{http://eciadsl.sf.net/scripts/forum}@*@*
+@item
+Support per mailing list:@*
+- um sich einzutragen, senden Sie eine Mail mit dem Betreff ``subscribe'' an @email{eci-request@@ml.free.fr}
+- um eine E-Mail an die mailing list zu schicken, verwenden Sie die Adresse @email{eci@@ml.free.fr}@*
+- um sich auszutragen, senden Sie eine E-Mail mit dem Betreff ``unsubscribe'' an @email{eci-request@@ml.free.fr}@*
+
+Dank ZeGuigui ist hier ein Archiv der mailing list zu finden:@*
+@uref{http://liste.eci.free.fr}@*@*
+@item
+weitere Details sind auf der EciAdsl Supportseite zu finden:@*
+@uref{http://eciadsl.flashtux.org/support.php?lang=en}
+
+@end itemize
+
+@ifhtml
+@node Copyright, , Hier bekommen Sie Support, Autoren / Support
+@section Copyright
+
+Dies ist eine Anleitung zum EciAdsl-Treiber, einem freien ADSL USB Linuxtreiber f@"ur Modems, die auf einem Globespan Chipsatz basieren.@*
+Diese Anleitung ist Teil des EciAdsl-Treibers.@*
+
+Copyright @copyright{} 2004 FlashCode
+<@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
+@*
+Dieses Dokument darf entsprechend der Bestimmungen der GNU General Public License (Version 2 oder h@"oher) genutzt werden.
+@end ifhtml
+
+@bye
