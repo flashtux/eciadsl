@@ -10,29 +10,42 @@
 # CVS $Id$
 # Tag $Name$
 
-echo "Checking USB system ..."
+PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 if [ ! -d /proc/bus/usb ]; then
-	/sbin/modprobe usbcore
+	echo "Loading support for USB" ;
+	modprobe usbcore
 fi
 
 # mount usbdevfs is this is not the case
 if [ ! -f /proc/bus/usb/devices ]; then
+	echo "Loading preliminary USB device filesystem" ;
 	mount -t usbdevfs none /proc/bus/usb
 fi
 
 # try to locate UHCI controller
 grep -A 4 USB /proc/pci | grep I/O > /dev/null
 if [ $? -eq 0 ]; then
-	/sbin/modprobe usb-uhci ;
-	sleep 2 ;
+# ok, we have a UHCI controller, check if the linux driver is loaded
+	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "Loading UHCI support" ;
+		modprobe usb-uhci ;
+		modprobe uhci ;
+		sleep 2 ;
+	fi
 fi
 
 # try to locate OHCI controller
 grep -A 4 USB /proc/pci | grep memory > /dev/null
 if [ $? -eq 0 ]; then
-	/sbin/modprobe usb-ohci ;
-	sleep 2 ;
+# ok, we have a OHCI controller, check if the linux driver is loaded
+	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+	if [ $? -ne 0 ]; then
+		echo "Loading OHCI support" ;
+		modprobe usb-ohci
+		sleep 2
+	fi
 fi
 
 echo "Init modem ..." ;
