@@ -293,7 +293,7 @@ int ezusb_write_all(pusb_device_t dev, unsigned char b)
 		ihx.addr = addr;
 
 		for (i=0;i<sizeof(pkt);i++)
-			pkt[i] = b + addr + i;
+			pkt[i] = b;
 
 		if ((res=ezusb_write_ihx(dev, &ihx)) < 0)
 		{
@@ -303,6 +303,107 @@ int ezusb_write_all(pusb_device_t dev, unsigned char b)
 	}
 
 	return res;
+}
+
+int ezusb_test_memory(pusb_device_t dev)
+{
+	unsigned char pkt1[16], pkt2[16];
+	unsigned int addr, i;
+	struct ihx ihx1, ihx2, r1_ihx, r2_ihx;
+	int diff1, diff2;
+	int total_mem = 0;
+
+	memset(pkt1,0,sizeof(pkt1));
+	ihx1.len = sizeof(pkt1);
+	ihx1.type = TYPE_NORMAL;
+	ihx1.content = pkt1;
+
+	memset(pkt2,0xff,sizeof(pkt2));
+	ihx2.len = sizeof(pkt2);
+	ihx2.type = TYPE_NORMAL;
+	ihx2.content = pkt2;
+
+	memset(&r1_ihx, 0, sizeof(r1_ihx));
+	memset(&r2_ihx, 0, sizeof(r2_ihx));
+
+	/* put the EZUSB in reset mode */
+	if (ezusb_write_ihx(dev, &ihx_reset_in) < 0)
+	{
+		fprintf(stderr,"failed to reset in EZUSB\n");
+		return -1;
+	}
+
+	for (addr=0; addr<0x10000; addr += sizeof(pkt1))
+	{
+		printf("\rchecking %04x : ",addr);
+
+		ihx1.addr = addr;
+		ihx2.addr = addr;
+
+		for (i=0;i<sizeof(pkt1);i++)
+		{
+			pkt1[i] = addr + (addr>>8) + i;
+			pkt2[i] = ~pkt1[i];
+		}
+
+		if (ezusb_write_ihx(dev, &ihx1) < 0)
+		{
+			fprintf(stderr,"failed writing block at %04x\n",addr);
+			break;
+		}
+		
+		if (ezusb_read_ihx(dev,&r1_ihx,addr,sizeof(pkt1)) < 0)
+		{
+			fprintf(stderr,"failed reading block at %04x\n",addr);
+			break;
+		}
+
+		if (ezusb_write_ihx(dev, &ihx2) < 0)
+		{
+			fprintf(stderr,"failed writing block at %04x\n",addr);
+			break;
+		}
+		
+		if (ezusb_read_ihx(dev,&r2_ihx,addr,sizeof(pkt2)) < 0)
+		{
+			fprintf(stderr,"failed reading block at %04x\n",addr);
+			break;
+		}
+
+		diff1 = 0;
+		for (i=0;i<sizeof(pkt1);i++)
+		{
+			if (r1_ihx.content[i] != ihx1.content[i])
+			{
+				diff1 = 1;
+				break;
+			}
+		}
+
+		diff2 = 0;
+		for (i=0;i<sizeof(pkt2);i++)
+		{
+			if (r2_ihx.content[i] != ihx2.content[i])
+			{
+				diff2 = 1;
+				break;
+			}
+		}
+
+
+		if (diff1 || diff2)
+		{
+			printf("modified");
+		}
+		else
+		{
+			printf("ok");
+			total_mem += sizeof(pkt1);
+		}
+	}
+
+	printf("\ntotal memory : %u bytes (%u Kb)\n",total_mem, total_mem>>10);
+	return 0;
 }
 
 int fread__ezusb_write(pusb_device_t dev, const char *filename)
@@ -431,6 +532,9 @@ void usage()
 	printf("Usage: ezusb-mem r/w VID PID file.ihx\n");
 	printf("  r : read the whole EZUSB memory and write to file.ihx\n");
 	printf("  w : write the EZUSB memory with the content of file.ihx\n");
+	printf("  0 : write zeroes to the possible 64K EZUSB memory\n");
+	printf("  1 : write ones to the possible 64K EZUSB memory\n");
+	printf("  t : test the whole 64K EZUSB memory space\n");
 	exit (-1);
 }
 
@@ -449,7 +553,8 @@ int main(int argc, char *argv[])
 	if (strcmp(argv[1],"r") != 0
 		&& strcmp(argv[1],"w") != 0
 		&& strcmp(argv[1],"0") != 0
-		&& strcmp(argv[1],"1") != 0)
+		&& strcmp(argv[1],"1") != 0
+		&& strcmp(argv[1],"t") != 0)
 		usage();
 	
 	f = argv[1][0];
@@ -477,6 +582,8 @@ int main(int argc, char *argv[])
 		ezusb_write_all(dev,0);
 	else if (f == '1')
 		ezusb_write_all(dev,0xff);
+	else if (f == 't')
+		ezusb_test_memory(dev);
 
 	/* close the USB device */
 
