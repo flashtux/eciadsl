@@ -10,11 +10,11 @@
   23/11/2001 : Added some delay before testing for the existence of
   the WAN USB interface (ECI_xxx).
 
-**************************************************************************
+*********************************************************************
  File           :       $RCSfile$
- Version        :       $Revision$
- Modified by    :       $Author$ ($Date$)
-**************************************************************************
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************
   
   Tested with :
   eci_firm_1.bin                     : file is corrupted or in wrong format
@@ -142,9 +142,10 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 #include <sys/wait.h>
 #include <unistd.h>
 #include <errno.h>
-
 #include "pusb.h"
-#include "modem.h"
+/* modem.h deprecated - changed to common GS interface include - kolja */
+/*#include "modem.h"*/
+#include "gsinterface.h"
 #include "util.h"
 
 #define TIMEOUT 1000
@@ -439,6 +440,12 @@ int main(int argc, char** argv)
 
 	/* read the configuration file */
 	read_config_file();
+
+   /* exit if chipset is GS7470 - kolja */
+	if(config.modem_chipset == ECIDC_GS7470){
+      	printf ("Process skipped .. no more needed\n");
+		_exit(0);
+	}
 
 	/* parse remaining command line arguments */
 	if (argc == 2)

@@ -14,7 +14,7 @@ TARGETS = eciadsl-firmware eciadsl-synch eciadsl-pppoeci \
 
 SRC = eciadsl-check-hdlc-bug.c eciadsl-check-hdlc.c eciadsl-eeprom.c \
 	eciadsl-firmware.c eciadsl-pppoeci.c eciadsl-synch.c \
-	gs7070.c gs7070.h modem.h platform_guess.c pppatm.c \
+	gsinterface.c gsinterface.h gs7070.c gs7070.h gs7470.c gs7470.h platform_guess.c pppatm.c \
 	pusb-linux.c pusb-linux.h pusb.h pusb.c semaphore.h semaphore.c \
 	util.h util.c
 
@@ -24,7 +24,7 @@ SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor \
 	eciadsl-remove-dabusb eciadsl-makeconfig\
 	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl
 
-DOCS = README README.es README.fr README.it README.pt \
+DOCS = README README.es README.fr README.it README.pt README_GS7470.txt\
 	INSTALL INSTALL.es INSTALL.fr INSTALL.it INSTALL.pt \
 	TROUBLESHOOTING TROUBLESHOOTING.es TROUBLESHOOTING.fr \
 	TROUBLESHOOTING.it TROUBLESHOOTING.pt BUGS TODO
@@ -45,23 +45,23 @@ TMP_FILE = Makefile.tmp
 all: check $(TARGETS) $(SCRIPTS)
 #	cd hotplug && $(MAKE)
 
-eciadsl-firmware: eciadsl-firmware.o pusb.o util.o
-eciadsl-synch: eciadsl-synch.o pusb.o util.o semaphore.o
-eciadsl-pppoeci: eciadsl-pppoeci.o pusb.o gs7070.o util.o
+eciadsl-firmware: eciadsl-firmware.o pusb.o util.o gsinterface.o
+eciadsl-synch: eciadsl-synch.o pusb.o util.o semaphore.o gsinterface.o
+eciadsl-pppoeci: eciadsl-pppoeci.o pusb.o gsinterface.o util.o
 pppatm: pppatm.o 
 	$(CC) $(LDFLAGS) -latm -o pppatm pppatm.o
 eciadsl-eeprom: eciadsl-eeprom.o pusb.o
 eciadsl-check-hdlc: eciadsl-check-hdlc.o
 eciadsl-check-hdlc-bug: eciadsl-check-hdlc-bug.o
 pusb.o: pusb.c pusb-linux.c pusb.h
-eciadsl-firmware.o: eciadsl-firmware.c pusb.h modem.h config.h util.h
-eciadsl-synch.o: eciadsl-synch.c pusb.h modem.h config.h util.h semaphore.h
-eciadsl-pppoeci.o: eciadsl-pppoeci.c util.h pusb.h gs7070.h modem.h config.h
-gs7070.o: gs7070.c gs7070.h
-util.o: util.c modem.h config.h util.h
+eciadsl-firmware.o: eciadsl-firmware.c pusb.h config.h util.h gsinterface.h
+eciadsl-synch.o: eciadsl-synch.c pusb.h config.h util.h semaphore.h gsinterface.h 
+eciadsl-pppoeci.o: eciadsl-pppoeci.c util.h pusb.h config.h gsinterface.h 
+gsinterface.o: gsinterface.c gs7070.c gs7470.c 
+util.o: util.c config.h util.h gsinterface.h
 semaphore.o: semaphore.c semaphore.h
 	$(CC) $(CFLAGS)  -D _XOPEN_SOURCE -c -o semaphore.o semaphore.c
-eciadsl-eeprom.o: eciadsl-eeprom.c pusb.h modem.h config.h
+eciadsl-eeprom.o: eciadsl-eeprom.c pusb.h config.h gsinterface.h
 eciadsl-check-hdlc.o: eciadsl-check-hdlc.c
 	$(CC) $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc.o eciadsl-check-hdlc.c
 eciadsl-check-hdlc-bug.o: eciadsl-check-hdlc-bug.c
@@ -106,7 +106,7 @@ install_scripts:
 	 echo "s|\$$ETC_DIR = .*|\$$ETC_DIR = \"$(ETC_DIR)\";|" ; \
 	 echo "s|\$$CONF_DIR = .*|\$$CONF_DIR = \"$(CONF_DIR)\";|" ; \
 	 echo "s|\$$PPPD_DIR =.*|\$$PPPD_DIR = \"$(PPPD_DIR)\";|" ; \
-	 echo "s|\$$VERSION = .*|\$$VERSION = \"$(PRODUCT_VERSION)\";|" ; \
+	 echo "s|\$$VERSION = .*|\$$VERSION = \"$(PRODUCT_VERSION)\"|" ; \
 	) > "$(TMP_DIR)/pl.sed";
 	(echo "s|BIN_DIR=.*|BIN_DIR=\"$(BIN_DIR)\"|" ;\
 	 echo "s|ETC_DIR=.*|ETC_DIR=\"$(ETC_DIR)\"|" ; \

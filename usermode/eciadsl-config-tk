@@ -22,6 +22,8 @@
 #   Added modem selection
 # 2002/05/19, FlashCode :
 #   Added .bin selection
+# 2004/10/19  kolja :
+#	Added support for GS7470 modems chipset
 # \
 exec wish "$0" "$@" & exit 0
 
@@ -75,6 +77,9 @@ set mode ""
 set synch ""
 set firm ""
 set modem ""
+set chipset "GS7070"
+set altsynch ""
+set altpppoeci ""
 set provider ""
 
 # try to get previously defined values
@@ -99,25 +104,28 @@ if {$file!=-1} {
 			set entry [string trim [string range "$line" $pos1 $pos2]]
 			set value [string trim [string range "$line" [expr $pos2+2] end]]
 			switch $entry {
-				PPPD_USER		{ set username "$value" }
-				PPPD_PASSWD		{ set password "$value" }
-				VID1			{ set vid1 "$value" }
-				PID1			{ set pid1 "$value" }
-				VID2			{ set vid2 "$value" }
-				PID2			{ set pid2 "$value" }
-				VPI				{ set vpi "$value" }
-				VCI				{ set vci "$value" }
-				MODE			{ set mode "$value" }
-				SYNCH			{ set synch "$value" }
-				FIRM			{ set firm "$value" }
-				USE_DHCP		{ set use_dhcp "$value" }
-				USE_STATICIP	{ set use_staticip "$value" }
-				STATICIP		{ set staticip "$value" }
-				GATEWAY			{ set gateway "$value" }
-				MODEM			{ set modem "$value" }
-				PROVIDER		{ set provider "$value" }
-				DNS1			{ set dns1 "$value" }
-				DNS2			{ set dns2 "$value" }
+				PPPD_USER			{ set username "$value" }
+				PPPD_PASSWD			{ set password "$value" }
+				VID1				{ set vid1 "$value" }
+				PID1				{ set pid1 "$value" }
+				VID2				{ set vid2 "$value" }
+				PID2				{ set pid2 "$value" }
+				VPI					{ set vpi "$value" }
+				VCI					{ set vci "$value" }
+				MODE				{ set mode "$value" }
+				SYNCH				{ set synch "$value" }
+				FIRM				{ set firm "$value" }
+				USE_DHCP			{ set use_dhcp "$value" }
+				USE_STATICIP		{ set use_staticip "$value" }
+				STATICIP			{ set staticip "$value" }
+				GATEWAY				{ set gateway "$value" }
+				MODEM				{ set modem "$value" }
+				MODEM_CHIPSET		{ set chipset "$value" }
+				SYNCH_ALTIFACE		{ set altsynch "$value" }
+				PPPOECI_ALTIFACE	{ set altpppoeci "$value" }
+				PROVIDER			{ set provider "$value" }
+				DNS1				{ set dns1 "$value" }
+				DNS2				{ set dns2 "$value" }
 			}		
 		}
 	}
@@ -162,6 +170,7 @@ pack .bloc0.ident.user .bloc0.ident.password
 
 #
 # ===== VPI/VCI =====
+# ===== ALT IFACES =====
 #
 
 frame .bloc0.call
@@ -313,7 +322,7 @@ frame .bloc1.espace2 -width 15
 
 frame .bloc1.modem
 
-label .bloc1.modem.libelle -text "Select your modem:" -relief groove -background "#ffcc99" -width 46
+label .bloc1.modem.libelle -text "Select your modem:" -relief groove -background "#ffcc99" -width 60
 pack .bloc1.modem.libelle
 
 # build the list of modems
@@ -330,42 +339,51 @@ while {[eof $file]!=1} {
 		set pos4 [string first "^" "$line" [expr $pos3+1]]
 		set pos5 [string first "^" "$line" [expr $pos4+1]]
 		set pos6 [string first "^" "$line" [expr $pos5+1]]
-		if {$pos6!=-1} {
+		set pos7 [string first "^" "$line" [expr $pos6+1]]
+		set pos8 [string first "^" "$line" [expr $pos7+1]]
+		set pos9 [string first "^" "$line" [expr $pos8+1]]		
+		if {$pos9!=-1} {
 			# skip trailing blanks
-			set pos6 [expr $pos6-1]
+			set pos9 [expr $pos9-1]
 		} else {
-			set pos6 end
+			set pos9 end
 		}
 		lappend modems [string trim [string range "$line" $pos1 [expr $pos2-1]]]
 		lappend modems [string trim [string range "$line" [expr $pos2+1] [expr $pos3-1]]]
 		lappend modems [string trim [string range "$line" [expr $pos3+1] [expr $pos4-1]]]
 		lappend modems [string trim [string range "$line" [expr $pos4+1] [expr $pos5-1]]]
-		lappend modems [string trim [string range "$line" [expr $pos5+1] $pos6]]
+		lappend modems [string trim [string range "$line" [expr $pos5+1] [expr $pos6-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos6+1] [expr $pos7-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos7+1] [expr $pos8-1]]]
+		lappend modems [string trim [string range "$line" [expr $pos8+1] $pos9]]
 	}
 }
 close $file
-lappend modems "Other" "" "" "" ""
+lappend modems "Other" "" "" "" "" "" "" ""
 
 # fill the widget with the list of modems
 frame .bloc1.modem.liste
-listbox .bloc1.modem.liste.contenu -yscrollcommand {.bloc1.modem.liste.scroll set} -width 43 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
+listbox .bloc1.modem.liste.contenu -yscrollcommand {.bloc1.modem.liste.scroll set} -width 57 -height 7 -foreground black -selectbackground "#00ccff" -selectforeground black
 .bloc1.modem.liste.contenu configure -exportselection 0
 set i 0
 set len [llength $modems]
 while {$i<$len} {
 	.bloc1.modem.liste.contenu insert end [lindex $modems $i]
-	incr i 5
+	incr i 8
 }
 # previously defined modem set?
 if {"$modem"!=""} {
-	set selected_modem [expr [lsearch $modems $modem]/5]
+	set selected_modem [expr [lsearch $modems $modem]/8]
 	if {$selected_modem!=-1} {
-		set vid1_other [lindex $modems [expr $selected_modem*5+1]]
-		set pid1_other [lindex $modems [expr $selected_modem*5+2]]
-		set vid2_other [lindex $modems [expr $selected_modem*5+3]]
-		set pid2_other [lindex $modems [expr $selected_modem*5+4]]
+		set vid1_other [lindex $modems [expr $selected_modem*8+1]]
+		set pid1_other [lindex $modems [expr $selected_modem*8+2]]
+		set vid2_other [lindex $modems [expr $selected_modem*8+3]]
+		set pid2_other [lindex $modems [expr $selected_modem*8+4]]
+		set chipset_other [lindex $modems [expr $selected_modem*8+5]]
+		set altsynch_other	[lindex $modems [expr $selected_modem*8+6]]
+		set altpppoeci_other [lindex $modems [expr $selected_modem*8+7]]
 		# if vidpid don't match the modem name
-		if {"$vid1"!="$vid1_other" || "$pid1"!="$pid1_other" || "$vid2"!="$vid2_other" || "$pid2"!="$pid2_other"} {
+		if {"$vid1"!="$vid1_other" || "$pid1"!="$pid1_other" || "$vid2"!="$vid2_other" || "$pid2"!="$pid2_other" || "$chipset"!="$chipset_other" || "$altsynch"!="$altsynch_other" || "$altpppoeci"!="$altpppoeci_other"} {
 			set selected_modem -1
 		} else {
 			.bloc1.modem.liste.contenu selection set $selected_modem
@@ -379,12 +397,16 @@ set vid1_other ""
 set pid1_other ""
 set vid2_other ""
 set pid2_other ""
+set chipset_other ""
+set altsynch_other ""
+set altpppoeci_other ""
+
 # no previous modem or bad one
 if {"$modem"=="" || $selected_modem==-1} {
 	# set Other provider if at least one VID/PID has been set
-	if {"$vid1"!="" || "$pid1"!="" || "$vid2"!="" || "$pid2"!=""} {
+	if {"$vid1"!="" || "$pid1"!="" || "$vid2"!="" || "$pid2"!="" || "$chipset"!="" || "$altsynch"!="" || "$altpppoeci"!=""} {
 		set modem "Other"
-		.bloc1.modem.liste.contenu selection set [expr $len/5-1]
+		.bloc1.modem.liste.contenu selection set [expr $len/8-1]
 		.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
 	}
 }
@@ -397,41 +419,91 @@ pack .bloc1.modem.liste
 frame .bloc1.modem.espacevertic -height 5
 pack .bloc1.modem.espacevertic
 
-frame .bloc1.modem.vidpid1
-label .bloc1.modem.vidpid1.labelvid -text "VID 1: " -width 8
-entry .bloc1.modem.vidpid1.entryvid -textvariable vid1 -background lightblue -width 7
-pack .bloc1.modem.vidpid1.labelvid .bloc1.modem.vidpid1.entryvid -side left
-label .bloc1.modem.vidpid1.labelpid -text "PID 1: " -width 8
-entry .bloc1.modem.vidpid1.entrypid -textvariable pid1 -background lightblue -width 7
-pack .bloc1.modem.vidpid1.labelpid .bloc1.modem.vidpid1.entrypid -side left
-pack .bloc1.modem.vidpid1
+#=== CHIPSET ===
+# build the list of chipsets
+list chipsets
+lappend chipsets "GS7070"
+lappend chipsets "GS7470"
 
-frame .bloc1.modem.vidpid2
-label .bloc1.modem.vidpid2.labelvid -text "VID 2: " -width 8
-entry .bloc1.modem.vidpid2.entryvid -textvariable vid2 -background lightblue -width 7
-pack .bloc1.modem.vidpid2.labelvid .bloc1.modem.vidpid2.entryvid -side left
-label .bloc1.modem.vidpid2.labelpid -text "PID 2: " -width 8
-entry .bloc1.modem.vidpid2.entrypid -textvariable pid2 -background lightblue -width 7
-pack .bloc1.modem.vidpid2.labelpid .bloc1.modem.vidpid2.entrypid -side left
-pack .bloc1.modem.vidpid2
+# fill the widget with the list of chipset
+
+frame .bloc1.modem.lchipset
+label .bloc1.modem.lchipset.label -text {CHIPSET:} -width 8  -height 2 -anchor nw
+listbox .bloc1.modem.lchipset.contenu -width 7 -height 2 -foreground black -selectbackground "#00ccff" -selectforeground black
+.bloc1.modem.lchipset.contenu configure -exportselection 0
+set i 0
+set len [llength $chipsets]
+while {$i<$len} {
+	.bloc1.modem.lchipset.contenu insert end [lindex $chipsets $i]
+	incr i
+}
+# previously defined chipset set?
+if {"$chipset"!=""} {
+	set selected_chipset [expr [lsearch $chipsets $chipset]]
+	.bloc1.modem.lchipset.contenu selection set $selected_chipset
+	.bloc1.modem.lchipset.contenu see [.bloc1.modem.lchipset.contenu curselection]
+} else {
+	set selected_provider -1
+}
+
+pack .bloc1.modem.lchipset.label .bloc1.modem.lchipset.contenu -side left
+
+frame .bloc1.modem.vp
+frame .bloc1.modem.vp.vidpid1
+label .bloc1.modem.vp.vidpid1.labelvid -text "VID 1: " -width 6
+entry .bloc1.modem.vp.vidpid1.entryvid -textvariable vid1 -background lightblue -width 7
+pack .bloc1.modem.vp.vidpid1.labelvid .bloc1.modem.vp.vidpid1.entryvid -side left
+label .bloc1.modem.vp.vidpid1.labelpid -text "PID 1: " -width 6
+entry .bloc1.modem.vp.vidpid1.entrypid -textvariable pid1 -background lightblue -width 7
+pack .bloc1.modem.vp.vidpid1.labelpid .bloc1.modem.vp.vidpid1.entrypid -side left
+pack .bloc1.modem.vp.vidpid1
+
+frame .bloc1.modem.vp.vidpid2
+label .bloc1.modem.vp.vidpid2.labelvid -text "VID 2: " -width 6
+entry .bloc1.modem.vp.vidpid2.entryvid -textvariable vid2 -background lightblue -width 7
+pack .bloc1.modem.vp.vidpid2.labelvid .bloc1.modem.vp.vidpid2.entryvid -side left
+label .bloc1.modem.vp.vidpid2.labelpid -text "PID 2: " -width 6
+entry .bloc1.modem.vp.vidpid2.entrypid -textvariable pid2 -background lightblue -width 7
+pack .bloc1.modem.vp.vidpid2.labelpid .bloc1.modem.vp.vidpid2.entrypid -side left
+pack .bloc1.modem.vp.vidpid2
+
+#=== ALT IFACE Params ===
+frame .bloc1.modem.alt
+frame .bloc1.modem.alt.altsynch
+label .bloc1.modem.alt.altsynch.label -text {ALT synch :} -width 11 -anchor e
+entry .bloc1.modem.alt.altsynch.edit -textvariable altsynch -background lightblue -width 1
+bind .bloc1.modem.alt.altsynch.edit <Enter> {pushstate "USB Alt Interface for SYNCH process (0-5)"}
+bind .bloc1.modem.alt.altsynch.edit <Leave> {popstate}
+pack .bloc1.modem.alt.altsynch.label .bloc1.modem.alt.altsynch.edit -side left
+
+frame .bloc1.modem.alt.altpppoeci
+label .bloc1.modem.alt.altpppoeci.label -text {ALT pppoeci:} -width 11 -anchor e
+entry .bloc1.modem.alt.altpppoeci.edit -textvariable altpppoeci -background lightblue -width 1
+bind .bloc1.modem.alt.altpppoeci.edit <Enter> {pushstate "USB Alt Interface for PPPOECI process (0-5)"}
+bind .bloc1.modem.alt.altpppoeci.edit <Leave> {popstate}
+pack .bloc1.modem.alt.altpppoeci.label .bloc1.modem.alt.altpppoeci.edit -side left
+
+pack .bloc1.modem.alt.altsynch .bloc1.modem.alt.altpppoeci
+pack .bloc1.modem.lchipset .bloc1.modem.vp .bloc1.modem.alt -side left
 
 .bloc1.modem.liste.contenu configure -foreground black -selectbackground "#00ccff" -selectforeground black
-.bloc1.modem.vidpid1.entryvid configure -state normal -foreground darkgray -background lightgray
-.bloc1.modem.vidpid1.entrypid configure -state normal -foreground darkgray -background lightgray
-.bloc1.modem.vidpid2.entryvid configure -state normal -foreground darkgray -background lightgray
-.bloc1.modem.vidpid2.entrypid configure -state normal -foreground darkgray -background lightgray
-.bloc1.modem.vidpid1.labelvid configure -foreground darkgray
-.bloc1.modem.vidpid1.labelpid configure -foreground darkgray
-.bloc1.modem.vidpid2.labelvid configure -foreground darkgray
-.bloc1.modem.vidpid2.labelpid configure -foreground darkgray
+.bloc1.modem.vp.vidpid1.entryvid configure -state normal -foreground darkgray -background lightgray
+.bloc1.modem.vp.vidpid1.entrypid configure -state normal -foreground darkgray -background lightgray
+.bloc1.modem.vp.vidpid2.entryvid configure -state normal -foreground darkgray -background lightgray
+.bloc1.modem.vp.vidpid2.entrypid configure -state normal -foreground darkgray -background lightgray
+.bloc1.modem.vp.vidpid1.labelvid configure -foreground darkgray
+.bloc1.modem.vp.vidpid1.labelpid configure -foreground darkgray
+.bloc1.modem.vp.vidpid2.labelvid configure -foreground darkgray
+.bloc1.modem.vp.vidpid2.labelpid configure -foreground darkgray
 
 bind .bloc1.modem.liste.contenu <ButtonRelease> {select_modem}
 bind .bloc1.modem.liste.contenu <Enter> {pushstate "Select a modem"}
 bind .bloc1.modem.liste.contenu <Leave> {popstate}
-bind .bloc1.modem.vidpid1 <Enter> {pushstate "These are the Vendor ID and Product ID of your modem (4-digit hexa)"}
-bind .bloc1.modem.vidpid1 <Leave> {popstate}
-bind .bloc1.modem.vidpid2 <Enter> {pushstate "These are the Vendor ID and Product ID of your modem once initialized (4-digit hexa)"}
-bind .bloc1.modem.vidpid2 <Leave> {popstate}
+bind .bloc1.modem.lchipset.contenu <ButtonRelease> {select_chipset}
+bind .bloc1.modem.vp.vidpid1 <Enter> {pushstate "These are the Vendor ID and Product ID of your modem (4-digit hexa)"}
+bind .bloc1.modem.vp.vidpid1 <Leave> {popstate}
+bind .bloc1.modem.vp.vidpid2 <Enter> {pushstate "These are the Vendor ID and Product ID of your modem once initialized (4-digit hexa)"}
+bind .bloc1.modem.vp.vidpid2 <Leave> {popstate}
 
 frame .bloc1.espace3 -width 15
 
@@ -462,16 +534,24 @@ listbox .bloc2.listebin.liste.contenu -yscrollcommand ".bloc2.listebin.liste.scr
 .bloc2.listebin.liste.contenu configure -exportselection 0
 
 proc add_bins {chemin} {
-	global .bloc2.listebin
-
+	global .bloc2.listebin chipset
+	.bloc2.listebin.liste.contenu delete 0 end
     set returncode [catch {exec find $chemin -name "*.bin" } bin_trouves]
     if {$returncode != 0} {
     } else {
-        foreach bin $bin_trouves {
-            if {![regexp "firmware" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
-                .bloc2.listebin.liste.contenu insert end $bin
-            }
-        }
+    	if {"$chipset"=="GS7470"} {
+	        foreach bin $bin_trouves {
+	            if {[regexp "gs7470" $bin] && ![regexp "firmware" $bin] && ![regexp "a.bin" $bin] && ![regexp "b.bin" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
+	                .bloc2.listebin.liste.contenu insert end $bin
+	            }
+	        }
+    	} else {
+	        foreach bin $bin_trouves {
+	            if {![regexp "gs7470" $bin] && ![regexp "firmware" $bin] && ![regexp "a.bin" $bin] && ![regexp "b.bin" $bin] && [lsearch -glob [.bloc2.listebin.liste.contenu get 0 end] $bin] == -1} {
+	                .bloc2.listebin.liste.contenu insert end $bin
+	            }
+	        }
+    	}
     }
 }
 
@@ -657,19 +737,19 @@ proc enable_create_button {} {
 }
 
 proc enable_vid_pid {} {
-	global .bloc1.modem.vidpid1.entryvid .bloc1.modem.vidpid1.entrypid
-	global .bloc1.modem.vidpid2.entryvid .bloc1.modem.vidpid2.entrypid
-	global .bloc1.modem.vidpid1.labelvid .bloc1.modem.vidpid1.labelpid
-	global .bloc1.modem.vidpid2.labelvid .bloc1.modem.vidpid2.labelpid
+	global .bloc1.modem.vp.vidpid1.entryvid .bloc1.modem.vp.vidpid1.entrypid
+	global .bloc1.modem.vp.vidpid2.entryvid .bloc1.modem.vp.vidpid2.entrypid
+	global .bloc1.modem.vp.vidpid1.labelvid .bloc1.modem.vp.vidpid1.labelpid
+	global .bloc1.modem.vp.vidpid2.labelvid .bloc1.modem.vp.vidpid2.labelpid
 
-	.bloc1.modem.vidpid1.entryvid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid1.entrypid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid2.entryvid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid2.entrypid configure -state normal -foreground black -background lightblue
-	.bloc1.modem.vidpid1.labelvid configure -foreground black
-	.bloc1.modem.vidpid1.labelpid configure -foreground black
-	.bloc1.modem.vidpid2.labelvid configure -foreground black
-	.bloc1.modem.vidpid2.labelpid configure -foreground black
+	.bloc1.modem.vp.vidpid1.entryvid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vp.vidpid1.entrypid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vp.vidpid2.entryvid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vp.vidpid2.entrypid configure -state normal -foreground black -background lightblue
+	.bloc1.modem.vp.vidpid1.labelvid configure -foreground black
+	.bloc1.modem.vp.vidpid1.labelpid configure -foreground black
+	.bloc1.modem.vp.vidpid2.labelvid configure -foreground black
+	.bloc1.modem.vp.vidpid2.labelpid configure -foreground black
 }
 
 # if all VID/PID are already set, enable the CREATE button
@@ -755,13 +835,13 @@ proc run_makeconfig_synch {} {
 proc run_makeconfig {} {
 	global majfai majbin BIN_DIR synch firm
 	global mode use_staticip use_dhcp staticip gateway modem provider
-	global username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2
+	global username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2 chipset altsynch altpppoeci
 
     if {[string compare $majbin "oui"] == 0} {
         set synch [.bloc2.listebin.liste.contenu get [.bloc2.listebin.liste.contenu curselection]]
     }
 
-    set returncode [catch {exec $BIN_DIR/eciadsl-makeconfig "$mode" "$username" "$password" "$BIN_DIR/eciadsl-pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" "$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"} sortie]
+    set returncode [catch {exec $BIN_DIR/eciadsl-makeconfig "$mode" "$username" "$password" "$BIN_DIR/eciadsl-pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" "$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider" "$chipset" "$altsynch" "$altpppoeci"} sortie]
     if {$returncode != 0} {
         conf_report "non" "eciadsl-makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
     } else {
@@ -864,10 +944,11 @@ proc invert_fai {} {
 #
 
 proc invert_bin {} {
-	global majbin bin_choisi bin_initial
+	global majbin bin_choisi bin_initial chemin_bin
 	global .boutons.set_bin
 
     if {[string compare $majbin "oui"] == 0} {
+    	add_bins $chemin_bin
         if {[.bloc2.listebin.liste.contenu size] > 0} {
             if {[string compare $bin_choisi ""] == 0} {
                 .bloc2.listebin.liste.contenu selection set 0
@@ -895,9 +976,31 @@ proc invert_bin {} {
     }
 }
 
+proc select_chipset {} {
+	global .bloc1.modem.lchipset.contenu
+	global chipsets chipset altsynch altpppoeci
+
+	set index [.bloc1.modem.lchipset.contenu curselection]
+	if {"$index"!=""} {
+		# update variables from the selection
+		set chipset [.bloc1.modem.lchipset.contenu get $index]
+		if {"$chipset"!="GS7070"} {
+			set altsynch "5"
+			set altpppoeci "1"
+		} else {
+			set altsynch "4"
+			set altpppoeci "4"
+		}
+#		.bloc1.modem.alt.altsynch.edit delete 0 end
+#		.bloc1.modem.alt.altsynch.edit insert 0 $altsynch
+#		.bloc1.modem.alt.altpppoeci.edit delete 0 end		
+#		.bloc1.modem.alt.altpppoeci.edit insert 0 $altpppoeci		
+	}
+}
+
 proc select_modem {} {
-	global .bloc1.modem.liste.contenu vid1_other pid1_other vid2_other pid2_other
-	global modems vid1 pid1 vid2 pid2 modem
+	global .bloc1.modem.liste.contenu vid1_other pid1_other vid2_other pid2_other chipset_other altsynch_other altpppoeci_other
+	global modems vid1 pid1 vid2 pid2 modem chipsets chipset altsynch altpppoeci
 
 	# save VID/PID for Other if it was the previous selection
 	if {"$modem"=="Other"} {
@@ -905,15 +1008,22 @@ proc select_modem {} {
 		set pid1_other "$pid1"
 		set vid2_other "$vid2"
 		set pid2_other "$pid2"
+		set chipset_other "$chipset"
+		set altsynch_other "$altsynch"
+		set altpppoeci_other "$altpppoeci"
 	}
+	.bloc1.modem.lchipset.contenu selection clear 0 end	
 	set index [.bloc1.modem.liste.contenu curselection]
 	if {"$index"!=""} {
 		# update variables from the selection
 		set modem [.bloc1.modem.liste.contenu get $index]
-		set vid1 [lindex $modems [expr $index*5+1]]
-		set pid1 [lindex $modems [expr $index*5+2]]
-		set vid2 [lindex $modems [expr $index*5+3]]
-		set pid2 [lindex $modems [expr $index*5+4]]
+		set vid1 [lindex $modems [expr $index*8+1]]
+		set pid1 [lindex $modems [expr $index*8+2]]
+		set vid2 [lindex $modems [expr $index*8+3]]
+		set pid2 [lindex $modems [expr $index*8+4]]
+		set chipset [lindex $modems [expr $index*8+5]]
+		set altsynch [lindex $modems [expr $index*8+6]]
+		set altpppoeci [lindex $modems [expr $index*8+7]]		
 		# if Other has been selected, restore VID/PID if exist:
 		# got from stored .conf at startup or if previously selected
 		if {"$modem"=="Other"} {
@@ -929,10 +1039,31 @@ proc select_modem {} {
 		 	if {"$pid2_other"!=""} {
 				set pid2 "$pid2_other"
 			}
+		 	if {"$chipset_other"!=""} {
+				set chipset "$chipset_other"
+			} else {
+				set chipset "GS7070"
+			}
+		 	if {"$altsynch_other"!=""} {
+				set altsynch "$altsynch_other"
+			}
+		 	if {"$altpppoeci_other"!=""} {
+				set altpppoeci "$altpppoeci_other"
+			}
+			enable_vid_pid
+			enable_create_button
+			set selected_chipset [expr [lsearch $chipsets $chipset]]
+			.bloc1.modem.lchipset.contenu selection set $selected_chipset
+			.bloc1.modem.lchipset.contenu see [.bloc1.modem.lchipset.contenu curselection]
+			focus .bloc1.modem.lchipset.contenu
+		} else {
+			set selected_chipset [expr [lsearch $chipsets $chipset]]
+			.bloc1.modem.lchipset.contenu selection set $selected_chipset
+			.bloc1.modem.lchipset.contenu see [.bloc1.modem.lchipset.contenu curselection]
+			enable_vid_pid
+			enable_create_button
+			focus .bloc1.modem.vp.vidpid1.entryvid
 		}
-		enable_vid_pid
-		enable_create_button
-		focus .bloc1.modem.vidpid1.entryvid
 	}
 }
 

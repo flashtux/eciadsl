@@ -26,6 +26,7 @@ if [ "$1" == "--version" -o "$1" == "-v" ]; then
 fi
 
 tmpbin=/tmp/binfile.tmp
+gs_chipsets="GS7070|GS7470"
 previous="Previous setting"
 
 if [ $UID -ne 0 ]; then
@@ -54,6 +55,13 @@ if [ -s "$CONF_DIR/eciadsl.conf" ]; then
 	prev_dns2=`grep -E "^[ \t]*DNS2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	prev_pppd_user=`grep -E "^[ \t]*PPPD_USER[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	prev_pppd_passwd=`grep -E "^[ \t]*PPPD_PASSWD[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_synch_opt=`grep -E "^[ \t]*SYNCH_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_pppoeci_opt=`grep -E "^[ \t]*PPPOECI_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	# new params for GS7470 GS7070 chipset driver integration - kolja
+	prev_altsynch=`grep -E "^[ \t]*SYNCH_ALTIFACE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_altpppoeci=`grep -E "^[ \t]*PPPOECI_ALTIFACE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	prev_chipset=`grep -E "^[ \t]*MODEM_CHIPSET[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	chipset="$prev_chipset" 
 fi
 
 case "$1" in
@@ -99,9 +107,21 @@ case "$1" in
 "@bin@")
     echo
 	fichiers_bin=""
-    for bin in $(find "$CONF_DIR" -type f -name "*.bin" | grep -v "firmware"); do
-		fichiers_bin="$fichiers_bin|$bin"
-    done
+	if [ "$chipset" == "GS7470" ]; then
+	    for bin in $(find "$CONF_DIR" -type f -name "gs7470_*.bin" | grep -v "firmware"| grep -v "a.bin"| grep -v "b.bin"); do
+			fichiers_bin="$fichiers_bin|$bin"
+	    done
+	else
+		if [ "$chipset" == "GS7070" ]; then
+		    for bin in $(find "$CONF_DIR" -type f -name "*.bin" | grep -v "firmware"| grep -v "gs7470"| grep -v "a.bin"| grep -v "b.bin"); do
+				fichiers_bin="$fichiers_bin|$bin"
+		    done
+		else
+		    for bin in $(find "$CONF_DIR" -type f -name "*.bin" | grep -v "firmware"| grep -v "a.bin"| grep -v "b.bin"); do
+				fichiers_bin="$fichiers_bin|$bin"
+		    done
+		fi
+	fi
     if [ -z "$fichiers_bin" ]; then
         echo "WARNING: no synch .bin file found in $CONF_DIR or subdirectories"
         echo "Please check your driver installation!"
@@ -176,24 +196,40 @@ case "$1" in
     modems="Select your modem"
     vid1pid1="*"
     vid2pid2="*"
-	if [ -n "$prev_modem" -a -n "$prev_vid1" -o -n "$prev_pid1" -o -n "$prev_vid2" -o -n "$prev_pid2" ]; then
+    chipset_all="*"
+    altsynch_all="*"
+    altpppoeci_all="*"
+	if [ -n "$prev_modem" -a -n "$prev_vid1" -o -n "$prev_pid1" -o -n "$prev_vid2" -o -n "$prev_pid2" -o -n "$prev_altsynch" -o -n "$prev_altpppoeci" -o -n "$prev_chipset" ]; then
 		test -z "$prev_vid1" && prev_vid1="????"
 		test -z "$prev_pid1" && prev_pid1="????"
 		test -z "$prev_vid2" && prev_vid2="????"
 		test -z "$prev_pid2" && prev_pid2="????"
-		# if the saved modem label is known but the saved VIDPID don't match,
-		# assume Other and keep VIDPID
+		test -z "$prev_altsynch" && prev_altsynch="?"
+		test -z "$prev_altppoeci" && prev_altppoeci="?"
+		test -z "$prev_chipset" && prev_chipset="GS????"
+		
+		# if the saved modem label is known but the saved VIDPID, altsynch, altpppoeci & modem chipset don't match,
+		# assume Other and keep prev fields
 		vid1_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 2)"
 		pid1_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 3)"
 		vid2_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 4)"
 		pid2_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 5)"
-		if [ "$prev_modem" != "Other" -a "$vid1_" != "$prev_vid1" -o "$pid1_" != "$prev_pid1" -o "$vid2_" != "$prev_vid2" -o "$pid2_" != "$prev_pid2" ]; then
+		chipset_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 6)"
+		altsynch_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 7)"
+		altpppoeci_="$(grep -v -E "^[ \t]*#" "$modems_db" | grep "$prev_modem" | tr -s "\t" "|" | cut -d '|' -f 8)"		
+		if [ "$prev_modem" != "Other" -a "$vid1_" != "$prev_vid1" -o "$pid1_" != "$prev_pid1" -o "$vid2_" != "$prev_vid2" -o "$pid2_" != "$prev_pid2" -o "altsynch_" != "$prev_altsynch" -o "altpppoeci_" != "$prev_altpppoeci" -o "chipset_" != "$prev_chipset" ]; then
 			prev_modem="Other"
 			vid1pid1="$vid1pid1|$prev_vid1$prev_pid1"
 			vid2pid2="$vid2pid2|$prev_vid2$prev_pid2"
+			chipset_all="$chipset_all|$prev_chipset"
+			altsynch_all="$altsynch_all|$prev_altsynch"
+			altpppoeci_all="$altsynch_all|$prev_altpppoeci"
 		else
 			vid1pid1="$vid1pid1|$vid1_$pid1_"
 			vid2pid2="$vid2pid2|$vid2_$pid2_"
+			chipset_all="$chipset_all|$chipset_"
+			altsynch_all="$altsynch_all|$altsynch_"
+			altpppoeci_all="$altsynch_all|$altpppoeci_"
 		fi
 		modems="$modems|$previous ($prev_modem)"
 	fi
@@ -205,6 +241,15 @@ case "$1" in
 	done
 	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 4-5 | tr -d "| "); do
 		vid2pid2="$vid2pid2|$LINE"
+	done
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 6); do
+		chipset_all="$chipset_all|$LINE"
+	done
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 7); do
+		altsynch_all="$altsynch_all|$LINE"
+	done
+	for LINE in $(grep -v -E "^[ \t]*#" "$modems_db" | tr -s "\t" "|" | cut -d "|" -f 8); do
+		altpppoeci_all="$altpppoeci_all|$LINE"
 	done
 	IFS="$OLDIFS"
     modems="$modems|Other"
@@ -421,7 +466,6 @@ case "$1" in
             	fi
 			fi
         done
-
         echo
         $0 @menu@ "$modems"
 		ret=$?
@@ -431,11 +475,14 @@ case "$1" in
 		pid1="$(echo $vid1pid1 | cut -f $modem -d '|' | cut -c 5-8)"
 		vid2="$(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 1-4)"
 		pid2="$(echo $vid2pid2 | cut -f $modem -d '|' | cut -c 5-8)"
+		chipset="$(echo $chipset_all | cut -f $modem -d '|')"
+		altsynch="$(echo $altsynch_all | cut -f $modem -d '|')"
+		altpppoeci="$(echo $altpppoeci_all | cut -f $modem -d '|')"
 
 		echo
         echo "If your modem was not listed (or if you want to overwrite defaults),"
         echo "you can enter your own VID1/PID1/VID2/PID2 (use eciadsl-probe-device"
-		echo "to get them):"
+		echo "to get them), Globespan chipset and USB alt interface values:"
 
 		echo
 		echo -n "VID1 currently "
@@ -557,6 +604,79 @@ case "$1" in
                 else
 					i_pid2=""
                     echo -e "** invalid PID2, please enter it again\n"
+                fi
+            fi
+        done
+
+		#Add chipset & alt interfaces settings - kolja
+        echo
+        $0 @menu@ "Select your modem chipset|Previous setting ($chipset)|$gs_chipsets"
+		ret=$?
+		test $ret -eq 255 && exit 1
+		gs_chipsets="*|$chipset|$gs_chipsets"
+		chipset="$(echo $gs_chipsets | cut -f $(expr $ret + 1) -d '|')"
+		echo
+		echo -n "USB ALT INTERFACE for SYNCH process currently "
+		if [ "$altsynch" == "?" ]; then
+			if [ "$chipset" == "GS7070" ]; then
+				altsynch="4"
+			else
+				altsynch="5"
+			fi
+		fi
+		echo "set to $altsynch"
+		TMP=", press ENTER to keep current value"
+        i_altsynch=""
+        while [ -z "$i_altsynch" ]; do
+            echo -n "Type in the USB ALT INTERFACE for SYNCH (1-digit decimal (0-5) $TMP): "
+            read i_altsynch
+            if [ -z "$i_altsynch" ]; then
+				if [ "$altsynch" != "?" ]; then
+					echo "* USB ALT INTERFACE for SYNCH unchanged"
+    	            break
+				else
+                    echo -e "** USB ALT INTERFACE for SYNCH still unset, please enter a value\n"
+				fi
+            else
+                echo $i_altsynch | grep -E "^([0-5]{1})$" > /dev/null 2>&1
+                if [ $? -eq 0 ]; then
+					altsynch="$i_altsynch"
+                else
+					i_altsynch=""
+                    echo -e "** invalid USB ALT INTERFACE for SYNCH, please enter it again\n"
+                fi
+            fi
+        done
+
+		echo
+		echo -n "USB ALT INTERFACE for PPPOECI process currently "
+		if [ "$altpppoeci" == "?" ]; then
+			if [ "$chipset" == "GS7070" ]; then
+				altpppoeci="4"
+			else
+				altpppoeci="1"
+			fi
+		fi
+		echo "set to $altpppoeci"
+		TMP=", press ENTER to keep current value"
+        i_altpppoeci=""
+        while [ -z "$i_altpppoeci" ]; do
+            echo -n "Type in the USB ALT INTERFACE for PPPOECI (1-digit decimal (0-5) $TMP): "
+            read i_altpppoeci
+            if [ -z "$i_altpppoeci" ]; then
+				if [ "$altpppoeci" != "?" ]; then
+					echo "* USB ALT INTERFACE for PPPOECI unchanged"
+    	            break
+				else
+                    echo -e "** USB ALT INTERFACE for PPPOECI still unset, please enter a value\n"
+				fi
+            else
+                echo $i_altpppoeci | grep -E "^([0-5]{1})$" > /dev/null 2>&1
+                if [ $? -eq 0 ]; then
+					altsynch="$i_altpppoeci"
+                else
+					i_altpppoeci=""
+                    echo -e "** invalid USB ALT INTERFACE for PPPOECI, please enter it again\n"
                 fi
             fi
         done
@@ -731,8 +851,11 @@ case "$1" in
         echo "      DNS 2       : $dns2"
         echo "  + VPI/VCI       : $vpi/$vci"
         echo "  + Modem         : $modem"
+        echo "      GS chipset  : $chipset"
         echo "      VID1/PID1   : $vid1/$pid1"
         echo "      VID2/PID2   : $vid2/$pid2"
+        echo "      ALT SYNCH   : $altsynch"
+        echo "      ALT PPPOECI : $altpppoeci"
         echo "  + .bin file     : $binfile"
 		echo "  + PPP mode      : $mode"
 		echo "  + use DHCP      : $use_dhcp"
@@ -744,14 +867,14 @@ case "$1" in
         echo
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
-
         $BIN_DIR/eciadsl-makeconfig "$mode" "$user" "$password1" "$BIN_DIR/eciadsl-pppoeci" "$dns1" "$dns2" \
 			"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware" \
-			"$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"
+			"$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider" \
+			"$chipset" "$altsynch" "$altpppoeci"
         if [ $? -eq 0 ]; then
             echo
             echo "==== eciadsl-config-text: Configuration updated with success !"
-            echo "You can now run eciadsl-start (as root) to connect to the internet."
+            echo "You can now run eciadsl-config-text (as root) to connect to the internet."
         else
             echo "*** eciadsl-makeconfig reports error(s), please fix the problem and run eciadsl-config-text again."
         fi

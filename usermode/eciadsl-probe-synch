@@ -129,6 +129,7 @@ if [ -f "$CONF_DIR/eciadsl.conf" ]; then
 	FIRMWARE=`grep -iE "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	FIRMWARE_OPTIONS=`grep -iE "^[ \t]*FIRMWARE_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s " \t" " "`
 	SYNCH_OPTIONS=`grep -iE "^[ \t]*SYNCH_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s " \t" " "`
+	MODEM_CHIPSET=`grep -E "^[ \t]*MODEM_CHIPSET[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 	echo -e "\nConfig read from $CONF_DIR/eciadsl.conf"
 else
 	echo -e "\nDefault config assumed"
@@ -155,10 +156,15 @@ then
 fi
 
 LIST=""
-for FILE in $(find "$DIR" -maxdepth 1 -type f -name "*.bin" | grep -v firm)
-do
-	test -n "$LIST" && LIST="$LIST\n${FILE##*/}" || LIST="${FILE##*/}"
-done
+if [ "$MODEM_CHIPSET" == "GS7470" ]; then
+    for FILE in $(find "$DIR" -maxdepth 1 -type f -name "gs7470_*.bin" | grep -v "firmware"| grep -v "a.bin"| grep -v "b.bin"); do
+		test -n "$LIST" && LIST="$LIST\n${FILE##*/}" || LIST="${FILE##*/}"
+    done
+else
+    for FILE in $(find "$DIR" -maxdepth 1 -type f -name "*.bin" | grep -v "firmware"| grep -v "gs7470"| grep -v "a.bin"| grep -v "b.bin"); do
+		test -n "$LIST" && LIST="$LIST\n${FILE##*/}" || LIST="${FILE##*/}"
+    done
+fi
 
 if [ -z "$LIST" ]
 then

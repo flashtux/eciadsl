@@ -26,7 +26,7 @@ ff ff ff ff ff ff ff 06 05 04 03 02 01          .............
 #include <time.h>
 
 #include "pusb.h"
-#include "modem.h"
+#include "gsinterface.h"
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";

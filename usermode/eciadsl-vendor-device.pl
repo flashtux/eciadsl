@@ -33,8 +33,10 @@
 # file.
 
 # 07/02/2002 : added the CVS Id.
-# CVS $Id: eciadsl-vendor-device.pl,v 1.10 2003/08/17 12:31:07 flashcode Exp $
+# CVS $Id: eciadsl-vendor-device.pl,v 1.1 2004/04/23 01:35:37 flashcode Exp $
 # Tag $Name:  $
+
+# 14/01/2004 : kolja <gava@bergamoblog.it> - enachement for GS7470 chipset support
 
 # <CONFIG>
 # $BIN_DIR = "/usr/local/bin";
@@ -44,12 +46,84 @@
 # $VERSION = "";
 # </CONFIG>
 
+#initialize input param value - kolja
+$epintval = 0x86;
+$synchnum = 999;
+$fext='';
+$surb=-1;
+$eurb=-1;
+$forceonefile=0;
+$dheader ='';
+$ok=0;
+$chipset='GS7070';
+$file_prefix='';
+
+#help funciton
+sub printhelp(){
+	print "\nusage : eciadsl-vendor-device.pl input_sniff_file.log [parameters]\n\n";
+	print "  parameters : \n";
+	print "               -h : this help\n";	
+	print "               -chipset=  : Globspan Chipset (optional)\n";
+	print "                            this parameter set the chipset has your\n";
+	print "                            modem (could be GS7070 or GS7470\n";
+	print "                                   default GS7070)\n";
+	print "               -synchnum= : synch file output number (optional)\n";
+	print "                            create a bin file called synch##.bin or gs7470_synch##.bin \n";
+	print "                            (depending on chipset param specified)\n";
+	print "                            where ## is the number passed\n";
+	print "                            (default file name : synch999.bin or gs7470_synch999.bin).\n";
+	exit;	
+}
+
+# get parameters - kolja
+$fin = $ARGV[0];
+foreach $param (@ARGV)
+{
+	@param = split( '=', $param );
+	if($param[0] eq '-chipset'){
+		$chipset  = $param[1];
+	}
+	if($param[0] eq '-synchnum'){
+		$synchnum = $param[1];
+	}
+	if($param[0] eq '-h'){
+		printhelp();
+	}
+	if($param[0] eq '-forceonefile'){
+		$forceonefile= 1;
+	}
+	if($param[0] eq '-fext'){
+		$fext= $param[1];
+	}
+	if($param[0] eq '-surb'){
+		$surb= 0 + $param[1];
+	}
+	if($param[0] eq '-eurb'){
+		$eurb= 0 + $param[1];
+	}
+	if($param[0] eq '-dheader'){
+		$dheader= $param[1];
+	}
+}
+if ($surb!=-1){
+	$forceonefile= 1;
+}
+
+if ($chipset eq 'GS7470'){
+	$epintval = 0x81;
+	$file_prefix = "gs7470_";
+}
+
+$file = $file_prefix."synch".$synchnum.$fext.".bin";
 $active = 0;
 
-$file = "eci_vendor.bin";
-
 open BIN, ">$file" or die "Can't open $file: $!\n";
+# set file out in bin mode - kolja
+binmode(BIN);
 
+if ($dheader ne ''){
+	print BIN $dheader;
+}
 while (<>) {
 
 # At the start of each URB , we reset all our variables and write down the
@@ -69,6 +143,7 @@ while (<>) {
 		$buf = '';
 		$vendor = 0;
 		$interrupt = 0;
+		$buf1='';
 
 		if (/coming back/) {
 			$urb_direction = 'in';
@@ -99,7 +174,7 @@ while (<>) {
 
 	if ($interrupt && /endpoint[ \t]+0x([0-9a-f]+)/i) {
 # we are only interested in endpoint 0x86 which is the INT endpoint 
-		if (hex($1) != 0x86) {
+		if (hex($1) != $epintval) {
 			$interrupt = 0;
 		}
 		next ;
@@ -123,7 +198,7 @@ while (<>) {
 		if ($interrupt) {
 # we check if the interrupt packet is 64 bytes long. If so, end the loop.
 			if (hex ($1) == 64) {
-				print "interrupt packet detected. properly ending the generation of eci_vendor.bin\nSynch .bin is ok!\n" ;
+			    $ok=1;
 				last;
 			}
 		}
@@ -136,11 +211,11 @@ while (<>) {
 		next;
 	}
 	
-	if ($active && /[0-9a-f]+: ([0-9a-f ]+)/i) {
+	if (($active || $interrupt) && /[0-9a-f]+: ([0-9a-f ]+)/i) {
 		@list = split / /, $1;
-
 		foreach $byte (@list) {
 			$buf .= chr(hex($byte));
+			$buf1 .="$byte";
 		}
 		next;
 	}
@@ -159,6 +234,27 @@ while (<>) {
 		next;
 	}
 		
+	#store ep buffer to verify repeated ep int response 
+	if ($interrupt && $buf ne '' && /UsbSnoop - My/i){
+		$epcount=0;
+		$epfound=0;
+		foreach $epstoreddata (@epstoreddata){
+			if ($epstoreddata eq $buf){
+				$epstoredcount[$epcount]++;
+				$epstoredurbs[$epcount][$epstoredcount[$epcount] -1]=$prevurb;
+				$epfound=1;
+				last;
+			}
+			$epcount++;
+		}
+		if (!$epfound){
+			$epstoreddata[$epcount]=$buf;
+			$epstoredcount[$epcount]=1;
+			$epstoredurbs[$epcount][0]=$prevurb;
+		}
+	}
+
+		
 # since we save the buffer in the .bin file when the 'Index' keyword
 # is present, data received is not saved. (buffer from IN URBs).
 
@@ -166,8 +262,13 @@ while (<>) {
 		if ($vendor) {
 			$index = hex($1);
 
-			# we check everything!
+			#skip urb if is not needed - kolja
+			if ($surb!=-1 && ($surb > $urb || $eurb < $urb)){
+				next;
+			}		
 
+			# we check everything!
+			$prevurb = $urb;
 			if (!defined ($request_type)) {
 				print "Fatal error: URB $urb has undefined RequestType\n";
 				exit;
@@ -211,7 +312,7 @@ while (<>) {
 				}
 			}
 			
-			print "saving urb $urb\n";
+			#print "saving urb $urb\n";
 			
 			print BIN chr($request_type);
 			print BIN chr($request);
@@ -234,5 +335,73 @@ while (<>) {
 	}
 }
 
-close (BIN);
+#examin ep Interrupt response stored - kolja
+#get max
+$epcount=0;
+$epMaxPos=-1;
+for($epcount=0;$epcount<@epstoreddata;$epcount++){
+	if ($epstoredcount[$epcount]>2 && $epstoredcount[$epcount]>$epstoredcount[$epMaxPos]){
+		$epMaxPos=$epcount;
+	}
+#	print "data:".$epstoreddata[$epcount]."|num:".$epstoredcount[$epcount]."|urbs:";
+#	foreach $urb (@{$epstoredurbs[$epcount]}){
+#		print $urb."-";
+#	}
+#	print "\n";
+}
+#get second max
+$epcount=0;
+$epMax2ndPos=-1;
+for($epcount=0;$epcount<@epstoreddata;$epcount++){
+	if ($epcount!=$epMaxPos && $epstoredcount[$epcount]>1 && $epstoredcount[$epcount]>$epstoredcount[$epMax2ndPos]){
+		$epMax2ndPos=$epcount;
+	}
+}
+# if epMaxPos and epMax2ndPos was found verify if 2nd have count 1 less then 1st
+# if yes 3 synch files must be generate 
+# 1st : synch##a.bin : initialisation sequence (used in eci-load2_init function)
+#       it will contain from 1 to first epMaxPos urbs saved excluded
+# 2nd : synch##b.bin : Step 2 sequence (used in eci-load2_init function) [cycling one]
+#       it will contain from first epMaxPos urbs saved included to third epMaxPos urbs saved excluded
+#		(this file will contain also in first to byte exit control codes retreived from next epstoreddata byte 4 and 5
+# 3rd : synch##.bin : finalize sequence (used in eci-load2 common process)
+#       it will contain from next epMax2ndPos epstoreddata saved first urbs saved excluded to shync pahse end
+# All these 3 files must be used.
 
+if ($epMaxPos!=-1 && $epMax2ndPos!=-1 && $epstoredcount[$epMax2ndPos]+1==$epstoredcount[$epMaxPos] && $forceonefile!=1){
+ 	close (BIN);
+	print "ATTENTION : Your log seams to have a cycling sequence\n";
+	print "            this script will generate 3 files \n";
+	print "            (".$file_prefix."synch".$synchnum."a.bin ".$file_prefix."synch".$synchnum."b.bin and ".$file_prefix."synch".$synchnum.".bin\n";
+	print "            YOU MUST USE ALL OF THEM!\n";
+	print "            (if you wana generate 1 file anyway, execute again \n";
+	print "             this script with -forceonefile param).\n\n";
+	# first file
+	print " * Create first file (".$file_prefix."synch".$synchnum."a.bin) .. please wait..\n";
+	$surb = 0;
+	$eurb = $epstoredurbs[$epMaxPos][0]-1;
+	@args = ("perl", $0, $fin, "-synchnum=".$synchnum, "-chipset=$chipset", "-fext=a", "-surb=$surb", "-eurb=$eurb");
+	system (@args);
+	# second file
+	print " * Create second file (".$file_prefix."synch".$synchnum."b.bin) .. please wait..\n";
+	$surb = $epstoredurbs[$epMaxPos][0]+0;
+	$eurb = $epstoredurbs[$epMaxPos][2]-1;
+	$dheader = substr($epstoreddata[$epMax2ndPos+1], 4, 2);
+	@args = ("perl", $0, $fin, "-synchnum=".$synchnum, "-chipset=$chipset", "-fext=b", "-surb=$surb", "-eurb=$eurb" , "-dheader=$dheader");
+	system (@args);
+	# third file
+	print " * Create third file (".$file_prefix."synch".$synchnum.".bin) .. please wait..\n";
+	$surb = $epstoredurbs[$epMax2ndPos+1][0]+1;
+	$eurb = 99999999;
+	$dheader = substr($epstoreddata[$epMax2ndPos+1], 4, 2);
+	@args = ("perl", $0, $fin, "-synchnum=".$synchnum, "-chipset=$chipset", "-surb=$surb", "-eurb=$eurb");
+	system (@args);	
+	print " Process ended successfully\n";
+}else{
+ if ($ok){
+ 	print "interrupt packet detected. properly ending the generation of $file\n" ;
+ }else{
+ 	print "WARNING : interrupt packet not detected. file $file generated anyway but should not be correct\n";
+ }
+ close (BIN);
+}

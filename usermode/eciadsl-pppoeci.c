@@ -83,6 +83,14 @@
 	Antoine REVERSAT aka Crevetor 4/1/2004 : These last days : got rid of linux/ * includes (thanks to MD)
 		   				 Added support for 2.6 kernels (binary stays the same but works for both kernels)
 		   				 Changed pusb_set_interface_alt to allow alt setting 0 to be used (which wasn't the case before)
+
+    21/11/2003 Kolja (gavaatbergamoblog.it)
+    Enanchement for gs7470 chipset support
+  
+  	21/02/2004 Kolja (gavaatbergamoblog.it)
+  	Make process works also with altInterface 0 for GS7470 modem chipset
+  	 - this change involve the EP_DATA_IN process :
+  	 		the EP_DATA_IN number became  0x83 and it uses Interrupt instead ISOCH.
 */
 
 #define _GNU_SOURCE
@@ -116,8 +124,8 @@
 #include "util.h"
 /* my USB library */
 #include "pusb.h"
-/* GS 7070 control routines */
-#include "gs7070.h"
+/* GS interface control routines */
+#include "gsinterface.h"
 
 #define LOG_FILE "/tmp/eciadsl-pppoeci.log"
 
@@ -126,6 +134,7 @@
 char* exec_filename;
 
 extern struct config_t config;
+extern struct eci_device_t eci_device;
 
 typedef enum
 {
@@ -155,6 +164,12 @@ const char* mode_name[] =
 };
 
 encapsulation_mode default_frame_type=VCM_RFC2364;
+
+#ifdef USE_BIG_ENDIAN
+#define HDLC_HEADER (short)0xff03
+#else
+#define HDLC_HEADER (short)0x03ff
+#endif
 
 const char* frame_header[] =
 {
@@ -203,7 +218,6 @@ typedef enum
 #define ERR_BUFSIZE (1024 - 1)
 char errText[ERR_BUFSIZE + 1];
 
-#define PAD_SIZE 11
 /* for debugging only */
 void dump_urb(char* buffer, int size);
 
@@ -214,15 +228,6 @@ static const char id[] = "@(#) $Id$";
 #define DATA_TIMEOUT 300
 int data_timeout = 0;
 
-#include "modem.h"
-
-/* max size of data endpoint (Windows driver uses 448). */
-#define MAX_EP_SIZE 448
-/* number of simultaneous URB submitted to data endpoint (Windows drv : 20 */
-#define NB_PKT_EP_DATA_IN 20
-/* number of ISO packet per URB (Windows driver uses 10) */
-#define PKT_NB 10
-
 /* ATM level : adapt according your ADSL provider settings */
 unsigned int my_vpi = 0xffffffff;
 unsigned int my_vci = 0xffffffff;
@@ -231,10 +236,7 @@ unsigned int vendor = 0;
 unsigned int product = 0;
 
 int pusb_set_interface_alt = -1;
-
-#define CELL_SIZE 53
-#define CELL_HDR  05
-#define CELL_DATA 48
+char* chipset="GSNONE";
 
 int syncHDLC = 1;
 
@@ -242,17 +244,18 @@ int syncHDLC = 1;
 
 /* global parameters */
 int verbose = 0;
-int usb_sync = 1;
 pusb_device_t fdusb;
-/* unsigned char lbuf[20][4400]; */
 pusb_endpoint_t ep_data_out, ep_data_in, ep_int;
 pid_t this_process;	 /* always the current process pid */
+int use_DataIn_ISO_Urb = 1; /* define if must use ISO for DATA_IN endpoint (default) otherwise it uses Interrupt*/
 
 /* predeclarations */
 
 int aal5_read(unsigned char* cell_buf, /* size_t count, */
 				unsigned int vpi, unsigned int vci,
 				unsigned int pti, int fdout);
+
+int init_ep_data_in_int(pusb_endpoint_t ep_data_in);
 
 /*
  * variable that will be used in several function
@@ -709,22 +712,18 @@ int ppp_write(int fd, unsigned char* buf, int n)
  * an AAL5 frame.
  */
 
-int cell_read(unsigned char* cellbuf, /* size_t count, */ int fdout)
-{
-	unsigned int vpi, vci, pti;
+int cell_read(unsigned char* cellbuf, /* size_t count, */ int fdout){
+	struct aal5_header_st aal5Header;
 
-	/* decoding & printing of the cell */
-	vpi = ( cellbuf[0]         <<  4) | (cellbuf[1] >> 4);
-	vci = ((cellbuf[1] & 0x0f) << 12) | (cellbuf[2] << 4) | (cellbuf[3] >> 4);
-	pti = ( cellbuf[3] & 0x0f);
+	getAal5HeaderStructure(cellbuf, &aal5Header);
 
-	if (vpi != my_vpi || vci != my_vci)
+	if (aal5Header.vpi != my_vpi || aal5Header.vci != my_vci)
 	{
 		/* there's some junk so try to re-sync */
 		return(-2);
 	}
 	/* filling our AAL5 frame */
-	return(aal5_read(cellbuf + CELL_HDR, /* CELL_DATA, */ vpi, vci, pti, fdout));
+	return(aal5_read(cellbuf + eci_device.cell_r_hdr, /* CELL_DATA, */ aal5Header.vpi, aal5Header.vci, aal5Header.pti, fdout));
 }
 
 int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
@@ -733,7 +732,7 @@ int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
 	unsigned char gfc = 0;
 	unsigned char hec = 0x00; /* change to the value used in the Windows driver */
 
-	if (n != CELL_DATA)
+	if (n != eci_device.cell_w_data)
 		return(-1);
 
 	/* normalize */
@@ -747,10 +746,10 @@ int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
 	cellbuf[3] = ((vci & 0xf) << 4) | pti;
 	cellbuf[4] = hec;
 
-	memcpy(cellbuf + CELL_HDR,  buf, CELL_DATA);
-	memset(cellbuf + CELL_SIZE, 0xff, PAD_SIZE);
+	memcpy(cellbuf + eci_device.cell_w_hdr,  buf, eci_device.cell_w_data);
+	memset(cellbuf + eci_device.cell_w_size, 0xff, eci_device.pad_size);
 
-	return(CELL_SIZE + PAD_SIZE);
+	return(eci_device.cell_w_size + eci_device.pad_size);
 }
 
 /*
@@ -777,7 +776,7 @@ int aal5_read(unsigned char* cell_buf, /* size_t count, */
 					"vpi.vci mismatch (%d.%d instead of %d.%d) => ignored",
 					 vpi, vci, my_vpi, my_vci);
 			message(errText);
-			dump(cell_buf, CELL_DATA);
+			dump(cell_buf, eci_device.cell_r_data);
 		}
 		return(-2); /* return -2 and ? */
 	}
@@ -787,10 +786,10 @@ int aal5_read(unsigned char* cell_buf, /* size_t count, */
 	 * copying the cell's content to our buffer
 	 */
 
-	if ((unsigned int)(len + CELL_DATA) < sizeof(buf))
+	if ((unsigned int)(len + eci_device.cell_r_data) < sizeof(buf))
 	{
-		memcpy(buf + len, cell_buf, CELL_DATA);
-		len += CELL_DATA;
+		memcpy(buf + len, cell_buf, eci_device.cell_r_data);
+		len += eci_device.cell_r_data;
 	}
 	else
 	{
@@ -870,7 +869,7 @@ int aal5_read(unsigned char* cell_buf, /* size_t count, */
 int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 {
 	/* add the trailer */
-	int total_len = 48 * ((n + 8 + CELL_DATA - 1) / 48);
+	int total_len = 48 * ((n + 8 + eci_device.cell_w_data - 1) / 48);
 	unsigned int crc, pti = 0;
 
 	/*
@@ -902,17 +901,17 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 	while (total_len > 0)
 	{
 
-		if (total_len <= CELL_DATA)
+		if (total_len <= eci_device.cell_w_data)
 			/* this is the last cell, so mark it */
 			pti = 2;
 
 		ptr += cell_write(bigbuf + ptr, buf,
-				CELL_DATA, my_vpi, my_vci, pti);
+				eci_device.cell_w_data, my_vpi, my_vci, pti);
 
 		/* send the same cell over another vpi/vci */
 
-		buf += CELL_DATA;
-		total_len -= CELL_DATA;
+		buf += eci_device.cell_w_data;
+		total_len -= eci_device.cell_w_data;
 
 	}
 
@@ -993,7 +992,7 @@ int decode_usb_pkt(unsigned char* buf, int len)
 	}
 
 	pos = 0;
-	while ((rlen - pos) >= CELL_SIZE)
+	while ((rlen - pos) >= eci_device.cell_r_size)
 	{
 		if ((r = cell_read(rbuf + pos, /* CELL_SIZE, */ gfdout)) < 0 && r != -2)
 		{
@@ -1007,7 +1006,7 @@ int decode_usb_pkt(unsigned char* buf, int len)
 			block header (just add 1 onto pos!!) for now!! */
 			pos++;
 		else
-			pos += CELL_SIZE;
+			pos += eci_device.cell_r_size;
 	}
 	rlen -= pos;
 
@@ -1035,6 +1034,9 @@ int init_ep_int(pusb_endpoint_t ep_int)
 
 	int i, ret;
 
+	/* allocate variables for GS interface - kolja */
+	allocateGSint();
+
 	for (i = 0; i < NB_PKT_EP_INT; i++)
 	{
 		/* we use a BULK transfer instead, since INTERRUPT transfer
@@ -1057,14 +1059,48 @@ int init_ep_int(pusb_endpoint_t ep_int)
 
 int init_ep_data_in(pusb_endpoint_t ep_data_in)
 {
-	static unsigned char buf[NB_PKT_EP_DATA_IN][MAX_EP_SIZE * PKT_NB];
-
+	unsigned char* buf; 
 	int i, ret;
 
-	for (i = 0; i < NB_PKT_EP_DATA_IN; i++)
+	buf = (unsigned char*) malloc(eci_device.eci_nb_pkt_ep_data_in * eci_device.eci_nb_pkt_ep_data_in * eci_device.eci_nb_pkt_ep_data_in);
+
+	/* if DATA_IN type is not ISO call init for Interrupt handling - kolja*/
+	if(!use_DataIn_ISO_Urb)
+		return(init_ep_data_in_int(ep_data_in));
+	
+	for (i = 0; i < eci_device.eci_nb_pkt_ep_data_in; i++)
 	{
-		ret = pusb_endpoint_submit_iso_read(ep_data_in, buf[i], MAX_EP_SIZE,
-						    PKT_NB, 0); /* SIGRTMIN); */
+		ret = pusb_endpoint_submit_iso_read(ep_data_in, buf+( eci_device.eci_nb_pkt_ep_data_in* i), eci_device.eci_iso_packet_size,
+						    eci_device.eci_nb_iso_packet, 0); /* SIGRTMIN); */
+		if (ret < 0)
+		{
+			snprintf(errText, ERR_BUFSIZE,
+					"error on initial submit of URB %d on EP_DATA_IN", i);
+			message(errText);
+			perror("error: init_ep_data_in");
+			return(ret);
+		}
+	}
+
+	return(0);
+}
+
+/* handle initialisation of DATA_IN type Interrupt - kolja*/
+int init_ep_data_in_int(pusb_endpoint_t ep_data_in)
+{
+
+	unsigned char* buff;
+	int i, ret;
+
+	buff = (unsigned char*) malloc(eci_device.eci_nb_pkt_ep_data_in * 0x40);
+
+	for (i = 0; i < eci_device.eci_nb_pkt_ep_data_in; i++)
+	{
+		/* we use a BULK transfer instead, since INTERRUPT transfer
+		   are not supported by usbdevfs (devio.c)
+		*/
+		ret = pusb_endpoint_submit_read(ep_data_in, buff + (eci_device.eci_nb_pkt_ep_data_in * i),
+						    0x40, 0); /* SIGRTMIN); */
 		if (ret < 0)
 		{
 			snprintf(errText, ERR_BUFSIZE,
@@ -1081,7 +1117,6 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 {
 	static int lost_synchro = 0;
-	static GS7070int* gs = 0;
 
 	unsigned char outbuf[40] =
 	{
@@ -1091,11 +1126,10 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
 		0x0c, 0x0c
 	};
+	
+
 	int i, outi = 0;
 	int dataBlock = 0;
-
-	if (gs==0)
-		gs=allocateGS7070int();
 
 	if (verbose > 1)
 	{
@@ -1107,14 +1141,17 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 
 	if (!lost_synchro || 1)
 	{
-		for (i = 3; i < 18; i++)
+		for (i = eci_device.ep_int_data_start_point; i < 18; i++)
 		{
 			unsigned short code = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
 
 			if (code != 0x0c0c)
 			{ /* don't bother with 0c0c blocks, there 'empty' */
 				dataBlock=-1;
-				gs7070SetControl(gs, buf + i * 2);
+				gsSetControl(buf + i * 2);
+				memcpy(outbuf + 10 + outi, buf + i * 2, 2);
+				gsGetResponse(outbuf + 10 + outi);
+				outi = outi+2;				
 			}
 		}
 	}
@@ -1122,31 +1159,8 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 		/* no data/control information so don't bother to respond */
 		return;
 
-	for (i = 0; i < 15; i++)
-	{
-		unsigned char b1, b2;
 
-		b1 = buf[6 + 2 * i + 0];
-		b2 = buf[6 + 2 * i + 1];
-
-		/* each word != 0x0c 0x0c is copied in the output buffer */
-
-		if (b1 != 0x0c || b2 != 0x0c)
-		{
-			if ((unsigned int)(10 + outi) >= sizeof(outbuf))
-			{
-				message("warning: outbuf is too small");
-				dump(buf, size);
-				break;
-			}
-			outbuf[10 + outi] = b1;
-			outbuf[10 + outi+1] = b2;
-			gs7070GetResponse(gs, outbuf + 10 + outi);
-			outi += 2;
-		}
-	}
-
-	if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
+	if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
 			sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
 	{
 		message("error on sending vendor device URB");
@@ -1174,12 +1188,11 @@ void handle_urb(pusb_urb_t urb)
 	unsigned char* buf;
 	unsigned char* sbuf;
 	int idx, size, ret;
+	int ep;
 
-	switch (pusb_urb_get_epnum(urb))
-	{
-		case EP_INT:
-			/* printf("interrupt!\n"); */
+	ep = pusb_urb_get_epnum(urb);
 
+	if (ep==eci_device.eci_int_ep){
 			if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
 			{
 				do
@@ -1203,11 +1216,9 @@ void handle_urb(pusb_urb_t urb)
 					perror("error: can't re-submit on EP_INT");
 				}
 			}
-			break;
-
-		case EP_DATA_IN:
+	}else
+	if (ep==eci_device.eci_iso_ep){
 			/* printf("data in!\n"); */
-
 			if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
 			{
 				sbuf = buf;
@@ -1217,7 +1228,7 @@ void handle_urb(pusb_urb_t urb)
 					if (size != 0)
 					{
 /*						printf("data_in %02x, packet len = %d\n",
-							   EP_DATA_IN, size);
+							   epnum_data_in_used, size);
 						dump(buf, size);
 */
 						handle_ep_data_in(buf, size);
@@ -1225,25 +1236,40 @@ void handle_urb(pusb_urb_t urb)
 				}
 				while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
 
-				ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, MAX_EP_SIZE,
-								  PKT_NB, 0); /* SIGRTMIN); */
-				if (ret < 0)
-				{
+			/* use ISO URB depending on AltInterface Setted - kolja*/
+			ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, eci_device.eci_iso_packet_size, eci_device.eci_nb_iso_packet, 0); /* SIGRTMIN); */
+			if (ret < 0){
 					message("error on re-submit URB on EP_DATA_IN");
 					perror("error: can't re-submit on ep EP_DATA_IN");
 				}
 			}
-			break;
+	}else
+	if (ep==eci_device.eci_in2_ep){
+			if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
+			sbuf = buf;
 
-		case EP_DATA_OUT:
-			/* ok, nothing to say */
-			break;
+			do{
+				if (size != 0){
+/*						printf("data_in %02x, packet len = %d\n",
+							   EP_DATA_IN2, size);
+						dump(buf, size);
+*/
+					handle_ep_data_in(buf, size);
+				}
+			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
 
-		default:
+			/* Interrupt URB depending on AltInterface Setted - kolja*/
+			ret = pusb_endpoint_submit_read(ep_data_in, buf, 0x40, 0); /* SIGRTMIN); */					
+			if (ret < 0){
+				message("error on re-submit URB on EP_DATA_IN2");
+				perror("error: can't re-submit on ep EP_DATA_IN2");
+			}
+		}
+	}else
+	if (ep!=eci_device.eci_bulk_ep){
 			snprintf(errText, ERR_BUFSIZE,
 					"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
 			message(errText);
-			break;
 	}
 }
 
@@ -1470,6 +1496,9 @@ int main(int argc, char** argv)
 		if ((strcmp(argv[i], "-alt") == 0) && (i + 1 < argc))
 			get_signed_value(argv[++i], &pusb_set_interface_alt);
 		else
+		if (((strcmp(argv[i], "-mc") == 0) || (strcmp(argv[i], "--modem_chipset") == 0) ) && (i + 1 < argc))
+			strDup(&chipset, argv[++i]);
+		else				
 		if ((strcmp(argv[i], "-dto") == 0) && (i + 1 < argc))
 			get_signed_value(argv[++i], &data_timeout);
 		else
@@ -1507,7 +1536,6 @@ int main(int argc, char** argv)
 
 	/* read the configuration file */
 	read_config_file();
-
 	/* try to assume default values from the config file */
 	if ((my_vci == 0xffffffff) && (config.vci != 0xffffffff))
 			my_vci = config.vci;
@@ -1555,12 +1583,15 @@ int main(int argc, char** argv)
 		usage(-1);
 	}
 
+	if (strcmp(chipset,"GSNONE")!=0){
+		set_eci_modem_chipset(chipset);
+	}
+
 	/* check some other params */
 	if (pusb_set_interface_alt < 0)
 	{
-		fprintf(stderr, "incorrect alt interface value (%d underflows)\n",
-			pusb_set_interface_alt);
-		usage(-1);
+		/* set dafault interface - kolja*/ 
+		pusb_set_interface_alt = config.alt_interface_synch;
 	}
 	if (data_timeout < 0)
 	{
@@ -1817,8 +1848,13 @@ int main(int argc, char** argv)
 	/* Initialize global variables */
 	gfdout = fdout;
 
-	/* set interface */
+	/* we claim interface 0 (altsetting != 0 (we use 4)), where endpoints 0x02, 0x86 & 0x88 are */
 
+	if (pusb_claim_interface(fdusb, 0) < 0)
+		fatal_error(ERR_PUSB_CLAIM_INTERFACE,
+					"pusb_claim_interface 0 failed");
+
+	/* set interface */
 	if (pusb_set_interface_alt > -1)
 		if (pusb_set_interface(fdusb, 0, pusb_set_interface_alt) < 0)
 		{
@@ -1827,18 +1863,22 @@ int main(int argc, char** argv)
 			fatal_error(ERR_PUSB_SET_INTERFACE, errText);
 		}
 
-	/* we claim interface 0 (altsetting != 0 (we use 4)), where endpoints 0x02, 0x86 & 0x88 are */
+	/* if altInterface is setted to 0 use Interrupt instead ISO for DATA_IN - kolja*/
+	if (pusb_set_interface_alt == 0){
+		use_DataIn_ISO_Urb = 0;
+	}
 
-	if (pusb_claim_interface(fdusb, 0) < 0)
-		fatal_error(ERR_PUSB_CLAIM_INTERFACE,
-					"pusb_claim_interface 0 failed");
-
-	ep_int = pusb_endpoint_open(fdusb, EP_INT, O_RDWR);
+	ep_int = pusb_endpoint_open(fdusb, eci_device.eci_int_ep, O_RDWR);
 	if (ep_int == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_INT,
 					"pusb_endpoint_open EP_INT failed");
 
-	ep_data_in = pusb_endpoint_open(fdusb, EP_DATA_IN, O_RDWR);
+	/* if no ISO used for DATA_IN endpoint number must be 0x83 - kolja */
+	if (use_DataIn_ISO_Urb)
+		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_iso_ep, O_RDWR);
+	else
+		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_bulk_ep, O_RDWR);
+	
 	if (ep_data_in == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_DATA_IN,
 					"pusb_endpoint_open EP_DATA_IN failed");
@@ -1848,7 +1888,7 @@ int main(int argc, char** argv)
 	 * is an infinite loop and will return only on errors.
 	 */
 
-	ep_data_out = pusb_endpoint_open(fdusb, EP_DATA_OUT, O_RDWR);
+	ep_data_out = pusb_endpoint_open(fdusb, eci_device.eci_bulk_ep, O_RDWR);
 	if (ep_data_out == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_DATA_OUT,
 					"pusb_endpoint_open EP_DATA_OUT failed");

@@ -2,9 +2,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "modem.h"
 #include "util.h"
+#include "gsinterface.h"
 
+extern struct eci_device_t eci_device;
 
 struct config_t config;
 
@@ -14,6 +15,16 @@ void get_unsigned_value(const char* param, unsigned int* var)
 	char* chk;
 
 	value = (unsigned int) strtoul(param, &chk, 10);
+	if (! *chk)
+		*var = value;
+}
+
+void get_unsigned_short_value(const char* param, unsigned short int* var)
+{
+	unsigned short int value;
+	char* chk;
+
+	value = (unsigned short int) strtoul(param, &chk, 10);
 	if (! *chk)
 		*var = value;
 }
@@ -28,6 +39,16 @@ void get_signed_value(const char* param, int* var)
 		*var = value;
 }
 
+void get_signed_short_value(const char* param, short int* var)
+{
+	short int value;
+	char* chk;
+
+	value = (short int) strtoul(param, &chk, 10);
+	if (! *chk)
+		*var = value;
+}
+
 void get_hexa_value(const char* param, unsigned int* var)
 {
 	unsigned int value;
@@ -38,7 +59,7 @@ void get_hexa_value(const char* param, unsigned int* var)
 		*var = value;
 }
 
-char* strdup(char** var, const char* text)
+char* strDup(char** var, const char* text)
 {
 	*var=malloc((strlen(text)+1)*sizeof(char));
 	if (!*var)
@@ -61,6 +82,7 @@ void read_config_file(void)
 	char hexa[7];
 	unsigned long int num;
 
+	set_eci_modem_chipset("GS7070");
 	config.vid1=0;
 	config.pid1=0;
 	config.vid2=0;
@@ -70,7 +92,10 @@ void read_config_file(void)
 	config.mode=NULL;
 	config.synch=NULL;
 	config.firmware=NULL;
-
+	config.modem_chipset=ECIDC_GS7070;
+	config.alt_interface_ppp=-1;
+	config.alt_interface_synch=-1;
+	
 	file=fopen(filename, "r");
 	if (file)
 	{
@@ -108,6 +133,26 @@ void read_config_file(void)
 							fputs(ptr, stderr); fputs(" ", stderr);
 							fputs(tmp, stderr); fputs("\n", stderr);
 */
+						/* new config parameters - kolja */
+						
+							if (strcmp(ptr, "MODEM_CHIPSET")==0)
+							{
+								char* chipset;
+								strDup(&chipset, tmp);
+								set_eci_modem_chipset(chipset);
+								config.modem_chipset = eci_device.eci_modem_chipset;
+							}
+							else						
+							if (strcmp(ptr, "SYNCH_ALTIFACE")==0)
+							{
+								get_signed_short_value(tmp, &config.alt_interface_synch);
+							}
+							else						
+							if (strcmp(ptr, "PPPOECI_ALTIFACE")==0)
+							{
+								get_signed_short_value(tmp, &config.alt_interface_ppp);
+							}
+							else						
 							if (strcmp(ptr, "VID1")==0)
 							{
 								COPY_HEXA(hexa, tmp);
@@ -139,13 +184,13 @@ void read_config_file(void)
 								get_unsigned_value(tmp, &config.vci);
 							else
 							if (strcmp(ptr, "MODE")==0)
-								strdup(&config.mode, tmp);
+								strDup(&config.mode, tmp);
 							else
 							if (strcmp(ptr, "SYNCH")==0)
-								strdup(&config.synch, tmp);
+								strDup(&config.synch, tmp);
 							else
 							if (strcmp(ptr, "FIRMWARE")==0)
-								strdup(&config.firmware, tmp);
+								strDup(&config.firmware, tmp);
 							else
 							if (
 								(strcmp(ptr, "PPPD_USER")!=0)
@@ -175,6 +220,10 @@ void read_config_file(void)
 			num++;
 		}
 		fclose(file);
+		if (config.alt_interface_ppp==-1)
+			config.alt_interface_ppp= eci_device.alt_interface_ppp;
+		if (config.alt_interface_synch==-1)
+			config.alt_interface_synch= eci_device.alt_interface_synch;
 	}
 	else
 		fprintf(stderr, "couldn't access %s\n", filename);
@@ -194,4 +243,13 @@ void read_config_file(void)
 					config.synch, config.firmware
 			);
 */
+}
+
+/* function to show a 'progress bar' during synch sequence - kolja */
+char* pchars = "-\\|/";
+unsigned int ppos = 0;
+
+void printprogres(void){
+		printf ("\r Please Wait.. Synchronisation in progress [%c]", (char)(pchars[ppos]));
+		ppos==3 ? ppos=0 : ppos++;
 }

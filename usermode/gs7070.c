@@ -1,5 +1,15 @@
-/* gs7070.c
-  GS7070 ep_int response handeling
+/*
+  Author : kolja <gava@bergamoblog.it>
+  Creation : 29/11/2003
+  Licence : GPL
+
+*********************************************************************
+ File		: 	$RCSfile$
+ Version	:	$Revision$
+ Modified by	:	$Author$ ($Date$)
+*********************************************************************
+  GlobeSpan GS7070 Chipset Interface
+     cantain all the information related to device 
 
   Changes:
   Oliverthered: oliverthered:oliverthered.com
@@ -9,13 +19,61 @@
   exactly the same as the Windows driver Annax A, G.DMT vci=0 vpi=38.
 */
 
-#include "gs7070.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include "gsinterface.h"
+#include "gs7070.h"
+
+extern struct eci_device_t eci_device;
+
+/* GSControlINT variable */
+GS7070ControlINT* gs7070;
+
+/* Initialize Device Parameters */
+void gs7070InitParams(void){
+	
+	/* Vendor/ProdID for "ECI Telecom USB ADSL WAN Modem" */
+	eci_device.eci_modem_chipset = ECIDC_GS7070;
+
+	/* endpoint numbers */
+	eci_device.eci_int_ep = 0x86;
+	eci_device.eci_iso_ep = 0x88;
+	eci_device.eci_in2_ep = 0x89;
+	eci_device.eci_bulk_ep = 0x02;
+
+	/* interfaces # */
+	eci_device.alt_interface_synch = 4;
+	eci_device.alt_interface_ppp = 4;
+
+	/* PPP DEFINES */
+	/* max size of data endpoint (Windows driver uses 448). */
+	eci_device.eci_iso_packet_size = 448;
+	/* number of ISO packet per URB (Windows driver uses 10) */
+	eci_device.eci_nb_iso_packet = 10;
+	/* number of simultaneous URB submitted to data endpoint (Windows drv : 20) */
+	eci_device.eci_nb_pkt_ep_data_in = 20; 		
+	/* EP INT output buffer size */
+	eci_device.ep_int_out_buf_size = 40;
+	/* EP INT data start point */
+	eci_device.ep_int_data_start_point = 3;
+	/* BULK RESPONSE VALUE */
+	eci_device.bulk_response_value = 0x0c02;
+
+	/* AAL5 INPUT CELL STRUCTURE */
+	eci_device.cell_r_size = 53;
+	eci_device.cell_r_hdr  = 05;
+	eci_device.cell_r_data = 48;
+
+	/* AAL5 OUTPUT CELL STRUCTURE */
+	eci_device.cell_w_size = 53;
+	eci_device.cell_w_hdr  = 05;
+	eci_device.cell_w_data = 48;
+
+	eci_device.pad_size = 11;
+}
 
 /* Manages commands sent from the modem */
-
-int gs7070SetControl(GS7070int* gs, unsigned char* buffer)
+int gs7070SetControl(unsigned char* buffer)
 {
 	unsigned short controlcode=(buffer[0]<<8 )|buffer[1];
 	/*  Check for junk/unknown stuff, because it probably means that the line
@@ -24,30 +82,30 @@ int gs7070SetControl(GS7070int* gs, unsigned char* buffer)
 		return(0);
 	if (controlcode==0x7311 || controlcode==0x5311)
 	{
-		if (controlcode==0x7311 && gs->replace73->count==5)
+		if (controlcode==0x7311 && gs7070->replace73->count==5)
 		{
-			gs->replace73->count=0;
-			if (gs->controlcodecount==1 && gs->controlcodes[1]==0x7341)
+			gs7070->replace73->count=0;
+			if (gs7070->controlcodecount==1 && gs7070->controlcodes[1]==0x7341)
 			{
-				gs->count7341++;
-				if (gs->count7341==3)
+				gs7070->count7341++;
+				if (gs7070->count7341==3)
 				{
-					gs->replace73->replace[0]=0x73;
-					gs->replace73->replace[1]=0x0F;
+					gs7070->replace73->replace[0]=0x73;
+					gs7070->replace73->replace[1]=0x0F;
 				}
 			}
 		}
 		else
-			if (controlcode==0x5311 && gs->replace53->count==5)
+			if (controlcode==0x5311 && gs7070->replace53->count==5)
 			{
-				gs->replace53->count=0;
-				if (gs->controlcodecount==1 && gs->controlcodes[1]==0x7341)
+				gs7070->replace53->count=0;
+				if (gs7070->controlcodecount==1 && gs7070->controlcodes[1]==0x7341)
 				{
-					if (gs->replace53->replace[0]==0xC3
-						&& gs->replace53->replace[1]==0x39)
+					if (gs7070->replace53->replace[0]==0xC3
+						&& gs7070->replace53->replace[1]==0x39)
 					{
-						gs->replace53->replace[0]=0x43;
-						gs->replace53->replace[1]=0x01;
+						gs7070->replace53->replace[0]=0x43;
+						gs7070->replace53->replace[1]=0x01;
 					}
 				}
 
@@ -56,48 +114,48 @@ int gs7070SetControl(GS7070int* gs, unsigned char* buffer)
 	}
 
 	/* check to see if we have a new control code to put into the buffer */
-	if (gs->controlcodecount==-1)
+	if (gs7070->controlcodecount==-1)
 	{
-		gs->controlcodecount++;
-		gs->controlcodes[gs->controlcodecount]=controlcode;
-		gs->controlseqcount=1;
+		gs7070->controlcodecount++;
+		gs7070->controlcodes[gs7070->controlcodecount]=controlcode;
+		gs7070->controlseqcount=1;
 	}
 	else
 	{
-		if (gs->controlcodes[gs->controlcodecount]!=controlcode)
+		if (gs7070->controlcodes[gs7070->controlcodecount]!=controlcode)
 		{
-			if (gs->controlcodecount>=CONTROLCODEBUFFERSIZE-1)
+			if (gs7070->controlcodecount>=CONTROLCODEBUFFERSIZE-1)
 			{
 				printf("Too many control codes without a reset, expect a fatal error!\n");
 				return(GSSYNCERROR);
 			}
 
-			if (gs->controlseqcount!=3)
+			if (gs7070->controlseqcount!=3)
 				printf("Unexpected control code change %d\n",
-						gs->controlseqcount);
+						gs7070->controlseqcount);
 			/* See if the we have received a reset command */
 			/* also a 0xF343? */
 			if (controlcode==0xF301)
 			{ /* F301 is some kind of reset command */
 				printf("Command change received\n");
-				gs->controlcodecount=0;
-/*				gs->controlseqcount=0; */
+				gs7070->controlcodecount=0;
+/*				gs7070->controlseqcount=0; */
 			}
 			else
 			/* No reset so add the new command onto the end of the control
 			   code list */
-				gs->controlcodecount++;
-			gs->controlcodes[gs->controlcodecount]=controlcode;
-			gs->controlseqcount=1;
+				gs7070->controlcodecount++;
+			gs7070->controlcodes[gs7070->controlcodecount]=controlcode;
+			gs7070->controlseqcount=1;
 		}
 		else
-			gs->controlseqcount++;
+			gs7070->controlseqcount++;
 	}
 /* Big nasty state catcher comming up!!
    One day, maybe sometime in the future this can be replaced with some
    propper cntrol code!!!
 */
-	if (gs->controlseqcount==1)
+	if (gs7070->controlseqcount==1)
 	{
 		/*
 		 I think the first down the line is a f343? hmm...
@@ -132,50 +190,50 @@ int gs7070SetControl(GS7070int* gs, unsigned char* buffer)
 			53 11 (43 01)
 			73 11 (73 0f)
 		*/
-		if (gs->controlcodecount==0)
+		if (gs7070->controlcodecount==0)
 		{
-			gs->replace53->replace[0]=0x43;
-			gs->replace53->replace[1]=0x01;
-			gs->replace53->count=0;
-			gs->replace73->replace[0]=0x63;
-			gs->replace73->replace[1]=0x01;
-			gs->replace73->count=0;
+			gs7070->replace53->replace[0]=0x43;
+			gs7070->replace53->replace[1]=0x01;
+			gs7070->replace53->count=0;
+			gs7070->replace73->replace[0]=0x63;
+			gs7070->replace73->replace[1]=0x01;
+			gs7070->replace73->count=0;
 		}
 		else
-			if (gs->controlcodecount==1)
+			if (gs7070->controlcodecount==1)
 			{
-				switch (gs->controlcodes[0])
+				switch (gs7070->controlcodes[0])
 				{
 					case 0xf301:
 						printf("0xF301\n");
-						switch (gs->controlcodes[1])
+						switch (gs7070->controlcodes[1])
 						{
 							case 0x734D:
 								printf("0x734D\n");
 								/* this is sometime 0x63 53 (only ever the first
 								   time for me and only sometimes)*/
-								if (gs->count734D==0){
-									gs->replace73->replace[0]=0x63;
-									gs->replace73->replace[1]=0x0B;
+								if (gs7070->count734D==0){
+									gs7070->replace73->replace[0]=0x63;
+									gs7070->replace73->replace[1]=0x0B;
 
-									gs->count734D=1;
+									gs7070->count734D=1;
 								}
 								else
 								{
-									gs->replace73->replace[0]=0xE3;
-									gs->replace73->replace[1]=0x0B;
+									gs7070->replace73->replace[0]=0xE3;
+									gs7070->replace73->replace[1]=0x0B;
 								}
-								gs->replace73->count=0;
+								gs7070->replace73->count=0;
 								break;
 							case 0x7341:
 								printf("0x7341\n");
-								gs->count7341=0;
-								gs->replace73->replace[0]=0x63;
-								gs->replace73->replace[1]=0x01;
-								gs->replace73->count=0;
-								gs->replace53->replace[0]=0xc3;
-								gs->replace53->replace[1]=0x39;
-								gs->replace53->count=0;
+								gs7070->count7341=0;
+								gs7070->replace73->replace[0]=0x63;
+								gs7070->replace73->replace[1]=0x01;
+								gs7070->replace73->count=0;
+								gs7070->replace53->replace[0]=0xc3;
+								gs7070->replace53->replace[1]=0x39;
+								gs7070->replace53->count=0;
 								break;
 							case 0xF313:
 								printf("0xF313\n");
@@ -191,40 +249,40 @@ int gs7070SetControl(GS7070int* gs, unsigned char* buffer)
 						break;
 					default:
 						printf("Unknown control code sequence count1 %04x\n",
-								gs->controlcodes[1]);
+								gs7070->controlcodes[1]);
 				};
 			}
 			else
-				if (gs->controlcodecount==2)
+				if (gs7070->controlcodecount==2)
 				{
 					/* need to add the rest of the codes in here!! */
-					switch (gs->controlcodes[2])
+					switch (gs7070->controlcodes[2])
 					{
 						case 0xF34F:
 							printf("0xF34F\n");
-							gs->replace73->replace[0]=0xE3;
-							gs->replace73->replace[1]=0x51;
-							gs->replace73->count=0;
+							gs7070->replace73->replace[0]=0xE3;
+							gs7070->replace73->replace[1]=0x51;
+							gs7070->replace73->count=0;
 							break;
 						default:
 							printf("More control codes than expected count%d %04x \n",
-									gs->controlcodecount,
-									gs->controlcodes[gs->controlcodecount]);
+									gs7070->controlcodecount,
+									gs7070->controlcodes[gs7070->controlcodecount]);
 					};
 				}
 				else
 					printf("Unknown control code sequence count0 %04x\n",
-							gs->controlcodes[0]);
+							gs7070->controlcodes[0]);
 
 	}
 	else
-		if (gs->controlseqcount==4)
+		if (gs7070->controlseqcount==4)
 			printf("Expected change of control code %04x\n",
-					gs->controlcodes[3]);
+					gs7070->controlcodes[3]);
 	return(0);
 }
 
-void replaceme(GSControlReg* rp, unsigned char* data)
+void replaceme(GS7070ControlReg* rp, unsigned char* data)
 {
 	rp->count++;
 	if (rp->count<=2)
@@ -237,17 +295,17 @@ void replaceme(GSControlReg* rp, unsigned char* data)
    gs7070SetControl must be called first so that we are in the correct
    mode for the response.
 */
-void gs7070GetResponse(GS7070int* gs, unsigned char* buffer)
+void gs7070GetResponse(unsigned char* buffer)
 {
 	if ((buffer[0]!=0x73 && buffer[0]!=0x53) || buffer[1]!=0x11)
 		return; /* nothing to do */
 	switch (buffer[0])
 	{
 		case 0x53:
-			replaceme(gs->replace53, buffer);
+			replaceme(gs7070->replace53, buffer);
 			break;
 		case 0x73:
-			replaceme(gs->replace73, buffer);
+			replaceme(gs7070->replace73, buffer);
 			break;
 		default:
 			;
@@ -255,10 +313,10 @@ void gs7070GetResponse(GS7070int* gs, unsigned char* buffer)
 }
 
 /* Allocate a regster and setup some values */
-GSControlReg* allocategsctlreg(char matchhi, char matchlow,
+GS7070ControlReg* allocategs7070ctlreg(char matchhi, char matchlow,
 								char replacehi, char replacelow)
 {
-	GSControlReg* rp=(GSControlReg*)malloc(sizeof(GSControlReg));
+	GS7070ControlReg* rp=(GS7070ControlReg*)malloc(sizeof(GS7070ControlReg));
 
 	rp->count=0;
 	rp->match[0]=matchhi;
@@ -269,33 +327,38 @@ GSControlReg* allocategsctlreg(char matchhi, char matchlow,
 }
 
 /* Clean up a register */
-void deallocategsctlreg(GSControlReg* gscr)
+void deallocategs7070ctlreg(GS7070ControlReg* gscr)
 {
 	free(gscr);
 }
 
 /* Allocate the gs7070 interrupt handler and do some initilisation */
-GS7070int* allocateGS7070int(void)
+void allocateGS7070int(void)
 {
 	/*which way round should a malloc be?*/
-	GS7070int* gs=(GS7070int*)malloc(sizeof(GS7070int));
+	gs7070=(GS7070ControlINT*)malloc(sizeof(GS7070ControlINT));
 
-	gs->controlcodecount=-1;
-	gs->replace73=allocategsctlreg(0x73, 0x11, 0x63, 0x01);
-	gs->replace53=allocategsctlreg(0x53, 0x11, 0x43, 0x01);
-	gs->controlseqcount=0;
-	gs->count7341=0;
-	gs->count734D=0;
-	return(gs);
+	gs7070->controlcodecount=-1;
+	gs7070->replace73=allocategs7070ctlreg(0x73, 0x11, 0x63, 0x01);
+	gs7070->replace53=allocategs7070ctlreg(0x53, 0x11, 0x43, 0x01);
+	gs7070->controlseqcount=0;
+	gs7070->count7341=0;
+	gs7070->count734D=0;
 }
 
 /* Deallocate the gs7070 interrupt handler and clean up */
-void deallocateGS7070int(GS7070int* gs)
-{
-	deallocategsctlreg(gs->replace73);
-	gs->replace73=0;
-	deallocategsctlreg(gs->replace53);
-	gs->replace53=0;
-	gs->controlcodecount=-1;
-	free(gs);
+void deallocateGS7070int(){
+	deallocategs7070ctlreg(gs7070->replace73);
+	gs7070->replace73=0;
+	deallocategs7070ctlreg(gs7070->replace53);
+	gs7070->replace53=0;
+	gs7070->controlcodecount=-1;
+	free(gs7070);
+}
+
+/* get structure for aal5 header */
+void getAal5HeaderStructure7070(unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut){
+	aal5HeaderOut->vpi = ( aal5Header[0] <<  4) | (aal5Header[1] >> 4);
+	aal5HeaderOut->vci = ((aal5Header[1] & 0x0f) << 12) | (aal5Header[2] << 4) | (aal5Header[3] >> 4);
+	aal5HeaderOut->pti = ( aal5Header[3] & 0x0f);
 }
