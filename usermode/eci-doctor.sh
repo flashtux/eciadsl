@@ -34,7 +34,7 @@ cd `dirname $0`
 
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
-if [ `whoami` != "root" ]; then
+if [ `id -u` -ne 0 ]; then
 	echo "You need to be root (type su)" ;
 	exit -1;
 fi

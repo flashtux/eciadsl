@@ -42,8 +42,8 @@ wm title . $titre_fenetre
 # ===== Check is user is 'root' =====
 #
 
-catch {exec whoami} current_user
-if {[string compare $current_user "root"] != 0} {
+catch {exec id -u} current_user
+if {$current_user != 0} {
     frame .baduser
     message .baduser.texte -text "You must be root in order to run the ECI Linux driver configuration." -aspect 900 -padx 15 -pady 15
     button .baduser.ok -text { O K } -command {exit}
