@@ -469,17 +469,18 @@ void version(const int full)
 
 void usage(const int ret)
 {
-	printf("usage:\n");
-	printf("       eci-load2 [<switch>..] [[VID2 PID2] <synch.bin>]\n");
-	printf("switches:\n");
-	printf("       -v or --verbose   be verbose\n");
-	printf("       -h or --help      show this help message then exit\n");
-	printf("       -V or --version   show version information then exit\n");
-	printf("       -t or --timeout   override the default timeout value (in sec)\n");
-	printf("if ALL other parameters are omitted, the ones from "
-			CONF_PATH CONF_DIR "/eciadsl.conf are assumed\n");
-	printf("if only the synch.bin is passed, default VID/PID for ECI HiFocus modem\n");
-	printf("are assumed if no VID/PID can be found in the config file");
+	printf(	"usage:\n"
+			"       eci-load2 [<switch>..] [[VID2 PID2] <synch.bin>]\n");
+	printf(	"switches:\n"
+			"       -v or --verbose   be verbose\n"
+			"       -h or --help      show this help message then exit\n"
+			"       -V or --version   show version information then exit\n"
+			"       -t or --timeout   override the default timeout value (in sec)\n"
+			"\n");
+	printf(	"If ALL other parameters are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
+			"are assumed.\n"
+			"If only the synch.bin is passed, default VID/PID for ECI HiFocus modem\n"
+			"are assumed if no VID/PID can be found in the config file.\n");
 	_exit(ret);
 }
 
@@ -501,7 +502,8 @@ int main(int argc, char** argv)
 {
 	const char* file;
 	int status;
-	unsigned short vid2, pid2;
+	unsigned int vid2;
+	unsigned int pid2;
 	int i, j;
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
@@ -550,8 +552,8 @@ int main(int argc, char** argv)
 	if (argc == 4)
 	{
 		file = argv[3];
-		get_hexa_value(argv[1], (unsigned int*)&vid2);
-		get_hexa_value(argv[2], (unsigned int*)&pid2);
+		get_hexa_value(argv[1], &vid2);
+		get_hexa_value(argv[2], &pid2);
 	}
 	else
 	{

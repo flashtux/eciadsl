@@ -104,30 +104,32 @@ void read_config_file(void)
 						if (*tmp=='=')
 						{
 							*tmp++=0;
-/*							fputs(ptr, stderr); fputs(" ", stderr);
+/*
+							fputs(ptr, stderr); fputs(" ", stderr);
 							fputs(tmp, stderr); fputs("\n", stderr);
-*/							if (strcmp(ptr, "VID1")==0)
+*/
+							if (strcmp(ptr, "VID1")==0)
 							{
 								COPY_HEXA(hexa, tmp);
-								get_hexa_value(hexa, (unsigned int*)&config.vid1);
+								get_hexa_value(hexa, &config.vid1);
 							}
 							else
 							if (strcmp(ptr, "PID1")==0)
 							{
 								COPY_HEXA(hexa, tmp);
-								get_hexa_value(hexa, (unsigned int*)&config.pid1);
+								get_hexa_value(hexa, &config.pid1);
 							}
 							else
 							if (strcmp(ptr, "VID2")==0)
 							{
 								COPY_HEXA(hexa, tmp);
-								get_hexa_value(hexa, (unsigned int*)&config.vid2);
+								get_hexa_value(hexa, &config.vid2);
 							}
 							else
 							if (strcmp(ptr, "PID2")==0)
 							{
 								COPY_HEXA(hexa, tmp);
-								get_hexa_value(hexa, (unsigned int*)&config.pid2);
+								get_hexa_value(hexa, &config.pid2);
 							}
 							else
 							if (strcmp(ptr, "VPI")==0)
@@ -167,8 +169,8 @@ void read_config_file(void)
 	}
 	else
 		fprintf(stderr, "couldn't access %s\n", filename);
-		
-/*	fprintf(stderr, "VID1=%04x\n"
+/*
+	fprintf(stderr, "VID1=%04x\n"
 					"PID1=%04x\n"
 					"VID2=%04x\n"
 					"PID2=%04x\n"

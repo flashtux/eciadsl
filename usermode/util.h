@@ -4,10 +4,10 @@
 
 struct config_t
 {
-	unsigned short vid1;
-	unsigned short pid1;
-	unsigned short vid2;
-	unsigned short pid2;
+	unsigned int vid1;
+	unsigned int pid1;
+	unsigned int vid2;
+	unsigned int pid2;
 	unsigned int vpi;
 	unsigned int vci;
 	char* mode;

@@ -1357,7 +1357,7 @@ void usage(const int ret)
 {
 
 	fprintf(stderr,	"usage:\n"
-					"       pppoeci [<switch>..] -vpi num -vci num -vendor hex -product hex\n");
+					"       pppoeci [<switch>..] [-vpi num -vci num -vendor hex -product hex[\n");
 	fprintf(stderr,	"switches:\n"
 					"       -alt <num>           force the use of an alternate method to set USB interface\n"
 					"       -dto <num>           override default DATA_TIMEOUT value\n"
@@ -1368,6 +1368,8 @@ void usage(const int ret)
 					"       -V or --version      display the version number then exit\n"
 					"       --modes              display a list of the supported modes (to use with -mode)\n"
 					"\n");
+	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
+					"are assumed.\n");
 	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
 					"by provider. For instance: 8.35 for France, 0.38 for UK.\n"
 					"\n");
@@ -1522,7 +1524,6 @@ int main(int argc, char** argv)
 		|| verbose < 0 || verbose > 2)
 		usage(-1);
 
-
 	if (verbose)
 	{
 		fprintf(stderr, "Using:\n"
@@ -1544,7 +1545,6 @@ int main(int argc, char** argv)
 	
 	if (frame_type > VCM_RFC2364)
 		syncHDLC = 0;
-exit(0);						
 
 	/* duplicate in and out fd */
 #if !defined(__FreeBSD__) && !defined(__NetBSD__)
@@ -1598,7 +1598,6 @@ exit(0);
 	close(0);
 	close(1);
 	close(2);
-
 
 		
 	/*

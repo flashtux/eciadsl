@@ -363,17 +363,18 @@ void version(const int full)
 
 void usage(const int ret)
 {
-	printf("usage:\n");
-	printf("       eci-load1 [<switch>..] [[VID1 PID1 VID2 PID2] <firmware.bin>]\n");
-	printf("switches:\n");
-	printf("       -v or --verbose   be verbose\n");
-	printf("       -h or --help      show this help message then exit\n");
-	printf("       -V or --version   show version information then exit\n");
-	printf("       -t or --timeout   override the default timeout value (in sec)\n");
-	printf("if ALL other parameters are omitted, the ones from "
-			CONF_PATH CONF_DIR "/eciadsl.conf are assumed\n");
-	printf("if only the firmware.bin is passed, default VID/PID for ECI HiFocus modem\n");
-	printf("are assumed if no VID/PID can be found in the config file");
+	printf(	"usage:\n"
+			"       eci-load1 [<switch>..] [[VID1 PID1 VID2 PID2] <firmware.bin>]\n");
+	printf(	"switches:\n"
+			"       -v or --verbose   be verbose\n"
+			"       -h or --help      show this help message then exit\n"
+			"       -V or --version   show version information then exit\n"
+			"       -t or --timeout   override the default timeout value (in sec)\n"
+			"\n");
+	printf(	"If ALL parameters but switches are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
+			"are assumed.\n"
+			"If only the firmware.bin is passed, default VID/PID for ECI HiFocus modem\n"
+			"are assumed if no VID/PID can be found in the config file.\n");
 	_exit(ret);
 }
 
@@ -397,8 +398,8 @@ int main(int argc, char** argv)
 {
 	const char* file;
 	int status;
-	unsigned short vid1, vid2;
-	unsigned short pid1, pid2;
+	unsigned int vid1, vid2;
+	unsigned int pid1, pid2;
 	int i, j;
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
@@ -456,10 +457,10 @@ int main(int argc, char** argv)
 	if (argc == 6)
 	{
 		file = argv[5];
-		get_hexa_value(argv[1], (unsigned int*)&vid1);
-		get_hexa_value(argv[2], (unsigned int*)&pid1);
-		get_hexa_value(argv[3], (unsigned int*)&vid2);
-		get_hexa_value(argv[4], (unsigned int*)&pid2);
+		get_hexa_value(argv[1], &vid1);
+		get_hexa_value(argv[2], &pid1);
+		get_hexa_value(argv[3], &vid2);
+		get_hexa_value(argv[4], &pid2);
 	}
 	else
 	{
