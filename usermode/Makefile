@@ -2,6 +2,7 @@ include Makefile.config
 
 PPPD_DIR = $(ETC_DIR)/ppp
 ROOT ?= /
+RPM_ARCH ?= i386,i686
 
 # Final targets
 TARGETS = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
@@ -184,15 +185,23 @@ uninstall_dirs:
 debian: all
 	@dpkg-buildpackage -rfakeroot
 
-rpm: check
-	# TODO: checkout from tag $PRODUCT_VERSION in cvs to /tmp/eciadsl-usermode-$(PRODUCT-VERSION)
-	cd /tmp; \
-	tar -czf eciadsl-usermode-$(PRODUCT_VERSION).tar.gz eciadsl-usermode-$(PRODUCT_VERSION); \
-	rpm -ta eciadsl-usermode-$(PRODUCT_VERSION).tar.gz; \
-	echo "RPM should be in /usr/src/RPM/RPMS or /usr/src/packages/RPMS (SuSE)"; \
-	echo "SRPMS should be /usr/src/RPM/SRPMS or /usr/src/packages/SRPMS (SuSE)"; \
-	rm -Rf ./eciadsl-usermode-$(PRODUCT_VERSION)
-	rm ./eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
+rpm: rpmdistclean
+	@test -n "$(CVS_TAG)" || { \
+		echo -e "usage:\nmake -s CVS_TAG=\"release-0-6\" [RPM_ARCH=i386,i686] [PRODUCT_VERSION=0.6] rpm" >&2; \
+		exit 1; }
+	@echo "building .(s)rpm for eciadsl-usermode-$(PRODUCT_VERSION) (cvs tag $(CVS_TAG), target arch=$(RPM_ARCH))"
+	-@mkdir /tmp/usermode
+	cd /tmp && cvs -q -d $(ECIADSLCVS) co -r "$(CVS_TAG)" usermode
+	mv /tmp/usermode /tmp/eciadsl-usermode-$(PRODUCT_VERSION)
+	cd /tmp && tar -czf eciadsl-usermode-$(PRODUCT_VERSION).tar.gz eciadsl-usermode-$(PRODUCT_VERSION)
+	rpm -ta --target=$(RPM_ARCH) /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
+	@echo "RPM should be in /usr/src/RPM/RPMS or /usr/src/packages/RPMS (SuSE)"
+	@echo "SRPMS should be /usr/src/RPM/SRPMS or /usr/src/packages/SRPMS (SuSE)"
+	$(MAKE) rpmdistclean
+
+rpmdistclean:
+	-rm -Rf /tmp/eciadsl-usermode-$(PRODUCT_VERSION) /tmp/usermode
+	-rm -f /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
 
 cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
