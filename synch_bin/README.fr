@@ -33,7 +33,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch18.bin (généré en France/Strasbourg, provider Club-Internet)
 	synch19.bin (généré en France/Antibes)
 	synch20.bin (généré en Italie/Brescia, provider Tiscali)
-	synch21.bin (généré en Italie/Belluno, provider Telecom)
+	synch21.bin (généré en Italie/Belluno, provider Telecom Italia)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
