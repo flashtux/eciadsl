@@ -20,6 +20,7 @@
 #include <sys/stat.h>
 #include <sys/ioctl.h>
 #include <sys/time.h>
+#include <sys/utsname.h>
 
 #include <signal.h>
 #include <errno.h>
@@ -30,13 +31,10 @@
 #include <linux/usbdevice_fs.h>
 #include <asm/page.h>
 
-#ifndef USBDEVFS_URB_QUEUE_BULK
-#define USBDEVFS_URB_QUEUE_BULK	0
-#endif
-
 struct pusb_endpoint_t
 {
 	int fd;
+    int is_2_5;
 	int ep;
 };
 
@@ -45,6 +43,7 @@ struct pusb_endpoint_t
 struct pusb_device_t
 {
 	int fd;
+    int is_2_5;
 };
 
 
@@ -190,6 +189,20 @@ int usbfs_search(const char* path, int vendorID, int productID)
 	return(result);
 }
 
+static int is_kernel_2_5()
+{
+    struct utsname uts;
+    int ret;
+
+    uname(&uts);
+    /*printf("release = %s\n",uts.release);*/
+
+    ret = (strncmp(uts.release,"2.5.",4) == 0) || (strncmp(uts.release,"2.6.",4) == 0) ;
+    /*printf("is_kernel_2_5 = %d\n",ret);*/
+
+    return ret;
+}
+
 static pusb_device_t make_device(int fd)
 {
     pusb_device_t dev;
@@ -199,8 +212,11 @@ static pusb_device_t make_device(int fd)
 		close (fd);
 		return(0);
 	}
+
+    /* check for a 2.5 kernel */
 	
     dev->fd = fd;
+    dev->is_2_5 = is_kernel_2_5();
     return(dev);
 }
 
@@ -293,8 +309,9 @@ pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 	if (ep == NULL)
 		return(NULL);
 
-	ep->fd = dev->fd;
-	ep->ep = epnum & 0xf;
+	ep->fd     = dev->fd;
+    ep->is_2_5 = dev->is_2_5;
+	ep->ep     = epnum & 0xf;
 
 	return(ep);
 }
@@ -414,8 +431,8 @@ int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 	
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
-	purb->endpoint = ep->ep | USB_DIR_IN;	
-	purb->flags  = USBDEVFS_URB_QUEUE_BULK;
+	purb->endpoint = ep->ep | USB_DIR_IN;
+	purb->flags  = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
 	purb->buffer = buf;
 	purb->buffer_length = size;
 	purb->signr =  signr;
@@ -448,7 +465,7 @@ int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_OUT;	
-	purb->flags  = USBDEVFS_URB_QUEUE_BULK;
+	purb->flags  = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
 	purb->buffer = buf;
 	purb->buffer_length = size;
 	purb->signr =  signr;
@@ -482,7 +499,7 @@ int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
 	purb->type = USBDEVFS_URB_TYPE_BULK; /* INTERRUPT is not supported,
 											and BULK works with ep int, so */
 	purb->endpoint = ep->ep | USB_DIR_IN;
-	purb->flags  = USBDEVFS_URB_QUEUE_BULK;
+	purb->flags  = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
 	purb->buffer = buf;
 	purb->buffer_length = size;
 	purb->signr =  signr;
@@ -552,7 +569,7 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	int ret;
 	struct usbdevfs_urb* purb;
 	pusb_urb_t urb;
-	int i, offset, retry;
+	int i, offset;
 
     do
     {
@@ -570,7 +587,7 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
         perror("ioctl USBDEVFS_REAPURB");
         return(NULL);
     }
-    
+	
 	urb = (pusb_urb_t) malloc(sizeof(struct pusb_urb_t));
 	if (urb == NULL)
 	{
@@ -578,7 +595,7 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 		return(NULL);
 	}
 
-	urb->ep = purb->endpoint;
+	urb->ep     = purb->endpoint;
     urb->status = purb->status;
     urb->buf_nb = 0;
 
@@ -590,12 +607,12 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 
 	switch (purb->type)
 	{
-		case USBDEVFS_URB_TYPE_ISO:
-			urb->buf_nb = purb->number_of_packets;
-			offset = 0;
-			for (i=0;i<purb->number_of_packets && i<MAXBUFFER;i++)
-			{
-				urb->buf[i] = (unsigned char*)purb->buffer + offset;
+    case USBDEVFS_URB_TYPE_ISO:
+        urb->buf_nb = purb->number_of_packets;
+        offset = 0;
+        for (i=0;i<purb->number_of_packets && i<MAXBUFFER;i++)
+        {
+            urb->buf[i] = (unsigned char*)purb->buffer + offset;
 				urb->buf_size[i] = purb->iso_frame_desc[i].actual_length;
 	/*
 				printf("size [%d] = %p / %d\n", i, urb->buf[i], urb->buf_size[i]);

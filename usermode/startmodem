@@ -4,6 +4,9 @@
 # Creation : 06/12/2001
 # Licence  : GPL
 
+# 29/07/2003 crevetor :
+# Added code to support the 2.6 kernel series.
+
 # 23/10/2002 wwp:
 # removed ugly hardcoded pathes, used new scheme.
 
@@ -117,7 +120,8 @@ if [ ! -d /proc/bus/usb ]; then
 fi
 
 # mount usbdevfs is this is not the case
-if [ ! -f /proc/bus/usb/devices ]; then
+mount | grep usbdevfs > /dev/null
+if [ $? -ne 0 ]; then
     echo -e "\nloading preliminary USB device filesystem" 
     mount -t usbdevfs none /proc/bus/usb
 	sleep 1
@@ -157,49 +161,89 @@ if [ $? -eq 0 ]; then
 	fi
 fi
 
+minor_v=`uname -r | cut -d . -f 2` #minor kernel version : this is to check if we're running a 2.6 and to load the right usb module if this is the case.
 if [ -z "$preferred_usb_hub" ]
 then
 	# try to locate UHCI controller
-	grep -A 4 USB /proc/pci | grep I/O > /dev/null
+	lspci -v | grep -A 4 USB  | grep I/O > /dev/null
 	if [ $? -eq 0 ]; then
 		# ok, we have a UHCI controller, check if the linux driver is loaded
-    	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+    	#grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+	lsmod | grep uhci > /dev/null
     	if [ $? -ne 0 ]; then
         	echo -e "\nloading UHCI support"
-			modprobe -l | grep usb-uhci > /dev/null
-			if [ $? -ne 0 ]; then
-				echo "warning: usb-uhci module doesn't exist"
-			else
-        		modprobe usb-uhci
-        		sleep 2
-    			lsmod | grep usb-uhci > /dev/null
+			if [ $minor_v -eq 4 ]
+			then
+				modprobe -l | grep usb-uhci > /dev/null
 				if [ $? -ne 0 ]; then
-					echo "couldn't load usb-uhci module"
+					echo "warning: usb-uhci module doesn't exist"
 				else
-					echo "usb-uhci loaded successfully"
+				modprobe usb-uhci
+				sleep 2
+				lsmod | grep usb-uhci > /dev/null
+					if [ $? -ne 0 ]; then
+						echo "couldn't load usb-uhci module"
+					else
+						echo "usb-uhci loaded successfully"
+					fi
+				fi
+			elif [ $minor_v -ge 5 ]
+			then
+				modprobe -l | grep uhci-hcd > /dev/null
+				if [ $? -ne 0 ]; then
+					echo "warning: uhci-hcd module doesn't exist"
+				else
+				sleep 1
+				modprobe uhci-hcd
+				sleep 2
+				lsmod | grep uhci-hcd > /dev/null
+					if [ $? -ne 0 ]; then
+						echo "couldn't load uhci-hcd module"
+					else
+						echo "uhci-hcd loaded successfully"
+					fi
 				fi
 			fi
     	fi
 	fi
 
 	# try to locate OHCI controller
-	grep -A 4 USB /proc/pci | grep memory > /dev/null
+	lspci -v | grep -A 4 USB | grep memory > /dev/null
 	if [ $? -eq 0 ]; then
 		# ok, we have a OHCI controller, check if the linux driver is loaded
-    	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+    	#grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+	lsmod | grep ohci > /dev/null
     	if [ $? -ne 0 ]; then
         	echo -e "\nloading OHCI support"
-			modprobe -l | grep usb-ohci > /dev/null
-			if [ $? -ne 0 ]; then
-				echo "warning: usb-ohci module doesn't exist"
-			else
-	        	modprobe usb-ohci
-	        	sleep 2
-    			lsmod | grep usb-ohci > /dev/null
+			if [ $minor_v -eq 4 ]
+			then
+				modprobe -l | grep usb-ohci > /dev/null
 				if [ $? -ne 0 ]; then
-					echo "couldn't load usb-ohci module"
+					echo "warning: usb-ohci module doesn't exist"
 				else
-					echo "usb-ohci loaded successfully"
+				modprobe usb-ohci
+				sleep 2
+				lsmod | grep usb-ohci > /dev/null
+					if [ $? -ne 0 ]; then
+						echo "couldn't load usb-ohci module"
+					else
+						echo "usb-ohci loaded successfully"
+					fi
+				fi
+			elif [ $minor_v -ge 5 ]
+			then
+				modprobe -l | grep ohci-hcd > /dev/null
+				if [ $? -ne 0 ]; then
+					echo "warning: ohci-hcd module doesn't exist"
+				else
+				modprobe ohci-hcd
+				sleep 2
+				lsmod | grep ohci-hcd > /dev/null
+					if [ $? -ne 0 ]; then
+						echo "couldn't load ohci-hcd module"
+					else
+						echo "ohci-hcd loaded successfully"
+					fi
 				fi
 			fi
     	fi
@@ -303,6 +347,20 @@ if [ $RET -eq 0 ]; then
 else
     echo "failed to get synchronization"
     exit -1
+fi
+
+mount | grep devpts > /dev/null
+if [ $? -ne 0 ]
+then
+	echo -e "Mounting devpts filsystem"
+	mount -t devpts devpts /dev/pts > /dev/null
+	mount | grep devpts > /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo "Devpts failed to mount"
+	else
+		echo "Devpts mounted correctly"
+	fi
 fi
 
 
