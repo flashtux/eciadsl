@@ -1,4 +1,4 @@
-#!/bin/sh
+#~ #!/bin/sh
 # ****************************************************************************
 # *                                                                          *
 # *   eciconf - Tcl/tk GUI for ECI Linux driver configuration (makeconfig)   *
@@ -10,6 +10,8 @@
 # *                                                                          *
 # ****************************************************************************
 #
+# 2002/10/05, FlashCode :
+#   Added modems US Robotics 8500, BT Voyager, Xentrix USB
 # 2002/06/13, FlashCode :
 #   Added modem selection
 # 2002/05/19, FlashCode :
@@ -92,60 +94,64 @@ pack .ligne_vide1
 
 frame .bloc1
 
+frame .bloc1.espace1 -width 15
+
 frame .bloc1.fai
 
 frame .bloc1.fai.majdns
-frame .bloc1.fai.majdns.espace -width 30
-checkbutton .bloc1.fai.majdns.checkbox -text { Update internet provider DNS :} -command {invert_majdns} -relief groove -background "#ffcc99" -width 34 -variable majdns -offvalue "non" -onvalue "oui" -selectcolor blue
+checkbutton .bloc1.fai.majdns.checkbox -text { Update provider DNS :} -command {invert_majdns} -relief groove -background "#ffcc99" -width 28 -variable majdns -offvalue "non" -onvalue "oui" -selectcolor blue
 bind .bloc1.fai.majdns.checkbox <Enter> {pushstate "Check this box if you want to update your DNS (/etc/resolv.conf)"}
 bind .bloc1.fai.majdns.checkbox <Leave> {popstate}
-pack .bloc1.fai.majdns.espace .bloc1.fai.majdns.checkbox -side left
+pack .bloc1.fai.majdns.checkbox -side left
 set majdns "oui"
 
 frame .bloc1.fai.ligne1
-frame .bloc1.fai.ligne1.espace -width 30
-radiobutton .bloc1.fai.ligne1.wanadoo -text "Wanadoo" -width 12 -variable fai -value wanadoo -command {set dns1 "193.252.19.3"; set dns2 "193.252.19.4"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne1.wanadoo -text "Wanadoo" -width 11 -variable fai -value wanadoo -command {set dns1 "193.252.19.3"; set dns2 "193.252.19.4"} -selectcolor blue
 .bloc1.fai.ligne1.wanadoo configure -anchor w
-radiobutton .bloc1.fai.ligne1.clubinternet -text "Club Internet" -width 12 -variable fai -value clubinternet -command {set dns1 "194.117.200.15"; set dns2 "194.117.200.10"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne1.clubinternet -text "Club Internet" -width 12 -variable fai -value clubinternet -command {set dns1 "194.117.200.15"; set dns2 "194.117.200.10"} -selectcolor blue
 .bloc1.fai.ligne1.clubinternet configure -anchor w
-pack .bloc1.fai.ligne1.espace .bloc1.fai.ligne1.wanadoo .bloc1.fai.ligne1.clubinternet -side left
+pack .bloc1.fai.ligne1.wanadoo .bloc1.fai.ligne1.clubinternet -side left
 
 frame .bloc1.fai.ligne2
-frame .bloc1.fai.ligne2.espace -width 30
-radiobutton .bloc1.fai.ligne2.neuftelecom -text "9 Telecom" -width 12 -variable fai -value 9telecom -command {set dns1 "212.30.96.108"; set dns2 "213.203.124.146"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne2.neuftelecom -text "9 Telecom" -width 11 -variable fai -value 9telecom -command {set dns1 "212.30.96.108"; set dns2 "213.203.124.146"} -selectcolor blue
 .bloc1.fai.ligne2.neuftelecom configure -anchor w
-radiobutton .bloc1.fai.ligne2.cegetel -text "Cegetel" -width 12 -variable fai -value cegetel -command {set dns1 "194.6.128.3"; set dns2 "194.6.128.4"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne2.cegetel -text "Cegetel" -width 12 -variable fai -value cegetel -command {set dns1 "194.6.128.3"; set dns2 "194.6.128.4"} -selectcolor blue
 .bloc1.fai.ligne2.cegetel configure -anchor w
-pack .bloc1.fai.ligne2.espace .bloc1.fai.ligne2.neuftelecom .bloc1.fai.ligne2.cegetel -side left
+pack .bloc1.fai.ligne2.neuftelecom .bloc1.fai.ligne2.cegetel -side left
 
 frame .bloc1.fai.ligne3
-frame .bloc1.fai.ligne3.espace -width 30
-radiobutton .bloc1.fai.ligne3.worldonline -text "World Online" -width 12 -variable fai -value worldonline -command {set dns1 "212.83.128.3"; set dns2 "212.83.128.4"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne3.worldonline -text "World Online" -width 11 -variable fai -value worldonline -command {set dns1 "212.83.128.3"; set dns2 "212.83.128.4"} -selectcolor blue
 .bloc1.fai.ligne3.worldonline configure -anchor w
-radiobutton .bloc1.fai.ligne3.telecomitalia -text "Telecom Italia" -width 12 -variable fai -value telecomitalia -command {set dns1 "212.216.112.112"; set dns2 "212.216.172.62"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne3.telecomitalia -text "Telecom Italia" -width 12 -variable fai -value telecomitalia -command {set dns1 "212.216.112.112"; set dns2 "212.216.172.62"} -selectcolor blue
 .bloc1.fai.ligne3.telecomitalia configure -anchor w
-pack .bloc1.fai.ligne3.espace .bloc1.fai.ligne3.worldonline .bloc1.fai.ligne3.telecomitalia -side left
+pack .bloc1.fai.ligne3.worldonline .bloc1.fai.ligne3.telecomitalia -side left
 
 frame .bloc1.fai.ligne4
-frame .bloc1.fai.ligne4.espace -width 30
-radiobutton .bloc1.fai.ligne4.tiscali -text "Tiscali Italia" -width 12 -variable fai -value tiscali -command {set dns1 "195.130.224.18"; set dns2 "195.130.225.129"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne4.tiscali -text "Tiscali Italia" -width 11 -variable fai -value tiscali -command {set dns1 "195.130.224.18"; set dns2 "195.130.225.129"} -selectcolor blue
 .bloc1.fai.ligne4.tiscali configure -anchor w
-radiobutton .bloc1.fai.ligne4.pipexuk -text "Pipex UK" -width 12 -variable fai -value pipexuk -command {set dns1 "158.43.240.4"; set dns2 "158.43.240.3"} -padx 5 -selectcolor blue
+radiobutton .bloc1.fai.ligne4.pipexuk -text "Pipex UK" -width 12 -variable fai -value pipexuk -command {set dns1 "158.43.240.4"; set dns2 "158.43.240.3"} -selectcolor blue
 .bloc1.fai.ligne4.pipexuk configure -anchor w
-pack .bloc1.fai.ligne4.espace .bloc1.fai.ligne4.tiscali .bloc1.fai.ligne4.pipexuk -side left
+pack .bloc1.fai.ligne4.tiscali .bloc1.fai.ligne4.pipexuk -side left
 
 pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 -side top -anchor w
 
 set fai wanadoo
 
-frame .bloc1.fai.espacevertic -height 15
+frame .bloc1.fai.espacevertic -height 5
 pack .bloc1.fai.espacevertic
 
-frame .bloc1.fai.espacedns -width 30
-label .bloc1.fai.labeldns -text "DNS : " -width 6
-entry .bloc1.fai.dns1 -textvariable dns1 -background lightblue -width 14
-entry .bloc1.fai.dns2 -textvariable dns2 -background lightblue -width 14
-pack .bloc1.fai.espacedns .bloc1.fai.labeldns .bloc1.fai.dns1 .bloc1.fai.dns2 -side left -anchor e
+frame .bloc1.fai.dns1
+label .bloc1.fai.dns1.labeldns -text "DNS 1 : " -width 8
+entry .bloc1.fai.dns1.entry -textvariable dns1 -background lightblue -width 15
+pack .bloc1.fai.dns1.labeldns .bloc1.fai.dns1.entry -side left
+pack .bloc1.fai.dns1
+
+frame .bloc1.fai.dns2
+label .bloc1.fai.dns2.labeldns -text "DNS 2 : " -width 8
+entry .bloc1.fai.dns2.entry -textvariable dns2 -background lightblue -width 15
+pack .bloc1.fai.dns2.labeldns .bloc1.fai.dns2.entry -side left -anchor e
+pack .bloc1.fai.dns2
+
 bind .bloc1.fai.dns1 <Enter> {pushstate "\[OPTIONAL\] Enter your own primay DNS (given by your provider)"}
 bind .bloc1.fai.dns1 <Leave> {popstate}
 bind .bloc1.fai.dns2 <Enter> {pushstate "\[OPTIONAL\] Enter your own secondary DNS (given by your provider)"}
@@ -154,7 +160,7 @@ bind .bloc1.fai.dns2 <Leave> {popstate}
 set dns1 "193.252.19.3"
 set dns2 "193.252.19.4"
 
-frame .bloc1.espace1 -width 30
+frame .bloc1.espace2 -width 15
 
 #
 # ===== Modem selection =====
@@ -162,52 +168,73 @@ frame .bloc1.espace1 -width 30
 
 frame .bloc1.modem
 
-label .bloc1.modem.libelle -text "Your modem :" -relief groove -background "#ffcc99" -width 28
+label .bloc1.modem.libelle -text "Select your modem :" -relief groove -background "#ffcc99" -width 46
 pack .bloc1.modem.libelle
 
-radiobutton .bloc1.modem.eci -text "ECI HiFocus/B-Focus" -width 22 -variable modem -value eci -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
-.bloc1.modem.eci configure -anchor w
-pack .bloc1.modem.eci
-bind .bloc1.modem.eci <Enter> {pushstate "ECI HiFocus/B-Focus : VendorID/ProductID = 0x0547 / 0x2131, 0x915 / 0x8000"}
-bind .bloc1.modem.eci <Leave> {popstate}
+frame .bloc1.modem.ligne1
+radiobutton .bloc1.modem.ligne1.eci -text "ECI HiFocus/B-Focus" -width 19 -variable modem -value eci -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne1.eci configure -anchor w
+bind .bloc1.modem.ligne1.eci <Enter> {pushstate "ECI HiFocus/B-Focus : VendorID/ProductID = 0x0547 / 0x2131, 0x915 / 0x8000"}
+bind .bloc1.modem.ligne1.eci <Leave> {popstate}
+radiobutton .bloc1.modem.ligne1.eicon -text "Eicon Diva" -width 15 -variable modem -value eicon -command {set vidpid1 "071dac81"; set vidpid2 "0915ac82"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne1.eicon configure -anchor w
+bind .bloc1.modem.ligne1.eicon <Enter> {pushstate "Eicon Diva : VendorID/ProductID = 0x071d / 0xac81, 0x915 / 0xac82"}
+bind .bloc1.modem.ligne1.eicon <Leave> {popstate}
+pack .bloc1.modem.ligne1.eci .bloc1.modem.ligne1.eicon -side left
 
-radiobutton .bloc1.modem.eicon -text "Eicon Diva" -width 22 -variable modem -value eicon -command {set vidpid1 "071dac81"; set vidpid2 "0915ac82"} -padx 10 -selectcolor blue
-.bloc1.modem.eicon configure -anchor w
-pack .bloc1.modem.eicon
-bind .bloc1.modem.eicon <Enter> {pushstate "Eicon Diva : VendorID/ProductID = 0x071d / 0xac81, 0x915 / 0xac82"}
-bind .bloc1.modem.eicon <Leave> {popstate}
+frame .bloc1.modem.ligne2
+radiobutton .bloc1.modem.ligne2.ericsson -text "Ericsson hm120dp" -width 19 -variable modem -value ericsson -command {set vidpid1 "08ea00c9"; set vidpid2 "091500ca"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne2.ericsson configure -anchor w
+bind .bloc1.modem.ligne2.ericsson <Enter> {pushstate "Ericsson hm120dp : VendorID/ProductID = 0x08ea / 0x00c9, 0x915 / 0x00ca"}
+bind .bloc1.modem.ligne2.ericsson <Leave> {popstate}
+radiobutton .bloc1.modem.ligne2.aztech -text "Aztech 100U" -width 15 -variable modem -value aztech -command {set vidpid1 "05090801"; set vidpid2 "09150802"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne2.aztech configure -anchor w
+bind .bloc1.modem.ligne2.aztech <Enter> {pushstate "Aztech 100U : VendorID/ProductID = 0x0509 / 0x0801, 0x915 / 0x0802"}
+bind .bloc1.modem.ligne2.aztech <Leave> {popstate}
+pack .bloc1.modem.ligne2.ericsson .bloc1.modem.ligne2.aztech -side left
 
-radiobutton .bloc1.modem.ericsson -text "Ericsson hm120dp" -width 22 -variable modem -value ericsson -command {set vidpid1 "08ea00c9"; set vidpid2 "091500ca"} -padx 10 -selectcolor blue
-.bloc1.modem.ericsson configure -anchor w
-pack .bloc1.modem.ericsson
-bind .bloc1.modem.ericsson <Enter> {pushstate "Ericsson hm120dp : VendorID/ProductID = 0x08ea / 0x00c9, 0x915 / 0x00ca"}
-bind .bloc1.modem.ericsson <Leave> {popstate}
+frame .bloc1.modem.ligne3
+radiobutton .bloc1.modem.ligne3.fujitsu -text "Fujitsu FDX310" -width 19 -variable modem -value fujitsu -command {set vidpid1 "0e600101"; set vidpid2 "09150102"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne3.fujitsu configure -anchor w
+bind .bloc1.modem.ligne3.fujitsu <Enter> {pushstate "Fujitsu FDX310 : VendorID/ProductID = 0x0e60 / 0x0101, 0x915 / 0x0102"}
+bind .bloc1.modem.ligne3.fujitsu <Leave> {popstate}
+radiobutton .bloc1.modem.ligne3.usrobotics -text "US Robotics 8500" -width 15 -variable modem -value usrobotics -command {set vidpid1 "0baf00e6"; set vidpid2 "091500e7"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne3.usrobotics configure -anchor w
+bind .bloc1.modem.ligne3.usrobotics <Enter> {pushstate "US Robotics 8500 : VendorID/ProductID = 0x0baf / 0x00e6, 0x915 / 0x00e7"}
+bind .bloc1.modem.ligne3.usrobotics <Leave> {popstate}
+pack .bloc1.modem.ligne3.fujitsu .bloc1.modem.ligne3.usrobotics -side left
 
-radiobutton .bloc1.modem.wisecom -text "Wisecom ad80usg or EA100" -width 22 -variable modem -value wisecom -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
-.bloc1.modem.wisecom configure -anchor w
-pack .bloc1.modem.wisecom
-bind .bloc1.modem.wisecom <Enter> {pushstate "Wisecom ad80usg or EA100 : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
-bind .bloc1.modem.wisecom <Leave> {popstate}
+frame .bloc1.modem.ligne4
+radiobutton .bloc1.modem.ligne4.webpower -text "Webpower Ipmdatacom" -width 19 -variable modem -value webpower -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne4.webpower configure -anchor w
+bind .bloc1.modem.ligne4.webpower <Enter> {pushstate "Webpower Ipmdatacom : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
+bind .bloc1.modem.ligne4.webpower <Leave> {popstate}
+radiobutton .bloc1.modem.ligne4.btvoyager -text "BT Voyager" -width 15 -variable modem -value btvoyager -command {set vidpid1 "16900203"; set vidpid2 "09150204"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne4.btvoyager configure -anchor w
+bind .bloc1.modem.ligne4.btvoyager <Enter> {pushstate "BT Voyager : VendorID/ProductID = 0x1690 / 0x0203, 0x915 / 0x0204"}
+bind .bloc1.modem.ligne4.btvoyager <Leave> {popstate}
+pack .bloc1.modem.ligne4.webpower .bloc1.modem.ligne4.btvoyager -side left
 
-radiobutton .bloc1.modem.aztech -text "Aztech 100U" -width 22 -variable modem -value aztech -command {set vidpid1 "05090801"; set vidpid2 "09150802"} -padx 10 -selectcolor blue
-.bloc1.modem.aztech configure -anchor w
-pack .bloc1.modem.aztech
-bind .bloc1.modem.aztech <Enter> {pushstate "Aztech 100U : VendorID/ProductID = 0x0509 / 0x0801, 0x915 / 0x0802"}
-bind .bloc1.modem.aztech <Leave> {popstate}
+frame .bloc1.modem.ligne5
+radiobutton .bloc1.modem.ligne5.wisecom -text "Wisecom ad80usg\nor EA100" -width 19 -variable modem -value wisecom -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne5.wisecom configure -anchor w
+bind .bloc1.modem.ligne5.wisecom <Enter> {pushstate "Wisecom ad80usg or EA100 : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
+bind .bloc1.modem.ligne5.wisecom <Leave> {popstate}
+radiobutton .bloc1.modem.ligne5.xentrix -text "Xentrix USB" -width 15 -variable modem -value xentrix -command {set vidpid1 "0e600100"; set vidpid2 "09150101"} -padx 10 -selectcolor blue
+.bloc1.modem.ligne5.xentrix configure -anchor w
+bind .bloc1.modem.ligne5.xentrix <Enter> {pushstate "Xentrix USB : VendorID/ProductID = 0x0e60 / 0x0100, 0x915 / 0x0101"}
+bind .bloc1.modem.ligne5.xentrix <Leave> {popstate}
+pack .bloc1.modem.ligne5.wisecom .bloc1.modem.ligne5.xentrix -side left
 
-radiobutton .bloc1.modem.fujitsu -text "Fujitsu FDX310" -width 22 -variable modem -value fujitsu -command {set vidpid1 "0e600101"; set vidpid2 "09150102"} -padx 10 -selectcolor blue
-.bloc1.modem.fujitsu configure -anchor w
-pack .bloc1.modem.fujitsu
-bind .bloc1.modem.fujitsu <Enter> {pushstate "Fujitsu FDX310 : VendorID/ProductID = 0x0e60 / 0x0101, 0x915 / 0x0102"}
-bind .bloc1.modem.fujitsu <Leave> {popstate}
+pack .bloc1.modem.ligne1 .bloc1.modem.ligne2 .bloc1.modem.ligne3 .bloc1.modem.ligne4 .bloc1.modem.ligne5 -side top -anchor w
 
 set modem "eci"
 set vidpid1 "05472131"
 set vidpid2 "09158000"
 
-frame .bloc1.espace2 -width 20
+frame .bloc1.espace3 -width 15
 
-pack .bloc1.fai .bloc1.espace1 .bloc1.modem .bloc1.espace2 -side left -anchor n
+pack .bloc1.espace1 .bloc1.fai .bloc1.espace2 .bloc1.modem .bloc1.espace3 -side left -anchor n
 
 pack .bloc1
 
@@ -463,9 +490,10 @@ global majdns
         .bloc1.fai.ligne3.telecomitalia configure -state normal -selectcolor blue
         .bloc1.fai.ligne4.tiscali configure -state normal -selectcolor blue
         .bloc1.fai.ligne4.pipexuk configure -state normal -selectcolor blue
-        .bloc1.fai.dns1 configure -state normal -foreground black -background lightblue
-        .bloc1.fai.dns2 configure -state normal -foreground black -background lightblue
-        .bloc1.fai.labeldns configure -foreground black
+        .bloc1.fai.dns1.entry configure -state normal -foreground black -background lightblue
+        .bloc1.fai.dns2.entry configure -state normal -foreground black -background lightblue
+        .bloc1.fai.dns1.labeldns configure -foreground black
+        .bloc1.fai.dns2.labeldns configure -foreground black
     } else {
         .bloc1.fai.ligne1.wanadoo configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne1.clubinternet configure -state disabled -selectcolor darkgray
@@ -475,9 +503,10 @@ global majdns
         .bloc1.fai.ligne3.telecomitalia configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne4.tiscali configure -state disabled -selectcolor darkgray
         .bloc1.fai.ligne4.pipexuk configure -state disabled -selectcolor darkgray
-        .bloc1.fai.dns1 configure -state disabled -foreground darkgray -background lightgray
-        .bloc1.fai.dns2 configure -state disabled -foreground darkgray -background lightgray
-        .bloc1.fai.labeldns configure -foreground darkgray
+        .bloc1.fai.dns1.entry configure -state disabled -foreground darkgray -background lightgray
+        .bloc1.fai.dns2.entry configure -state disabled -foreground darkgray -background lightgray
+        .bloc1.fai.dns1.labeldns configure -foreground darkgray
+        .bloc1.fai.dns2.labeldns configure -foreground darkgray
     }
 }
 
