@@ -1,7 +1,11 @@
 INTRODUCTION
 ============
 
-<TODO>
+EciAdsl est un driver pour GNU/Linux permettant de se connecter à Internet
+avec un modem USB ADSL équipé de chipset Globespan.
+Ce driver est utilisable dans un grand nombre de pays et avec un certain
+nombre de modems différents et supporte plusieurs mode d'encapsulation PPP
+(voir http://eciadsl.flashtux.org/modems.php).
 
 
 PRÉ-REQUIS
@@ -46,7 +50,7 @@ Comment obtenir de l'aide :
 
 	Support, packages (driver et .bin optionnels) et documentation :
 		- IRC : openprojects.net, canal #eci
-		- http ://eciadsl.sf.net ou http://eciadsl.flashtux.org
+		- http://eciadsl.flashtux.org
 		  (documentation, forum, liste de diffusion pour utilisateurs, etc.)
 		  
 	Nous assurons un support en français et anglais.

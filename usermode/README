@@ -1,7 +1,10 @@
 INTRODUCTION
 ============
 
-<TODO>
+EciAdsl is a GNU/Linux driver for Globespan chipset-based ADSL USB modems.
+The driver is known to work in many countries, for different kinds of ADSL
+USB modems, using different kinds of PPP encapsulation layers modes (see the
+supported modems list at http://eciadsl.flashtux.org/modems.php).
 
 
 PRE-REQUISITES
@@ -44,7 +47,7 @@ If you get problems, look at the TROUBLESHOOTING file.
 Where to get support:
 	Support, packages (driver and optional synch .bin's) and documentation:
 		- IRC: openprojects.net, #eci channel
-		- http://eciadsl.sf.net or http://eciadsl.flashtux.org?lang=en
+		- http://eciadsl.flashtux.org?lang=en
 		  (documentation, forum, user mailing list, etc.)
 		  
 	We provide support in both French and English languages.
