@@ -10,6 +10,21 @@
 #include <pthread.h>
 #include <string.h>
 
+
+/*
+	From usermode/util.c
+*/
+void get_unsigned_value(const char* param, unsigned int* var)
+{
+        unsigned int value;
+        char* chk;
+
+        value = (unsigned int) strtoul(param, &chk, 10);
+        if (! *chk)
+                *var = value;
+}
+
+
 struct atmtap_datas
 {
 	int fdtap;
@@ -27,7 +42,7 @@ int tap_open(char *dev,char *path)
 	}
     if(memset(&ifr, 0, sizeof(ifr))==NULL)
 	{
-		fstderr,"memset error in tap_open function\n");
+		fprintf(stderr,"memset error in tap_open function\n");
 		exit(-1);
 	}
     ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
@@ -106,17 +121,7 @@ void *read_on_tap(void *datas)
 	for(;;)
 	{
 		do {
-			tmpbuf[0]=0xaa;
-			tmpbuf[1]=0xaa;
-			tmpbuf[2]=0x03;
-			tmpbuf[3]=0x00;
-			tmpbuf[4]=0x80;
-			tmpbuf[5]=0xc2;
-			tmpbuf[6]=0x00;
-			tmpbuf[7]=0x07;
-			tmpbuf[8]=0x00;
-			tmpbuf[9]=0x00;
-			r = read(d->fdtap, tmpbuf  + 10, sizeof(tmpbuf) - 10);
+			r = read(d->fdtap, tmpbuf, sizeof(tmpbuf));
  		} while(r < 0 && errno == EINTR);	
 		if(write(d->fdatm, tmpbuf, r +10)==-1)
 		{
@@ -195,18 +200,7 @@ int main(int argc, char **argv)
 		{
 			if ((strcmp(argv[i], "-vci") == 0) && (i + 1 < argc))
 			{
-				tmp=strlen(argv[i+1]);
-				if((tmp>0) && (tmp<20))
-				{
-					strcpy(my_vci,argv[++i]);
-					arg++;
-				}
-				else
-				{
-					fprintf(stderr,"damnit, you have a _really_ long path to device.\
-						shrink it a bit, will you ?\n");
-					exit(-1);
-				}
+				get_unsigned_value(argv[++i], &my_vci);
 			}
 			else
 			{
@@ -254,9 +248,7 @@ int main(int argc, char **argv)
 		fprintf(stderr,"can't open tap device\n");
 		exit(5);
 	}
-	strcpy(vpi_vci,my_vpi);
-	strcat(vpi_vci,".");
-	strcat(vpi_vci,my_vci);
+	sprintf(vpi_vci,"%d.%d",my_vpi ,my_vci);
 	if((datas.fdatm = open_atmdevice(vpi_vci))==0)
 	{
 		fprintf(stderr,"can't open atm device\n");
