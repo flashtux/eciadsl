@@ -70,6 +70,8 @@ Sorted according to priority (the upper in the list, the prior):
   lock file too).
 - redesign Makefile to use more Makefile-friendly rules.
 - reimplement .conf reading from shell scripts (simplify that).
+- make configure (and so Makefile) sensible to $CC, $CFLAGS and $LDFLAGS.
+
 
 0.y:
 - check and merge bsd 0.6 port
