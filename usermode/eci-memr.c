@@ -11,7 +11,6 @@
 #include <time.h>
 
 #include "pusb.h"
-#include "modem.h"
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
@@ -76,7 +75,7 @@ int main(int argc, const char *argv[])
 	dev = pusb_search_open(vid,pid);
 	if (dev == NULL)
 	{
-		printf("I cannot find your " GS_NAME "\n");
+		printf("I cannot find your EZ-USB device\n");
 		return -1;
 	}
 
