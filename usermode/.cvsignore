@@ -12,3 +12,4 @@ dist
 Changelog
 *.orig
 *.rej
+core

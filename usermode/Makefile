@@ -111,7 +111,7 @@ install_dirs:
 	$(INSTALL_DIR) $(ROOT)$(PPPD_DIR)/peers
 
 clean:
-	$(RM) ${TARGETS} *.o
+	$(RM) ${TARGETS} *.o core
 
 distclean: clean externdistclean
 	$(RM) Makefile.config config.h
