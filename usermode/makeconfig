@@ -48,23 +48,25 @@ fi
 # backup and create resolv.conf
 #
 
-nomresolv=${base_etc}/resolv.conf
-if [ -s $nomresolv ]; then
-    nombak="${nomresolv}.bak"
-    numero=0
-    while [ -s $nombak ]
-    do
-        numero=`expr $numero + 1`
-        nombak="${nomresolv}.bak$numero"
-    done
-    echo -n "Backing up $nomresolv (to $nombak)... "
-    cp -f $nomresolv $nombak
+if [ $4 != 0 ]; then
+    nomresolv=${base_etc}/resolv.conf
+    if [ -s $nomresolv ]; then
+        nombak="${nomresolv}.bak"
+        numero=0
+        while [ -s $nombak ]
+        do
+            numero=`expr $numero + 1`
+            nombak="${nomresolv}.bak$numero"
+        done
+        echo -n "Backing up $nomresolv (to $nombak)... "
+        cp -f $nomresolv $nombak
+        echo "ok"
+    fi
+    echo -n "Creating $nomresolv..."
+    echo "nameserver $4" >$nomresolv
+    echo "nameserver $5" >>$nomresolv
     echo "ok"
 fi
-echo -n "Creating $nomresolv..."
-echo "nameserver $4" >$nomresolv
-echo "nameserver $5" >>$nomresolv
-echo "ok"
 
 #
 # backup and create chap-secrets, pap-secrets
