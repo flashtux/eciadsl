@@ -16,7 +16,7 @@ LDFLAGS += -g -Wall -lpthread
 # you can define ROOT by "make ROOT=/tmp" else it defaults to /
 ROOT ?= /
 
-prefix=$(ROOT)/usr/local
+prefix=$(ROOT)/usr/
 binprefix=$(prefix)/bin
 ETCDIR=$(ROOT)/etc
 
@@ -118,8 +118,8 @@ uninstall:
 	$(RM) $(ETCDIR)/eciadsl/modemeci.gif
 	@echo "The driver has been successfully uninstalled"
 
-#deb:
-#	deb -c package.deb
+debian: all
+	dpkg-buildpackage -rfakeroot
 
 #rpm:
 #   tar zcvf /tmp/eciadsl-usermode-x.y.tar.gz eciadsl-usermode-x.y

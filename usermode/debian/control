@@ -13,11 +13,9 @@ Description: usermode drivers for eci adsl modem.
  called ECI Hi-Focus. It is not a kernel module, but a user-mode program
  that handles the modem. A kernel module is under development.
 
-
 Package: eciadsl-usermode.0.5-doc
 Architecture: all
 Description: Documentation for eciadsl-usermode.0.5
  The eciadsl-usermode package contains the driver for the ADSL USB modem
  called ECI Hi-Focus. It is not a kernel module, but a user-mode program
  that handles the modem. A kernel module is under development.
-
