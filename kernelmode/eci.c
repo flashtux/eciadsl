@@ -717,6 +717,7 @@ struct eci_instance 		/*	Private data for driver	*/
 };
 
 struct usb_driver eci_usb_driver = {
+	owner:  THIS_MODULE,
 	name:		eci_drv_name,
 	id_table:	eci_usb_deviceids,
 	probe:		eci_usb_probe,
