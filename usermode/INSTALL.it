@@ -1,13 +1,13 @@
-******************************
-* utenti di NULL o VCM PPPOA *
-******************************
-
 Traduzione a cura di: Roberto Inzerillo <robicd@gmx.net>
+
+Se hai installato il driver da un pacchetto precompilato salta alla sezione
+CONFIGURAZIONE
+
 
 COMPILAZIONE
 ============
 
-Tutto ciò che bisogna fare è eseguire:
+Tutto ciò che bisogna fare è eseguire dal terminale o da una console:
 	./configure
 poi:
 	make
@@ -77,3 +77,6 @@ Nella directory dei sorgenti:
 	make uninstall
 ed opzionalmente:
 	make distclean
+
+Da un .rpm:
+	rpm -e eciadsl-usermode

@@ -28,16 +28,16 @@ PRE-REQUISITI
  - bash (>=2.x.x)
  - opzionale: tcl/tk >= 8.x.x
  - privilegi di root (almeno per installare il driver)
-
  
+
 INSTALLAZIONE (DAI SORGENTI)
 ============================
  
 Leggi il file INSTALL.
  
- 
+
 INSTALLAZIONE DAL PACCHETTO PRECOMPILATO
-=========================================
+========================================
 
 Usando .rpm, da root:
 	rpm -i <the file>.rpm
@@ -59,9 +59,9 @@ Dove trovare supporto:
 		- IRC: irc.freenode.net, canale #eci
 		- http://eciadsl.flashtux.org
 		  (documentazione, forum, mailing list per gli utenti, etc.)
+         
+Noi forniamo supporto sia in francese che in inglese.
 
-	Noi forniamo supporto sia in francese che in inglese.
-    
 Fornire le seguenti informazioni:
 
 	- versione del kernel (vedi: `uname -a` oppure `cat /proc/version`).
@@ -90,7 +90,7 @@ Fornire le seguenti informazioni:
 	- il tuo file /etc/eciadsl/eciadsl.conf, e se possibile il  tuo
 	  /var/log/messages (verifica che contenga traccie di attività dall'ultimo
 	  boot di Linux fino all'uso del driver o alla comparsa del problema).
-     
+
 Può aiutare molto se ci fai avere queste informazioni. Inoltre raccogli l'output
 dei tools del pacchetto che hai usato (script configure o startmodem), poi
 forniscici il tuo /var/log/messages, /var/log/log se disponibili, l'output di

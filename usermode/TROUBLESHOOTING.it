@@ -4,7 +4,7 @@ FAQ E PROBLEMI COMUNI
 Traduzione a cura di: Roberto Inzerillo <robicd@gmx.net>
 
 Dedicato a:
-Utilizzatori del driver per modem USB ECI ADSL.
+utilizzatori del driver per modem USB ECI ADSL (fino alla versione 0.7).
 
 Prima di leggere il resto:
 la seguente lista di Q/A *non* è esaustiva.
@@ -103,12 +103,23 @@ A:	Vedi 1.4.
 	seguente:
 		kernel: usb_control/bulk_msg: timeout
 		kernel: usb.c: USB device not accepting new address=2 (error=-110)
-	c'è un problema nella configurazione del tuo hardware/BIOS/kernel.
-	Disabilitare il supporto per l'APIC nel kernel al boot può aiutare, ma può
-	anche essere causato da altri conflitti di IRQ tra le periferiche hardware,
-	oppure qualche altro problema relativo al kernel, oppure disabilita/abilita
-	il supporto legacy USB nel BIOS.
-
+	c'è un problema nella configurazione del tuo hardware/BIOS/kernel, è una
+	questione di interrupt. Disabilitare il supporto per l'APIC nel kernel al
+	boot può aiutare (usa noapic al boot del kernel), ma può anche essere
+	causato da altri conflitti di IRQ tra le periferiche hardware, oppure
+	qualche altro problema relativo al kernel, oppure disabilita/abilita il
+	supporto legacy USB nel BIOS.
+	
+	Spesso questi problemi sono comuni con alcuni chipset come i vecchi VIA ed i
+	SiS 700x. Contattaci se non sai che chipset hai o vuoi avere conferma del
+	fatto che il tuo problema sia legato all'hardware/kernel.
+	In caso di conferma una possibile soluzione  è quella di comprare un HUB USB
+	ed inserirlo in uno slot PCI libero (non provare a collegare un HUB USB
+	esterno in una porta del sistema HUB USB integrato nella motherboard, non
+	funzionerebbe dal momento che il problema risiede proprio nel chipset della
+	motherboard). Non comprare una di queste schede PCI se non hai modo di
+	provarla prima!
+	
 	Leggi anche la domanda relativa al modulo dabusb, se dabusb viene caricato,
 	non sarà possibile usare il modem con questo driver finchè non verrà
 	disabilitato il suo caricamento.
@@ -138,19 +149,14 @@ Q:	ecidoctor avverte che il modulo DABUSB è stato caricato, o startmodem dice
 	che è stato trovato dabusb, però non riesco a rimuoverlo!
 
 --------------------------------------------------------------------------------
-A:	Puoi rimuovere il modulo dabusb dal tuo sistema usando eciconf.
+A:	Accendi il sistema Linux con il modem "SCOLLEGATO", poi puoi rimuovere il
+	modulo dabusb dal tuo sistema usando eciconf.sh o con eciconftxt.sh.
 
-	Puoi anche eseguire direttamente remove_dabusb.
+	Puoi anche eseguire direttamente remove_dabusb (di default in
+	/usr/local/bin).
 
-	Oppure, manualmente, scollega il modem, poi prova ad eseguire i seguenti
-	comandi:
-		modprobe -r dabusb
-		rm -f /lib/modules/<kernel version>/kernel/drivers/usb/dabusb.o
-		depmod -a
-
-	Se non riesci a rimuovere il modulo, prova ad andare in modalità init 1
-	(chiudi tutte le applicazioni, poi in console autenticati come root ed
-	esegui `init 1`, quindi esegui remove_dabusb).
+	Oppure manualmente esegui i seguenti comandi:
+		modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	Se il kernel è stato compilato manualmente non dimenticare di rimuovere il
 	supporto per dabusb anche dalla configurazione del kernel.
@@ -376,8 +382,10 @@ A:	Il tuo kernel è veramente OK? N_HDLC è OK? Controlla sopra!
 
 	Vedi anche 4.5, perchè spesso pppd non riporta in maniera prolissa i
 	problemi con CHAP/PAP.
+	Anche i punti da 4.6 fino a 4.9 potrebbero aiutarti.
 
-	Vedi anche le domande seguenti relative agli utenti internazionali.
+	Vedi anche le domande seguenti relative agli utenti internazionali (5.4 e
+	5.5).
 
 
 4.5
@@ -435,7 +443,8 @@ Q:	Ottengo alcune linee con  "USB timeout" in /var/log/messages.
 A:	Prova a commentare la linea per l'MTU in /etc/ppp/peers/adsl.
 	Eventualmente modifica il valore di MTU (vedi `man pppd`).
 
-	Può anche essere un problema relativo al kernel/hardware.
+	Può anche essere un problema relativo al kernel/hardware (vedi i punti che
+	seguono).
 
 
 4.8
@@ -551,30 +560,26 @@ Q:	E' possibile eseguire startmodem durante il boot?
 
 --------------------------------------------------------------------------------
 A:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
-	gli utenti Debian . Sono disponibili alcuni script preconfigurati, cerca su
-	Google o prova il pacchetto cnx disponibile alla sezione download sul sito
-	web ufficiale di eciadsl.
-
-	Come rendere possibile l'uso di init.d e cnx:
+	gli utenti Debian.
+	
+	Come rendere possibile l'uso di init.d:
 
 	Prerequisiti:
 	 - driver ECIADSL installato e configurato
-	 - il pacchetto cnx (script per l'autoriconnessione)
-	E' tutto disponibile all'indirizzo:
-	http://eciadsl.flashtux.org/download.php
+	 - sorgenti di ECIADSL, ottenibile all'indirizzo:
+	   http://eciadsl.flashtux.org/download.php
 
+	Copia il file rc.adsl in /etc/init.d: 'cp rc.adsl /etc/init.d'
+	(il file rc.adsl è disponibile nella versione >= 0.7 (o in CVS))
 
-	Utenti di Mandrake e RedHat: estraete rc.adsl.MDK dal pacchetto cnx.
-	Utenti SuSE: estraete rc.adsl.SuSE dal pacchetto cnx.
-	Altri sistemi: estraete rc.adsl.MDK dal pacchetto cnx, ma potrà essere
-	necessario adattarlo al vostro sistema.
-
-	Copia il file rc.adsl.* in /etc/init.d: 'cp rc.adsl /etc/init.d'
-
+	Per Debian basta eseguire da root: 'update-rc.d rc.adsl defaults 15'
+	
+	Per le altre distribuzioni seguire le seguenti istruzioni:
+	
 	In /etc/rc.d ogni directory rc*.d corrisponde ad un livello init. Ad
 	esempio init level 5 è quello che porta al login grafico (è il default sui
-	sistemi Linux standard), quindi /etc/rc.d/rc5.d corrisponde a questo
-	livello.
+	sistemi Linux standard, a volte è il 3), quindi /etc/rc.d/rc5.d corrisponde
+	a questo livello.
 
 	Troverai altre informazioni riguardo i livelli init con:
 		man inittab
@@ -621,10 +626,6 @@ A:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
 		ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
-	oppure
-		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/S90adsl 
-		ln -s /etc/init.d/rc.adsl.mdk /etc/rc.d/rc5.d/K90adsl 
-	relativi al file rc.adsl di cui fai uso.
 
 	Prima di creare questi link nota che S90 ha una funzione particolare, i
 	file S90* vengono richiamati dopo tutti gli altri servizi di rete.
@@ -658,7 +659,7 @@ A:	Può essere un problema di framebuffer. Prova a far partire Linux senza il
 Q:	Non riesco a connettermi in X11 anche se funziona in modalità console.
 
 --------------------------------------------------------------------------------
-A:	Vedi 3.1.
+A:	Vedi 5.1.
 
 
 5.3
@@ -772,9 +773,14 @@ A:	La configurazione del kernel ed i principi per la compilazione sono ancora
 	    	<M> Universal TUN/TAP device driver support
 	    	..
 
+		  <M> PPP (point-to-point protocol) support
+		  ..
+		  <M>	PPP over ATM (EXPERIMENTAL)
+
 	poi esegui:
 		mkdir /dev/net
 		mknod /dev/net/tun c 10 200
+		ln -s /dev/net/tun0 /dev/net/tun
 
 
 5.4
@@ -787,8 +793,8 @@ A:	Verifica che il tuo modem sia supportato. Se il modem non è nella lista dei
 	modem supportati e NON è nella lista dei modem NON supportati, chiedi a noi
 	per ulteriori informazioni.
 
-	Controlla quale protocllo/incapsulamento PPP viene usato in Windows dal tuo
-	provider. Controlla anche se il tuo provider usa DHCP o ti assegna un IP
+	Controlla quale protocllo/incapsulamento PPP viene usato in MS Windows dal
+	tuo provider. Controlla anche se il tuo provider usa DHCP o ti assegna un IP
 	statico.
 	Usa eciconf.sh o eciconftxt.sh per usarlo correttamente. Se non è supportato
 	dal driver o se sei insicuro, scarica l'ultima versione del driver o
@@ -816,8 +822,8 @@ A:	Verifica che il tuo modem sia supportato. Se il modem non è nella lista dei
 		SNAP è un livello di incapsulamento, tra ethernet ed LLC o tra IP e LLC.
 		
 		Per ulteriori informazioni sei invitato a riferirti all'applicazione di
-		controllo del tuo modem in Windows, dovrebbe elencare le modalità usate,
-		o al tuo provider.
+		controllo del tuo modem in MS Windows, dovrebbe elencare le modalità
+		usate, o al tuo provider.
 
 		Puoi anche leggere le RFC1483 e RFC2364 che descrivono in dettaglio
 		tutte queste modalità.
@@ -876,8 +882,8 @@ A:	Può esserlo. Se non riesci ad inizializzare il modem, prova a scollegare
 
 5.8
 ================================================================================
-Q:	Passando da Linux a Windows, non riesco a usare il modem e devo reinstallare
-	i driver per Windows per farlo funzionare nuovamente.
+Q:	Passando da Linux a MS Windows, non riesco a usare il modem e devo
+	reinstallare i driver per MS Windows per farlo funzionare nuovamente.
 
 --------------------------------------------------------------------------------
 A:	Quando chiudi Linux scarica tutti i moduli USB legati al modem. Può essere
@@ -887,11 +893,21 @@ A:	Quando chiudi Linux scarica tutti i moduli USB legati al modem. Può essere
 
 	Se ancora non funziona devi disconnettere manualmente il modem, aspettare
 	qualche secondo così da farlo resettare, e poi riconnetterlo. Dopo lo
-	potrai usare in Windows.
+	potrai usare in MS Windows.
 
 	Se il problema persiste contattaci.
 
 	<TODO: problema non verificato con i modem Ericsson e usermode 0.5>
+
+
+5.8.1
+================================================================================
+Q:	Passando da MS Windows a Linux startmodem avverte che il firmware è già
+	stato caricato e non funziona.
+
+--------------------------------------------------------------------------------
+A:	Devi scollegare manualmente il modem, aspettare qualche secondo così viene
+	resettato, e poi ricollegarlo. Potrai così riprovare startmodem.
 
 
 5.9
@@ -943,3 +959,32 @@ A:	Assicurati semplicemente che sudo è installato nel sistema.
 	stessa linea con uno username ed uno script (path/nome).
 	Gli utenti abilitati potranno lanciare startmodem scrivendo:
 		sudo startmodem
+
+	Adesso vedi 5.13.
+	
+
+5.13
+================================================================================
+Q:	Quando eseguo 'sudo startmodem' ottengo questo errore:
+	nice: pppd: no such file or directory
+
+--------------------------------------------------------------------------------
+A:	In console o in terminale esegui da root:
+		PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+
+	Se funziona aggiungi le seguenti righe al file ~/.bashrc o al file
+	~/.profile dell'utente (*):
+		export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+
+	La prossima volta che aprirai il terminale (se hai modificato ~/.bashrc) o
+	la prossima volta che ti autenticherai in console o nell'ambiente grafico
+	(se hai modificato ~/.profile) 'sudo startmodem' funzionerà.
+
+	Puoi anche creare un piccolo script che contiene il primo comando, quindi
+	dovrai solo lanciare questo script. Non dimenticare di cambiare i permessi
+	di questo script (con 'chmod 777 nome_dello_script') così da renderlo
+	eseguibile.
+
+	(*) attenzione: a seconda della distribuzione di Linux questi file possono
+	non esistere oppure possono esservene altri.
+	
