@@ -9,6 +9,7 @@
            - Siemens Santis 10
            - BT Voyager 100
 		   - BT Voyager 105
+           - Askey ALE130/150
            - LinkMax HSA 100 
            - D-Link DSL200 rev B
            - SMC 7003 V.2 USB
@@ -16,8 +17,9 @@
 		   - IPM Datacom SpeedWeb (may be supported)
 		   - Xavi X7005Q2
 		   - Kraun Adsl usb modem
+           - Allnet ALL768UB
            
-           It sholud work also for all GS7470 chipset modems
+           It should work also for all GS7470 chipset modems
            
            ***** IMPORTANT *****
            
@@ -35,9 +37,10 @@
            
              - gs7470_synch01.bin 
                (gs7470_synch01a.bin and gs7470_synch01b.bin are part of it, put them all in the /etc/eciadsl directory) 
-               + for modems : 	Nortek 2021 (see also gs7470_synch08.bin)
+               + for modems : 	Nortek 2021 (see also gs7470_synch08.bin & gs7470_synch12.bin)
                					BT Voyager 100
                					Siemens Santis 10
+                                Askey ALE130
                
              - gs7470_synch02.bin
                (gs7470_synch02a.bin and gs7470_synch02b.bin are part of it put them all in the /etc/eciadsl directory) 
@@ -49,6 +52,7 @@
             - gs7470_synch04.bin 
                + for modems : 	D-Link DSL200 rev B (see also gs7470_synch06.bin)
                					Xavi X7005Q2
+                                Askey ALE150
          
             - gs7470_synch05.bin 
                + for modems : 	IPM Datacom Dataway
@@ -61,7 +65,8 @@
                + for modems : 	SMC 7003 V.2 USB
 
             - gs7470_synch08.bin 
-               + for modems : 	Nortek 2021 (see also gs7470_synch01.bin)
+               + for modems : 	Nortek 2021 (see also gs7470_synch01.bin & gs7470_synch12.bin)
+                                Allnet ALL768UB
 
             - gs7470_synch09.bin 
                + for modems : 	IPM Datacom SpeedWeb (see also gs7470_synch11.bin)
@@ -71,6 +76,11 @@
 
             - gs7470_synch11.bin 
                + for modems : 	IPM Datacom SpeedWeb (see also gs7470_synch09.bin)
+
+            - gs7470_synch12.bin 
+               + for modems : 	Nortek 2021 (see also gs7470_synch01.bin & gs7470_synch08.bin)
+
+			 - If you cannot get connection with the bin suggested please try also all the other
 
              - If synch or connection is not ok, please add parameters to your config for more debug infos :
 	             * modify /etc/eciadsl/eciadsl.conf adding the following line :
