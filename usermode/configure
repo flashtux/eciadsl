@@ -55,6 +55,7 @@ switches:
 
   --enable-maintainer-mode      use default settings for maintainers (config/make/runtime options)
   --enable-rpm-maintainer-mode  use default settings for rpm maintainers (config/make/runtime options)
+  --enable-tgz-maintainer-mode  use default settings for tgz maintainers (config/make/runtime options)
 
   --quiet                       silent operations
   --clean                       clean temporary files then exit
@@ -529,6 +530,21 @@ function rpm_maintainer_defaults()
 	fi
 }
 
+function tgz_maintainer_defaults()
+{
+	# force some default settings for rpm maintainers
+	if [ $MAINTAINER -eq 1 ]
+	then
+		let DEBUG=1
+		let WARNINGS=1
+		let PPPD_CHECK=0
+		let WISH_CHECK=0
+		DIST_PREFIX="/tmp/eciadsl-usermode-$VERSION-tgz/usr/local"
+		DIST_ETC_PREFIX="/tmp/eciadsl-usermode-$VERSION-tgz"
+		DIST_CONF_PREFIX="/tmp/eciadsl-usermode-$VERSION-tgz"
+	fi
+}
+
 # internal variables
 BASE="$(pwd)/${0##*/}"
 LOGFILE="$BASE.log"
@@ -634,6 +650,8 @@ do
 									maintainer_defaults;;
 		"--enable-rpm-maintainer-mode")	let MAINTAINER=1
 									rpm_maintainer_defaults;;
+		"--enable-tgz-maintainer-mode")	let MAINTAINER=1
+									tgz_maintainer_defaults;;
 		"--quiet")					let QUIET=1;;
 		"--clean")					clean_files "all"
 									exit 0;;

@@ -207,6 +207,13 @@ rpmdistclean:
 	-@$(RM) -R /tmp/eciadsl-usermode-$(PRODUCT_VERSION) /tmp/usermode
 	-@$(RM) /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
 
+tgz:
+	tar -C /tmp/eciadsl-usermode-$(PRODUCT_VERSION)-tgz -czf /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tgz usr/ etc/
+
+tgzdistclean:
+	-@$(RM) -R /tmp/eciadsl-usermode-$(PRODUCT_VERSION)-tgz
+	-@$(RM) /tmp/eciadsl-usermode-$(PRODUCT_VERSION).tgz
+
 cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
 	sh $(TMP_FILE) && $(ROOT)$(BIN_DIR)/eciconf.sh || $(ROOT)$(BIN_DIR)/eciconftxt.sh
