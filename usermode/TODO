@@ -14,6 +14,7 @@ Sorted according to priority (the upper in the list, the prior):
 * eciconftxt.sh
 * probe_device.sh
 + add auto modes to probe_device.sh
+- redesign probe_synch.sh to reset the modem between each synch .bin test
 * synch bin auto selection (config time only)
 * packaging:
   * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
@@ -57,11 +58,6 @@ Sorted according to priority (the upper in the list, the prior):
 
 
 0.x:
-- PPPoE implementation (patch from flynux/prout.be)
-- 1483b and 1483r implementations? (cannot find RFCs!?)
-
-
-0.y:
 - check and merge bsd 0.5 port
 - submit driver to *BSD distro managers
 
