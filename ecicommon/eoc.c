@@ -158,10 +158,10 @@ int eoc_read_next() {
 		data = 0x0e; /* EOD */
 	}
 	if(eocreadpar) {	/* set parity bit and switch eocreadpar value */
-		mes |= EOC_PARITY_EVEN;
+		mes |= EOC_ENCODED_PARITY_EVEN;
 		eocreadpar = 0;
 	} else {
-		mes |= EOC_PARITY_ODD;
+		mes |= EOC_ENCODED_PARITY_ODD;
 		eocreadpar = 1;			
 	}
 	mes |= (data & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */

@@ -75,9 +75,11 @@
 #define EOC_OPCODE_DGASP	(0xE7 << 5)
 #define EOC_OPCODE_UTC		(0x04 << 5)
 
-#define EOC_PARITY(x)		(x & 0x0004)
-#define EOC_PARITY_ODD		0x0040
+#define EOC_PARITY(x)		(x & 0x0008)
+#define EOC_PARITY_ODD		0x0008
 #define EOC_PARITY_EVEN		0x0000
+#define EOC_ENCODED_PARITY_ODD		0x0400
+#define EOC_ENCODED_PARITY_EVEN		0x0000
 
 
 
