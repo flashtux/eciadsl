@@ -219,6 +219,7 @@ static const struct usb_device_id eci_usb_deviceids[] =
 	{ USB_DEVICE ( 0x915 , 0x8000 ) } , /* ECI HI FOCUS */
 					    /* ECI B FOCUS  */
 	{ USB_DEVICE ( 0x0915,0xac82 ) } ,  /* EICON DIVA USB */
+	{}
 };
 
 #define ECI_NB_MODEMS 2
