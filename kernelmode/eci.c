@@ -2,7 +2,7 @@
 *                                                                            *
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
-*     Author : Valette Jean-Sebastien <jean-sebastien.valette@free.fr        *
+*     Author : Valette Jean-Sebastien <jean-sebastien.valette@free.fr>       *
 *              Eric Bardes  <email@fournisseur>                              *
 *                                                                            *
 *     Copyright : GPL                                                        *
@@ -616,6 +616,7 @@ static int __init eci_init(void);
 static void __exit eci_cleanup(void);
 
 MODULE_AUTHOR( "Eric Bardes, Jean-Sebastien Valette" );
+MODULE_LICENSE("GPL");
 MODULE_DESCRIPTION( "ECI HiFocus ADSL Modem Driver");
 module_init (eci_init);
 module_exit (eci_cleanup);
@@ -1520,6 +1521,7 @@ static void eci_iso_callback(struct urb *urb)
 			}
 #ifdef DEBUG
 			else
+				if(urb->iso_frame_desc[i].actual_length)
 #endif	/* 	DEBUG	*/
 				DBG_OUT("Dropping one frame\tStatus %d\n", \
 					urb->iso_frame_desc[i].status);
