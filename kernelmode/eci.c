@@ -1965,11 +1965,7 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 	/* Init SKB */
 	skb_put(lp_skb, lv_size) ;
 	ATM_SKB(lp_skb)->vcc = vcc ;
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
-	lp_skb->stamp = xtime ;
-#else
-	lp_skb->stamp = vcc->stamp ;
-#endif
+	do_gettimeofday(lp_skb->stamp);
 	/* Copy data */
 	lp_data = lp_skb->data ;
 	while (lv_size > ATM_CELL_PAYLOAD) {
