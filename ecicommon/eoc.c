@@ -69,71 +69,71 @@ void eoc_execute(u_int16_t eocmesval) {
 	switch(EOC_OPCODE(eocmesval)) {
 		case EOC_OPCODE_READ_0:
 			eocstate = _preread;
-			printf("EOC.C - eco_execute - STEP1 [eocmesval : EOC_OPCODE_READ_0]\n");
-			eocreadpar = eocreadcnt = eocreadpos =eocmescnt = eocmesval = eocstate = 0;
+			printf("OEC.C - eco_execute - STEP1 [eocmesval : EOC_OPCODE_READ_0]\n");
+			eocreadpar = eocreadcnt = eocreadpos =eocmescnt = eocmesval  = 0;
 			eocreadlen = 8;
 			eocnextrw = &(eocregs.vendorID[0]);
 			break;
 		case EOC_OPCODE_READ_1:
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_1]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval  = 0;
 			eocreadlen = 2;
 			eocnextrw = &(eocregs.revision[0]);
 			break;
 		case EOC_OPCODE_READ_2:	/*	SERIAL  Number */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_2]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = 0;
 			eocreadlen = 32;
 			eocnextrw = &(eocregs.serial[0]);
 			break;
 		case EOC_OPCODE_READ_3:	/*	Self test Result */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_3]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = 0;
 			eocreadlen = 1;
 			eocnextrw = &(eocregs.selftest[0]);
 			break;
 		case EOC_OPCODE_READ_4:	/*	Vendor 1 */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_4]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval  = 0;
 			eocreadlen = 1;
 			eocnextrw = &(eocregs.vendor1[0]);
 			break;
 		case EOC_OPCODE_READ_5:	/*	Vendor 2 */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_5]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval  = 0;
 			eocreadlen = 1;
 			eocnextrw = &(eocregs.vendor2[0]);
 			break;
 		case EOC_OPCODE_READ_6:	/*	Attenuation */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_6]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval  = 0;
 			eocreadlen = 1;
 			eocnextrw = &(eocregs.attenuation[0]);
 			break;
 		case EOC_OPCODE_READ_7:	/*	SNR margin */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_7]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval  = 0;
 			eocreadlen = 1;
 			eocnextrw = &(eocregs.SNRmargin[0]);
 			break;
 		case EOC_OPCODE_READ_8:	/*	ATUR config */
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_8]\n");
 			eocstate = _preread;
-			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
+			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval  = 0;
 			eocreadlen = 30;
 			eocnextrw = &(eocregs.ATURconfig[0]);
 			break;
 		case EOC_OPCODE_WRITE_0:
 			printf("EOC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_WRITE_0]\n");
 			eocstate = _prewrite;
-			eocwritepar = eocwritecnt = eocwritepos = eocmescnt = eocmesval = eocstate= 0;
+			oecwritepar = eocwritecnt = oecwritepos = eocmescnt = oecmesval = 0;
 			eocwritelen = 8;
 			eocnextrw = &(eocregs.vendorID[0]);
 			break;
