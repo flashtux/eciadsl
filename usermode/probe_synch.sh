@@ -15,19 +15,52 @@ function commandlinehelp()
 	echo "          $BASE [<switch>..] [dir]"
 	echo "Switches:"
 	echo "          --try-all              try all the synch .bin even if one is OK"
-#	echo "          --full-init            reset modem between each synch .bin test"
+	echo "          --usb-init             reset modem between each synch .bin test"
+	echo "          --no-prompt            don't prompt before loading firmware (only enabled if --usb-init is set)"
 	echo "          --batch                disable default interactive mode"
 	echo "          --version or -v        show version number then exit"
 	echo "          --help or -h           show this help then exit"
 	exit $1
 }
 
+function prompt()
+{
+	echo -ne "\n$1 your modem now, press ENTER to continue"
+	read
+}
+
 function reset_usb()
 {
-#		modprobe -r $HUB > /dev/null
-#		sleep 1
-#		modprobe $HUB > /dev/null
+	lsmod | grep $HUB > /dev/null
+	if [ $? -eq 0 ]
+	then
+		if [ $PROMPT -eq 1 ]
+		then
+			prompt "Unplug"
+		fi
+		echo -e "\nResetting USB HUB.."
+		modprobe -r $HUB > /dev/null
+		if [ $? -ne 0 ]
+		then
+			echo "*** unable to unload $HUB, this might be an USB issue and you must reset is manually"
+			exit 1
+		fi
 		sleep 1
+		MSG="Replug"
+	else
+		MSG="Plug in"
+	fi
+	modprobe $HUB > /dev/null
+	if [ $? -ne 0 ]
+	then
+		echo "*** unable to load $HUB, this might be an USB issue"
+		exit 1
+	fi
+	if [ $PROMPT -eq 1 ]
+	then
+		prompt "$MSG"
+	fi
+	sleep 1
 }
 
 function init_modem()
@@ -54,12 +87,13 @@ VERSION=""
 
 BASE=${0##*/}
 DIR=""
-declare -i ALL=0 INTERACTIVE=1 FULL_INIT=0
+declare -i ALL=0 INTERACTIVE=1 FULL_INIT=0 PROMPT=1
 
 while [ -n "$1" ]
 do
 	case "$1" in
-#		"--full_init")		let FULL_INIT=1;;
+		"--usb-init")		let FULL_INIT=1;;
+		"--prompt")			let PROMPT=0;;
 		"--try-all")		let ALL=1;;
 		"--batch")			let INTERACTIVE=0;;
 		"--version"|"-v")	version;;
@@ -77,11 +111,13 @@ fi
 
 
 echo -e "\nWARNING: if no $CONF_DIR/eciadsl.conf file exists,"
-echo "default vid/pid will be assumed. This eciadsl.conf file is generated using"
-echo "eciconf.sh or eciconftxt.sh"
-echo -e "\nThis script requires your modem to be supported by the driver,"
-echo "and that you've installed some extra synch .bin (the official"
-echo "synch_bin package for instance)"
+echo "default VID/PID will be assumed. This eciadsl.conf file is generated using"
+echo "eciconf.sh or eciconftxt.sh, please read the INSTALL file to properly install"
+echo "and configure the driver"
+echo "This script requires your modem to be supported by the driver, and that"
+echo "you've installed some extra synch .bin (the official synch_bin package for instance)"
+echo "It might be also necessary to unplug/wait/replug your modem before your"
+echo -e "this script and to ensure that no pppd/pppoeci instance is running\n"
 
 ECILOAD1_OPTIONS=""
 ECILOAD2_OPTIONS=""
@@ -121,7 +157,7 @@ fi
 LIST=""
 for FILE in $(find "$DIR" -maxdepth 1 -type f -name "*.bin" | grep -v firm)
 do
-	test -n "$LIST" && LIST="$LIST\n$FILE" || LIST="$FILE"
+	test -n "$LIST" && LIST="$LIST\n${FILE##*/}" || LIST="${FILE##*/}"
 done
 
 if [ -z "$LIST" ]
@@ -149,6 +185,16 @@ if [ $FULL_INIT -eq 0 ]
 then
 	init_modem
 else
+	echo -en "\nWhich USB HUB module is yours (common values are usb-uhci, usb-ohci or uhci)? "
+	HUB=""
+	while [ -z "$HUB" ]
+	do
+		read HUB
+		if [ -z "$HUB" ]
+		then
+			echo -n "* you must enter a valid USB HUB module name, try again: "
+		fi
+	done
 	reset_usb
 fi
 
