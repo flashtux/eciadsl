@@ -57,7 +57,8 @@ protocole CHAP pour l'authentification.
 UTILISATION
 ===========
 
-Lancer startmodem (sous root).
+Lancer startmodem (sous root), à partir d'un autre répertoir que celui
+des sources.
 
 
 DÉSINSTALLATION

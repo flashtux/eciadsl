@@ -39,7 +39,7 @@ Sorted according to priority (the upper in the list, the prior):
 - skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
   adsl file, is this relevant in Makefile?
 - keep previous settings when installing
-- complete translations
+- complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
 - merge oliverthered's pending patches (stability, gs7070), update doc if necessary
 - merge flynux's pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
 

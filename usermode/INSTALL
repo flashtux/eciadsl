@@ -1,3 +1,8 @@
+***************************
+* NULL or VCM PPPOA users *
+***************************
+
+
 COMPILATION
 ===========
 
@@ -53,13 +58,97 @@ CHAP authentication for instance.
 USE
 ===
 
-Run startmodem as root.
+Run startmodem as root, from elsewhere but the sources directory.
 
 
-UNINSTALLATION
+DEINSTALLATION
 ==============
 
 From within the source tree:
 	make uninstall
 and optionally
 	make distclean
+
+
+
+
+**********************************************
+* PPPoE or Bridged Ethernet (RFC1483B) users *
+**********************************************
+
+
+Setup your kernel for TUN/TAP support:
+	[*] Network device support
+	  ..
+	  <M> Universal TUN/TAP device driver support
+	  ..
+then type:
+	mkdir /dev/net
+	mknod /dev/net/tun c 10 200
+
+Install and configure the driver:
+	./configure && make install cfg
+
+Launch startmodem and interrupt it with Ctrl-C when it attempts to init the
+PPP line (step 4/5).
+
+Now type the following commands:
+	modprobe tun
+	nohup pppoeci -vpi X -vci Y -mode LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS -vendor 0xVVVV -product 0xPPPP &
+	ifconfig tap0 up
+where X and Y are your vpi and vci, 0xVVVV is your USB modem vendor id and
+0xPPPP is your USB modem product id.
+
+-mode could also be VCM_RFC_1483_BRIDGED_ETH depending on your provider,
+but the most common is LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS.
+
+If you are connecting with PPPoE, then configure and use a standard PPPoE
+client as rp-pppoe (http://www.roaringpenguin.com/pppoe) to connect to your
+adsl modem trough tap0.
+
+If you are connecting via DHCP, then configure your dhcp client to get an
+address from the tap0 device or if you were assigned a static IP by your
+provider: 
+	ifconfig tap0 1.2.3.4 pointopoint 1.2.3.5
+	route add default gw 1.2.3.5
+Where 1.2.3.4 is your fixed IP and 1.2.3.5 is
+your provider's gateway (you must have got them from your provider).
+
+Don't forget to add your DNS servers into /etc/resolv.conf.
+
+
+
+***************************
+* IPoATM (RFC1483R) users *
+***************************
+
+
+Setup your kernel for TUN/TAP support:
+	[*] Network device support
+	  ..
+	  <M> Universal TUN/TAP device driver support
+	  ..
+then type:
+	mkdir /dev/net
+	mknod /dev/net/tun c 10 200
+
+Install and configure the driver:
+	./configure && make install cfg
+
+Launch startmodem and interrupt it with Ctrl-C when it attempts to init the
+PPP line (step 4/5).
+
+Now type the following commands:
+	modprobe tun
+	nohup pppoeci -vpi X -vci Y -mode LLC_RFC1483_ROUTED_IP -vendor 0xVVVV -product 0xPPPP &
+	ifconfig tun0 up
+	ifconfig tun0 1.2.3.4 pointopoint 1.2.3.5
+	route add default gw 1.2.3.5
+where X and Y are your vpi and vci, 0xVVVV is your USB modem vendor id and
+0xPPPP is your USB modem product id, 1.2.3.4 is your fixed IP and 1.2.3.5 is
+your provider's gateway (you must have got them from your provider).
+
+-mode could also be VCM_RFC1483_ROUTED_IP depending on your provider, 
+but the most common is LLC_RFC1483_ROUTED_IP.
+
+Don't forget to add your DNS servers into /etc/resolv.conf.

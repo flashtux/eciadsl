@@ -101,9 +101,15 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <pthread.h>
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
+#include <linux/if_tun.h>
+#include <linux/if.h>
+#endif
 
 /* my USB library */
 #include "pusb.h"
+/* GS 7070 control routines */
+#include "gs7070.h"
 
 #define LOG_FILE "/tmp/pppoeci.log"
 
@@ -113,8 +119,11 @@ typedef enum
 {
 	VCM_RFC2364=0, /* must be the first element since (frame_type==0) must mean no encapsulation */
 	LLC_RFC2364=1,
-	LLC_SNAP_RFC1483=2,  /* flynux's patch */
-	modes_count=3
+	LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS=2,
+	VCM_RFC_1483_BRIDGED_ETH=3,
+	LLC_RFC1483_ROUTED_IP=4,
+	VCM_RFC1483_ROUTED_IP=5,  
+	modes_count=6
 } encapsulation_mode;
 
 int frame_type=VCM_RFC2364; /* defaults to VC Multiplexed PPP (no encapsulation) */
@@ -123,7 +132,10 @@ const char *mode_name[]=
 {
 	"VCM_RFC2364",
 	"LLC_RFC2364",
-	"LLC_SNAP_RFC1483"
+	"LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS",
+	"VCM_RFC_1483_BRIDGED_ETH",
+	"LLC_RFC1483_ROUTED_IP",
+	"VCM_RFC1483_ROUTED_IP"
 };
 
 #ifdef USE_BIG_ENDIAN
@@ -136,7 +148,10 @@ const char *frame_header[]=
 {
 	"",                                        /* VCM_RFC2364 */
 	"\xfe\xfe\x03\xcf",                        /* LLC_RFC2364 */
-	"\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00" /* LLC_SNAP_RFC1483 */
+	"\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00", /* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
+	"\x00\x00", /* VCM_RFC_1483_BRIDGED_ETH */
+	"\xaa\xaa\x03\x00\x00\x00\x08\x00", /* LLC_RFC1483_ROUTED_IP */
+	"" /* VCM_RFC1483_ROUTED_IP */
 };
 
 #define max_frame_header_len 10
@@ -144,7 +159,10 @@ const size_t frame_header_len[]=
 {
 	0, /* VCM_RFC2364 */
 	4, /* LLC_RFC2364 */
-	10 /* LLC_SNAP_RFC1483 */
+	10, /* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
+	2, /* VCM_RFC_1483_BRIDGED_ETH */
+	8, /* LLC_RFC1483_ROUTED_IP */
+	0 /* VCM_RFC1483_ROUTED_IP */
 };
 
 /* #define CHECK_FRAME_HEADER 1  // just overload i suppose.. */
@@ -182,8 +200,6 @@ static const char id[] = "@(#) $Id$";
 #define DATA_TIMEOUT 300
 int data_timeout=0;
 
-int EICON_fix=0;
-
 #include "modem.h"
 
 /* max size of data endpoint (Windows driver uses 448). */
@@ -206,13 +222,9 @@ int pusb_set_interface_alt = 0;
 #define CELL_HDR  05
 #define CELL_DATA 48
 
-/* PPP level : DO NOT MODIFY */
-#define syncHDLC 1
-#ifdef syncHDLC
+int syncHDLC=1;
+
 #define synclen 2
-#else
-#define synclen 0
-#endif
 
 /* global parameters */
 int verbose = 0;
@@ -395,9 +407,13 @@ int ppp_read(int fd, unsigned char **buf, int *n)
 
 	int r;
 
-	if (frame_type)
-		ppp_buf=frame_buf+frame_header_len[frame_type]-synclen;
-	else
+        if (frame_type) {
+            if(syncHDLC)
+                ppp_buf=frame_buf+frame_header_len[frame_type]-synclen;
+            else
+                ppp_buf=frame_buf+frame_header_len[frame_type];
+        }
+        else
 		ppp_buf=frame_buf;
 
 	for (;;)
@@ -466,9 +482,39 @@ int ppp_read(int fd, unsigned char **buf, int *n)
 			}
 			return(*n);
 		}
-		else
-			message("async HDLC not handled");
+		else /* no syncHDLC for pppoe */
+		{
+			unsigned char *s;
+			int i;
+			int l;
+			
+			if (r < 1)
+			{
+				snprintf(errText, ERR_BUFSIZE,
+						"reading from PPP: short on data, r=%d => ignored", r);
+				message(errText);
+				continue;
+			}
 
+			if (r == PPP_BUF_SIZE)
+			{
+				snprintf(errText, ERR_BUFSIZE,
+						"reading from PPP: too much data, r=%d => ignored", r);
+				message(errText);
+				continue;
+			}
+
+
+				l = frame_header_len[frame_type];
+				s = (unsigned char*)frame_header[frame_type];
+				for (i = 0; l--; ++i)
+					frame_buf[i] = s[i];
+				*buf = frame_buf;
+				*n = r + frame_header_len[frame_type];
+
+			return(*n);
+		}
+		
 		break;
 	}
 }
@@ -477,7 +523,7 @@ int ppp_read(int fd, unsigned char **buf, int *n)
 
 int ppp_write(int fd, unsigned char *buf, int n)
 {
-	static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE];
+	/* static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE]; */
 	static int errs = 0;
 
 	int r;
@@ -485,6 +531,7 @@ int ppp_write(int fd, unsigned char *buf, int n)
 
 	if (syncHDLC)
 	{
+		static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE];
 		*(short*)ppp_buf=HDLC_HEADER;
 
 		if (frame_type)
@@ -564,8 +611,84 @@ int ppp_write(int fd, unsigned char *buf, int n)
 		/* throw away the packet */
 		return(0);
 	}
-	else
-		message("async HDLC not handled");
+	else /* no syncHDLC for pppoe */ 
+	{
+
+	    static unsigned char ppp_buf[max_frame_header_len+PPP_BUF_SIZE];
+
+#ifdef CHECK_FRAME_HEADER 
+			int l;
+			int i = 0;
+
+			for (l = frame_header_len[frame_type]; l--; ++i)
+			{
+				if (((unsigned char*)frame_header[frame_type])[i] != ((unsigned char*)buf)[i])
+				{
+					if (verbose)
+					{
+						snprintf(errText, ERR_WRONG_FRAME_HEADER,
+								"wrong frame header:");
+								message(errText);
+						dump(buf, n);
+					}
+					return(0); /* drop the packet */
+				}
+			}
+#endif
+			n -= frame_header_len[frame_type];
+			memcpy(ppp_buf, buf + frame_header_len[frame_type], n);
+
+                
+		if (verbose > 1)
+		{
+			snprintf(errText, ERR_BUFSIZE,
+					"writing to PPP: len=%d", n + 2);
+			message(errText);
+			dump(ppp_buf, n + 2);
+		}
+
+		retries = 0;
+		while (retries < NOBUF_RETRIES)
+		{
+			if ((r = write(fd, ppp_buf, n)) < 0)
+			{
+				/*
+				 * We sometimes run out of mbufs doing simultaneous
+				 * up- and down-loads on FreeBSD.  We should find out
+				 *  why this is, but for now...
+				 */
+
+				if (errno == ENOBUFS)
+				{
+					errs++;
+
+					if (verbose && (errs < 10 || errs % 100 == 0))
+					{
+						snprintf(errText, ERR_BUFSIZE,
+								"writing to PPP: %d ENOBUFS errors", errs);
+						message(errText);
+					}
+
+					if (retries++ < NOBUF_RETRIES)
+						/* retry after delay */
+						sleep(1);
+				}
+				else
+				{
+					message("error writing to PPP");
+					perror("reason");
+					/* unexpected error */
+					return(r);
+				}
+			}
+			else
+				/* PPP write is OK */
+				return(r);
+		}
+		/* all retries have failed */
+		/* throw away the packet */
+		return(0);
+	}
 
 	return(-1);
 }
@@ -584,6 +707,11 @@ int cell_read(unsigned char *cellbuf, /*size_t count,*/ int fdout)
 	vci = ((cellbuf[1] & 0x0f) << 12) | (cellbuf[2] << 4) | (cellbuf[3] >> 4);
 	pti = ( cellbuf[3] & 0x0f);
 
+	if (vpi != my_vpi || vci != my_vci)
+	{
+		/*there's some junk so try to re-sync*/
+		return -2;
+	}
 	/* filling our AAL5 frame */
 	return(aal5_read(cellbuf + CELL_HDR, /*CELL_DATA,*/ vpi, vci, pti, fdout));
 }
@@ -640,7 +768,7 @@ int aal5_read(unsigned char *cell_buf, /*size_t count,*/
 			message(errText);
 			dump(cell_buf, CELL_DATA);
 		}
-		return(0);
+		return(-2); /* return -2 and ? */
 	}
 
 	/*
@@ -856,15 +984,19 @@ int decode_usb_pkt(unsigned char *buf, int len)
 	pos = 0;
 	while ((rlen - pos) >= CELL_SIZE)
 	{
-
-		if ((r = cell_read(rbuf + pos, /*CELL_SIZE,*/ gfdout)) < 0)
+		if ((r = cell_read(rbuf + pos, /*CELL_SIZE,*/ gfdout)) < 0 && r != -2)
 		{
 			rlen -= pos;
 			if (rlen != 0)
-				memcpy(rbuf, rbuf+pos, rlen);
+				memcpy(rbuf, rbuf + pos, rlen);
 			return(r);
 		}
-		pos += CELL_SIZE;
+		if (r==-2)
+			/* we got out of sync or there was some junk so try to find the next
+			block header (just add 1 onto pos!!) for now!! */
+			pos++;
+		else
+			pos += CELL_SIZE;
 	}
 	rlen -= pos;
 
@@ -934,197 +1066,104 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 
 	return(0);
 }
-
-void replace_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount){
-	/* we should return :
-	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x01 0x01 0x01 0x01
-	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x53 0x53 0x53 0x53
-	   The last line is repeated infinitely
-	*/
-
-	static int count = 0;
-	static unsigned char replace_b1[] =
-	{
-		0x73, 0x73, 0x63, 0x63, 0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63, 0x63
-	};
-	static unsigned char replace_b2[] =
-	{
-		0x11, 0x11, 0x01, 0x01,0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
-	};
-
-	if (resetcount >= 2)
-		count = 0;
-	*b1 = replace_b1[count];
-	*b2 = replace_b2[count];
-
-	count = (count + 1) % 12;
-
-	if (EICON_fix && count == 0)
-		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
-
-}
-
-
-void replace53_b1_b2(unsigned char *b1, unsigned char *b2,int resetcount)
-{
-	/* we should return :
-	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x01 0x01 0x01 0x01
-	   0x11 0x11 0x13 0x13 0x13 0x13 0x11 0x11 0x53 0x53 0x53 0x53
-	   The last line is repeated infinitely
-	*/
-
-	static int count = 0;
-	static unsigned char replace_b1[] =
-	{
-		0x53, 0x53, 0x43, 0x43, 0x43, 0x43, 0x53, 0x53, 0x43, 0x43, 0x43, 0x43
-	};
-	static unsigned char replace_b2[] =
-	{
-		0x11, 0x11, 0x01, 0x01, 0x01, 0x01, 0x11, 0x11, 0x01, 0x01, 0x01, 0x01
-	};
-
-	if (resetcount >= 2)
-		count = 0;
-	*b1 = replace_b1[count];
-	*b2 = replace_b2[count];
-
-	count = (count + 1) % 12;
-
-/*	if (count == 0)
-		replace_b2[8] = replace_b2[9] = replace_b2[10] = replace_b2[11] = 0x53;
-*/
-}
-
-
 void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 {
-	static int lost_synchro = 0;
+        static int lost_synchro = 0;
+        static GS7070int* gs=0;
 
-	unsigned char outbuf[40] =
-	{
-		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c
-	};
-	int i, outi = 0;
-	int replace73reset = 0;
-	int replace53reset = 0;
 
-	if (verbose > 1)
-	{
-		snprintf(errText, ERR_BUFSIZE,
-						"reading from ep int: len=%d", size);
-		message(errText);
-		dump(buf, size);
-	}
+        unsigned char outbuf[40] =
+        {
+                0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+                0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+                0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+                0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+                0x0c, 0x0c
+        };
+        int i, outi = 0;
+        int dataBlock=0;
 
-	if (!lost_synchro || 1)
-	{
-		replace73reset = 0;
-		replace53reset = 0;
-		for (i = 3; i < 18; i++)
-		{
-			unsigned short w = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
+        if(gs==0){
+                gs=allocateGS7070int();
+        }
 
-			if (w == 0x7311)
-				replace73reset++;
-			else
-				if (replace73reset<2)
-					replace73reset = 0;
+        if (verbose > 1)
+        {
+                snprintf(errText, ERR_BUFSIZE,
+                                                "reading from ep int: len=%d", size);
+                message(errText);
+                dump(buf, size);
+        }
 
-			if (w == 0x5311)
-				replace53reset++;
-			else
-				if (replace53reset<2)
-					replace53reset = 0;
+        if (!lost_synchro || 1)
+        {
+                for (i = 3; i < 18; i++)
+                {
+                        unsigned short code = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
+                        if(code !=0x0c0c){ /*don't bother with 0c0c blocks, there 'empty'*/
+                                dataBlock=-1;
+                                gs7070SetControl(gs,buf+i*2);
+                        }
 
-			/* responses are as follows
-			   73 11 -> 63 13 && 63 01 && 73 11
-			   53 11 -> 53 11 && 43 01
-			   everything else -> it's self
-			*/
-			if (w != 0x0c0c && w != 0x734d && w != 0x7311 && w != 0xf301
-				&& w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w!=0xf313 && w!=0x7341) /* also 73 41 */
-			{
+                        /* this code need to be put into gs7070.c
+                        if (w != 0x0c0c && w != 0x734d && w != 0x7311 && w != 0xf301
+                                && w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w!=0xf313 && w!=0x7341)
+                        {
 
-				snprintf(errText, ERR_BUFSIZE,
-						"synchro loss! w=%04x", w);
-				message(errText);
-				lost_synchro = 1;
-			}
-		}
-	}
+                                snprintf(errText, ERR_BUFSIZE,
+                                                "synchro loss! w=%04x", w);
+                                message(errText);
+                                lost_synchro = 1;
+                        }*/
+                }
+        }
+        if(dataBlock==0){/*no data/control information so don't bother to respond*/
+                return;
+        }
+        for (i = 0; i < 15; i++)
+        {
+                unsigned char b1, b2;
 
-	for (i = 0; i < 15; i++)
-	{
-		unsigned char b1, b2;
+                b1 = buf[6 + 2 * i + 0];
+                b2 = buf[6 + 2 * i + 1];
 
-		b1 = buf[6 + 2 * i + 0];
-		b2 = buf[6 + 2 * i + 1];
+                /* each word != 0x0c 0x0c is copied in the output buffer */
 
-		/* each word != 0x0c 0x0c is copied in the output buffer */
+                if (b1 != 0x0c || b2 != 0x0c)
+                {
+                        if ((unsigned int)(10 + outi) >= sizeof(outbuf))
+                        {
+                                message("warning: outbuf is too small");
+                                dump(buf, size);
+                                break;
+                        }
+                        outbuf[10 + outi] = b1;
+                        outbuf[10 + outi+1] = b2;
+                        gs7070GetResponse(gs,outbuf+10+outi);
+                        outi+=2;
+                }
+        }
 
-		if (b1 != 0x0c || b2 != 0x0c)
-		{
-			/* however 0x7311 need to be replace by
-			   0x6313, 0x6301, 0x6313, 0x6353 ...
-			*/
-
-			if (b1 == 0x73 && b2 == 0x11){
-				replace_b1_b2(&b1, &b2,replace73reset);
-				replace73reset=0;
-			}
-		    /* however 0x5311 need to be replace by
-			  0x4301
-			*/
-
-			if (b1 == 0x53 && b2 == 0x11){
-				replace53_b1_b2(&b1, &b2,replace53reset);
-				replace53reset=0;
-			}
-
-			/* we check that we are not writing outside our buffer.
-			   From what is found in our log, this never happen.
-			*/
-
-			if ((unsigned int)(10 + outi) >= sizeof(outbuf))
-			{
-				message("warning: outbuf is too small");
-				dump(buf, size);
-				break;
-			}
-
-			outbuf[10 + outi++] = b1;
-			outbuf[10 + outi++] = b2;
-		}
-	}
-
-	if (outi != 0)
-	{
-/*
-		printf("vendor device buf, len = %d\n", sizeof(outbuf));
-		dump(outbuf, sizeof(outbuf));
-*/
-		if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
-							 sizeof(outbuf), data_timeout) != sizeof(outbuf))
-		{
-			message("error on sending vendor device URB");
-			perror("error: can't send vendor device!");
-		}
-		else
-		{
-			if (verbose > 1)
-			{
-				snprintf(errText, ERR_BUFSIZE,
-						"ctrl msg sent: len=%d", sizeof(outbuf));
-				message(errText);
-				dump(outbuf, sizeof(outbuf));
-			}
-		}
-	}
+        if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
+                                                sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
+        {
+                message("error on sending vendor device URB");
+                perror("error: can't send vendor device!");
+        }
+        else
+        {
+                if (verbose > 1)
+                {
+                        snprintf(errText, ERR_BUFSIZE,
+                                        "ctrl msg sent: len=%d", sizeof(outbuf));
+                        message(errText);
+                        dump(outbuf, sizeof(outbuf));
+                }
+        }
 }
+
+
+
 
 void handle_ep_data_in(unsigned char * buf, int size)
 {
@@ -1248,9 +1287,10 @@ void handle_ep_data_in_ep_int(/*pusb_endpoint_t ep_data_in,
 
 void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 {
-	int r, n;
+	int r, n, tcount;
 	unsigned char *buf;
-
+	tcount=0;
+	
 	for (;;)
 	{
 	    n = ppp_read(fdin, &buf, &n);
@@ -1270,11 +1310,15 @@ void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 			snprintf(errText, ERR_BUFSIZE,
 					"aal5_write=%d", r);
 			message(errText);
-			break;
+			tcount++;
+			if (tcount > 3)
+			    break;
 		}
+	    else if (tcount > 0) tcount--;
 	}
 
-	message("end of handle_ep_data_out");
+	snprintf(errText, ERR_BUFSIZE, "end of handle_ep_data_out tcount=%d", tcount);
+	message(errText);
 }
 
 void* fn_handle_ep_data_out(void* ignored)
@@ -1322,8 +1366,7 @@ void usage(const int ret)
 					"\n");
 	fprintf(stderr,	"The encapsulation mode may differ depending on the country/provider/modem.\n"
 					"If you experience LCP requests timeout or IOCTL errors at connect time, try\n"
-					"another one (e.g.: LLC_RFC2364 for Switzerland).\n"
-					"VC Multiplexed PPP (none).\n");
+					"another one (e.g.: LLC_RFC2364 for Switzerland).\n");
 	fprintf(stderr, "Possible values:\n");
 	for (i = 0; i < modes_count; i++)
 		fprintf(stderr, "    %s%s\n", mode_name[i], (i == frame_type)?" (default)":"");
@@ -1368,11 +1411,34 @@ void get_hexa_value(const char* param, unsigned int* var)
 		*var = value;
 }
 
+int tap_open(char *dev, int tun)
+{
+    struct ifreq ifr;
+    int fd, err;
+
+    if( (fd = open("/dev/net/tun", O_RDWR | O_SYNC)) < 0 )
+       return -1;
+
+    memset(&ifr, 0, sizeof(ifr));
+    if (tun) ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+     else ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+    if( *dev )
+       strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+ 
+    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
+       close(fd);
+       return err;
+    }
+    strcpy(dev, ifr.ifr_name);
+    return fd;
+}
+
 int main(int argc, char *argv[])
 {
 	const char *logfile = LOG_FILE;
 	int   fdin, fdout, log;
 	int   i;
+	char dev[20]="";
 
 	this_process = getpid();
 	log = 0;
@@ -1446,7 +1512,6 @@ int main(int argc, char *argv[])
 		)
 		usage(-1);
 
-	EICON_fix=(product==0xac82);
 
 	if (verbose)
 	{
@@ -1462,16 +1527,27 @@ int main(int argc, char *argv[])
 			fprintf(stderr, " pusb_set_interface_alt=%d\n", pusb_set_interface_alt);
 		if (data_timeout)
 			fprintf(stderr, " data timeout=%d\n", data_timeout);
-		if (EICON_fix)
-			fprintf(stderr, " EICON fix enabled\n");
+
 	}
 	if (!data_timeout)
 		data_timeout=DATA_TIMEOUT;
+	
+	if(frame_type > VCM_RFC2364)
+		syncHDLC=0;
 						
 
 	/* duplicate in and out fd */
-	fdin  = dup(0);
-	fdout = dup(1);
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
+	if ((frame_type == VCM_RFC2364) || (frame_type == LLC_RFC2364)) 
+	{
+#endif
+	    fdin  = dup(0);
+	    fdout = dup(1);
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
+	}
+	else if ((frame_type == LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS ) || (frame_type == VCM_RFC_1483_BRIDGED_ETH)) fdin = fdout = tap_open(dev,0);
+	   else if ((frame_type == LLC_RFC1483_ROUTED_IP) || (VCM_RFC1483_ROUTED_IP)) fdin = fdout = tap_open(dev,1);
+#endif	
 
 	/*
 	 * If the verbosity level is greater than 0
