@@ -658,6 +658,8 @@ R:	Tapez les commandes suivantes :
 
 	ou la commande que vous utilisez habituellement pour compiler et installer
 	les modules du noyau.
+	Bien entendu, il faut que votre configuration soit correcte, et que le
+	support pour les modules soit activé.
 	Faites aussi un make -s bzImage si le support PPP ou USB était dans le noyau
 	au lieu d'être en modules !
 	Vous pouvez compiler tous les modules de controleurs USB mais vous devez

@@ -726,6 +726,8 @@ A:	Type the following commands:
 		make -s dep modules modules_install && depmod -a
 
 	or whatever command you use to compile and install the kernal modules.
+	Of course your whole kernel config must be properly set, and the loadable
+	module support turned ON.
 	Also make -s bzImage if PPP or USB support was previously in kernel instead
 	of as modules!
 	You can enable all USB Host Controller Drivers but must use the relevant one
