@@ -3,7 +3,7 @@
 echo "Init modem ..." ;
 
 echo "	Load Firmware ..." ;
-./eci-load1 eci_firm_kit_wanadoo.bin
+eci-load1 /usr/local/bin/eci_firm_kit_wanadoo.bin
 if [ $? -ne 0 ] ; then
 	echo "Failed to load firmware" ;
 	exit -1 ;
@@ -11,7 +11,7 @@ fi ;
 echo "	... Load Firmware OK"
 
 echo "	Setup modem ..." ;
-./eci-load2 eci_wan3.bin
+eci-load2 /usr/local/bin/eci_wan3.bin
 if [ $? -ne 0 ] ; then
 	echo "Failed to setup the modem" ;
 	exit -1 ;
