@@ -98,12 +98,12 @@ static char id[] =
 #define DATA_TIMEOUT 5000
 #include "modem.h"
 
-/* max size of data endpoint (originally : 448). */
-#define MAX_EP_SIZE 224
-/* number of simultaneous URB submitted to data endpoint */
+/* max size of data endpoint (Windows driver uses 448). */
+#define MAX_EP_SIZE 448
+/* number of simultaneous URB submitted to data endpoint (Windows drv : 20 */
 #define NB_PKT_EP_DATA_IN 20
-/* number of ISO packet per URB */
-#define PKT_NB 20
+/* number of ISO packet per URB (Windows driver uses 10) */
+#define PKT_NB 10
 
 /* ATM level : adapt according your ADSL provider settings */
 int my_vpi = -1;
