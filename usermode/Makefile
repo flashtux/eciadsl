@@ -1,6 +1,5 @@
 include Makefile.config
 
-CONF_DIR = $(ETC_DIR)/eciadsl
 PPPD_DIR = $(ETC_DIR)/ppp
 
 # Final targets
@@ -73,8 +72,9 @@ install_scripts:
 	done
 
 install_dirs:
-	if [ -n "$(PREFIX)" ]; then $(INSTALL_DIR) $(PREFIX); fi
-	if [ -n "$(ETC_PREFIX)" ]; then $(INSTALL_DIR) $(ETC_PREFIX); fi
+	if [ -n "$(PREFIX)" -a "$(PREFIX)" != "/" ]; then $(INSTALL_DIR) $(PREFIX); fi
+	if [ -n "$(ETC_PREFIX)" -a "$(ETC_PREFIX)" != "/" ]; then $(INSTALL_DIR) $(ETC_PREFIX); fi
+	if [ -n "$(CONF_PREFIX)" -a "$(CONF_PREFIX)" != "/" ]; then $(INSTALL_DIR) $(CONF_PREFIX); fi
 	$(INSTALL_DIR) $(BIN_DIR)
 	$(INSTALL_DIR) $(CONF_DIR)
 	$(INSTALL_DIR) $(PPPD_DIR)
