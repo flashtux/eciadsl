@@ -3,7 +3,7 @@
 *     Driver pour le modem ADSL ECI HiFocus utilise par France Telecom       *
 *                                                                            *
 *     Author : Valette Jean-Sebastien <jean-sebastien.valette@libertysur.fr  *
-*              Sebastien helleu  <flashcode@free.fr>                         *
+*              Eric Bardes  <email@fournisseur>                         *
 *                                                                            *
 *     Copyright : GPL                                                        *
 *                                                                            *
@@ -64,7 +64,7 @@
 
 #define DBG_OUT(fmt, argz...) \
 	printk( \
-		KERN_DEBUG "D ECI_USB : " fmt, \
+		KERN_DEBUG __FILE__ "__LINE__" fmt, \
 		##argz \
 	)
 
@@ -429,7 +429,7 @@ MODULE_DEVICE_TABLE ( usb , eci_usb_deviceids ) ;
 static int __init eci_init(void);
 static void __exit eci_cleanup(void);
 
-MODULE_AUTHOR( "Sebastien helleu, Jean-Sebastien Valette" );
+MODULE_AUTHOR( "Eric Bardes, Jean-Sebastien Valette" );
 MODULE_DESCRIPTION( "ECI HiFocus ADSL Modem Driver");
 module_init (eci_init);
 module_exit (eci_cleanup);
@@ -557,6 +557,7 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 							GFP_KERNEL);
 		if(out_instance)
 		{
+			MOD_INC_USE_COUNT;
 			eci_instances=out_instance; 
 			out_instance->usb_wan_dev= dev;
 			out_instance->setup_packets = eci_init_setup_packets;
@@ -622,11 +623,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		tmpurb = out_instance->isourbs;
 		while(tmpurb->next) tmpurb=tmpurb->next;
 		tmpurb->next = out_instance->isourbs;
-		if(usb_submit_urb(eciurb))
+		/*if(usb_submit_urb(eciurb))
 		{
 			ERR_OUT("error couldn't send iso urbs\n");
 			return 0;
-		}
+		}*/
 		/*
 			Should reset the Iso EP and send 20 Urbs
 		*/
@@ -710,7 +711,6 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	
 	DBG_OUT("out_instance : %p\n", out_instance);
 	
-	MOD_INC_USE_COUNT;
 	DBG_OUT("Probe out\n");
 	return out_instance;
 };
@@ -917,39 +917,44 @@ static void _eci_send_init_urb(struct urb *eciurb)
 
 	
 	instance = eciurb->context;
-	setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
-	memcpy(setuppacket, instance->setup_packets,8);
-	size = (instance->setup_packets[7] << 8 ) |
-			instance->setup_packets[6];
-	DBG_RAW_OUT("Setup Packet", setuppacket, 8) ;
+	if(instance->setup_packets[0])
+	{
+		setuppacket = eciurb->transfer_buffer +  64 * 1024 -8;
+		memcpy(setuppacket, instance->setup_packets,8);
+		size = (instance->setup_packets[7] << 8 ) |
+				instance->setup_packets[6];
+		DBG_RAW_OUT("Setup Packet", setuppacket, 8) ;
 			/*
 				If write URB then read the buffer and
 				set endpoint else just set enpoint
 			*/
-	if(setuppacket[0] & 0x80)
-	{
-		pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
+		if(setuppacket[0] & 0x80)
+		{
+			pipe = usb_rcvctrlpipe(instance->usb_wan_dev,0);
+			DBG_OUT("Read URB\n");
+		}
+		else
+		{
+			memcpy(eciurb->transfer_buffer, 
+				instance->setup_packets+8,size);
+			DBG_OUT("Write URB\n");
+			DBG_RAW_OUT("Buffer : ", eciurb->transfer_buffer, size);
+			pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
+		}
+		FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
+			setuppacket, eciurb->transfer_buffer, 
+			size, eci_init_vendor_callback,
+			instance);
+		DBG_OUT("Sending URB\n");
+		if(usb_submit_urb(eciurb))
+		{
+			ERR_OUT("error couldn't send init urb\n");
+			return;
+		}
+		DBG_OUT("URB Sent \n");
+		instance->setup_packets += 
+			(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
 	}
-	else
-	{
-		memcpy(eciurb->transfer_buffer, 
-			instance->setup_packets+8,size);
-		DBG_OUT("read urb\n");
-		pipe = usb_sndctrlpipe(instance->usb_wan_dev,0); 
-	}
-	FILL_CONTROL_URB(eciurb, instance->usb_wan_dev, pipe, 
-		setuppacket, eciurb->transfer_buffer, 
-		size, eci_init_vendor_callback,
-		instance);
-	DBG_OUT("Sending URB\n");
-	if(usb_submit_urb(eciurb))
-	{
-		ERR_OUT("error couldn't send init urb\n");
-		return;
-	}
-	DBG_OUT("URB Sent \n");
-	instance->setup_packets += 
-		(eciurb->setup_packet[0] & 0x80) ? 8 : 8 + size;
 }
 
 /*
