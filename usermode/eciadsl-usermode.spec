@@ -4,8 +4,8 @@
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
 Name:		eciadsl-usermode
-Version:	0.6
-Release:	2
+Version:	0.7
+Release:	1
 License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
