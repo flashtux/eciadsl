@@ -328,11 +328,18 @@ echo "You are using pppd version $ppp_version$msg" ;
 PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
 	echo "No existing PPP connection... trying to make one (please wait)" ;
-	nice --20 pppd call adsl updetach > /tmp/ppp.log
+	nice --20 pppd call adsl updetach | tee /tmp/ppp.log
 
 # check if we succeed in making a new PPP connection
 	PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 	if [ "$PPP" = "" ]; then
+		# check for usermode driver crash
+		grep "Modem hangup" /tmp/ppp.log > /dev/null
+		if [ $? -eq 0 ]; then
+			echo "PPP: very bad ... usermode driver just crashed" ;
+			rm /tmp/ppp.log
+			fatal;
+		fi
 		# check for no response from PPP
 		grep 'LCP: timeout sending Config-Requests' /tmp/ppp.log > /dev/null
 		if [ $? -eq 0 ]; then
