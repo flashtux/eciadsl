@@ -258,7 +258,7 @@ fi
 echo -e "\nprobed USB device: $PRODUCT$MANUFACTURER"
 echo "VID1=$VID1, PID1=$PID1"
 echo "VID2=$VID2, PID2=$PID2"
-if [ "$VID1" == "$VID2" -a "$PID1" == "$PID2"]
+if [ "$VID1" == "$VID2" -a "$PID1" == "$PID2" ]
 then
 	echo "Did you really unplug/replug your modem before launching this script?"
 	let RET+=1
