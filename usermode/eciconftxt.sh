@@ -352,7 +352,7 @@ case "$1" in
 		OLDIFS="$IFS"
 		IFS="
 "
-		modes="Select your PPP mode"
+		modes="Select your PPP mode (use the DEFAULT one if you don't know what this means)"
 		for LINE in $($BIN_DIR/pppoeci --modes 2>&1 | cut -d ' ' -f 1); do
 			modes="$modes|$LINE"
 		done
@@ -364,7 +364,7 @@ case "$1" in
         mode=$(expr $ret + 1)
 
         echo
-        echo -n "Is DHCP used by your provider (most users should say No)? "
+        echo -n "Is DHCP used by your provider (MOST users should say NO)? "
         use_dhcp=""
         while [ -z "$use_dhcp" ]; do
             echo -n "(y/n) "
@@ -383,7 +383,7 @@ case "$1" in
         done
 		if [ "$use_dhcp" != "yes" ]; then
         	echo
-        	echo -n "Did you get a static IP from your provider (most users should say No)? "
+        	echo -n "Did you get a static IP from your provider (MOST users should say NO)? "
 			foo=""
         	while [ -z "$foo" ]; do
 	   	        echo -n "(y/n) "
