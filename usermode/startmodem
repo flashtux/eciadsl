@@ -99,6 +99,13 @@ test -z "$firmware" && firmware="$CONF_DIR/firmware00.bin"
 test -z "$synch" && synch="$CONF_DIR/synch01.bin"
 test -z "$synch_attempts" && synch_attempts=1
 
+ps ax | grep pppoeci | grep -v grep > /dev/null 1>&1
+if [ $? -eq 0 ]
+then
+	echo "aborting: pppoeci seems to be already running"
+	echo "you should kill all instances of pppoeci and restart this script"
+	exit -1
+fi
 
 echo -e "\nsetting up USB support (1/5).."
 
