@@ -77,50 +77,72 @@ fi
 
 # try to locate UHCI controller
 uhci=0
-grep -A 4 USB /proc/pci | grep I/O > /dev/null
-if [ $? -eq 0 ]; then
-# ok, we have a UHCI controller, check if the linux driver is loaded
-	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-	if [ $? -ne 0 ]; then
-		echo "UHCI support is missing... trying to load" ;
-		modprobe usb-uhci
-		modprobe uhci
-		sleep 2
-		grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
-		if [ $? -ne 0 ]; then
-			echo "UHCI support: failed to load" ;
-		else
-			echo "UHCI support is OK" ;
-			uhci=1 ;
+# directly check for the UHCI driver (avoid to use /proc/pci if there is none)
+grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+if [ $? -ne 0 ]; then
+	if [ -f /proc/pci ]; then
+		grep -A 4 USB /proc/pci | grep I/O > /dev/null
+		if [ $? -eq 0 ]; then
+		# ok, we have a UHCI controller, check if the linux driver is loaded
+			grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+			if [ $? -ne 0 ]; then
+				echo "UHCI support is missing... trying to load" ;
+				modprobe usb-uhci
+				modprobe uhci
+				sleep 2
+				grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
+				if [ $? -ne 0 ]; then
+					echo "UHCI support: failed to load" ;
+				else
+					echo "UHCI support is OK" ;
+					uhci=1 ;
+				fi
+			else
+				echo "UHCI support is OK" ;
+				uhci=1 ; 
+			fi
 		fi
 	else
-		echo "UHCI support is OK" ;
-		uhci=1 ; 
+		echo "You don't have /proc/pci. I cannot check for a UHCI controller";
 	fi
+else
+	echo "UHCI support is OK" ;
+	uhci=1;
 fi
 
 # try to locate OHCI controller
 ohci=0
-grep -A 4 USB /proc/pci | grep memory > /dev/null
-if [ $? -eq 0 ]; then
-# ok, we have a OHCI controller, check if the linux driver is loaded
-	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-	if [ $? -ne 0 ]; then
-		echo "OHCI support is missing... trying to load" ;
-		modprobe usb-ohci
-		sleep 2
-		grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
-		if [ $? -ne 0 ]; then
-			echo "OHCI support: failed to load" ;
-		else
-			echo "OHCI support is OK" ;
-			ohci=1 ;
+grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+if [ $? -ne 0 ]; then
+	if [ -f /proc/pci ]; then
+		grep -A 4 USB /proc/pci | grep memory > /dev/null
+		if [ $? -eq 0 ]; then
+		# ok, we have a OHCI controller, check if the linux driver is loaded
+			grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+			if [ $? -ne 0 ]; then
+				echo "OHCI support is missing... trying to load" ;
+				modprobe usb-ohci
+				sleep 2
+				grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
+				if [ $? -ne 0 ]; then
+					echo "OHCI support: failed to load" ;
+				else
+					echo "OHCI support is OK" ;
+					ohci=1 ;
+				fi
+			else
+				echo "OHCI support is OK" ;
+				ohci=1 ;
+			fi
 		fi
-	else
-		echo "OHCI support is OK" ;
-		ohci=1 ;
+    else
+		echo "You don't have /proc/pci. I cannot check for a OHCI controller";
 	fi
+else
+	echo "OHCI support is OK" ;
+	ohci=1;
 fi
+		
 
 if [ $uhci -eq 0 -a $ohci -eq 0 ]; then
 	echo "I found no USB controller" ;
@@ -330,6 +352,19 @@ if [ "$ppp_version" != "2.4.0" -a "$ppp_version" != "2.4.1" ]; then
 	msg=" (untested)" ;
 fi
 echo "You are using pppd version $ppp_version$msg" ;
+
+# check for an existing /etc/ppp/options file
+if [ -f /etc/ppp/options ]; then
+	echo "You have an /etc/ppp/options file. Options in this file may conflict with" ;
+	echo "options from /etc/ppp/peers/adsl. We suggest to remove this file or make a";
+	echo "backup copy." ;
+	grep "^nodetach" /etc/ppp/options > /dev/null
+	if [ $? -eq 0 ]; then
+		echo "Removing 'nodetach' option from /etc/ppp/options..." ;
+		grep -v "^nodetach" /etc/ppp/options > /tmp/options
+		mv /tmp/options /etc/ppp/options
+	fi
+fi
 
 # check for an existing PPP connection (select the first one if several)
 PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
