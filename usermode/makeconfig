@@ -23,9 +23,10 @@
 # *        12 = path to a firmware .bin                                  *
 # *        13 = static IP                                                *
 # *        14 = gateway IP                                               *
-# *        15 = use DHCP (yes/no)                                        *
-# *        16 = modem                                                    *
-# *        17 = provider                                                 *
+# *        15 = use static IP (yes/no)                                   *
+# *        16 = use DHCP (yes/no)                                        *
+# *        17 = modem                                                    *
+# *        18 = provider                                                 *
 # *                                                                      *
 # ************************************************************************
 
@@ -128,7 +129,7 @@ fi
 if [ $# -ne 18 ]
 then
     echo -e "\nERROR: invalid number of parameters"
-    echo -e "syntax:\n  makeconfig <mode> <username> <password> </path/to/pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin>"
+    echo -e "syntax:\n  makeconfig <mode> <username> <password> </path/to/pppoeci> <dns1> <dns2> <vpi> <vci>  <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin> <staticip> <gateway> <use_staticip> <use_dhcp> <modem> <provider>"
     exit 1
 fi
 
@@ -323,7 +324,7 @@ then
 	update_entry "FIRMWARE" "$TMPFIRMWARE"
 	update_entry "SYNCH" "$TMPSYNCH"
 	update_entry "PPPD_USER" "$TMPUSERNAME"
-	update_entry "PPPD_PASSD" "$TMPPASSWORD"
+	update_entry "PPPD_PASSWD" "$TMPPASSWORD"
 	update_entry "USE_DHCP" "$use_dhcp"
 	update_entry "USE_STATICIP" "$use_staticip"
 	update_entry "STATICIP" "$staticip"
