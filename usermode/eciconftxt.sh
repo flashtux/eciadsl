@@ -100,9 +100,9 @@ case "$1" in
 "")
     menu1="==== What do you want to do|Make all configuration|Remove Dabusb module|Change .bin sync file"
 
-    providers="Select your provider|Wanadoo|Club Internet|9 Telecom|Cegetel|World Online|Telecom Italia|Tiscali Italia|Pipex UK|Bluewin|Belgacom|Bezeq Intl.|Other|"
-    servers_dns1="*|193.252.19.3|194.117.200.15|212.30.96.108|194.6.128.3|212.83.128.3|212.216.112.112|195.130.224.18|158.43.240.4|195.186.1.111|195.238.2.21|192.115.106.11|0.0.0.0|"
-    servers_dns2="*|193.252.19.4|194.117.200.10|213.203.124.146|194.6.128.4|212.83.128.4|212.216.172.62|195.130.225.129|158.43.240.3|195.186.4.111|195.238.2.22|192.115.106.10|0.0.0.0|"
+    providers="Select your provider|Wanadoo|Club Internet|9 Telecom|Cegetel|World Online|Telecom Italia|Tiscali Italia|Pipex UK|Bluewin|Belgacom|Bezeq Intl.|Infostrada|Sunrise|Econophone|Other|"
+    servers_dns1="*|193.252.19.3|194.117.200.15|212.30.96.108|194.6.128.3|212.83.128.3|212.216.112.112|195.130.224.18|158.43.240.4|195.186.1.111|195.238.2.21|192.115.106.11|193.70.192.25|194.158.230.53|212.53.96.200|0.0.0.0|"
+    servers_dns2="*|193.252.19.4|194.117.200.10|213.203.124.146|194.6.128.4|212.83.128.4|212.216.172.62|195.130.225.129|158.43.240.3|195.186.4.111|195.238.2.22|192.115.106.10|193.70.152.25|194.158.230.54|212.53.100.250|0.0.0.0|"
 
     modems="Select your modem|ECI Hifocus/B-Focus|Eicon Diva|Ericsson hm120dp|Aztech 100U|Fujitsu FDX310|US Robotics 8500|Webpower Ipmdatacom|BT Voyager|Wisecom ad80usg or EA100|Xentrix USB|Zyxel Prestige 630-41|Topcom Webr@cer 850|Siemens Santis|GVC BB039|Digicom MichelAngelo USB|Askey USB-ADSL Modem|Archtek UGW-8000|Cypress Globespan ADSL USB G7000|Other"
     vid1pid1="*|05472131|071dac81|08ea00c9|05090801|0e600101|0baf00e6|09150001|16900203|09150001|0e600100|05472131|09150001|09150001|09150001|05472131|16900205|09150001|09150001|00000000"

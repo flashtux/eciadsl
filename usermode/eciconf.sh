@@ -10,6 +10,8 @@
 # *                                                                          *
 # ****************************************************************************
 #
+# 2002/11/03, FlashCode :
+#   Added 3 providers : Infostrada, Sunrise, Econophone
 # 2002/10/19, FlashCode :
 #   Added Belgacom provider
 # 2002/10/07, FlashCode :
@@ -129,6 +131,9 @@ set providers {
 	"Bluewin"			"195.186.1.111"		"195.186.4.111"
 	"Belgacom"			"195.238.2.21"		"195.238.2.22"
 	"Bezeq Intl."		"192.115.106.11"	"192.115.106.10"
+    "Infostrada"        "193.70.192.25"     "193.70.152.25"
+    "Sunrise"           "194.158.230.53"    "194.158.230.54"
+    "Econophone"        "212.53.96.200"     "212.53.100.250"
 	"other"				""	""
 }
 
