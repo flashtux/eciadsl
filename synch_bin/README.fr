@@ -1,0 +1,20 @@
+Liste des fichiers .bin pour la synchro :
+	synch0.bin (anciennement eci_wan3.dmt.bin)
+	synch1.bin (anciennement eci_wan3.dmt.bin)
+	synch2.bin (anciennement eci_paris19_9telecom.bin)
+	synch3.bin (anciennement eci_bordeaux_wanadoo.bin)
+	synch4.bin (anciennement eci_montsoult_clubinternet.bin)
+	synch5.bin (anciennement eci_lens.bin (56 Ko) eci_telecom_italia.bin)
+	synch6.bin (anciennement eci_wisecom_italia.bin)
+	synch7.bin (anciennement eci_libero_italia.bin)
+	synch8.bin (anciennement eci_telecom_italia.bin)
+	synch9.bin (anciennement eci_uk.bin)
+
+Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
+information relatives au pays/ville/fournisseur utilisés lors de la génération !
+
+Instructions d'installation :
+- toutes versions jusqu'à 0.5 : dans votre script startmodem, remplacez chaque
+  occurence de "/etc/eciadsl/eci_wan3.bin" par le chemin/nom du fichier .bin
+  que vous utilisez (2 lignes à modifier).
+- version > 0.5 : lancez eciconftxt.sh ou eciconf.sh et suivez les instructions.

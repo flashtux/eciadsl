@@ -1,0 +1,21 @@
+Synch .bin files list:
+	synch0.bin (formerly eci_wan3.bin)
+	synch1.bin (formerly eci_wan3.dmt.bin)
+	synch2.bin (formerly eci_paris19_9telecom.bin)
+	synch3.bin (formerly eci_bordeaux_wanadoo.bin)
+	synch4.bin (formerly eci_montsoult_clubinternet.bin)
+	synch5.bin (formerly eci_lens.bin (56 Ko) eci_telecom_italia.bin)
+	synch6.bin (formerly eci_wisecom_italia.bin)
+	synch7.bin (formerly eci_libero_italia.bin)
+	synch8.bin (formerly eci_telecom_italia.bin)
+	synch9.bin (formerly eci_uk.bin)
+
+If you've generated your own .bin file, please send it us with a few information
+regarding to the location/provider
+
+Installation :
+- driver version <= 0.5:
+  replace each occurrence of "/etc/eciadsl/eci_wan3.bin" with the .bin filename you use
+  in the startmodem script
+- driver version > 0.5 : launch eciconftxt.sh or eciconf.sh then follow the interactive
+  instructions.
