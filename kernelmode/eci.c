@@ -1362,35 +1362,20 @@ static void eci_iso_callback(struct urb *urb)
 					urb->transfer_buffer +
 						urb->iso_frame_desc[i].offset,
 					urb->iso_frame_desc[i].actual_length);
-				/*
-				 * Not usefull due to previous test
- 				if(urb->iso_frame_desc[i].actual_length)
-				 * Do nothing
  				  for(pos=0, buf=urb->transfer_buffer + 
  				    urb->iso_frame_desc[i].offset;
- 				    pos+=ATM_CELL_SZ; pos < 
- 			 	    urb->iso_frame_desc[i].actual_length);
-				 * Fellow my replacement
-				 */
- 				  for(pos=0, buf=urb->transfer_buffer + 
- 				    urb->iso_frame_desc[i].offset;
- 				    pos < 
+ 				    pos + ATM_CELL_SZ < 
  			 	    urb->iso_frame_desc[i].actual_length;
  				    pos+=ATM_CELL_SZ)
  				  {
  					cell = _uni_cell_fromRaw(ATM_CELL_SZ,
 						buf + pos);
-					/* Done in previous statement
- 					memcpy(cell->raw, buf + pos,
- 						ATM_CELL_SZ);
-					*/
  					if(_uni_cell_list_append(cells, cell))
  					{
  					  ERR_OUT("Couldn't queue One cell\n");
  					  _uni_cell_free(cell);
  					}
  				  }			
-
 			}
 		}
  		if(eci_atm_receive_cell(instance, cells)) {
