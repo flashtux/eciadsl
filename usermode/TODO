@@ -18,10 +18,10 @@ Sorted according to priority (the upper in the list, the prior):
 + packaging:
   * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
     modify scripts
-  - fix makeconfig: adsl file seems to be empty sometimes (bug)
+  * fix makeconfig: adsl file seems to be empty sometimes (bug)
   * fix ETC_DIR use (separate installation and syst configuration uses)
   * updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
-  + some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
+  * some more checks in ./configure (see TODO inside, check for GNU install, sed and grep and
     other util stuff..)
   - --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
 + unify websites: eciadsl.sf.net update/move to flashtux
@@ -33,10 +33,12 @@ Sorted according to priority (the upper in the list, the prior):
 * add grep -m check to ./configure, else use egrep (fixed temporarily).
 - synch_bin installation (asks or greps to/into makeconfig or startmodem for CONF_DIR)
 * use section numbers in TROUBLESHOOTING files
-- fix TROUBLESHOOTING file regarding the USB2 warns.
+* fix TROUBLESHOOTING file regarding the USB2 warns.
 - skeleton is in adsl and makeconfig. moreover, make install performs stuff on the installed
   adsl file, is this relevant in Makefile?
-- add PPPoE and IPoATM patches to the tracker. Then merge then to the main sources.
++ add PPPoE and IPoATM patches to the tracker. Then merge then to the main sources
+* fix EICON problems with 0.6-preX
+* add doc about connecting using startmodem at boot
 
 
 0.7:
