@@ -72,32 +72,25 @@ Launch Eciconf with the command:  ./eciconf.sh
 
 Explanation of the different fields / options to fill in:
 
-1) Path to pppoeci:
-
-    Path + executable name of pppoeci.
-    This file is the driver base, it provides the communication between ppp and
-    the modem.
-    In case of doubt, don't modify the default path.
-
-2) User name:
+1) User name:
 
     This is the user name that has been given to you by your Internet service
     provider.
     Examples: for Wanadoo, this name looks like: fti/xxxxx@fti
               for Club Internet, this name looks like: xxxxx@clubadsl1
 
-3) Password:
+2) Password:
 
     This is the password that has been given to you by your Internet service
     provider.
 
-4) Update Internet provider DNS:
+3) Update Internet provider DNS:
 
     Check this box to update the DNS (see choice 5).
     If you uncheck this box, the server's IP addresses will not be updated in
     your configuration file.
 
-5) DNS (Internet service providers list):
+4) DNS (Internet service providers list):
 
     Simply select your Internet service provider.
     You can also input manually your DNS servers if the default DNS are not
@@ -105,26 +98,26 @@ Explanation of the different fields / options to fill in:
     case, please send me your Internet service provider and the DNS, so I can
     update the tool, by email: flashcode@free.fr)
 
-6) VPI :
+5) VPI :
 
     This is the VPI that has been given to you by your Internet service
     provider (8 for France).
 
-7) VCI :
+6) VCI :
 
     This is the VCI that has been given to you by your Internet service
     provider (35 for France).
 
-8) Modem selection :
+7) Modem selection :
 
     Choose your modem (this is for VendorID/ProductID) used in
     many driver scripts.
 
-9) Selection of .bin :
+8) Selection of .bin :
 
     Choose another .bin if driver hangs up at a given block.
 
-10) Create config button:
+9) Create config button:
 
     A click on this button creates the configuration files according to the
     given parameters (cf. options 1 to 5).
@@ -138,6 +131,9 @@ Explanation of the different fields / options to fill in:
     successful (message on a green background), or if it failed (message on a
     red background).
 
+10) Change Synch .bin button:
+
+    Only change the .bin file (does not save any other parameters).
 
 11) Cancel button:
 
@@ -196,10 +192,12 @@ Nothing today.
 All the bugs found should be sent as soon as possible to one of the two persons
 below:
 
-  > FlashCode: flashcode@free.fr - http://flashcode.free.fr - AIM: helleuseb
-                IRC: serveur=irc.openprojects.net, nick=FlashCode
-  > Crevetor: ziva@caramail.com
-                IRC: serveur=irc.openprojects.net, nick=Crevetor
+  > FlashCode : flashcode@flashtux.org - http://www.flashtux.org - AIM: FlashCode AIM
+                IRC: server = irc.openprojects.net, nick = FlashCode
+  > wwp       : subcript@free.fr
+                IRC: server = irc.openprojects.net, nick = wwp
+  > Crevetor  : ziva@caramail.com
+                IRC: server = irc.openprojects.net, nick = Crevetor
 
 
 =========================== END OF README.eciconf =============================

@@ -71,32 +71,25 @@ Lancer Eciconf par la commande :  ./eciconf.sh
 
 Explication des differents champs / options a renseigner :
 
-1) Chemin vers pppoeci ("Path to pppoeci") :
-
-    Chemin + nom de l'executable pppoeci.
-    Ce fichier consitue la base du driver, il permet la communication entre
-    ppp et le modem.
-    Dans le doute, ne modifiez pas le chemin indique par defaut.
-
-2) Nom d'utilisateur ("User name") :
+1) Nom d'utilisateur ("User name") :
 
     C'est le nom d'utilisateur qui vous a ete communique par votre fournisseur
     d'acces a Internet.
     Exemples: pour Wanadoo, ce nom est de la forme: fti/xxxxx@fti
               pour Club Internet, ce nom est de la forme: xxxxx@clubadsl1
 
-3) Mot de passe ("Password") :
+2) Mot de passe ("Password") :
 
     C'est le mot de passe qui vous a ete communique par votre fournisseur
     d'acces a Internet.
 
-4) Mise a jour des DNS du FAI ("Update internet provider DNS") :
+3) Mise a jour des DNS du FAI ("Update internet provider DNS") :
 
     Cochez cette case pour mettre a jour les DNS (voir choix 5).
     Si vous decochez cette case, les addresses IP des serveurs DNS ne seront
     pas mises a jour dans votre fichier de configuration.
 
-5) DNS (liste des fournisseurs d'acces a Internet) :
+4) DNS (liste des fournisseurs d'acces a Internet) :
 
     Selectionnez simplement votre fournisseur d'acces a Internet.
     Vous pouvez aussi saisir manuellement vos serveurs DNS si les DNS
@@ -105,27 +98,27 @@ Explication des differents champs / options a renseigner :
     nom de votre fournisseur d'acces et ses DNS pour que je fasse evoluer
     l'outil, par e-mail: flashcode@free.fr)
 
-6) VPI :
+5) VPI :
 
     VPI communique par votre fournisseur d'acces a Internet.
     (8 pour la France)
 
-7) VCI :
+6) VCI :
 
     VCI communique par votre fournisseur d'acces a Internet.
     (35 pour la France)
 
-8) Choix du modem :
+7) Choix du modem :
 
     Choisissez votre modem (ceci affecte le VendorID/ProductID) utilisés dans
     les différents scripts du driver.
 
-9) Changement de .bin :
+8) Changement de .bin :
 
     Choisissez un autre .bin si vous obtenez un blocage du driver à un bloc
     particulier.
 
-10) Bouton Creation de la config ("Create config !") :
+9) Bouton Creation de la config ("Create config !") :
 
     Un clic sur ce bouton cree les fichiers de configuration conformement
     aux champs et parametres renseignes (cf options 1 a 5).
@@ -140,6 +133,9 @@ Explication des differents champs / options a renseigner :
     la mise a jour s'est correctement deroulee (message sur fond vert), ou si
     elle a echouee (message sur fond rouge).
 
+10) Bouton de changement de .bin ("Change synch .bin") :
+
+    Change seulement le fichier .bin (n'enregistre aucun autre parametre).
 
 11) Bouton Annuler ("Cancel") :
 
@@ -198,10 +194,12 @@ Rien à ce jour.
 Tous les bugs rencontres doivent etre remontes au plus vite a l'une des deux
 personnes ci-dessous :
 
-  > FlashCode : flashcode@free.fr - http://flashcode.free.fr - AIM: helleuseb
-                IRC: serveur=irc.openprojects.net, nick=FlashCode
+  > FlashCode : flashcode@flashtux.org - http://www.flashtux.org - AIM: FlashCode AIM
+                IRC: serveur = irc.openprojects.net, nick = FlashCode
+  > wwp       : subcript@free.fr
+                IRC: serveur = irc.openprojects.net, nick = wwp
   > Crevetor  : ziva@caramail.com
-                IRC: serveur=irc.openprojects.net, nick=Crevetor
+                IRC: serveur = irc.openprojects.net, nick = Crevetor
 
 
 =========================== END OF README.eciconf =============================
