@@ -5,7 +5,7 @@
 # Licence  : GPL
 #
 # 07/02/2002: added the CVS Id
-# CVS $Id: startmodem,v 1.55 2003/08/01 14:14:02 crevetor Exp $
+# CVS $Id: eciadsl-start,v 1.1 2004/04/23 01:33:41 flashcode Exp $
 # Tag $Name:  $
 #
 # 03/02/2002
@@ -78,7 +78,7 @@ function next_step()
 
 function check_host_is_EHCI()
 {
-    HOSTVERSION=""
+    HOSTVER=""
     HOSTDEVICES=0
     HOSTINFO=""
     VER=""
@@ -93,7 +93,7 @@ function check_host_is_EHCI()
         case "${LINE:0:2}" in
         "P:")	DEVICE="${LINE:11:4}${LINE:23:4}"
                 case "$DEVICE" in
-                "00000000")	if [ -n "$HOSTVERSION" ]; then
+                "00000000")	if [ -n "$HOSTVER" ]; then
                                 HOSTDEVICES=$DEVICES
                                 HOSTINFO="$INFO"
                                 break
@@ -104,7 +104,7 @@ function check_host_is_EHCI()
                             TMPVER=""
                             ;;
                 "$vid1$pid1"|"$vid2$pid2")
-                            HOSTVERSION=$VER
+                            HOSTVER=$VER
                             DEVICES=$(($DEVICES+1))
                             ;;
                 *)			DEVICES=$(($DEVICES+1))
@@ -119,11 +119,11 @@ function check_host_is_EHCI()
         IFS=$'\n'
     done
     IFS="$OLDIFS"
-#	echo "Host version: $HOSTVERSION"
+#	echo "Host version: $HOSTVER"
 #	echo "Devices in use: $HOSTDEVICES"
 #	echo $HOSTINFO | grep -iEqm 1 "ehci.hcd" && \
 #		echo "Host is ehci-hcd"
-    if [ "${HOSTVERSION:0:2}" != " 1" ]; then
+    if [ -n "$HOSTVER" -a "${HOSTVER:0:2}" != " 1" ]; then
         # modem is not plugged to a USB1 port
         echo $HOSTINFO | grep -iEqm 1 "ehci.hcd"
         if [ $? -eq 0 ]; then
@@ -142,7 +142,7 @@ function check_host_is_EHCI()
             WHATTODOWITHEHCI=3
         fi
     else
-        # USB1 port is used
+        # USB1 port is used or no modem found
         WHATTODOWITHEHCI=0
     fi
 }
@@ -310,9 +310,8 @@ case "$WHATTODOWITHEHCI" in
     echo "are using this host module so it is not possible to unload it."
     echo "$BASE will probably fail and you'll have to plug your modem to a USB1 port"
     ;;
-3)  # No message today (TODO: complete or write appropriate message)
-    #echo "The modem seems to be plugged to a USB2 port which is not managed by the ehci-hcd module."
-    #echo "$BASE may fail, please report any problem to the developpers"
+3)  echo "The modem seems to be plugged to a USB2 port which is not managed by the ehci-hcd module."
+    echo "$BASE may fail, please report any problem to the developpers"
 	;;
 esac
 
