@@ -75,7 +75,7 @@ section Downloads.
 \begin{verbatim}
 $ cd usermode
 $ make
-$ make install
+# make install
 \end{verbatim}
 
     Il arrive parfois que le modem soit allumé quand vous 
@@ -129,7 +129,7 @@ $ make menuconfig
      <M> HDLC line discipline support
      [*]Unix98 PTY support
 $ make clean dep modules
-$ make modules_install (as root)
+# make modules_install (as root)
 \end{verbatim}
     
 \subsection{Configuration de pppd pour l'ouverture de la connexion}
@@ -137,8 +137,9 @@ $ make modules_install (as root)
 \subsubsection{Script /etc/ppp/peers/adsl :}
 \label{cha:peers}
 
-    Il vient avec l'archive usermode.tgz et se place avec le make install
-    Il doit ressembler à ça :
+Il vient avec l'archive \textit{usermode.tgz} et se place avec le make
+install Il doit ressembler à ça :
+
 \begin{verbatim}
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
 # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
@@ -207,8 +208,8 @@ noauth
     
     
     \begin{tabular}{ll}
-    Pour wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
-    Pour club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
+      Pour wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
+      Pour club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
     \end{tabular}
     
     
@@ -217,11 +218,8 @@ noauth
     
     
     \begin{tabular}{ll}
-    Pour wanadoo :&
-        \textit{ fti/votre\_login@fti * votre\_password *}\\
-
-    Pour club-internet :&
-        \textit{ votre\_login@clubadsl1 * votre\_password *}\\
+Pour wanadoo       :& \textit{ fti/votre\_login@fti * votre\_password *}\\
+Pour club-internet :& \textit{ votre\_login@clubadsl1 * votre\_password *}\\
     \end{tabular}
     
     
@@ -254,7 +252,7 @@ Le driver étant pour l'instant en version bêta, cette partie ne
 fonctionne pas de manière stable. Néanmoins, voici la procédure à
 suivre. Tout d'abord, assurez vous que le module HDLC n'est pas buggé,
 vous pouvez aisément faire cette vérification avec
-\textbf{eci-doctor.sh}. Ensuite, ajouter l'option \textbf{persist} au
+\textit{eci-doctor.sh}. Ensuite, ajouter l'option \textbf{persist} au
 fichier \textit{/etc/ppp/peers/adsl}. Relancer pppd et normalement,
 votre connexion devrait être opérationnelle 24h/24.
 
@@ -264,7 +262,7 @@ votre connexion devrait être opérationnelle 24h/24.
 Le driver est livré avec un utilitaire de diagnostic des erreurs de
 configuration les plus courantes. Pour l'utiliser, allez dans le
 répertoire \textit{usermode} de l'archive des drivers et lancez
-\textbf{./eci-doctor.sh}.
+\textit{./eci-doctor.sh}.
 
 \begin{verbatim}
 # cd usermode
@@ -298,7 +296,7 @@ eci@ml.free.fr Nous les incorporerons ICI.
 
     \subsubsection{Action 1 :}
         vérifier que vos DNS sont reconnus :
-        dans /etc/resolv.conf
+        dans \textit{/etc/resolv.conf}
         2 lignes sont présentes commençant par nameserver
 
         A ce jour :
@@ -419,8 +417,9 @@ suggestions à
 \subsection{IRC}
 
 Vous pouvez vous connecter sur le réseau
-\htmladdnormallink{OpenProjects.Net}{http://www.openprojetc.net/} sur
+\htmladdnormallink{OpenProjects.Net}{http://www.openprojects.net/} sur
 le channel \textbf{\#eci} en utilisant le serveur
-\textbf{irc.openprojects.net} par exemple.
+\htmladdnormallink{\textbf{irc.openprojects.net}}{irc://irc.openprojects.net/eci}
+par exemple.
   
 \end{document}
