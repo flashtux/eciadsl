@@ -153,12 +153,6 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								printf("OEC.C - parse_eoc_buffer - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								if((eocmescnt >= 2) && (EOC_PARITY(eocmesval) == EOC_PARITY_ODD)) 
 									eocstate = _read;
-							/*//	if(eoc_out_buffer_pos < 33) { /* do the echo to ack it *//*
-									//eoc_out_buf[eoc_out_buffer_pos-2] = (eocmesval & 0xff00) >> 8;
-									//eoc_out_buf[eoc_out_buffer_pos-1] = eocmesval & 0x00ff;
-							//	} else {
-							//		return -EIO;
-							//	}*/
 								break;
 							case EOC_OPCODE_RTN:
 								printf("OEC.C - parse_eoc_buffer - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
@@ -168,24 +162,11 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 									eocstate = _idle;
 								break;
 						}
-					/*//	if(eoc_out_buffer_pos < 33) { /* do the echo to ack it *//*
-					//		printf("OEC.C - parse_eoc_buffer - PREREAD [eoc_out_buffer_pos < 30]\n");							
-					//		eoc_out_buf[eoc_out_buffer_pos-2] = (eocmesval & 0xff00) >> 8;
-					//		eoc_out_buf[eoc_out_buffer_pos-1] = eocmesval & 0x00ff;
-					//	} else {
-					//		return -EIO;
-					//	}*/
 						break;
 				case _idle:	/*like G992.2 recomendation */
 					printf("OEC.C - parse_eoc_buffer - IDLE [eocstate : _idle]\n");
 					if(eocmescnt >=2) /* execute third time with same message */
 						eoc_execute(eocmesval);
-					/*if(eoc_out_buffer_pos < 33) { /* do the echo to ack it *//*
-						eoc_out_buf[eoc_out_buffer_pos-2] = (eocmesval & 0xff00) >> 8;
-						eoc_out_buf[eoc_out_buffer_pos-1] = eocmesval & 0x00ff;
-					} else {
-						return -EIO;
-					}*/
 					break;
 				case _read:
 					printf("OEC.C - parse_eoc_buffer - READ [eocstate : _read]\n");
@@ -193,12 +174,6 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 							case EOC_OPCODE_NEXT:
 								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
-								/*if(eoc_out_buffer_pos < 33) { /* do the echo to ack it *//*
-									eoc_out_buf[eoc_out_buffer_pos-2] = (mes & 0xff00) >> 8;
-									eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
-								} else {
-									return -EIO;
-								}*/
 								break;
 							case EOC_OPCODE_RTN:
 								printf("OEC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
