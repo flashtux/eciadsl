@@ -60,7 +60,7 @@
                     Debuging Stuf
 ***********************************************************************/
 
-//#define DEBUG 1
+#define DEBUG 1
 #ifdef DEBUG
 
 #define DBG_OUT(fmt, argz...) \
@@ -1201,9 +1201,10 @@ static void eci_bh_atm (unsigned long param) {
 	struct sk_buff *lp_skb = NULL ;
 	struct atm_vcc *lp_vcc = NULL ;
 	int lv_rc ;
+	int flags;
 	
 	DBG_OUT("eci_bh_atm IN\n") ;
-	spin_lock(&lp_instance->lock);
+	spin_lock_irqsave(&lp_instance->lock, flags);
 	if (!(lp_vcc = lp_instance->pcurvcc)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
 	       return ;
@@ -1221,7 +1222,7 @@ static void eci_bh_atm (unsigned long param) {
 		}
 		dev_kfree_skb (lp_skb);
 	}
-	spin_unlock(&lp_instance->lock);
+	spin_unlock_irqrestore(&lp_instance->lock, flags);
 	DBG_OUT("eci_bh_atm OUT\n") ;
 }
 /*----------------------------------------------------------------------*/
@@ -1480,10 +1481,12 @@ static void eci_int_callback(struct urb *urb)
 
 static void eci_bh_iso(unsigned long instance)
 {
-	spin_lock(&(((struct eci_instance *)instance)->lock));
+	int flags;
+
+	spin_lock_irqsave(&(((struct eci_instance *)instance)->lock), flags);
  	eci_atm_receive_cell(((struct eci_instance *)instance),
 		&(((struct eci_instance *)instance)->iso_cells));
-	spin_unlock(&(((struct eci_instance *)instance)->lock));
+	spin_unlock_irqrestore(&(((struct eci_instance *)instance)->lock), flags);
 }
 
 static void eci_iso_callback(struct urb *urb)
@@ -1643,10 +1646,11 @@ static void eci_bh_bulk(unsigned long pinstance)
 	uni_cell_list_crs_t	cell;	/* current computed cell	*/
 	struct urb	*urb;		/* urb pointer to sent urb	*/
 	struct eci_instance *instance;	/* pointer to instance		*/
+	int flags;
 
 	DBG_OUT("eci_bh_bulk IN\n") ;
 	instance = (struct eci_instance *)pinstance;
-	spin_lock(&instance->lock);
+	spin_lock_irqsave(&instance->lock , flags);
 	/*if(nbcells)
 	{
 */
@@ -1693,7 +1697,7 @@ static void eci_bh_bulk(unsigned long pinstance)
 		return;
 	}
 	/*}*/
-	spin_unlock(&instance->lock);
+	spin_unlock_irqrestore(&instance->lock, flags);
 	DBG_OUT("eci_bh_bulk OUT\n") ;
 	return;	
 }
