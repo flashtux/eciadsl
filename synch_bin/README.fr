@@ -127,6 +127,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch29.bin (généré en Suisse/Zürich, fournisseur Solnet.ch, modulation inconnue)
 	synch30.bin (généré au Canada/Montréal, fournisseur Bell Canada, modulation inconnue)
 	synch31.bin (généré en Italie/Turin, fournisseur Infostrada, modulation inconnue)
+	synch32.bin (généré en Italie/Pisa, fournisseur Tiscali, G-lite)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
