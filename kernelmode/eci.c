@@ -463,7 +463,7 @@ struct eci_instance 		/*	Private data for driver	*/
 	struct urb		*vendor_urb;	/*	For init and Answer 
 							to INT		*/
 	struct urb		*interrupt_urb;	/*	INT pooling	*/
-	char 			*interrupt_buffer;
+	unsigned char 		*interrupt_buffer;
 
 
 	/* -- Transmission Elements -- */
@@ -626,11 +626,11 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 		tmpurb = out_instance->isourbs;
 		while(tmpurb->next) tmpurb=tmpurb->next;
 		tmpurb->next = out_instance->isourbs;
-		/*if(usb_submit_urb(eciurb))
+		if(usb_submit_urb(eciurb))
 		{
 			ERR_OUT("error couldn't send iso urbs\n");
 			return 0;
-		}*/
+		}
 		/*
 			Should reset the Iso EP and send 20 Urbs
 		*/
@@ -647,8 +647,9 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 			ERR_OUT("Can't allocate int buffer\n");
 			return 0;
 		}
+		DBG_OUT("interrupt buffer = %x\n", out_instance->interrupt_buffer);
 		FILL_INT_URB(eciurb, dev, usb_rcvintpipe(dev, ECI_INT_EP), 
-			&out_instance->interrupt_buffer,64,
+			out_instance->interrupt_buffer,64,
 			eci_ep_int_callback,out_instance,3);
 		if(usb_submit_urb(eciurb))
 		{
@@ -1073,14 +1074,14 @@ static void eci_ep_int_callback(struct urb *urb)
 	struct eci_instance *instance;
 	struct urb *eci_vendor;
 	int i; 		/*loop counter	*/
-	int outi;
-	unsigned char *out_buf, *in_buf, b1, b2;
-	static int eci_int_count;
+	int outi = 0; 
+	static int eci_int_count = 0;
+	unsigned char *in_buf, b1, b2;
 	static unsigned char replace_b1[] = { 0x73, 0x73, 0x63, 0x63,
 		0x63, 0x63, 0x73, 0x73, 0x63, 0x63, 0x63 , 0x63 };
 	static unsigned char replace_b2[] = { 0x11, 0x11, 0x13, 0x13,
 		0x13, 0x13, 0x11, 0x11, 0x1, 0x1, 0x1, 0x01 };
-	static unsigned char eci_int_outbuf[34] = {
+	unsigned char eci_outbuf[34] = {
 		0xff, 0xff, 
 		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
 		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 
@@ -1112,27 +1113,29 @@ static void eci_ep_int_callback(struct urb *urb)
 
 	Here what we do :
 		Send the received buffer exept for 0x7311 which is
-		replaced by 0x6313, 0x6301, 0x6313 , 0x6353 
-		and again from start.
+		replaced by 0x6313, 0x6301, 0x6313 , 0x6353 ...
 		Thanxs benoit papillault for the algo. 
 
 */
-			/*in_buf = instance->interrupt_buffer;
-			out_buf = instance->vendor_urb->transfer_buffer;
-			for(i=0;i<15;i++)
+			in_buf = instance->interrupt_buffer;
+			DBG_OUT("INT buf %x\n", in_buf);
+			/*for(i=0;i<15;i++)
 			{
 				b1 = in_buf[6+2*i+0];
-				b2 =  in_buf[6+2*i+1];
+				b2 = in_buf[6+2*i+1];
 				if( b1 != 0x0c || b2 !=0x0c)
 				{
 
 					eci_int_count %= 12;
-					out_buf[10 + outi++]=
-							replace_b1[eci_int_count];
-					out_buf[10 + outi++]=
-						replace_b2[eci_int_count++];;
+					eci_outbuf[10 + outi++]=
+						replace_b1[eci_int_count];
+					eci_outbuf[10 + outi++]=
+						replace_b2[eci_int_count];
 				}
-			}*/
+			}
+			usb_control_msg(instance->usb_wan_dev, 
+				 usb_pipecontrol(0), 0xdd, 0x40, 0xc02,
+				 0x580 , eci_outbuf, 0x64, HZ);*/
 			DBG_OUT("EP INT received 64 bytes\n");
 		}
 	}
@@ -1169,11 +1172,6 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].offset = i * ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
-	}
-	if(usb_submit_urb(urb))
-	{
-		printk( KERN_ERR 
-			"error couldn't resend iso urb\n");
 	}
 	/*
 	DBG_OUT("Iso Callback Exit\n");
