@@ -1528,8 +1528,9 @@ static void eci_iso_callback(struct urb *urb)
 				 		"Couldn't queue One cell\n");
 						    _uni_cell_free(cell);
 						}
+						else
+					 	    received = -1;
 					}
-					received = -1;
 				}
 				else
 				{
@@ -1555,6 +1556,8 @@ static void eci_iso_callback(struct urb *urb)
 					   ERR_OUT("Couldn't queue One cell\n");
 					   _uni_cell_free(cell);
 					 }
+					 else
+					   received = -1;
 				}
 				if((instance->iso_celbuf_pos = 
 					urb->iso_frame_desc[i].actual_length - 
