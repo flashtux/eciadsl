@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # TODO: check if gcc -pipe leads to problem following the system
 # TODO: check for modules.conf location (warn if conf.modules is found)
