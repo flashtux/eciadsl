@@ -1139,6 +1139,12 @@ static int eci_atm_open(struct atm_vcc *vcc, short vpi, int vci)
 
 	/* test */
 	((struct eci_instance*)vcc->dev->dev_data)->pcurvcc = vcc ;
+	/*	
+	 * TODO: allow more than one VCC.
+	 */
+	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->vccs = vcc;
+	((struct eci_instance*)vcc->dev->dev_data)->atm_dev->last = vcc;
+	
 	
 	return 0;
 };
@@ -1149,6 +1155,11 @@ static void eci_atm_close(struct atm_vcc *vcc)
 	struct eci_instance * lp_instance = 
 		(struct eci_instance*)vcc->dev->dev_data ;
 	lp_instance->pcurvcc = NULL ;
+	/*
+	 * 	TO DO allow to open more than one vcc
+	 */
+	lp_instance->atm_dev->vccs = NULL;
+	lp_instance->atm_dev->last = NULL;
 	if (lp_instance->pbklogaal5) {
 		_aal5_free(lp_instance->pbklogaal5) ;
 		lp_instance->pbklogaal5 = NULL ;
@@ -1242,10 +1253,16 @@ static void eci_bh_atm (unsigned long param) {
 	int flags;
 	
 	spin_lock_irqsave(&lp_instance->lock, flags);
-	if (!(lp_vcc = lp_instance->pcurvcc)) {
+	if (!(lp_vcc = lp_instance->atm_dev->last)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
 	       return ;
 	}
+	
+	/*
+	 * 	Allow  more than one VCC
+	 * 	Probleme with eci_tx_all5 param, gotta change it to struct atm_vcc *
+	 * 	in order thow allow choose one couple VPI/VCI between all opened vcc
+	 */
 
 	if((lp_skb = skb_dequeue(&lp_instance->txq))) {
 		lv_rc = _eci_tx_aal5(lp_vcc->vpi, lp_vcc->vci, lp_instance, lp_skb) ;
@@ -1256,7 +1273,7 @@ static void eci_bh_atm (unsigned long param) {
 			atomic_inc(&lp_vcc->stats->tx) ;
 		}
 		/* Free Socket Buffer */
-		FREE_SKB(lp_instance->pcurvcc, lp_skb) ;
+		FREE_SKB(lp_instance->atm_dev->vccs, lp_skb) ;
 	}
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
 }
@@ -1442,6 +1459,7 @@ static void eci_int_callback(struct urb *urb)
 				"EP INT received %d bytes\n",
 				urb->actual_length);
 			DBG_OUT("Calling _eci_send_init_urb from Int \n");
+			DBG_RAW_OUT("Int buffer\n",urb->transfer_buffer,urb->actual_length);
 			_eci_send_init_urb(instance->vendor_urb);
 		}
 		else
@@ -1929,7 +1947,7 @@ static int eci_atm_receive_cell(
 		return -EINVAL ;
 
 	/* Check if VCC available */
-	if (!pinstance->pcurvcc){
+	if (!pinstance->atm_dev->last){
 		ERR_OUT("No opened VC\n") ;
 		return -ENXIO ;
 	}
@@ -2002,6 +2020,8 @@ static int eci_atm_receive_cell(
 /*----------------------------------------------------------------------
  * 
  * Send data to ATM
+ * 
+ * Gotta add some check for which vcc somewhere !!!
  *
  */
 static int _eci_rx_aal5(
@@ -2029,7 +2049,7 @@ static int _eci_rx_aal5(
 	lv_size = _aal5_getSize(paal5) ;
 	
 	/* Alloc SKB */
-	lp_skb = atm_alloc_charge(pinstance->pcurvcc, lv_size, GFP_ATOMIC);
+	lp_skb = atm_alloc_charge(pinstance->atm_dev->vccs, lv_size, GFP_ATOMIC);
 	if (!lp_skb) {
 		ERR_OUT("not enought mem for new skb\n") ;
 		return -ENOMEM ;
@@ -2037,7 +2057,7 @@ static int _eci_rx_aal5(
 
 	/* Init SKB */
 	skb_put(lp_skb, lv_size) ;
-	ATM_SKB(lp_skb)->vcc = pinstance->pcurvcc ;
+	ATM_SKB(lp_skb)->vcc = pinstance->atm_dev->vccs ;
 	lp_skb->stamp = xtime ;
 
 	/* Copy data */
@@ -2069,8 +2089,8 @@ static int _eci_rx_aal5(
 		_uni_cell_getPayload(lp_cell), 
 		lv_size) ;
 
-	pinstance->pcurvcc->push(pinstance->pcurvcc, lp_skb) ;
-	atomic_inc(&pinstance->pcurvcc->stats->rx) ;
+	pinstance->atm_dev->vccs->push(pinstance->pcurvcc, lp_skb) ;
+	atomic_inc(&pinstance->atm_dev->vccs->stats->rx) ;
 	
 
 	return 0 ;
