@@ -746,22 +746,24 @@ static int __init eci_init(void) {
 /*
 		free all allocated ressource for this instance
 */
-static int eci_cleanup(struct eci_instance *i) {
+static int _eci_cleanup_instance(struct eci_instance *i) {
 	int cnt;
 
+#ifdef __USE_ATM__
 	if(i->atm_dev) 	{
 		atm_dev_deregister(i->atm_dev);
 		i->atm_dev = 0;
 	}
-	if(i->setup_packets) 	{
-	}
+#endif	
+	
 	for(cnt = 0 ; cnt< ECI_NB_ISO_PACKET;cnt ++) 
-			if(i->isourbs[cnt]) 		{
-		    }
+			if(i->isourbs[cnt]){
+		    	}
 	if(i->vendor_urb) 	{
 	}
-	if(i->interrupt_urb) 	{
-		usb_unlink_urb(i->interrupt_urb);
+	if(i->interrupt_urb){
+		if (i->interrupt_urb->status == -EINPROGRESS)
+			usb_unlink_urb(i->interrupt_urb);
 		usb_free_urb(i->interrupt_urb);
 		i->interrupt_urb = 0;
 	}
@@ -770,17 +772,9 @@ static int eci_cleanup(struct eci_instance *i) {
 		usb_free_urb(i->bulk_urb);
 		i->bulk_urb = 0;
 	}
-	if(i->interrupt_buffer) 	{
-		kfree(i->interrupt_buffer);
-		i->interrupt_buffer = 0;
-	}
-	if(i->pooling_buffer) 	{
-		kfree(i->pooling_buffer);
-		i->pooling_buffer = 0;
-	}
 	_uni_cell_list_free(&i->iso_cells);
 	_uni_cell_list_free(&i->bulk_cells);
-	//skb_free(i->txq);
+	/*skb_free(i->txq);*/
 	if(i->pcurvcc) 	{
 	}
 	if(i->pbklogaal5) 	{
@@ -846,7 +840,6 @@ static int eci_usb_probe(struct usb_interface *interface,
 							GFP_KERNEL);
 			if(out_instance) {
 				memset(out_instance, 0, sizeof(struct eci_instance));
-				eci_instances=out_instance; 
 				spin_lock_init(&out_instance->lock);
 				out_instance->usb_wan_dev= dev;
 				out_instance->setup_packets = eci_init_setup_packets;
@@ -1047,11 +1040,12 @@ static int eci_usb_probe(struct usb_interface *interface,
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 	return out_instance;
 #else
+	usb_set_intfdata(interface, out_instance);
 	return 0;
 #endif
 erreure:
 	if(out_instance) 	{
-		eci_cleanup(out_instance);
+		_eci_cleanup_instance(out_instance);
 		kfree(out_instance);
 	}
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
@@ -1060,30 +1054,23 @@ erreure:
 	return -ENOMEM;
 #endif
 };
+
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 static void eci_usb_disconnect(struct usb_device *dev, void *p) {
+	struct eci_instance eciInstance = p;
 #else
 static void eci_usb_disconnect(struct usb_interface *interface) {
-	struct usb_device *dev = interface_to_usbdev(interface);
-#endif
-	struct urb *urb;
+	struct eci_instance *eciInstance;
 	
-	if(eci_instances) {
-#ifdef __USE_ATM__
-		atm_dev_deregister(eci_instances->atm_dev);
-		if (eci_instances->pbklogaal5)
-			_aal5_free(eci_instances->pbklogaal5) ;
-#endif /* __USE_ATM__ */
+	eciInstance = (struct eci_instance*) usb_get_intfdata(interface);
+#endif
 
-		usb_unlink_urb(eci_instances->interrupt_urb);
-		usb_free_urb(eci_instances->interrupt_urb);
-		DBG_OUT("disconnect : freeing instance %p\n", eci_instances);
-		kfree(eci_instances);
-		eci_instances=NULL;
+	if(eciInstance) {
+		_eci_cleanup_instance(eciInstance);
+		kfree(eciInstance);
+		usb_set_intfdata (interface, NULL);
 	}
 };
-
-
 
 int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf) {
 	DBG_OUT("eci_usb_ioctl in\n");
