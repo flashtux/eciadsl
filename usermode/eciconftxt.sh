@@ -239,22 +239,24 @@ case "$1" in
                 fi
             fi
         done
-        pid1=""
-        choice_ok=0
-        while [ $choice_ok -eq 0 ]; do
-            echo -n "PID1 (4-digit hexadecimal) : "
-            read pid1
-            if [ -z "$pid1" ]; then
-                choice_ok=1
-            else
-                echo $pid1 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
-                if [ $? -eq 0 ]; then
-                    choice_ok=1
-                else
-                    echo "Invalid PID1. Please enter it again."
-                fi
-            fi
-        done
+       	pid1=""
+		if [ -n "$vid1" ]; then
+        	choice_ok=0
+        	while [ $choice_ok -eq 0 ]; do
+            	echo -n "PID1 (4-digit hexadecimal) : "
+            	read pid1
+            	if [ -z "$pid1" ]; then
+                	choice_ok=1
+            	else
+                	echo $pid1 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                	if [ $? -eq 0 ]; then
+                    	choice_ok=1
+                	else
+                    	echo "Invalid PID1. Please enter it again."
+                	fi
+            	fi
+        	done
+		fi
         vid2=""
         choice_ok=0
         while [ $choice_ok -eq 0 ]; do
@@ -272,23 +274,29 @@ case "$1" in
             fi
         done
         pid2=""
-        choice_ok=0
-        while [ $choice_ok -eq 0 ]; do
-            echo -n "PID2 (4-digit hexadecimal) : "
-            read pid2
-            if [ -z "$pid2" ]; then
-                choice_ok=1
-            else
-                echo $pid2 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
-                if [ $? -eq 0 ]; then
-                    choice_ok=1
-                else
-                    echo "Invalid PID2. Please enter it again."
-                fi
-            fi
-        done
-		vid1pid1="$vid1$pid1"
-		vid2pid2="$vid2$pid2"
+		if [ -n "$vid2" ]; then
+        	choice_ok=0
+        	while [ $choice_ok -eq 0 ]; do
+            	echo -n "PID2 (4-digit hexadecimal) : "
+            	read pid2
+            	if [ -z "$pid2" ]; then
+                	choice_ok=1
+            	else
+                	echo $pid2 | grep -E "^([0-9A-Fa-f]{4})$" >/dev/null 2>&1
+                	if [ $? -eq 0 ]; then
+                    	choice_ok=1
+                	else
+                    	echo "Invalid PID2. Please enter it again."
+                	fi
+            	fi
+        	done
+		fi
+        if [ -n "$vid1" -a -n "$pid1" ]; then
+			vid1pid1="$vid1$pid1"
+		fi
+        if [ -n "$vid2" -a -n "$pid2" ]; then
+			vid2pid2="$vid2$pid2"
+		fi
 
         $0 @bin@
 		ret=$?
