@@ -12,7 +12,7 @@ fi
 
 if [ ! -d /proc/bus/usb ]; then
 	echo "Support for USB is missing... trying to load" ;
-	modprobe usbcore
+	/sbin/modprobe usbcore
 	if [ ! -d /proc/bus/usb ]; then
 		echo "Support for USB: failed to load" ;
 		exit -1;
@@ -45,8 +45,9 @@ if [ $? -eq 0 ]; then
 	grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "UHCI support is missing... trying to load" ;
-		modprobe usb-uhci
-		modprobe uhci
+		/sbin/modprobe usb-uhci
+		/sbin/modprobe uhci
+		sleep 2
 		grep "^S:  Product=USB UHCI Root Hub" /proc/bus/usb/devices > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "UHCI support: failed to load" ;
@@ -68,7 +69,8 @@ if [ $? -eq 0 ]; then
 	grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
 	if [ $? -ne 0 ]; then
 		echo "OHCI support is missing... trying to load" ;
-		modprobe usb-ohci
+		/sbin/modprobe usb-ohci
+		sleep 2
 		grep "^S:  Product=USB OHCI Root Hub" /proc/bus/usb/devices > /dev/null
 		if [ $? -ne 0 ]; then
 			echo "OHCI support: failed to load" ;
@@ -83,7 +85,7 @@ if [ $? -eq 0 ]; then
 fi
 
 if [ $uhci -eq 0 -a $ohci -eq 0 ]; then
-	echo "You have no USB controller" ;
+	echo "I found no USB controller" ;
 	exit -1;
 fi
 
@@ -143,7 +145,7 @@ fi
 ./check-hdlc
 if [ $? -ne 0 ]; then
 	echo "HDLC support is missing... trying to load" ;
-	modprobe n_hdlc ;
+	/sbin/modprobe n_hdlc ;
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: failed to load" ;
@@ -153,7 +155,7 @@ if [ $? -ne 0 ]; then
 		exit -1;
 	fi
 # here, HDLC support is OK, but maybe some alias are missing
-	rmmod n_hdlc ;
+	/sbin/rmmod n_hdlc ;
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: alias is missing... trying to add" ;
@@ -184,7 +186,10 @@ fi
 # check for the HDLC bug (TODO)
 ./check-hdlc-bug > /dev/null 2>&1
 if [ $? -ne 0 ]; then
-	echo "HDLC support is buggy, you should apply the HDLC patch to your kernel source" ;
+	echo "HDLC support is buggy, you should apply the HDLC patch to your \
+kernel source. See the howto in the doc directory or on \
+http://eciadsl.sourceforge.net/ in the Documentation section for further \
+instructions." ;
 else
 	echo "HDLC support is OK (no bug)" ;
 fi
@@ -238,26 +243,17 @@ else
 fi
 
 # check for the Globespan chip
-globespan=0
 grep "^P:  Vendor=0915 ProdID=8000" /proc/bus/usb/devices > /dev/null
 if [ $? -ne 0 ]; then
-	echo "I can't find your modem... sorry :-("
-	exit -1;
-else
-	globespan=1 ;
-fi
-
-# check that at least one of the chips is present
-if [ $ezusb -eq 0 -a $globespan -eq 0 ]; then
-	echo "I cannot find your ADSL modem" ;
+	echo "I cannot find your ADSL modem: Fatal"
 	exit -1;
 fi
 
 # check for an existing PPP connection (select the first one if several)
 PPP=`/sbin/ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
-	echo "No existing PPP connections" ;
-	exit -1;
+	echo "No existing PPP connection... trying to make one" ;
+	nice --20 pppd call adsl updetach > /tmp/ppp.log
 fi
 
 # check for the default route over pppN (TODO)
@@ -299,6 +295,7 @@ fi
 # check for "sent [LCP ConfRej id=0xa5 <auth chap MD5>]" (TODO)
 # check for "rcvd [LCP TermReq id=0xa8]" (TODO)
 # check for the dabusb module (TODO)
+# check for an installed pppd (/usr/sbin/pppd) (TODO)
 
 echo "Everything is OK" ;
 
