@@ -6,26 +6,34 @@
 # $ make site (to get the last Tex and Makefile using anonymous cvs)
 # $ make (to get your doc in DVI HTML PS PDF ASCII)
 
+# 08/02/2002: pdf generation has been removed since it does not work on
+# 			  eciadsl.sf.net since the addition of \usepackage{html}
 
 base = howto
 pwd = `pwd`
 cvsroot= :pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl
 
-all: $(base).dvi $(base).html $(base).ps $(base).pdf $(base).txt \
+all: $(base).dvi $(base).html $(base).ps $(base).txt \
   keep-useful-files-only
+
+%.aux: %.tex
+	latex $<
 
 %.dvi: %.tex
 # we run latex twice to get a proper table of content in the .dvi file
-	latex $^
-	latex $^
+	$(RM) $*.aux
+	latex $<
+	latex $<
 
-%.html: %.tex
-	latex2html -dir $(pwd) -nonavigation -noauto_link -ascii_mode -show_section_numbers -split 0 $^
+%.html: %.tex %.aux
+	latex2html -dir $(pwd) -nonavigation -noauto_link -ascii_mode -show_section_numbers -split 0 $<
 
 %.ps: %.dvi 
 	dvips -f $< > $@
 
 %.pdf: %.tex
+	$(RM) $*.aux
+	pdflatex $<
 	pdflatex $<
 
 %.txt: %.html
@@ -38,7 +46,7 @@ site:
 	cvs -d$(cvsroot) logout
 
 keep-useful-files-only:
-	rm -f labels.pl warnings $(base).log $(base).aux $(base).toc
+	$(RM) internals.pl labels.pl warnings $(base).log $(base).aux $(base).toc $(base).out
 
 clean: keep-useful-files-only
-	rm -f $(base).html $(base).css $(base).dvi $(base).ps $(base).pdf $(base).txt
+	$(RM) $(base).html $(base).css $(base).dvi $(base).ps $(base).pdf $(base).txt

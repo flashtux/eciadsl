@@ -2,8 +2,17 @@
 % to compile it:
 % make
 
+% 07/02/2002 Benoit PAPILLAULT
+% howto add an http link:
+% - add the beginning of the document: \usepackage{html}
+% - to add a link \htmladdnormallink{text}{URL}
+
+% CVS $Id$
+% Tag $Name$
+
 \documentclass[a4paper,12pt]{article}
 \usepackage[francais]{babel}
+\usepackage{html}
 \usepackage[latin1]{inputenc}
 \baselineskip=16pt
 
@@ -18,10 +27,20 @@
 \newpage
 
 
-\section{A qui s'adresse ce document ?}
+\section{Introduction}
+
+\subsection{A qui s'adresse ce document ?}
 
 Ce document s'adresse à tous les possesseurs du modem ADSL ECI USB
-voulant l'utiliser sous Linux.
+voulant l'utiliser sous Linux. Vous trouverez la dernière version de
+ce documents sur le site :
+\htmladdnormallink{http://eciadsl.sourceforge.net/}{http://eciadsl.sourceforge.net/}.
+
+\subsection{Conventions}
+
+Lors des exemples de commandes à taper au niveau du shell, les
+commandes à exécuter en tant qu'utilisateur normal sont précédées de \$
+et les commandes à exécuter en root sont précédées de \#.
 
 \section{Configuration requise}
 
@@ -44,12 +63,17 @@ voulant l'utiliser sous Linux.
     n'hésitez pas à nous contacter.
 
 \section {Procédure d'installation (à ne faire qu'une seule fois)}
-    Référence : archive usermode.tgz présente sur http://flashcode.free.fr/linux
+
+Référence : archive \textit{usermode-X.Y.tgz} présente sur
+\htmladdnormallink{http://eciadsl.sourceforge.net/}{http://eciadsl.sourceforge.net/},
+section Downloads.
 
 \subsection{Préparation du driver}
 
     Connectez vous en tant que root puis tapez :
+
 \begin{verbatim}
+$ cd usermode
 $ make
 $ make install
 \end{verbatim}
@@ -78,9 +102,9 @@ $ make install
 Si vous voulez utiliser l'option 'persist' de pppd afin que votre
 connexion se reconnecte automatiquement, alors, il faut patcher votre
 noyau ou utiliser un noyau >= 2.4.18-pre3. Vous trouverez le patch
-n\_hdlc.c.diff au sein de l'archive des drivers speedtouch :
-http://speedtouch.sourceforge.net/. Voici les instructions pour
-l'utiliser :
+\textit{n\_hdlc.c.diff} au sein de l'archive des drivers speedtouch :
+\htmladdnormallink{http://speedtouch.sourceforge.net/}{http://speedtouch.sourceforge.net/}.
+Voici les instructions pour l'utiliser :
 
 \begin{verbatim}
 $ cd /usr/src/linux
@@ -111,37 +135,50 @@ $ make modules_install (as root)
 \subsection{Configuration de pppd pour l'ouverture de la connexion}
 
 \subsubsection{Script /etc/ppp/peers/adsl :}
+\label{cha:peers}
 
     Il vient avec l'archive usermode.tgz et se place avec le make install
-    Il doit ressembler a ça :
+    Il doit ressembler à ça :
 \begin{verbatim}
 # 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
 # 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+# 07/02/2002 Replace "maxfail 0" by "maxfail 10"
 #
 # This file could be rename but its place is under /etc/ppp/peers
-# To connect to Internet using this configuration file
+# To connect to Internet using this configuration file, type
 # pppd call adsl, where "adsl" stands for the name of this file
 
 debug
 kdebug 1
 noipdefault
 defaultroute
-pty "/usr/local/bin/pppoeci -vpi 8 -vci 35"
+pty "/usr/local/bin/pppoeci -v 1 -vpi 8 -vci 35"
 sync
 user "adsl@adsl"
 noaccomp
 nopcomp
 noccp
 novj
-holdoff 1
-maxfail 0
+holdoff 10
+
+# maxfail is the number of times pppd retries to execute pppoeci after
+# an error. If you put 0, pppd retries forever, filling up the process table
+# and thus, making the computer unusable.
+maxfail 10
+
 usepeerdns
 noauth
-#lcp-echo-interval 600
-#lcp-echo-failure 10
+# You may need lcp-echo feature. But that's optionnal.
+# lcp-echo-interval 600
+# lcp-echo-failure 10
+
+# You may need the following. But only as a workaround
+# mtu 1432
 \end{verbatim}
 
-    \subsubsection{A FAIRE :}
+\subsubsection{A FAIRE :}
+\label{cha:faire}
+
     \begin{tabular}{ll}
     - si vous êtes abonné wanadoo :&
     remplacer :\\
@@ -203,8 +240,8 @@ C'est très simple, le script startmodem s'occupe de tout ou presque:
 $ startmodem | tee log
 \end{verbatim}
 
-ÇA NE MARCHE PAS :
-    Si vous ne surfez pas après l'une de ces 3 procédures, voir chapitre 5)
+ÇA NE MARCHE PAS : Si vous ne surfez pas après l'une de ces 3
+procédures, voir chapitre \ref{cha:problemes}.
 
 \subsection{Automatique au démarrage de Linux}
 
@@ -213,10 +250,41 @@ driver est en Bêta.
 
 \subsection{Reprise automatique sur coupure}
 
-A venir avec les futures versions du driver.  Inutile tant que le
-driver est en Bêta.
+Le driver étant pour l'instant en version bêta, cette partie ne
+fonctionne pas de manière stable. Néanmoins, voici la procédure à
+suivre. Tout d'abord, assurez vous que le module HDLC n'est pas buggé,
+vous pouvez aisément faire cette vérification avec
+\textbf{eci-doctor.sh}. Ensuite, ajouter l'option \textbf{persist} au
+fichier \textit{/etc/ppp/peers/adsl}. Relancer pppd et normalement,
+votre connexion devrait être opérationnelle 24h/24.
 
 \section{Problèmes connus et solutions}
+\label{cha:problemes}
+
+Le driver est livré avec un utilitaire de diagnostic des erreurs de
+configuration les plus courantes. Pour l'utiliser, allez dans le
+répertoire \textit{usermode} de l'archive des drivers et lancez
+\textbf{./eci-doctor.sh}.
+
+\begin{verbatim}
+# cd usermode
+# ./eci-doctor.sh
+\end{verbatim}
+
+Si tout est correct, vous aurez les messages suivants:
+
+\begin{verbatim}
+Support for USB is OK
+Preliminary USB device filesystem is OK
+UHCI support is OK
+/dev/ppp is OK
+HDLC support is OK
+HDLC support is OK (no bug)
+/etc/ppp/chap-secrets is OK
+PPP connection is OK
+Default route over ppp0 is OK
+Everything is OK
+\end{verbatim}
 
 Avant de contacter la liste de diffusion ou qui que ce soit, lisez ce
 qui suit. Sinon, n'oubliez pas de joindre le fichier log obtenu lors
@@ -237,12 +305,16 @@ eci@ml.free.fr Nous les incorporerons ICI.
         
 %       \begin {tabular}{l} ptete que e v mettre un tableau après ... on verra
         Chez wanadoo :\\
-        nameserver 193.252.19.3\\
-        nameserver 193.252.19.4\\
+\begin{verbatim}
+nameserver 193.252.19.3
+nameserver 193.252.19.4
+\end{verbatim}
 
         Chez club-internet :\\
-        nameserver 194.117.200.15\\
-        nameserver 194.117.200.10\\
+\begin{verbatim}
+nameserver 194.117.200.15
+nameserver 194.117.200.10
+\end{verbatim}
 
         Si ce n'est pas le cas, créer ces 2 lignes dans le fichier.
     
@@ -263,8 +335,9 @@ eci@ml.free.fr Nous les incorporerons ICI.
         sur Internet...
 
         Si elle n'y est pas, pas de net, donc vous faite sur le shell:
-        
-        \textit{ route add default dev ppp0}
+\begin{verbatim}
+# route add default dev ppp0
+\end{verbatim}
 
         Et ça devrait marcher.
 
@@ -275,9 +348,10 @@ eci@ml.free.fr Nous les incorporerons ICI.
         \textit{Éditez etc/ppp/peers/adsl}
     
         DE-Commentez les 2 dernières lignes :
-    
-            lcp-echo-interval 600 \\
-            lcp-echo-failure 10\par
+\begin{verbatim}
+lcp-echo-interval 600
+lcp-echo-failure 10
+\end{verbatim}
 
     Cas 2 : vous avez un problème d'authentification (PPP ne le dit pas toujours explicitement)
 
@@ -287,7 +361,7 @@ eci@ml.free.fr Nous les incorporerons ICI.
             et\\
             \textit{/etc/ppp/chap-secrets} (wanadoo) ou \textit{/etc/ppp/pap-secrets} (club-internet)\par
 
-        => retour aux chapitres : 3.2.1 et 3.2.2
+        => retour aux chapitres : \ref{cha:peers} et \ref{cha:faire}
     
 \subsection{Vous avez ce message d'erreur : Can't find your ECI Telecom USB ADSL Loader}
 
@@ -306,17 +380,21 @@ eci@ml.free.fr Nous les incorporerons ICI.
     
     \subsubsection{Solution }
     
-    \textit{mount -t usbdevfs none /proc/bus/usb}
+\begin{verbatim}
+# mount -t usbdevfs none /proc/bus/usb
+\end{verbatim}
 
 \subsection{eci-load2 n'arrive pas a avoir la synchronisation // blocage au paquet 259}
     \subsubsection{Problème}
     
-    Le driver n'arrive pas a avoir la synchronisation, il faut alors le relancer.
+    Le driver n'arrive pas a avoir la synchronisation, il faut alors
+    le relancer.
     
     \subsubsection{Solution}
     
-    Pour relancer le driver, nous vous conseillons de repartir du début en débranchant et en rebranchant le modem, il faut ensuite refaire :
-    \textit{./startmodem}
+    Pour relancer le driver, nous vous conseillons de repartir du
+    début en débranchant et en rebranchant le modem, il faut ensuite
+    refaire : \textit{./startmodem}
     
 \subsection{Passer la patate (Debian patato) en noyau 2.4}
 
@@ -324,14 +402,25 @@ C'est vrai que c'est un peu hors sujet mais ça peut aider ceux qui
 veulent tester le driver. Vous trouverez la documentation pour faire
 ceci a ces adresses :
     
-http://fs.tum.de/~bunk/kernel-24.html
+\htmladdnormallink{http://www.fs.tum.de/~bunk/kernel-24.html}{http://www.fs.tum.de/~bunk/kernel-24.html}
 
 Bonne mise à jour!
 
 \section{Contacts}
+\subsection{Liste de diffusion}
 
-    Pour toute question, abonnez vous à la liste de diffusion de ce projet 
-    en envoyant un mail vide à eci-request@ml.free.fr?subject=subscribe
-    et postez ensuite vos remarques ou suggestions à eci@ml.free.fr 
+Pour toute question, abonnez vous à la liste de diffusion de ce projet
+en envoyant un mail vide à
+\htmladdnormallink{\textbf{eci-request@ml.free.fr}}{mailto:eci-request@ml.free.fr?subject=subscribe}
+avec comme sujet \textbf{subscribe} et postez ensuite vos remarques ou
+suggestions à
+\htmladdnormallink{\textbf{eci@ml.free.fr}}{mailto:eci@ml.free.fr}.
+
+\subsection{IRC}
+
+Vous pouvez vous connecter sur le réseau
+\htmladdnormallink{OpenProjects.Net}{http://www.openprojetc.net/} sur
+le channel \textbf{\#eci} en utilisant le serveur
+\textbf{irc.openprojects.net} par exemple.
   
 \end{document}
