@@ -121,9 +121,19 @@ void *read_on_tap(void *datas)
 	for(;;)
 	{
 		do {
-			r = read(d->fdtap, tmpbuf, sizeof(tmpbuf));
+			tmpbuf[0]=0xaa;
+			tmpbuf[1]=0xaa;
+			tmpbuf[2]=0x03;
+			tmpbuf[3]=0x00;
+			tmpbuf[4]=0x80;
+			tmpbuf[5]=0xc2;
+			tmpbuf[6]=0x00;
+			tmpbuf[7]=0x07;
+			tmpbuf[8]=0x00;
+			tmpbuf[9]=0x00;
+			r = read(d->fdtap, tmpbuf +10, sizeof(tmpbuf) -10);
  		} while(r < 0 && errno == EINTR);	
-		if(write(d->fdatm, tmpbuf, r +10)==-1)
+		if(write(d->fdatm, tmpbuf, r + 10 )==-1)
 		{
 			fprintf(stderr,"write error in read_on_tap\n");
 			exit(-1);
