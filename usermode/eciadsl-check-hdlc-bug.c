@@ -5,7 +5,7 @@
 
   Goal: test if the HDLC support is ok and if the HDLC bug is corrected or not.
 
-  Note: pppd has the slave side of /dev/ptmx. pppoeci has the master side of
+  Note: pppd has the slave side of /dev/ptmx. eciadsl-pppoeci has the master side of
   /dev/ptmx (ie /dev/ptmx itself). The bug is that closing the slave side
   has no effect on the master side.
 
