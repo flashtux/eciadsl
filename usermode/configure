@@ -4,7 +4,7 @@
 # TODO: check for modules.conf location (warn if conf.modules is found)
 # TODO: better version string detection (for exotic debian gcc versions for instance)
 
-VERSION="0.0.5"
+VERSION="0.0.6"
 
 
 function version()
@@ -34,16 +34,22 @@ function commandline_help()
 	echo "    --clean                   clean temporary files then exit"
 	echo "    --disable-make-check      do not check for make"
 	echo "    --disable-gcc-check       do not check for gcc"
-	echo "    --disable-pppd-check      do not check for make version (default)"
+	echo "    --disable-pppd-check      do not check for make (default)"
+	echo "    --disable-wish-check      do not check for wish"
+
 	echo "    --disable-make-version    do not check for make version"
 	echo "    --disable-gcc-version     do not check for gcc version"
-	echo "    --disable-pppd-version    do not check for gcc version (default)"
+	echo "    --disable-pppd-version    do not check for pppd version (default)"
+
 	echo "    --enable-make-check       force check for make (default)"
 	echo "    --enable-gcc-check        force check for gcc (default)"
-	echo "    --enable-pppd-check       force check for make version"
+	echo "    --enable-pppd-check       force check for pppd"
+	echo "    --enable-wish-check       force check for wish (default)"
+
 	echo "    --enable-make-version     force check for make version (default)"
 	echo "    --enable-gcc-version      force check for gcc version (default)"
-	echo "    --enable-pppd-version     force check for gcc version"
+	echo "    --enable-pppd-version     force check for pppd version"
+
 	echo "    --enable-maintainer-mode  use default settings for maintainers (config/make/runtime options)"
 	echo "    -h or --help              display this help then exit"
 	echo "    -v or --version           display version info then exit"
@@ -283,6 +289,7 @@ function configure_env()
 			fi
 		else
 			display 1 "not found"
+			abort
 		fi
 	fi
 
@@ -329,6 +336,7 @@ function configure_env()
 			fi
 		else
 			display 1 "not found"
+			abort
 		fi
 	fi
 
@@ -368,6 +376,22 @@ function configure_env()
 					abort
 				fi
 			fi
+		else
+			display 1 "not found"
+			abort
+		fi
+	fi
+
+	# wish
+	if [ $WISH_CHECK -eq 1 ]
+	then
+		_bin_="wish"
+		display 1 -n "checking $_bin_ location... "
+		WISH="$(type -p $_bin_)"
+		if [ $? -eq 0 ]
+		then
+			display 1 $WISH
+			debug_info "$_bin_: $WISH"
 		else
 			display 1 "not found"
 		fi
@@ -492,6 +516,7 @@ declare -i PLATFORM_GUESS=1
 declare -i MAKE_CHECK=1 MAKE_CHECK_VERSION=1
 declare -i GCC_CHECK=1 GCC_CHECK_VERSION=1
 declare -i PPPD_CHECK=0 PPPD_CHECK_VERSION=0
+declare -i WISH_CHECK=1
 DIST_PREFIX_DEFAULT="/usr/local"
 DIST_ETC_PREFIX_DEFAULT="/"
 DIST_CONF_PREFIX_DEFAULT="/"
@@ -520,15 +545,21 @@ do
 		"--disable-make-check")		let MAKE_CHECK=0;;
 		"--disable-gcc-check")		let GCC_CHECK=0;;
 		"--disable-pppd-check")		let PPPD_CHECK=0;;
+		"--disable-wish-check")		let WISH_CHECK=0;;
+
 		"--disable-make-version")	let MAKE_CHECK_VERSION=0;;
 		"--disable-gcc-version")	let GCC_CHECK_VERSION=0;;
 		"--disable-pppd-version")	let PPPD_CHECK_VERSION=0;;
+
 		"--enable-make-check")	 	let MAKE_CHECK=1;;
 		"--enable-gcc-check") 	 	let GCC_CHECK=1;;
 		"--enable-pppd-check")	 	let PPPD_CHECK=1;;
+		"--enable-wish-check")	 	let WISH_CHECK=1;;
+
 		"--enable-make-version")	let MAKE_CHECK_VERSION=1;;
 		"--enable-gcc-version")	 	let GCC_CHECK_VERSION=1;;
 		"--enable-pppd-version")	let PPPD_CHECK_VERSION=1;;
+
 		"--disable-warnings")		let WARNINGS=0;;
 		"--enable-warnings")		let WARNINGS=1;;
 		"--disable-debug")			let DEBUG=0;;
