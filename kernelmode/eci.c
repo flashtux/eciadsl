@@ -1119,9 +1119,7 @@ static void eci_ep_int_callback(struct urb *urb)
 
 */
 			in_buf = instance->interrupt_buffer;
-			DBG_RAW_OUT("int buffer :",in_buf, 0x40);
 			outi = 0;
-			DBG_OUT("INT buf %x\n", in_buf);
 			for(i=0; i<34;) 
 				instance->pooling_buffer[i] = 
 					eci_outbuf[i++];
@@ -1144,18 +1142,20 @@ static void eci_ep_int_callback(struct urb *urb)
 						replace_b2[10] =
 						replace_b2[11] = 0x53;
 					  }
-					  DBG_OUT(" remplacement\n"); 
 					}
 					instance->pooling_buffer[10 + 
 						outi++] = b1;
 					instance->pooling_buffer[10 + 
 						outi++] = b2;
 				}
-				DBG_OUT(" outi %d\n" , outi);
 			}
-			/*usb_control_msg(instance->usb_wan_dev, 
-				 usb_pipecontrol(0), 0xdd, 0x40, 0xc02,
-				 0x580 , eci_outbuf, sizeof(eci_outbuf), HZ);*/
+			if(outi)
+			{
+				usb_control_msg(instance->usb_wan_dev, 
+					usb_pipecontrol(0), 0xdd, 0x40, 0xc02,
+				 	0x580 , eci_outbuf, 
+					sizeof(eci_outbuf), HZ);
+			}
 			DBG_OUT("EP INT received 64 bytes\n");
 		}
 	}
