@@ -13,7 +13,7 @@
 echo "Checking USB system ..."
 
 if [ ! -d /proc/bus/usb ]; then
-	modprobe usbcore
+	/sbin/modprobe usbcore
 fi
 
 # mount usbdevfs is this is not the case
@@ -24,14 +24,14 @@ fi
 # try to locate UHCI controller
 grep -A 4 USB /proc/pci | grep I/O > /dev/null
 if [ $? -eq 0 ]; then
-	modprobe usb-uhci ;
+	/sbin/modprobe usb-uhci ;
 	sleep 2 ;
 fi
 
 # try to locate OHCI controller
 grep -A 4 USB /proc/pci | grep memory > /dev/null
 if [ $? -eq 0 ]; then
-	modprobe usb-ohci ;
+	/sbin/modprobe usb-ohci ;
 	sleep 2 ;
 fi
 
