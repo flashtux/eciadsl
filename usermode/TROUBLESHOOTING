@@ -27,7 +27,7 @@ PRE-REQUISITES
 	- standard development packages (Linux sources in /usr/src/linux,
 	  GNU software like gcc>=2.91.66, GNU make, etc.)
 	- single hardware HUB?
-	- USB modem (*only* Globe Span chipset inside)
+	- USB modem (*only* GlobeSpan chipset inside)
 	- bash (>=2.x.x)
 	- optionally: tcl/tk >= 8.x.x
 	- root privileges
@@ -47,14 +47,14 @@ WHERE TO GET SUPPORT
 PROVIDE US THESE INFO
 =====================
 
-	- kernel version (see: `uname -a` or `cat /proc/version`)? Tell us if
+	- kernel version (see: `uname -a` or `cat /proc/version`). Tell us if
 	  the kernel is your distro's one or if you compiled it from the sources
 	- Linux distribution
 	- pppd version (see: `pppd --version`)
 	- modutils version (see: `lsmod --version`)
 	- USB Controller (HUB) model (see: `lspci|grep USB`)
-	- eciadsl driver version (see the VERSION file if it exists for >0.5,
-	  else the package name or CVS date) and:
+	- eciadsl driver version (see the VERSION file if it exists for version >0.5,
+	  else the package name or CVS date) and :
 		- your Windows driver info if you use it (and also the modulation
 		  type that your provider supports)
 		- the synch .bin you've tried
@@ -95,8 +95,8 @@ A:	Check the pre-requisites.
 
 	Check at http://eciadsl.flashtux.org/modems.php.
 	
-	Install the latest driver version, then launch eciconf or eci-doctor, if
-	they report errors, try to launch probe_device.sh to check your modem
+	Install the latest driver version, then launch startmodem or eci-doctor.sh,
+	if they report errors, try to launch probe_device.sh to check your modem
 	compatibility. If still uncertain, contact us!
 
 
