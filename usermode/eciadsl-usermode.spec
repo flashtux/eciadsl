@@ -10,7 +10,7 @@ License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
 
-Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.6.tar.gz
+Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.7.tar.gz
 
 BuildRoot:	%_tmppath/%name-%version-%release
 Prefix: /usr
@@ -96,6 +96,10 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 	rm -rf %buildroot
 
 %changelog
+* Tue Jan 21 2003 wwp <subscript@free.fr> 0.7-1
+- made 0.7-ready.
+* Tue Jan 21 2003 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.6-2
+- Allow non-root users to generate .rpm (removed the use of system rpm topdir).
 * Sun Jan 05 2003 wwp <subscript@free.fr> 0.6-2
 - Re-introduced ROOT for make invocation (fixes wrong relocation dir).
 * Sat Jan 04 2003 wwp <subscript@free.fr> 0.6-1
