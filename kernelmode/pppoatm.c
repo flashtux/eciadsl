@@ -203,9 +203,6 @@ static void set_xaccm_pppoatm(int unit, ext_accm accm)
 
 void plugin_init(void)
 {
-#if _linux_
-	extern int new_style_driver;	/* From sys-linux.c */
-#endif
 	static char *bad_options[] = {
 		"noaccomp", "-ac",
 		"default-asyncmap", "-am", "asyncmap", "-as", "escape",
@@ -215,32 +212,25 @@ void plugin_init(void)
 		"xonxoff",
 		"modem", "local", "sync",
 		NULL };
-#if _linux_
-	if (!new_style_driver)
-		fatal("Kernel doesn't support ppp_generic - "
-		    "needed for PPPoATM");
-#else
-	fatal("No PPPoATM support on this OS");
-#endif
 	info("PPPoATM plugin_init");
 	add_options(my_options);
 	/*add_devname_class(setdevname_pppoatm);
 	setspeed_hook = setspeed_pppoatm;
-	options_for_device_hook = options_for_pppoatm;
+	options_for_device_hook = options_for_pppoatm;*/
 	open_device_hook = open_device_pppoatm;
-	post_open_setup_hook = post_open_setup_pppoatm;
+	/*post_open_setup_hook = post_open_setup_pppoatm;
 	pre_close_restore_hook = pre_close_restore_pppoatm;
 	no_device_given_hook = no_device_given_pppoatm;
 	set_line_discipline_hook = set_line_discipline_pppoatm;
 	reset_line_discipline_hook = reset_line_discipline_pppoatm;
 	send_config_hook = send_config_pppoatm;
 	recv_config_hook = recv_config_pppoatm;
-	set_xaccm_hook = set_xaccm_pppoatm;*/
+	set_xaccm_hook = set_xaccm_pppoatm;
 	{
 		char **a;
 		for (a = bad_options; *a != NULL; a++)
 			remove_option(*a);
-	}
+	}*/
 	modem = 0;
 	lcp_wantoptions[0].neg_accompression = 0;
 	lcp_allowoptions[0].neg_accompression = 0;
