@@ -13,12 +13,17 @@ Functionnality:
 - handle several modems (with the same vid/pid)
 - display the modem MAC or EEPROM content
 - make a GPL firmware, to resolve the DMT/CAP modulation issues
-- closer examination of synchronisation (need experiments, see JoKer case).
+- closer examination of synchronisation (need experiments, see JoKer case
+	& jeanseb comment in eci_vendor_device.pl)
 - rewrite USB code to avoid ISO (use BULK instead)
+
+Script:
+
+- add adsl-start, adsl-stop & adsl-status scripts
 
 Support:
 
 - make a separate FAQ
 - check for cvs $Id$
 - add the doc in the rpm package
-
+- improve eci-doctor.sh to automatically detect CHAP or PAP use
