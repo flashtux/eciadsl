@@ -1557,6 +1557,7 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 	int 		ret;		/* counter			*/
 	/*not used:int 		nbcell;*/	/* cellcount expected		*/
 	unsigned	char *buf;	/* urb buffer			*/
+	int		i;		/* loop counter			*/
 	int		buflen;		/* urb buffer len		*/
 	int		bufpos;		/* position in urb buffer	*/
 	int		nbcells;	/* number of cell to be sent 	*/
@@ -1564,7 +1565,7 @@ static int eci_usb_send_urb(struct eci_instance *instance,
 	struct urb	*urb;		/* urb pointer to sent urb	*/
 
 	nbcells = _uni_cell_list_nbcells(cells);
-	buflen = ATM_CELL_SZ * nbcells;
+	buflen =  64 * nbcells;
 	/*	urb = instance->bulk_urb;	*/
 	if(!(urb = usb_alloc_urb(0)))
 	{
@@ -1583,7 +1584,8 @@ static int eci_usb_send_urb(struct eci_instance *instance,
  		if(cell)
 		{
 			memcpy(buf + bufpos, cell->raw, ATM_CELL_SZ);
-			bufpos += ATM_CELL_SZ;
+			for(i=53; i < 64; i++) buf[bufpos + i] = 0xff;
+			bufpos += 64;
 			ret++;
 		}
 		else
