@@ -38,6 +38,7 @@
 
 #define TIMEOUT 2000
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enought */
+#define ECILOAD_TIMEOUT 60
 
 /* just for testing without USB */
 /*#define TESTECI*/
@@ -61,9 +62,9 @@ int usb_block_read(FILE *fp, struct usb_block *p)
 	unsigned char b[8];
 	int r;
 
-	if ((r=fread(b,1,sizeof(b),fp)) != sizeof(b))
+	if ((r = fread(b, 1, sizeof(b), fp)) != sizeof(b))
 	{
-		printf("usb_block_read: read %d bytes instead of %d\n",r,sizeof(b));
+		printf("usb_block_read: read %d bytes instead of %d\n", r, sizeof(b));
 		return 0;
 	}
 
@@ -75,7 +76,7 @@ int usb_block_read(FILE *fp, struct usb_block *p)
 
 	if (p->size != 0)
 	{
-		p->buf = (unsigned char *)realloc(p->buf,p->size);
+		p->buf = (unsigned char *)realloc(p->buf, p->size);
 		if (p->buf == NULL)
 		{
 			printf("usb_block_read: can't allocate %d bytes\n",
@@ -84,14 +85,12 @@ int usb_block_read(FILE *fp, struct usb_block *p)
 		}
 
 		if ((p->request_type & 0x80) == 0)
-		{
-			if ((r=fread(p->buf,1,p->size,fp)) != p->size)
+			if ((r=fread(p->buf, 1, p->size, fp)) != p->size)
 			{
 				printf("usb_block_read: read %d bytes instead of %d\n",
-					   r,p->size);
+					   r, p->size);
 				return 0;
 			}
-		}
 	}
 
 	return 1;
@@ -101,31 +100,33 @@ void print_char(unsigned char c)
 {
 
 	if (c>=' ' && c<0x7f)
-		printf("%c",c);
+		printf("%c", c);
 	/*
 	else if (c=='\r' || c=='\n' || c=='\t' || c=='\b')
-	printf("%c",c);
+	printf("%c", c);
 	*/
-	else printf(".");
+	else
+		printf(".");
 }
 
-void dump(unsigned char *buf,int len)
+void dump(unsigned char *buf, int len)
 {
-
-  int i,j;
+  int i, j;
   
-	for (i=0;i<len;i+=16)
+	for (i=0; i<len; i+=16)
 	{
-		for (j=i;j<len && j<i+16;j++)
-			printf("%02x ",buf[j]);
-		for (;j<i+16;j++)
+		for (j=i; j<len && j<i+16; j++)
+			printf("%02x ", buf[j]);
+		for (; j<i+16; j++)
 			printf("   ");
-		for (j=i;j<len && j<i+16;j++)
+		for (j=i; j<len && j<i+16; j++)
 			print_char(buf[j]);
 		printf("\n");
 	}
 	
 }
+
+pid_t mychild_pid=0;
 
 void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 {
@@ -140,11 +141,19 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 	fflush(stderr);
 
 	child_pid = fork();
-	if (child_pid != 0)
-		return ;
+	if (child_pid)
+	{
+		if (mychild_pid)
+		{
+			perror("damn");
+			_exit(-1);
+		}
+		mychild_pid = child_pid;
+		return;
+	}
 
 	/* here, we are running in a child process */
-	ep = pusb_endpoint_open(dev,epnum,O_RDONLY);
+	ep = pusb_endpoint_open(dev, epnum, O_RDONLY);
 	if (ep == NULL)
 	{
 		perror("pusb_endpoint_open");
@@ -152,7 +161,7 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 	}
 
 	/* we DO NOT stop after receiving 100 interrupts */
-	for (i=0;/*i<100*/;i++)
+	for (i=0; /*i<100*/; i++)
 	{
 
 		/*
@@ -174,18 +183,18 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 		  device. So we revert to the old behaviour : NO TIMEOUTS ...
 		*/
 
-		ret = pusb_endpoint_read(ep,lbuf,sizeof(lbuf),0);
+		ret = pusb_endpoint_read(ep, lbuf, sizeof(lbuf), 0);
 		
 		if (ret < 0)
 		{
-			printf("Error reading interrupts\n");
+			printf("error reading interrupts\n");
 			break;
 		}
 		
 		if (option_verbose)
 		{
-			printf("endpoint %02x, packet len = %d\n",epnum,ret);
-			dump(lbuf,ret);
+			printf("endpoint %02x, packet len = %d\n", epnum, ret);
+			dump(lbuf, ret);
 			
 			fflush(stdout);
 			fflush(stderr);
@@ -225,7 +234,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 
 	/* open the file */
 
-	fp = fopen(file,"rb");
+	fp = fopen(file, "rb");
 	if (fp == NULL)
 	{
 		perror(file);
@@ -234,109 +243,104 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 
 	/* compute the file size */
 
-	fseek(fp,0,SEEK_END);
+	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
-	fseek(fp,0,SEEK_SET);
+	fseek(fp, 0, SEEK_SET);
 
 	/* open the USB device */
 #ifndef TESTECI
-	dev = pusb_search_open(vid2,pid2);
+	dev = pusb_search_open(vid2, pid2);
 	if (dev == NULL)
 	{
-		printf("Can't find your " GS_NAME "\n");
+		printf("can't find your " GS_NAME "\n");
 		fclose (fp);
 		return 0;
 	}
 
 	/* initialize the USB device */
 
-	if (pusb_set_configuration(dev,1) < 0)
+	if (pusb_set_configuration(dev, 1) < 0)
 	{
-		printf("Can't set configuration 1\n");
-		pusb_close (dev);
-		fclose (fp);
+		printf("can't set configuration 1\n");
+		pusb_close(dev);
+		fclose(fp);
 		return 0;
 	}
 
 	/* let some time... is it needed ? */
 	sleep(1);
 
-	if (pusb_claim_interface(dev,0) < 0)
+	if (pusb_claim_interface(dev, 0) < 0)
 	{
-		printf("Can't claim interface 0\n");
-		pusb_close (dev);
-		fclose (fp);
+		printf("can't claim interface 0\n");
+		pusb_close(dev);
+		fclose(fp);
 		return 0;
 	}
 
 	/* warning : orginal setting is 0,4 (source : Windows driver) */
 
-	if (pusb_set_interface(dev,0,4) < 0)
+	if (pusb_set_interface(dev, 0, 4) < 0)
 	{
-		printf("Can't set interface 0 to use alt setting 4\n");
-		pusb_close (dev);
-		fclose (fp);
+		printf("can't set interface 0 to use alt setting 4\n");
+		pusb_close(dev);
+		fclose(fp);
 		return 0;
 	}
 
-	read_endpoint(dev,0x86,option_verbose);
-	/*read_endpoint(dev,0x88);*/
+	read_endpoint(dev, 0x86, option_verbose);
+	/*read_endpoint(dev, 0x88);*/
 
 #endif
 
-	memset(&block,0,sizeof(block));
+	memset(&block, 0, sizeof(block));
 
 	while (ftell(fp) < size)
 	{
 		n++;
 
-		if (!usb_block_read(fp,&block))
+		if (!usb_block_read(fp, &block))
 		{
 			printf("can't read block\n");
 #ifndef TESTECI
-			pusb_close (dev);
+			pusb_close(dev);
 #endif
-			fclose (fp);
+			fclose(fp);
 			return 0;
 		}
 
 		if (option_verbose)
-		{
-			printf ("Block %3d : request_type=%02x request=%02x value=%04x index=%04x size=%04x : ",
-					n,block.request_type,block.request,block.value,block.index,
-					block.size);
-		}
+			printf ("Block %3d: request_type=%02x request=%02x value=%04x index=%04x size=%04x : ",
+					n, block.request_type, block.request, block.value,block.index, block.size);
 
 #ifndef TESTECI
 
-		if ((r=pusb_control_msg(dev,block.request_type,block.request,
-							 block.value,block.index,block.buf,
-							 block.size,TIMEOUT)) != block.size)
+		if ((r=pusb_control_msg(dev, block.request_type, block.request,
+							 block.value, block.index, block.buf,
+							 block.size, TIMEOUT)) != block.size)
 		{
 			if (option_verbose)
-			{
-				printf("Failed r=%d\n",r);
-			}
+				printf("failed r=%d\n", r);
 
-			pusb_close (dev);
-			fclose (fp);
+			pusb_close(dev);
+			fclose(fp);
 			return 0;
 		}
 
 		if (r != block.size)
-			printf("(expected %d, got %d) ",block.size,r);
+			printf("(expected %d, got %d) ", block.size, r);
 #else
 		r = block.size;
 #endif
 
 		if (option_verbose)
 		{
-			printf("Ok\n");
+			printf("OK\n");
 
 			if ((block.request_type & 0x80))
 			{
-				for (i=0;i<r;i++)
-					printf("%02x ",block.buf[i]);
+				for (i=0; i<r; i++)
+					printf("%02x ", block.buf[i]);
 				printf("\n");
 			}
 		}
@@ -349,12 +353,12 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 
 			if (option_verbose)
 			{
-				printf("waiting ... ");
+				printf("waiting.. ");
 				
 				fflush(stdout);
 				fflush(stderr);
 
-				gettimeofday(&tv1,NULL);
+				gettimeofday(&tv1, NULL);
 			}
 
 			/*
@@ -367,8 +371,8 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 
 			if (option_verbose)
 			{
-				gettimeofday(&tv2,NULL);
-				printf("waited %ld ms\n",
+				gettimeofday(&tv2, NULL);
+				printf("waited for %ld ms\n",
 					   (long)(tv2.tv_sec - tv1.tv_sec) * 1000
 					   + (long)(tv2.tv_usec - tv1.tv_usec) / 1000);
 			}
@@ -397,7 +401,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 
 		pusb_endpoint_t ep_data;
 
-		ep_data = pusb_endpoint_open(dev,0x2,O_RDONLY);
+		ep_data = pusb_endpoint_open(dev, 0x2, O_RDONLY);
 		if (ep_data == NULL)
 		{
 			perror("Can't open endpoint 2");
@@ -405,12 +409,12 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 			return 0;
 		}
 
-		r = pusb_endpoint_write(ep_data,buf_data,sizeof(buf_data),TIMEOUT);
+		r = pusb_endpoint_write(ep_data, buf_data, sizeof(buf_data), TIMEOUT);
 		if (r != sizeof(buf_data))
 		{
 			perror("pusb_endpoint_write");
-			pusb_endpoint_close (ep_data);
-			pusb_close (dev);
+			pusb_endpoint_close(ep_data);
+			pusb_close(dev);
 			return 0;
 		}
 
@@ -425,7 +429,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 	  interface 0 before use"
 	*/
 
-	/*pusb_release_interface(dev,0);*/
+	/*pusb_release_interface(dev, 0);*/
 	pusb_close(dev);
 #endif
 
@@ -437,7 +441,7 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 			ftell(fp));
 	}
 
-	fclose (fp);
+	fclose(fp);
 
 	return 1;
 }
@@ -445,9 +449,11 @@ int eci_load2(const char * file, unsigned short vid2, unsigned short pid2,
 void usage()
 {
 	printf("eci-load2 version $Name$\n");
-	printf("usage: eci-load2 [-v] eci_sequence.bin\n");
-	printf("or eci-load2 [-v] 2ndVID 2ndPID eci_sequence.bin\n");
-	printf("  -v : verbose mode\n");
+	printf("usage:\n");
+	printf("       eci-load2 [-v] eci_sequence.bin\n");
+	printf("    or eci-load2 [-v] 2ndVID 2ndPID eci_sequence.bin\n");
+	printf("switches:\n");
+	printf("       -v or --verbose   be verbose\n");
 	exit (-1);
 }
 
@@ -456,57 +462,73 @@ void sigusr1()
 	/*printf("get SIGUSR1\n");*/
 }
 
+void sigtimeout()
+{
+	printf("ECI load 2: timeout\n");
+	fflush(stdout);
+	if (mychild_pid)
+		kill(mychild_pid, SIGINT);
+	exit(-1);
+}
+
+
 int main(int argc, char *argv[])
 {
 	const char * file;
-	int r, status;
+	int status;
 	unsigned short vid2, pid2;
 	int i, j;
 	int option_verbose = 0;
 
-	for (i=1,j=1;i<argc;i++)
-	{
-		if (strcmp(argv[i],"-v")==0)
-		{
+	for (i=1, j=1; i<argc; i++)
+		if ((strcmp(argv[i], "-v")==0) || (strcmp(argv[i], "--version")==0))
 			option_verbose = 1;
-		}
 		else
-		{
 			argv[j++] = argv[i];
-		}
-	}
 
 	argc = j;
 	
 	if (argc != 4 && argc != 2)
 		usage();
 
-	if (argc == 2){
-	file = argv[1];
-	vid2 = strtoul("0x0915",NULL,0);
-	pid2 = strtoul("0x8000",NULL,0);
-}else{
-	file = argv[3];
-	vid2 = strtoul(argv[1],NULL,0);
-	pid2 = strtoul(argv[2],NULL,0);
+	if (argc == 2)
+	{
+		file = argv[1];
+		vid2 = GS_VENDOR;
+		pid2 = GS_PRODUCT;
+	}
+	else
+	{
+		file = argv[3];
+		vid2 = strtoul(argv[1], NULL, 0);
+		pid2 = strtoul(argv[2], NULL, 0);
 	}
 
-	signal(SIGUSR1,sigusr1);
-
+	signal(SIGUSR1, sigusr1);
+	signal(SIGALRM, sigtimeout);
+	alarm(ECILOAD_TIMEOUT);
 	if (!eci_load2(file, vid2, pid2, option_verbose))
 	{
-		printf("ECI Load 2 : failed!\n");
-		return -1;
+		printf("ECI load 2: failed\n");
+		fflush(stdout);
 	}
 
-	printf("ECI Load 2 : Success\n");
+	/* wait for child process and intercept child abortion due to signal (user abort or timeout) */
+	do
+		if (waitpid(mychild_pid, &status, 0) == -1)
+			if (errno == EINTR)
+			{
+				perror("child failed (aborted)");
+				_exit(1);
+			}
+	while(errno != ECHILD);
+	alarm(0);
 
-	/* wait for child processes */
-	while ((r=wait(&status)) > 0)
-		;
+	if (status)
+		return 1;
 
-	if (errno != ECHILD)
-		perror("wait");
+	printf("ECI load 2: success\n");
+	fflush(stdout);
 
 	return 0;
 }

@@ -136,12 +136,16 @@ Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
 #include <stdlib.h>
 #include <sys/time.h>
 #include <sys/types.h>
+#include <sys/signal.h>
+#include <sys/wait.h>
 #include <unistd.h>
+#include <errno.h>
 
 #include "pusb.h"
 #include "modem.h"
 
 #define TIMEOUT 1000
+#define ECILOAD_TIMEOUT 20
 
 /* just for testing without USB */
 /*#define TESTECI*/
@@ -156,6 +160,9 @@ struct eci_firm_block
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
+pid_t mychild_pid=0;
+
+
 /*
   Load a firmware block. content should be either NULL
   or the value returned from a previous call to eci_firm_block_read()
@@ -167,9 +174,9 @@ int eci_firm_block_read(FILE *fp, struct eci_firm_block *p)
 	unsigned char b[4];
 	int r;
 
-	if ((r=fread(b,1,sizeof(b),fp)) != sizeof(b))
+	if ((r = fread(b, 1, sizeof(b), fp)) != sizeof(b))
 	{
-		printf("read %d bytes instead of %d\n",r,sizeof(b));
+		printf("read %d bytes instead of %d\n", r, sizeof(b));
 		return 0;
 	}
 
@@ -183,10 +190,10 @@ int eci_firm_block_read(FILE *fp, struct eci_firm_block *p)
 		return 0;
 	}
 
-	if ((r=fread(p->content,1,p->len,fp)) != p->len)
+	if ((r = fread(p->content, 1, p->len, fp)) != p->len)
 	{
-			printf("read %d bytes instead of %d\n",r,p->len);
-			return 0;
+		printf("read %d bytes instead of %d\n", r, p->len);
+		return 0;
 	}
 
 	return 1;
@@ -203,7 +210,7 @@ int eci_load1(const char * file, unsigned short vid1, unsigned short pid1,
 
 	/* open the file */
 
-	fp = fopen(file,"rb");
+	fp = fopen(file, "rb");
 	if (fp == NULL)
 	{
 		perror(file);
@@ -212,35 +219,35 @@ int eci_load1(const char * file, unsigned short vid1, unsigned short pid1,
 
 	/* compute the file size */
 
-	fseek(fp,0,SEEK_END);
+	fseek(fp, 0, SEEK_END);
 	size = ftell(fp);
-	fseek(fp,0,SEEK_SET);
+	fseek(fp, 0, SEEK_SET);
 
 	/* open the USB device */
 #ifndef TESTECI
-	dev = pusb_search_open(vid1,pid1);
+	dev = pusb_search_open(vid1, pid1);
 	if (dev == NULL)
 	{
-		printf("Can't find your " EZUSB_NAME "\n");
-		fclose (fp);
+		printf("can't find your " EZUSB_NAME "\n");
+		fclose(fp);
 		return 0;
 	}
 
 	/* initialize the USB device */
 
-	if (pusb_set_configuration(dev,1) < 0)
+	if (pusb_set_configuration(dev, 1) < 0)
 	{
-		printf("Can't set configuration 1\n");
-		pusb_close (dev);
-		fclose (fp);
+		printf("can't set configuration 1\n");
+		pusb_close(dev);
+		fclose(fp);
 		return 0;
 	}
 
-	if (pusb_set_interface(dev,0,1) < 0)
+	if (pusb_set_interface(dev, 0, 1) < 0)
 	{
-		perror("Can't set interface 0 to use alt setting 1\n");
-		pusb_close (dev);
-		fclose (fp);
+		perror("can't set interface 0 to use alt setting 1\n");
+		pusb_close(dev);
+		fclose(fp);
 		return 0;
 	}
 #endif
@@ -250,51 +257,45 @@ int eci_load1(const char * file, unsigned short vid1, unsigned short pid1,
 	{
 		n++;
 
-		if (!eci_firm_block_read(fp,&block))
+		if (!eci_firm_block_read(fp, &block))
 		{
 			printf("can't read block\n");
 #ifndef TESTECI
-			pusb_close (dev);
+			pusb_close(dev);
 #endif
-			fclose (fp);
+			fclose(fp);
 			return 0;
 		}
 
 		if (option_verbose)
-		{
-			printf("Block %3d : Addr 0x%04x - Length %2u : ",
-				   n,block.addr, block.len);
-		}
+			printf("block %3d: addr 0x%04x - length %2u: ",
+				   n, block.addr, block.len);
 
 #ifndef TESTECI
-		if (pusb_control_msg(dev,0x40,0xa0,block.addr,0,
-							 block.content,block.len,TIMEOUT) < 0)
+		if (pusb_control_msg(dev, 0x40, 0xa0, block.addr, 0,
+							 block.content, block.len, TIMEOUT) < 0)
 		{
 			if (option_verbose)
-			{
-				printf("Failed\n");
-			}
+				printf("failed\n");
 
-			pusb_close (dev);
-			fclose (fp);
+			pusb_close(dev);
+			fclose(fp);
 			return 0;
 		}
 #endif
 
 		if (option_verbose)
-		{
-			printf("Ok\n");
-		}
+			printf("OK\n");
 	}
 #ifndef TESTECI
 	pusb_close(dev);
 #endif
-	fclose (fp);
+	fclose(fp);
 
 	return 1;
 }
 
-void check_modem(unsigned short vid2, unsigned short pid2)
+int check_modem(unsigned short vid2, unsigned short pid2)
 {
 	pusb_device_t dev;
 	struct timeval tv, start, now;
@@ -303,7 +304,7 @@ void check_modem(unsigned short vid2, unsigned short pid2)
 #define RETRY_PERIOD 10 /* time between retries, in ms */
 #define RETRY_MAX    1000
 
-	gettimeofday(&start,NULL);
+	gettimeofday(&start, NULL);
 
 	/* let the new USB device the time to initialize,
 	   or else, it seems to crash the USB device itself :-(
@@ -312,19 +313,19 @@ void check_modem(unsigned short vid2, unsigned short pid2)
 
 	sleep(1);
 
-	for (i=0;i<RETRY_MAX;i++)
+	for (i=0; i<RETRY_MAX; i++)
 	{
 		fd_set rset;
 		FD_ZERO(&rset);
 
-		dev = pusb_search_open(vid2,pid2);
+		dev = pusb_search_open(vid2, pid2);
 		if (dev != NULL)
 			break;
 
 		tv.tv_sec = RETRY_PERIOD / 1000;
 		tv.tv_usec = (RETRY_PERIOD % 1000) * 1000;
 
-		r = select(1,NULL,NULL,NULL,&tv);
+		r = select(1, NULL, NULL, NULL, &tv);
 		if (r < 0)
 		{
 			perror("select");
@@ -334,78 +335,119 @@ void check_modem(unsigned short vid2, unsigned short pid2)
 
 	if (dev == NULL)
 	{
-		printf("Can't find your " GS_NAME "\n");
-		return ;
+		printf("can't find your " GS_NAME "\n");
+		return 0;
 	}
 
-	gettimeofday(&now,NULL);
+	gettimeofday(&now, NULL);
 	
 	printf(
-		"I found your " GS_NAME " (in less than %ld ms) : GREAT!\n",
-		(long) (
-			((now.tv_sec - start.tv_sec) * 1000) 
-			+ ((now.tv_usec - start.tv_usec) / 1000)
-		)
-	);
-	pusb_close (dev);
+		GS_NAME " modem found (in %ld ms): GREAT!\n",
+		(long) (( (now.tv_sec - start.tv_sec) * 1000) 
+				+ ((now.tv_usec - start.tv_usec) / 1000) ));
+	pusb_close(dev);
+	return 1;
 }
 
 void usage()
 {
 	printf("eci-load1 version $Name$\n");
-	printf("usage: eci-load1 [-v] [1stVID 1stPID 2ndVID 2ndPID] eci_firmware.bin\n");
-	printf("  -v : verbose mode\n");
-	exit (-1);
+	printf("usage:\n");
+	printf("       eci-load1 [-v] [1stVID 1stPID 2ndVID 2ndPID] eci_firmware.bin\n");
+	printf("switches:\n");
+	printf("       -v or --verbose   be verbose\n");
+	_exit(-1);
+}
+
+void sigtimeout()
+{
+	printf("ECI load 1: timeout\n");
+	fflush(stdout);
+	if (mychild_pid)
+		kill(mychild_pid, SIGINT);
+	_exit(-1);
 }
 
 int main(int argc, char *argv[])
 {
 	const char * file;
+	int status;
 	unsigned short vid1, vid2;
 	unsigned short pid1, pid2;
-	int i,j;
+	int i, j;
 	int option_verbose = 0;
+	pid_t child_pid;
 
 	/* parse command line options */
 
-	for (i=1,j=1;i<argc;i++)
-	{
-		if (strcmp(argv[i],"-v")==0)
+	for (i=1, j=1; i<argc; i++)
+		if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--version") == 0))
 			option_verbose = 1;
 		else
-		{
 			argv[j++] = argv[i];
-		}
-	}
-
 	argc = j;
 
 	/* parse remaining command line arguments */
-	if (argc != 6 && argc != 2)
+	if (argc == 2)
+	{
+		file = argv[1];
+		vid1 = EZUSB_VENDOR;
+		pid1 = EZUSB_PRODUCT;
+		vid2 = GS_VENDOR;
+		pid2 = GS_PRODUCT;
+	}
+	else
+	if (argc == 6)
+	{
+		file = argv[5];
+		vid1 = strtoul(argv[1], NULL, 0);
+		pid1 = strtoul(argv[2], NULL, 0);
+		vid2 = strtoul(argv[3], NULL, 0);
+		pid2 = strtoul(argv[4], NULL, 0);
+	}
+	else
 		usage();
 
-	if (argc == 2){
-	file = argv[1];
-	vid1=strtoul("0x0547",NULL,0);
-	pid1=strtoul("0x2131",NULL,0);
-	vid2=strtoul("0x0915",NULL,0);
-	pid2=strtoul("0x8000",NULL,0);
-}else{
-	file = argv[5];
-	vid1 = strtoul(argv[1],NULL,0);
-	pid1 = strtoul(argv[2],NULL,0);
-	vid2 = strtoul(argv[3],NULL,0);
-	pid2 = strtoul(argv[4],NULL,0);
-	}
+	signal(SIGALRM, sigtimeout);
+	alarm(ECILOAD_TIMEOUT);
 
-	if (!eci_load1(file, vid1, pid1, option_verbose))
+	child_pid = fork();
+	if (child_pid == -1)
 	{
-		printf("ECI Load 1 : failed!\n");
-		return -1;
+		alarm(0);
+		perror("fork failed");
+		printf("ECI load 1: failed\n");
+		fflush(stdout);
+		_exit(-1);
 	}
+	if (child_pid == 0)
+	{
+		if (!eci_load1(file, vid1, pid1, option_verbose) || !check_modem(vid2, pid2))
+		{
+			alarm(0);
+			printf("ECI load 1: failed\n");
+			fflush(stdout);
+			_exit(-1);
+		}
+		_exit(0);
+	}
+	mychild_pid = child_pid;
+	/* wait for child process and intercept child abortion due to signal (user abort or timeout) */
+	do
+		if (waitpid(child_pid, &status, 0) == -1)
+			if (errno == EINTR)
+			{
+				perror("child failed (aborted)");
+				_exit(1);
+			}
+	while(errno != ECHILD);
+	alarm(0);
 
-	printf("ECI Load 1 : Success\n");
+	if (status)
+		return 1;
 
-	check_modem(vid2, pid2);
+	printf("ECI load 1: success\n");
+	fflush(stdout);
+		
 	return 0;
 }
