@@ -58,6 +58,7 @@ function fatal () {
 if [ ! -d /proc/bus/usb ]; then
 	echo "Support for USB is missing... trying to load" ;
 	modprobe usbcore
+	sleep 1
 	if [ ! -d /proc/bus/usb ]; then
 		echo "Support for USB: failed to load" ;
 		fatal;
@@ -72,6 +73,7 @@ fi
 if [ ! -f /proc/bus/usb/devices ]; then
 	echo "Preliminary USB device filesystem is missing... trying to mount" ;
 	mount -t usbdevfs none /proc/bus/usb
+	sleep 1
 	if [ ! -f /proc/bus/usb/devices ]; then
 		echo "Preliminary USB device filesystem: failed to load" ;
 		fatal ;
@@ -87,6 +89,7 @@ lsmod | grep "^dabusb" > /dev/null
 if [ $? -eq 0 ]; then
 	echo "dabusb module is loaded: trying to unload!" ;
 	modprobe -r dabusb
+	sleep 1
 	lsmod | grep "^dabusb" > /dev/null
 	if [ $? -eq 0 ]; then
 		echo "dabusb module cannot be unloaded, verify if it is busy";
@@ -103,6 +106,7 @@ lsmod | grep "^ehci-hcd" > /dev/null
 if [ $? -eq 0 ]; then
 	echo "ehci-hcd module is loaded: trying to unload!" ;
 	modprobe -r ehci-hcd
+	sleep 1
 	lsmod | grep "^ehci-hcd" > /dev/null
 	if [ $? -eq 0 ]; then
 		echo "ehci-hcd module cannot be unloaded, verify if it is busy";
