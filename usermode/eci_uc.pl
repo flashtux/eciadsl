@@ -24,6 +24,10 @@
 # CVS $Id$
 # Tag $Name$
 
+# 2002/01/06 Benoit PAPILLAULT <benoit.papillault@free.fr>
+#
+#            Decoding of the USB log file is done case insensitive.
+
 # <CONFIG>
 $BIN_DIR = "/usr/local/bin";
 $ETC_DIR = "/etc";
@@ -53,23 +57,23 @@ while (<>) {
 		$active = 0;
 	}
 
-	if ($active && /Request[ \t]+=[ \t]+([0-9A-F]+)/) {
+	if ($active && /Request[ \t]+=[ \t]+([0-9a-f]+)/i) {
 # always a0
 		print "request=$1\n";
 	}
 
-	if ($active && /Index[ \t]+=[ \t]+([0-9A-F]+)/) {
+	if ($active && /Index[ \t]+=[ \t]+([0-9a-f]+)/i) {
 # always 0
 		print "index=$1\n";
 	}
 
-	if ($active && /TransferBufferLength[ \t]+=[ \t]+([0-9A-F]+)/) {
+	if ($active && /TransferBufferLength[ \t]+=[ \t]+([0-9a-f]+)/i) {
 		print "length=$1\n";
 		$length = $1;
 	}
 
 #	if ($active && /[0-9]+[ \t]+[0-9]+\.[0-9]+[ \t]+[0-9a-f]+: ([0-9a-f ]+)/) {
-	if ($active && /[0-9A-F]+: ([0-9a-f ]+)/) {
+	if ($active && /[0-9a-f]+: ([0-9a-f ]+)/i) {
 		foreach $b (split / /, $1) {
 			print $b . " ";
 			push @list, $b; 
@@ -77,7 +81,7 @@ while (<>) {
 		print "\n";
 	}
 	
-	if ($active && /Value[ \t]+=[ \t]+([0-9A-F]+)/) {
+	if ($active && /Value[ \t]+=[ \t]+([0-9a-f]+)/i) {
 		$value = hex "0x$1";
 # memory address 
 #		print "value=$1\n";
