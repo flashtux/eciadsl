@@ -148,7 +148,12 @@ radiobutton .bloc1.fai.ligne5.belgacom -text "Belgacom" -width 12 -variable fai 
 .bloc1.fai.ligne5.belgacom configure -anchor w
 pack .bloc1.fai.ligne5.bluewin .bloc1.fai.ligne5.belgacom -side left
 
-pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 .bloc1.fai.ligne5 -side top -anchor w
+frame .bloc1.fai.ligne6
+radiobutton .bloc1.fai.ligne6.unlisted -text "Not listed" -width 11 -variable fai -value bluewin -command {set dns1 ""; set dns2 ""} -selectcolor blue
+.bloc1.fai.ligne6.unlisted configure -anchor w
+pack .bloc1.fai.ligne6.unlisted -side left
+
+pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bloc1.fai.ligne4 .bloc1.fai.ligne5 .bloc1.fai.ligne6 -side top -anchor w
 
 set fai wanadoo
 
@@ -271,8 +276,8 @@ frame .bloc2
 
 frame .bloc2.listebin
 
-checkbutton .bloc2.listebin.checkbox -text { Change .bin file (only if driver hangs up) :} -command {invert_bin} -relief groove -background "#ffcc99" -width 45 -variable majbin -offvalue "non" -onvalue "oui" -selectcolor blue
-bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to change your .bin file"}
+checkbutton .bloc2.listebin.checkbox -text { Change synch .bin file (only if driver hangs up) :} -command {invert_bin} -relief groove -background "#ffcc99" -width 45 -variable majbin -offvalue "non" -onvalue "oui" -selectcolor blue
+bind .bloc2.listebin.checkbox <Enter> {pushstate "Check this box if you want to change your synch .bin file"}
 bind .bloc2.listebin.checkbox <Leave> {popstate}
 set majbin "non"
 
@@ -311,7 +316,7 @@ pack .bloc2.listebin.liste.contenu .bloc2.listebin.liste.scroll -side left -fill
 
 frame .bloc2.listebin.recherche
 label .bloc2.listebin.recherche.texte -text {Search .bin here :} -width 15
-set chemin_bin /usr/local
+set chemin_bin $CONF_DIR
 entry .bloc2.listebin.recherche.chemin -textvariable chemin_bin -background "#CCEEEE" -width 27
 bind .bloc2.listebin.recherche.chemin <Enter> {pushstate "Enter path for searching .bin files"}
 bind .bloc2.listebin.recherche.chemin <Leave> {popstate}
