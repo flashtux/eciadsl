@@ -29,6 +29,7 @@ Sorted according to priority (the upper in the list, the prior):
 - see if selected modem/provider/synchbin can be still coloured when an item from another
   listbox is selected.
 - see if synch_bin update function (invert_bin) can use invert_fai's scheme.
+- add grep -m check to ./configure, else use egrep (fixed temporarily).
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)
