@@ -1,7 +1,7 @@
 #!/bin/sh
 
 # probe device's VIDs and PIDs
-VERSION="0.0.2"
+VERSION="0.0.3"
 
 
 function version()
@@ -174,8 +174,10 @@ then
 fi
 
 # disclaimer
-echo -e "\nWARNING: before probing, please ensure that your USB devices are plugged"
-echo "in and that your system's USB support is properly configured"
+echo -e "\nWARNING: before probing, please ensure that your USB devices are plugged in"
+echo "and that your system's USB support is properly configured"
+echo -e "\nUSB modem to probe must be UNinitialized, it will surely appear as an unknown"
+echo "device (because it is not initialized yet), for instance: ? (0547:2131)"
 
 if [ ! -f "$DEVICES" ]
 then
