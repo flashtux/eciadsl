@@ -1,0 +1,236 @@
+% latex for the driver doc
+% to compile it:
+% make
+
+% 12 June 2002 jeanseb
+
+
+% CVS $Id$
+% Tag $Name$
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[francais]{babel}
+\usepackage{html}
+\usepackage[latin1]{inputenc}
+\baselineskip=16pt
+
+\title{\huge{How-to pour le driver Linux du modem ECI USB - Version noyaux}}
+\author{Jean-Sébastien Valette jeanseb.valette@free.fr}
+
+\begin{document}
+\pagenumbering{arabic}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+
+\section{Introduction}
+
+\subsection{A qui s'adresse ce document ?}
+
+Ce document s'adresse à tous les possesseurs du modem ADSL ECI USB
+voulant l'utiliser sous Linux et ayant une bonne connaissance de la configuration et de l'installation de linux. Vous trouverez la dernière version de
+ce documents sur le site :
+\htmladdnormallink{http://eciadsl.sourceforge.net/}{http://eciadsl.sourceforge.net/},
+section Documentation.
+
+\subsection{Conventions}
+
+Lors des exemples de commandes à taper au niveau du shell, les
+commandes à exécuter en tant qu'utilisateur normal sont précédées de \$
+et les commandes à exécuter en root sont précédées de \#.
+
+\section{Configuration requise}
+
+%    Assurez vous d'abord que vous possédez un noyau Linux 
+%    avec le support de pppoatm et que vous avez installer la 
+%    librairie atm.
+
+\subsection{Distributions}
+
+    Distributions où le driver fonctionne : 
+    \begin{itemize}
+    \item   debian woody (noyau 2.4.18 - recompilé)
+    \end{itemize}
+    
+    Distributions où le driver ne fonctionne pas :
+    \begin{itemize}
+	Support d'ipfilter activer.
+    \end{itemize}
+
+\subsection{Noyaux}
+
+Pour obtenir la version de votre noyau:
+\begin{verbatim}
+$ uname -r
+\end{verbatim}
+
+    Liste des noyaux testés (en utilisant la version CVS dont le tag est ``release-test'') :
+
+    \begin{itemize}
+    \item kernel 2.4.18 : ok [usb-uhci]
+    \end{itemize}
+
+D'autres noyaux sont en cours de test.
+
+\subsection{pppd}
+
+Pour obtenir la version de pppd:
+\begin{verbatim}
+$ pppd --version
+\end{verbatim}
+
+Liste des versions testées:
+\begin{itemize}
+\item pppd 2.4.2 beta
+\end{itemize}
+
+    Cette liste n'est pas exhaustive. Si vous parvenez à vous connecter
+    avec une autre distribution ou avec un noyau plus ancien,
+    n'hésitez pas à nous contacter.
+
+\section {Recuperation des sources du driver et de pppd}
+
+\subsection{Recuperation du driver}
+
+    Connectez vous en tant que utilsatuer puis tapez :
+
+\begin{verbatim}
+$ mkdir ecidasl   
+$ cd eciadsl
+$ cvs -d :pserver:cvs@pserver.samba.org:/cvsroot login
+\end{verbatim}
+Taper cvs comme mot de passe.
+ensuite, toujours dans le shell.
+\begin{verbatim}
+$ cvs -z5 -d :pserver:cvs@pserver.samba.org:/cvsroot co ppp
+$ cd ppp/
+$ make
+$ cd ..
+$ cvs -d:pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl login 
+$ cvs -z3 -d:pserver:anonymous@cvs.eciadsl.sourceforge.net:/cvsroot/eciadsl co kernelmode 
+\end{verbatim}
+    Lors du prompt pour le mot de passe valider simplement.
+
+    Vous avez maintenant récuperer les sources du drivber et de pppd.
+\subsection{ Compilation et installation  }
+
+
+\begin{verbatim}
+$ cd kernelmode 
+$ make
+$ cd ../ppp/pppd
+$ make
+\end{verbatim}
+
+
+
+    
+\subsection{Configuration de pppd pour l'ouverture de la connexion}
+
+\subsubsection{Script /etc/ppp/peers/test :}
+\label{cha:peers}
+
+Il vest dans le répertoire \textit{kernelmode} et doit etre recopier avnt de lancer pppd.
+Il doit ressembler à ça :
+
+\begin{verbatim}
+# 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
+# 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+#
+# This file could be rename but its place is under /etc/ppp/peers
+# To connect to Internet using this configuration file
+# pppd call adsl, where "adsl" stands for the name of this file
+
+debug
+kdebug 1
+noipdefault
+noauth
+defaultroute
+plugin /home/jeanseb/driver/kernelmode/pppoatm.so
+8.35
+#sync
+user "fti/@fti"
+#noaccomp
+#nopcomp
+#noccp
+#novj
+holdoff 1
+#persist
+maxfail 0
+usepeerdns
+#lcp-echo-interval 600
+#lcp-echo-failure 5
+
+\end{verbatim}
+
+\subsubsection{A FAIRE avant de tester}
+\label{cha:faire}
+
+    \begin{tabular}{ll}
+    - si vous êtes abonné wanadoo :&
+    remplacer :\\
+        & user "\textit{adsl@adsl}"\\
+    &par :\\
+        &user "\textit{ fti/votre\_login@fti}"\\
+
+    - si vous êtes abonné club-internet :&
+    remplacer :\\
+        &user "\textit{adsl@adsl}"\\
+    &par :\\
+        &user "\textit{votre\_login@clubadsl1}"\\
+    \end{tabular}
+    
+    \begin{tabular}{ll}
+    - n'oubliait pas de modifier le path pour le plugin
+    \end{tabular}
+    ASTUCE sur certaines machines Linux :
+    
+        Si vos premières connexions échouent, voyez dans \textit{ /var/log/messages}
+        Si pppd s'arrête sur un message contenant LCP, alors faites cela :\\
+        dans \textit{ /etc/ppp/peers/adsl :}
+        DE-commentez les 2 dernières lignes parlant de LCP.
+
+
+
+\subsubsection{Parametrage des mot de passe (si pas deja fait pour l'usermode)}
+
+    Votre mot de passe sera stocké dans un script d'authentification
+    qui dépend de l'opérateur internet que vous utilisez :
+    
+    
+    \begin{tabular}{ll}
+      Pour wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
+      Pour club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
+    \end{tabular}
+    
+    
+    Les 2 scripts ont exactement la même syntaxe.
+    Vous devez créer un ligne comme suit :
+    
+    
+    \begin{tabular}{ll}
+Pour wanadoo       :& \textit{ fti/votre\_login@fti * votre\_password *}\\
+Pour club-internet :& \textit{ votre\_login@clubadsl1 * votre\_password *}\\
+    \end{tabular}
+    
+    
+    ATTENTION :\\
+    - les "*" sont importants.\\
+    - le premier champ de la ligne DOIT être égal
+      au contenu de la ligne user du fichier \textit{ /etc/ppp/peers/adsl}
+
+\section{Procédure de test}
+
+
+Il faut lancer les commande suivante en prenant en compte le temps de synchro, c'est a dire en attendant que la led soit fixe avant de lance pppd.
+\note{on est suppposé etre dans le réprtoire eciadsl créé au debut du script}
+
+\begin{verbatim}
+$ insmod kernelmode/eci.o
+$ ppp/pppd/pppd call test
+\end{verbatim}
+
+
+\end{document}
