@@ -18,7 +18,8 @@ confdir=/etc/eciadsl
 tmpbin=/tmp/binfile.tmp
 
 if [ $UID -ne 0 ]; then
-    echo -e "\nERROR: You must be root in order to run this script.\n"
+    echo -e "This script must be run as root.\nEnter the root password, please."
+    su  - -c  "DISPLAY=$DISPLAY PATH=$PATH  $0  $*"
     exit 1
 fi
 
