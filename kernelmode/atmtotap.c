@@ -126,7 +126,7 @@ void *write_on_tap(void *datas)
 		do {
 			r = read(d->fdatm, tmpbuf, sizeof(tmpbuf));
  		} while(r < 0 && errno == EINTR);
-	//	if(r>10)
+		if(r>10)
 			write(d->fdtap, tmpbuf +10 , r-10);
 	}
 }
