@@ -100,8 +100,8 @@ that handles the modem. A kernel module is under development.
 /usr/local/bin/remove_dabusb
 /usr/local/bin/makeconfig
 # config files should be : rw-r--r--
-%defattr(644,root,root)
 %dir /etc/eciadsl
+%defattr(644,root,root)
 %config /etc/eciadsl/adsl-skel
 %config /etc/eciadsl/eci_firm_kit_wanadoo.bin
 %config /etc/eciadsl/eci_wan3.bin
@@ -110,6 +110,7 @@ that handles the modem. A kernel module is under development.
 %config /etc/eciadsl/modemeci.gif
 
 # doc files
+%defattr(-,root,root)
 %doc doc/howto.txt
 %doc doc/howto.tex
 %doc doc/howto.ps
