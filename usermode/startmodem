@@ -374,7 +374,7 @@ then
 
 	if [ -n "$GW" ]
 	then
-		for IFACE in 0 1; do
+		for IFACE in 0 7; do
 			route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+eth$IFACE$" > /dev/null
 			if [ $? -eq 0 ]; then
 				echo "removing existing default route (eth$IFACE).."
