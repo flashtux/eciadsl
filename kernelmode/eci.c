@@ -1336,6 +1336,16 @@ static void eci_init_vendor_callback(struct urb *urb)
 }
 
 /*
+	Null call back for control urbs
+*/
+static void eci_control_callback(struct urb *urb)
+{
+
+	kfree(urb->context);
+	return;
+}
+
+/*
 
 	Handle The interrupt stuff
 
@@ -1369,11 +1379,9 @@ static void eci_int_callback(struct urb *urb)
 		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc,
 		0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc, 0xc
 	}; 
+	static struct usb_ctrlrequest *dr;
 
-
-	/*	DBG_OUT("Int callBack in\n"); Too much debug info	*/
 	instance = (struct eci_instance *) urb->context;
-	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 	if(urb->actual_length)
 	{
@@ -1433,10 +1441,29 @@ static void eci_int_callback(struct urb *urb)
 			}
 			if(outi)
 			{
-				usb_control_msg(instance->usb_wan_dev, 
+/*				usb_control_msg(instance->usb_wan_dev, 
 					usb_pipecontrol(0), 0xdd, 0x40, 0xc02,
 				 	0x580 , eci_outbuf, 
-					sizeof(eci_outbuf), HZ);
+					sizeof(eci_outbuf), HZ);*/
+				dr = kmalloc(sizeof(struct usb_ctrlrequest),
+						GFP_ATOMIC);
+				if(dr)
+				{
+					dr->bRequestType = 0x40;
+					dr->bRequest = 0xdd;
+					dr->wValue = cpu_to_le16(0xc02);
+					dr->wIndex = cpu_to_le16(0x580);
+					dr->wLength = cpu_to_le16(
+							sizeof(eci_outbuf));
+					FILL_CONTROL_URB(instance->vendor_urb,
+						instance->usb_wan_dev,
+						usb_pipecontrol(0),
+						(unsigned char*) &dr,
+						eci_outbuf,
+						sizeof(eci_outbuf),
+						eci_control_callback,dr);
+					usb_submit_urb(instance->vendor_urb);
+				}
 			}
 		}
 	}
