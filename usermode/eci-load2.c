@@ -20,6 +20,12 @@
   31/07/2002, Benoit PAPILLAULT
   Added a verbose mode. By default, few lines are output. This removes
   a bug when eci-load2 is launch by initlog (like in boot script).
+
+  17/12/2002 Benoit PAPILLAULT
+  We use a shared semaphore to synchronize child and father process.
+  The child is required to increment the semaphore whenever it
+  receives a packet on the interrupt endpoint (whose size != 64). The father
+  decrements the semaphore (hence waiting for the child to increment it).
 */
 
 #define _GNU_SOURCE
@@ -37,10 +43,15 @@
 #include "pusb.h"
 #include "modem.h"
 #include "util.h"
+#include "semaphore.h"
 
 #define TIMEOUT 2000
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enough */
 #define ECILOAD_TIMEOUT 60
+
+/* the shared semaphore, defined as a global variable */
+
+int shared_sem = -1;
 
 /* just for testing without USB */
 /*#define TESTECI*/
@@ -206,7 +217,12 @@ void read_endpoint(pusb_device_t dev, int epnum, int option_verbose)
 
 		/* try to stop the sleep() function in our father, seems to work */
 		if (epnum == 0x86 && ret != 64)
-			kill(getppid(), SIGUSR1);
+        {
+            if (semaphore_incr(shared_sem, 1) == -1)
+            {
+                perror("eci-load2: error incrementing the shared semaphore");
+            }
+        }
 
 		if (ret == 16)
 			pkt16_received = 1;
@@ -380,13 +396,11 @@ int eci_load2(const char* file, unsigned short vid2, unsigned short pid2,
 				gettimeofday(&tv1, NULL);
 			}
 
-			/*
-			  25/11/2001
-			  This call to pause() should be unblock by our son sending
-			  SIGUSR1
-			*/
-
-			pause();
+            /* decrement the shared semaphore, thus waiting for the child */
+            if (semaphore_decr(shared_sem, 1) == -1)
+            {
+                perror("eci-load2: error decrementing the shared semaphore");
+            }
 
 			if (option_verbose)
 			{
@@ -485,11 +499,6 @@ void usage(const int ret)
 	_exit(ret);
 }
 
-void sigusr1()
-{
-	/*printf("get SIGUSR1\n");*/
-}
-
 void sigtimeout()
 {
 	printf("ECI load 2: timeout\n");
@@ -570,7 +579,14 @@ int main(int argc, char** argv)
 		}
 	}
 
-	signal(SIGUSR1, sigusr1);
+    /* create the shared semaphore with a count of 0 */
+    shared_sem = semaphore_init(0);
+    if (shared_sem == -1)
+    {
+        perror("eci-load2: failed to create shared semaphore");
+        return -1;
+    }
+
 	signal(SIGALRM, sigtimeout);
 	if (!eci_load2(file, vid2, pid2, option_verbose, option_timeout))
 	{
