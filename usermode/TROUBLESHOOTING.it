@@ -967,7 +967,9 @@ D:	Quando eseguo 'sudo startmodem' ottengo questo errore:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-R:	In console o in terminale esegui da root:
+R:	Controllo preliminare se il pppd è installato sul vostro sistema.
+
+	In console o in terminale esegui da root:
 		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
 	Se funziona aggiungi le seguenti righe al file ~/.bashrc o al file
