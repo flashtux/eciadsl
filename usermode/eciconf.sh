@@ -124,7 +124,7 @@ set file [open "$CONF_DIR/providers.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
 	set line [string trim [gets $file]]
-	regsub -all {[ \t]+} $line {^} line
+	regsub -all {[\t]+} $line {^} line
 	if {"$line"!="" && "$line"!="^" && ![regexp {^[ \t]*#} $line]} {
 		set pos1 0
 		set pos2 [string first "^" "$line" [expr $pos1+1]]
@@ -209,7 +209,7 @@ set file [open "$CONF_DIR/modems.db" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
 	set line [string trim [gets $file]]
-	regsub -all {[ \t]+} $line {^} line
+	regsub -all {[\t]+} $line {^} line
 	if {"$line"!="" && "$line"!="^" && ![regexp {^[ \t]*#} $line]} {
 		set pos1 0
 		set pos2 [string first "^" "$line" [expr $pos1+1]]
