@@ -33,7 +33,9 @@ semaphore.o: semaphore.c semaphore.h
 	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o semaphore.o semaphore.c
 eci-eeprom.o: eci-eeprom.c pusb.h modem.h config.h
 check-hdlc.o: check-hdlc.c
+	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o check-hdlc.o check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
+	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o check-hdlc-bug.o check-hdlc-bug.c
 
 check:
 	@if [ "$(PRODUCT_VERSION)" != "$$(cat VERSION)" ]; then \
