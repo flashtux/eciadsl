@@ -622,7 +622,7 @@ aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 */
 
 
-	ret = pusb_endpoint_submit_write (epdata,bigbuf,ptr,SIGRTMIN);
+	ret = pusb_endpoint_submit_write (epdata,bigbuf,ptr,0); // SIGRTMIN);
 	
 	if(ret < 0 && verbose) {
 		fprintf(stderr, "< pid=%d > Error writing to usb, see the reason\n", this_process);
@@ -705,47 +705,6 @@ decode_usb_pkt(unsigned char *buf, int len)
 	return(0);
 }
 
-/* 
-* endpoint 0x02 is used for sending ATM cells
-*
-* to handle synchronous write, we does an infinite
-* loop, keeping writing on endpoint EP_DATA_OUT
-*
-* NB : this function must be called after the
-*      handle_endpoint_88 which is a fork.
-*      handle_endpoint_02 is an infinite loop
-*      so if you enter it, you will never get
-*      out ( just when there are errors)
-*/
-
-void
-handle_endpoint_02(pusb_endpoint_t epdata, int fdin)
-{
-	/* this part still need a redesign ... */
-	int r, n;
-	unsigned char *buf;
-
-	for(;;)
-	{
-
-		n = ppp_read(fdin, &buf, &n);
-
-		if(n <= 0)
-		{
-			printf("ppp_read=%d\n",n);
-			break;
-		}
-
-		r = aal5_write(epdata, buf, n);
-
-		if(r < 0)
-		{
-			printf("aal5_write=%d\n",r);
-			break;
-		}
-	}
-}
-
 void
 usage()
 {
@@ -787,7 +746,7 @@ int init_ep_int(pusb_endpoint_t ep_int)
 		/* we use a BULK transfer instead, since INTERRUPT transfer
 		   are not supported by usbdevfs (devio.c) */
 		ret = pusb_endpoint_submit_int_read(ep_int,buf[i],
-											sizeof(buf[i]), SIGRTMIN);
+						    sizeof(buf[i]), 0); // SIGRTMIN);
 		if (ret < 0)
 		{
 			perror("error: init_ep_int");
@@ -806,7 +765,7 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 	for (i=0;i<NB_PKT_EP_DATA_IN;i++)
 	{
 		ret = pusb_endpoint_submit_iso_read(ep_data_in,buf[i],MAX_EP_SIZE,
-											PKT_NB,SIGRTMIN);
+						    PKT_NB,0); //SIGRTMIN);
 		if (ret < 0)
 		{
 			perror("error: init_ep_data_in");
@@ -846,7 +805,7 @@ void replace_b1_b2(unsigned char *b1, unsigned char *b2)
 
 void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
 {
-	unsigned char outbuf[34] = {
+	unsigned char outbuf[40] = {
 		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
 		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
 		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c, 
@@ -921,7 +880,7 @@ void handle_urb(pusb_urb_t urb)
 		
 			/* we use the last buffer & size. And since, there is ONLY
 			   one buffer in INT transfer, this works */
-			ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, SIGRTMIN);
+			ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, 0); //SIGRTMIN);
 			if (ret < 0)
 				perror("error: can re-submit on EP_INT");
 		}
@@ -946,7 +905,7 @@ void handle_urb(pusb_urb_t urb)
 			} while (pusb_urb_buffer_next(urb,&buf,&size,&idx));
 
 			ret=pusb_endpoint_submit_iso_read(ep_data_in,sbuf,MAX_EP_SIZE,
-											  PKT_NB,SIGRTMIN);
+							  PKT_NB,0); //SIGRTMIN);
 			if (ret < 0)
 				perror("error: can't re-submit on ep EP_DATA_IN");
 		}
@@ -962,17 +921,17 @@ void handle_urb(pusb_urb_t urb)
 	}
 }
 
+int oldpid[10],nbpid = 0;
+
 void sig_rtmin(int sig)
 {
 	pusb_urb_t urb;
 	int count;
-
 	for (count = 0; ; count ++)
 	{
 		urb = pusb_device_get_urb(fdusb);
 		if (urb == NULL)
 			break;
-
 		handle_urb(urb);
 
 		/* very bad line : pusb_device_get_urb() returns a pointer
@@ -982,7 +941,73 @@ void sig_rtmin(int sig)
 		   Anyway, its a quick fix.
 		*/
 
-		free(urb);
+		free (urb);
+	}
+}
+
+/* 
+* endpoint 0x02 is used for sending ATM cells
+*
+* to handle synchronous write, we does an infinite
+* loop, keeping writing on endpoint EP_DATA_OUT
+*
+* NB : this function must be called after the
+*      handle_endpoint_88 which is a fork.
+*      handle_endpoint_02 is an infinite loop
+*      so if you enter it, you will never get
+*      out ( just when there are errors)
+*/
+
+void
+handle_endpoint_02(pusb_endpoint_t epdata, int fdin,pusb_endpoint_t ep_data_in, pusb_endpoint_t ep_int)
+{
+	/* this part still need a redesign ... */
+	int r, n;
+	unsigned char *buf;
+
+	fd_set inf;
+	int select_rv;
+	int maxfd;
+	struct timeval tv;
+
+	maxfd = fdin+1;
+
+	for(;;)
+	{
+
+/*  	  print_time(); */
+/*  	  printf("starting select\n"); */
+/*  	  printf("fdin %d epint %d epdata %d maxfd %d\n",fdin,ep_data_in->fd,ep_int->fd,maxfd); */
+	  FD_ZERO(&inf);
+	  FD_SET(fdin,&inf);
+	  // Consider that tv is reseted by select
+	  tv.tv_sec = 0;
+	  tv.tv_usec = 500; // 1/2 s ???
+
+	  // The usb fd does not seem to work in select... too bad !!!
+	  // FD_SET(ep_int->fd,&inf); 
+	  // ep_data_in is the same fd...
+	  // FD_SET(ep_data_in->fd,&inf);
+
+	  select_rv = select(maxfd, &inf, NULL, NULL, &tv);
+	  if (select_rv > 0) {
+	    n = ppp_read(fdin, &buf, &n);
+
+	    if(n <= 0)
+	      {
+		printf("ppp_read=%d\n",n);
+		break;
+	      }
+	    
+	    r = aal5_write(epdata, buf, n);
+	    
+	    if(r < 0)
+	      {
+		printf("aal5_write=%d\n",r);
+		break;
+	      }
+	  }
+	  sig_rtmin(32);
 	}
 }
 
@@ -1149,7 +1174,7 @@ int main(int argc, char *argv[])
 	 * Install a SIGRTMIN signal handler. This signal is used for the 
 	 * completion of an URB */
 
-	signal(SIGRTMIN, sig_rtmin);
+	//signal(SIGRTMIN, sig_rtmin);
 
 	/*
 	*  We search for the first USB device matching ST_VENDOR & ST_PRODUCT.
@@ -1214,7 +1239,7 @@ int main(int argc, char *argv[])
 	init_ep_int(ep_int);
 	init_ep_data_in(ep_data_in);
 
-	handle_endpoint_02(ep_data_out, fdin);
+	handle_endpoint_02(ep_data_out, fdin,ep_data_in,ep_int);
 
 	/* we release all the interface we'd claim before exiting */
 	if(pusb_release_interface(fdusb, 0) < 0 && verbose)

@@ -35,11 +35,6 @@ struct pusb_device_t
 	int fd;
 };
 
-struct pusb_endpoint_t
-{
-	int fd;
-	int ep;
-};
 
 #define MAXBUFFER 20
 
