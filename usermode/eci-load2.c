@@ -442,7 +442,7 @@ int main(int argc, char *argv[])
 		usage();
 
 	if (argc == 2){
-	file = argv[2];
+	file = argv[1];
 	vid2 = strtoul("0x0915",NULL,0);
 	pid2 = strtoul("0x8000",NULL,0);
 }else{

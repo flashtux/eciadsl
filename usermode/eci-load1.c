@@ -348,7 +348,7 @@ int main(int argc, char *argv[]){
 		usage();
 
 	if (argc == 2){
-	file = argv[2];
+	file = argv[1];
 	vid1=strtoul("0x0547",NULL,0);
 	pid1=strtoul("0x2131",NULL,0);
 	vid2=strtoul("0x0915",NULL,0);
