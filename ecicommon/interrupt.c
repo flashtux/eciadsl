@@ -25,6 +25,28 @@ static union ep_int_buf interrupt_buffer;
 static int interrupt_buffer_pos = 0;
 
 /*
+ * 	Parse the status buffer in order to retreive info 
+ *  and copy the memory from the modem dsp 
+ * 
+ */
+
+void parse_status(union ep_int_buf *ib,struct gs7x70_dsp *dsp) {
+	if(dsp->last_frameid != ib->buffer.frameid) 
+		WARN("Globespan Modem lmiss a frame \n");
+	switch(ib->buffer.frameid) {
+		case 0:
+			dsp->State = ib->buffer.status_buffer[0] | 
+							(ib->buffer.status_buffer[1] << 8);
+			dsp->StartProgress = ib->buffer->status_buffer[6] | 
+							(ib->buffer.status_buffer[7] << 8);
+			dsp->LinePower = ib->buffer.status_buffer[8] | 
+							(ib->buffer.status_buffer[9] << 8);							
+		default:
+		
+	}	
+};
+
+/*
  *	Parse the buffer and  return zero if OK, -ERRSOMETHING else.
  * 	When ok, the resp buffer is set with the data that need to be 
  *  sent to the modem and *resp_size is the len of these data.
@@ -48,6 +70,7 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 		if(interrupt_buffer_pos == sizeof(union ep_int_buf)) {
 			interrupt_buffer_pos = 0;
 /*	TODO : Handle the buffer !!!! */
+			parse_status(interrupt_buffer, dsp);
 		}
 	} else {
 		if(buffer_size < INT_MIN_BUFFER_SIZE) return -EINVAL;
@@ -55,6 +78,7 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 			case 0xF0:
 				dsp->is_ready = (buffer[2] << 8 ) | buffer[3];
 				dsp->next_state = (buffer[4] << 8 )| buffer[5];
+				DBG_OUT("DSP READY %d\Next state %2x", dsp->is_ready, p->nextstate);
 				break;
 			default:
 				break;
@@ -62,3 +86,4 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 	}
 	return 0;
 }
+
