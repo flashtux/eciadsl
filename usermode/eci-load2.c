@@ -27,12 +27,9 @@
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <errno.h>
-#include "pusb.h"
 
-/* Vendor/ProdID for "ECI Telecom USB ADSL WAN Modem" */
-#define ECI_NAME      "ECI Telecom USB ADSL WAN Modem"
-#define ECI_VENDOR    0x0915
-#define ECI_PRODUCT   0x8000
+#include "pusb.h"
+#include "modem.h"
 
 #define TIMEOUT 2000
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enought */
@@ -52,7 +49,7 @@ struct usb_block
 };
 
 /* for ident(1) command */
-static char id[] = "@(#) $Id$";
+static const char id[] = "@(#) $Id$";
 
 int usb_block_read(FILE *fp, struct usb_block *p)
 {
@@ -234,10 +231,10 @@ int eci_load2(const char * file)
 
 	/* open the USB device */
 #ifndef TESTECI
-	dev = pusb_search_open(ECI_VENDOR,ECI_PRODUCT);
+	dev = pusb_search_open(GS_VENDOR,GS_PRODUCT);
 	if (dev == NULL)
 	{
-		printf("Can't find your " ECI_NAME "\n");
+		printf("Can't find your " GS_NAME "\n");
 		fclose (fp);
 		return 0;
 	}
@@ -264,6 +261,7 @@ int eci_load2(const char * file)
 	}
 
 	/* warning : orginal setting is 0,4 (source : Windows driver) */
+
 	if (pusb_set_interface(dev,0,4) < 0)
 	{
 		printf("Can't set interface 0 to use alt setting 4\n");
