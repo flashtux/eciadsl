@@ -1,3 +1,9 @@
+eciadsl-usermode (0.7-1) unstable; urgency=low
+
+  * Update with the 0.7 release
+
+ -- Benoit PAPILLAULT <benoit.papillault@free.fr>  Wed, 22 Jan 2003 09:28:45 +0100 
+
 eciadsl-usermode (0.6-1) unstable; urgency=low
 
   * Update with the 0.6 release
