@@ -60,7 +60,7 @@ Sorted according to priority (the upper in the list, the prior):
 * get back USE_STATICIP from current config
 
 
-0.7:
+0.x:
 - URB cleaning on decnx (prevents kernel oops)
 - pppoeci and eci-load* must rehook TERM (if possible) and STOP signal to cleanup thing and exit
 -? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
@@ -71,7 +71,7 @@ Sorted according to priority (the upper in the list, the prior):
 - redesign Makefile to use more Makefile-friendly rules.
 - reimplement .conf reading from shell scripts (simplify that).
 
-0.x:
+0.y:
 - check and merge bsd 0.6 port
 - submit driver to *BSD distro managers
 
