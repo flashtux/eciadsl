@@ -1255,7 +1255,7 @@ static void eci_bh_atm (unsigned long param) {
 	spin_lock_irqsave(&lp_instance->lock, flags);
 	if (!(lp_vcc = lp_instance->atm_dev->last)) {
 	       ERR_OUT("No VC ready no dequeue\n") ;
-	       return ;
+		goto out;
 	}
 	
 	/*
@@ -1272,9 +1272,10 @@ static void eci_bh_atm (unsigned long param) {
 		} else {
 			atomic_inc(&lp_vcc->stats->tx) ;
 		}
-		/* Free Socket Buffer */
-		FREE_SKB(lp_instance->atm_dev->vccs, lp_skb) ;
 	}
+out:
+	/* Free Socket Buffer */
+	FREE_SKB(lp_instance->atm_dev->vccs, lp_skb) ;
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
 }
 /*----------------------------------------------------------------------*/
