@@ -339,7 +339,7 @@ then
 	DEV="$GW"
 	case "$GW" in
 	tap0|tun0)
-		if [ "$use_staticip" -a -n "$staticip" -a -n "$gateway" ]
+		if [ "$use_staticip" == "yes" -a -n "$staticip" -a -n "$gateway" ]
 		then
 			ifconfig $GW $staticip pointopoint $gateway
 			GW="gw $gateway"
