@@ -328,7 +328,7 @@ esac
 
 if [ "$use_dhcp" != "yes" ]
 then
-
+	DEV="$GW"
 	case "$GW" in
 	tap0|tun0)
 		if [ -n "$staticip" -a -n "$gateway" ]
@@ -356,16 +356,16 @@ then
 		done
 
 		echo "adding default route.."
-		route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+$GW$" > /dev/null
+		route -n | grep -E "[ \t]UG[ \t][ \t0-9\+\-]+$DEV$" > /dev/null
 		if [ $? -ne 0 ]; then
    			route add default $GW
 			if [ $? -ne 0 ]; then
-				echo "failed to set default route to $GW"
+				echo "failed to set default route to $DEV"
 			else
-				echo "default route added: $GW"
+				echo "default route added: $DEV"
 			fi
 		else
-			echo "default route to $GW already exists"
+			echo "default route to $DEV already exists"
 		fi
 	fi
 fi
