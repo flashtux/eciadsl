@@ -458,6 +458,7 @@ void usage(const int ret)
 	printf("       -v or --verbose   be verbose\n");
 	printf("       -h or --help      show this help message then exit\n");
 	printf("       -V or --version   show version information then exit\n");
+	printf("       -t or --timeout   override the default timeout value (in sec)\n");
 	_exit(ret);
 }
 
@@ -475,6 +476,15 @@ void sigtimeout()
 	exit(-1);
 }
 
+void get_unsigned_value(const char* param, unsigned int* var)
+{
+	unsigned int value;
+	char* chk;
+
+	value = (unsigned int) strtoul(param, &chk, 10);
+	if (! *chk)
+		*var = value;
+}
 
 int main(int argc, char** argv)
 {
@@ -483,6 +493,7 @@ int main(int argc, char** argv)
 	unsigned short vid2, pid2;
 	int i, j;
 	int option_verbose = 0;
+	unsigned int option_timeout = 0;
 
 	for (i = 1, j = 1; i < argc; i++)
 	{
@@ -497,6 +508,9 @@ int main(int argc, char** argv)
 		else
 		if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbose") == 0))
 			option_verbose = 1;
+		else
+		if (((strcmp(argv[i], "-t") == 0) || (strcmp(argv[i], "--timeout") == 0) ) && (i + 1 < argc))
+			get_unsigned_value(argv[++i], &option_timeout);
 		else
 			argv[j++] = argv[i];
 	}
@@ -521,7 +535,7 @@ int main(int argc, char** argv)
 
 	signal(SIGUSR1, sigusr1);
 	signal(SIGALRM, sigtimeout);
-	alarm(ECILOAD_TIMEOUT);
+	alarm(option_timeout?option_timeout:ECILOAD_TIMEOUT);
 	if (!eci_load2(file, vid2, pid2, option_verbose))
 	{
 		printf("ECI load 2: failed\n");

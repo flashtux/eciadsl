@@ -386,6 +386,16 @@ void fail(void)
 	_exit(-1);
 }
 
+void get_unsigned_value(const char* param, unsigned int* var)
+{
+	unsigned int value;
+	char* chk;
+
+	value = (unsigned int) strtoul(param, &chk, 10);
+	if (! *chk)
+		*var = value;
+}
+
 int main(int argc, char** argv)
 {
 	const char* file;
@@ -394,6 +404,7 @@ int main(int argc, char** argv)
 	unsigned short pid1, pid2;
 	int i, j;
 	int option_verbose = 0;
+	unsigned int option_timeout = 0;
 	pid_t child_pid;
 
 	/* parse command line options */
@@ -411,6 +422,9 @@ int main(int argc, char** argv)
 		else
 		if ((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbose") == 0))
 			option_verbose = 1;
+		else
+		if (((strcmp(argv[i], "-t") == 0) || (strcmp(argv[i], "--timeout") == 0) ) && (i + 1 < argc))
+			get_unsigned_value(argv[++i], &option_timeout);
 		else
 			argv[j++] = argv[i];
 	}
@@ -438,7 +452,7 @@ int main(int argc, char** argv)
 		usage(-1);
 
 	signal(SIGALRM, sigtimeout);
-	alarm(ECILOAD_TIMEOUT);
+	alarm(option_timeout?option_timeout:ECILOAD_TIMEOUT);
 
 	child_pid = fork();
 	if (child_pid == -1)
