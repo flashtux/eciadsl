@@ -10,6 +10,9 @@
 # CVS $Id$
 # Tag $Name$
 
+# 15/02/2002 Benoit PAPILLAULT
+#   remove "modprobe uhci" since this module never worked with this modem
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 if [ ! -d /proc/bus/usb ]; then
@@ -31,7 +34,6 @@ if [ $? -eq 0 ]; then
 	if [ $? -ne 0 ]; then
 		echo "Loading UHCI support" ;
 		modprobe usb-uhci ;
-		modprobe uhci ;
 		sleep 2 ;
 	fi
 fi
