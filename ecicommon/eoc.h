@@ -20,11 +20,11 @@
 
 #define EOC_MAX_LEN 34
 
-#define EOC_ADDRESS(x) (x & 3)
+#define EOC_ADDRESS(x) ((x >> 10) & 3)
 #define ECO_ADDRESS_ATU_R 0
 #define EOC_ADDRESS_ATU_C 3
 
-#define EOC_OPCODE(x)		(x & (0xFF << 5)
+#define EOC_OPCODE(x)		((x & (0xFF << 5)) || ((x >> 7 ) & 1))
 #define EOC_OPCODE_HOLD		(0x01 << 5)
 #define EOC_OPCODE_RTN		(0xf0 << 5)
 #define EOC_OPCODE_SLFTST	(0x02 << 5)
@@ -73,6 +73,10 @@
 #define EOC_OPCODE_REQPDN	(0x15 << 5)
 #define EOC_OPCODE_DGASP	(0xE7 << 5)
 #define EOC_OPCODE_UTC		(0x04 << 5)
+
+#define EOC_PARITY (x)		(x & 0x1000)
+#define EOC_PARITY_ODD		0x1000
+#define EOC_PARITY_EVEN		0x0000
 
 
 
