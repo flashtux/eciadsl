@@ -51,6 +51,9 @@ struct usb_block
 							only for OUT request (ie request_type & 0x80)=0 */
 };
 
+/* for ident(1) command */
+static char id[] = "@(#) $Id$";
+
 int usb_block_read(FILE *fp, struct usb_block *p)
 {
 	unsigned char b[8];

@@ -156,6 +156,9 @@ struct eci_firm_block
 	unsigned char * content;
 };
 
+/* for ident(1) command */
+static char id[] = "@(#) $Id$";
+
 /*
   Load a firmware block. content should be either NULL
   or the value returned from a previous call to eci_firm_block_read()

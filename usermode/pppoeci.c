@@ -491,7 +491,7 @@ aal5_read(unsigned char *cell_buf, size_t count,
 	unsigned int real_len;
 
 	if(vpi != my_vpi || vci != my_vci) {
-
+/*
 		if(verbose) {
 			printf("< pid=%d > ", this_process);
 			print_time();
@@ -499,19 +499,6 @@ aal5_read(unsigned char *cell_buf, size_t count,
 				 vpi, vci, my_vpi, my_vci);
 			dump(cell_buf, CELL_DATA);
 		}
-		/*pusb_endpoint_reset(ep_int);
-		pusb_endpoint_reset(ep_data_in);
-		pusb_endpoint_reset(ep_data_out);
-	for (i=0;i<NB_PKT_EP_DATA_IN;i++)
-	{
-		ret = pusb_endpoint_submit_iso_read(ep_data_in,buf[i],MAX_EP_SIZE,
-											PKT_NB,SIGRTMIN);
-		if (ret < 0)
-		{
-			perror("error: init_ep_data_in");
-			return ret;
-		}
-	}
 */
 		return(0);
 	
@@ -704,10 +691,7 @@ decode_usb_pkt(unsigned char *buf, int len)
 	rlen -= pos;
 
 	if (rlen != 0)
-	{
-		printf("warning: rlen=%d\n",rlen);
 		memcpy(rbuf, rbuf + pos, rlen);
-	}
 
 	return(0);
 }
@@ -903,10 +887,11 @@ void handle_urb(pusb_urb_t urb)
 			do {
 				if (size != 0)
 				{
+/*
 					printf("data_in %02x, packet len = %d\n",
 						   EP_DATA_IN,size);
 					dump(buf,size);
-
+*/
 					handle_ep_data_in(buf,size);
 				}
 			} while (pusb_urb_buffer_next(urb,&buf,&size,&idx));
