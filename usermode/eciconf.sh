@@ -388,7 +388,6 @@ if {"$modem"=="" || $selected_modem==-1} {
 		.bloc1.modem.liste.contenu see [.bloc1.modem.liste.contenu curselection]
 	}
 }
-puts "$modem $vid1 $pid1 $vid2 $pid2"
 
 scrollbar .bloc1.modem.liste.scroll -command ".bloc1.modem.liste.contenu yview"
 
