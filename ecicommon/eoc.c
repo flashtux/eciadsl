@@ -88,7 +88,7 @@ void eoc_execute(u_int16_t eocmesval) {
 	/*determine eocstate */	
 	switch(eocstate){
 		case _idle:
-			switch(EOC_OPCODE(eocmesval)) {
+			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_READ_0:
 					eocstate = _preread;
 					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_0]\n");
@@ -221,7 +221,7 @@ void eoc_execute(u_int16_t eocmesval) {
 			}
 			break;
 		case _preread:
-			switch(EOC_OPCODE(eocmesval)) {
+			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_NEXT:
 					printf("EOC.C - eco_execute - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 					if(EOC_PARITY(eocmesval) == EOC_PARITY_ODD)
@@ -236,7 +236,7 @@ void eoc_execute(u_int16_t eocmesval) {
 			}
 			break;
 		case _prewrite:
-			switch(EOC_OPCODE(eocmesval)) {
+			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_NEXT:
 					printf("EOC.C - eco_execute - PREWRITE - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 					if(EOC_PARITY(eocmesval) == EOC_PARITY_ODD)
@@ -355,16 +355,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 				if(!(eocmesval & EOC_DATA_MASK)) { /* handle data */
 					eoc_write_data(eocmesval);
 					if(eocdataregpos == eocwritelen) { /* if last  tell it to atu-c */
-						mes = 0x5301;
-						mes |= (0x0e & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
-						mes |= (0x0e & 0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
-						if(eocpar) {	/* set parity bit and switch eocwritepar value */
-							mes |= EOC_ENCODED_PARITY_ODD;
-						} else {
-							mes |= EOC_ENCODED_PARITY_EVEN;
-						}
-						eoc_out_buf[eoc_out_buffer_pos-2] = mes & 0xff;
-						eoc_out_buf[eoc_out_buffer_pos-1] = (mes >>8 ) & 0xff;					
+						eoc_encode(EOC_OPCODE_EOD);
 					}
 					continue;
 				} /* else handle an opcode */
@@ -372,7 +363,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 				switch(eocstate) {
 					case _read:
 						printf("EOC.C - parse_eoc_buffer - READ [eocstate : _read]\n");
-						switch(EOC_OPCODE(eocmesval)) {
+						switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 							case EOC_OPCODE_NEXT:
 								printf("EOC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
@@ -424,7 +415,12 @@ void eoc_encode(u_int16_t eoc_opcode) {
 		
 	mes = 0x5301;
 	mes |= (eoc_opcode & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
-	mes |= (eoc_opcode & 0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
+	mes |= (eoc_opcode & 0xFE); /* 2d byte contain 7 msb in bits 1 to 7 */
+	if(eocpar) {	/* set parity bit and switch eocwritepar value */
+		mes |= EOC_ENCODED_PARITY_ODD;
+	} else {
+		mes |= EOC_ENCODED_PARITY_EVEN;
+	}
 	eoc_out_buf[eoc_out_buffer_pos-2] = mes & 0xff;
 	eoc_out_buf[eoc_out_buffer_pos-1] = (mes >> 8) & 0xff;		
 };
