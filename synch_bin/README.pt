@@ -1,0 +1,134 @@
+
+POR FAVOR: LEIA O AVISO ABAIXO ANTES DE LER O RESTO DO DOCUMENTO!
+
+->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+******   <<< AVISO: >>>   *****************************************************
+**
+** Os nomes antigos são DESAPROVADOS, isto porque não são amigáveis no sentido
+** em que NÃO indicam de FORMA ALGUMA o local em que o .bin deve funcionar.
+** Por exemplo: não tente o eci_lens.bin porque mora perto de Lens (França).
+** Este .bin foi gerado em Lens, mas pode funcionar para algumas pessoas em
+** Tchapamawak, e poede não servir para quem morar em Petaouchnok.
+** Claro que se vive em Lens, tente o synch05.bin primeiro, obviamente
+** (a não ser que o DSLAM tenha mudado hehe).
+**
+** Eu repito: isto quer dizer que um .bin gerado num local X pode funcionar
+** num local Y, e pode nem sempre funcionar no local X onde foi gerado. Assim,
+** não reclame se não encontrar um .bin que tenha sido gerado no local onde
+** está. TENTE TODOS os .bin's!
+**
+*******************************************************************************
+
+AGORA JÁ PODE IR LER O DOCUMENTO QUE SE SEGUE!
+
+->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Lista de ficheiros de synch .bin disponíveis:
+	synch00.bin (antigo eci_wan3.bin)
+	synch01.bin (antigo eci_wan3.dmt.bin)
+	synch02.bin (antigo eci_paris19_9telecom.bin)
+	synch03.bin (antigo eci_bordeaux_wanadoo.bin)
+	synch04.bin (antigo eci_montsoult_clubinternet.bin)
+	synch05.bin (antigo eci_lens.bin, eci_telecom_italia.bin ou eci_guada.bin)
+	synch06.bin (antigo eci_wisecom_italia.bin)
+	synch07.bin (antigo eci_libero_italia.bin)
+	synch08.bin (antigo eci_telecom_italia.bin)
+	synch09.bin (antigo eci_uk.bin or eci_ca.bin)
+	synch10.bin (antigo eci_ca2.bin)
+	synch11.bin (antigo eci_foggia.webpower.bin)
+	synch12.bin (antigo eci_bastia.bin)
+	synch13.bin (antigo eci_wan2.troll.bin - Italy/Napoli/Telecom Italia)
+	synch14.bin (antigo eci_cergy.bin)
+	synch15.bin (antigo Blade_sync.bin - Italy/Varese/Telecom Italia)
+	synch16.bin (gerado no Brazil, com provedor GVT, G.DMT)
+	synch17.bin (gerado no Brazil, com provedor GVT, G.Lite)
+	synch18.bin (gerado em França/Strasbourg, provedor Club-Internet)
+	synch19.bin (gerado em França/Antibes)
+	synch20.bin (gerado em Italia/Brescia, provedor Tiscali)
+	synch21.bin (gerado em Italia/Belluno, provedor Telecom Italia)
+	synch22.bin (gerado em França/Arcueil, provedor 9online)
+	synch23.bin (gerado em Italia/Sardinia/Cagliari, provedor Tiscali, G.DMT)
+	synch24.bin (gerado no Peru, provedor Telefonica del Peru, tipo de modulação
+	             desconhecido)
+	synch25.bin (gerado em França, Saint-Cloud, provedor Wanadoo)
+
+Se gerou o seu próprio ficheiro .bin, por favor envie-nos juntamente com alguma
+informação relativa à localização/provedor.
+
+Instalação:
+- versão de driver <= 0.5: substitua cada ocurrência de
+  "/etc/eciadsl/eci_wan3.bin" pelo nome do ficheiro .bin que usa no seu script
+  de startmodem.
+- versão de driver >= 0.6: Lance o eciconftxt.sh ou o eciconf.sh e siga as
+  instruções interactivas.
