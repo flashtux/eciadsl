@@ -1117,7 +1117,7 @@ static void eci_ep_int_callback(struct urb *urb)
 		Thanxs benoit papillault for the algo. 
 
 */
-			in_buf = instance->interrupt_buffer;
+			/*in_buf = instance->interrupt_buffer;
 			out_buf = instance->vendor_urb->transfer_buffer;
 			for(i=0;i<15;i++)
 			{
@@ -1132,8 +1132,8 @@ static void eci_ep_int_callback(struct urb *urb)
 					out_buf[10 + outi++]=
 						replace_b2[eci_int_count++];;
 				}
-			}
-			DBG_OUT("EP INT received 32 bytes\n");
+			}*/
+			DBG_OUT("EP INT received 64 bytes\n");
 		}
 	}
 	DBG_OUT("Int callBack out\n");
