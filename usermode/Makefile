@@ -84,8 +84,8 @@ install_scripts:
 	done
 
 install_dirs:
-	test -n "$(PREFIX)" && $(INSTALL_DIR) $(PREFIX)
-	test -n "$(ETC_PREFIX)" && $(INSTALL_DIR) $(ETC_PREFIX)
+	if [ -n "$(PREFIX)" ]; then $(INSTALL_DIR) $(PREFIX); fi
+	if [ -n "$(ETC_PREFIX)" ]; then $(INSTALL_DIR) $(ETC_PREFIX); fi
 	$(INSTALL_DIR) $(BIN_DIR)
 	$(INSTALL_DIR) $(CONF_DIR)
 	$(INSTALL_DIR) $(PPPD_DIR)
