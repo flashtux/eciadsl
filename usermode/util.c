@@ -65,8 +65,8 @@ void read_config_file(void)
 	config.pid1=0;
 	config.vid2=0;
 	config.pid2=0;
-	config.vpi=0;
-	config.vci=0;
+	config.vpi=0xffffffff;
+	config.vci=0xffffffff;
 	config.mode=NULL;
 	config.synch=NULL;
 	config.firmware=NULL;

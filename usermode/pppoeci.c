@@ -1517,18 +1517,19 @@ int main(int argc, char** argv)
 	read_config_file();
 
 	/* try to assume default values from the config file */
-	if ((my_vci == 0xffffffff) && (config.vci))
+	if ((my_vci == 0xffffffff) && (config.vci != 0xffffffff))
 			my_vci = config.vci;
-	if ((my_vpi == 0xffffffff) && (config.vpi))
+	if ((my_vpi == 0xffffffff) && (config.vpi != 0xffffffff))
 			my_vpi = config.vpi;
-	if ((!vendor) && (config.vid2))
+	if (!vendor && (config.vid2))
 			vendor = config.vid2;
-	if ((!product) && (config.pid2))
+	if (!product && (config.pid2))
 			product = config.pid2;
 
 	if (my_vci == 0xffffffff || my_vpi == 0xffffffff
-		|| vendor == 0 || product == 0)
+		|| !vendor || !product)
 	{
+		fprintf(stderr, "vci, vpi, vendor or product ID cannot be guessed:\n");
 		fprintf(stderr, "no default parameters found in config file, couldn't assume default values\n");
 		usage(-1);
 	}	
