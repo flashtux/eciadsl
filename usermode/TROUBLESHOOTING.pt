@@ -120,6 +120,44 @@ R:	Veja 1.4.
 	que desactive o carregamento do dabusb.
 
 
+1.6
+===============================================================================
+P:	Não sei o IP do DNS do meu provedor.
+
+-------------------------------------------------------------------------------
+R:	É necessário para a maior parte das pessoas (exepto os que usam o DHCP
+	do ISP por exemplo), se não o encontrar no website do seu provedor ou
+	no CD de configuração ou nos papéis que eles lhe mandaram, ou até mesmo
+	no MS Windows, há uma forma de os advinhar. Esta é a forma de o fazer
+	no Linux:
+
+		host -n dn <o domínio do seu provedor>
+
+	Isto irá devolver-lhe um monte de nomes de servidores de DNS. Pode
+	ping'ar alguns deles para obter o IP.
+
+	Por exemplo:
+		> host -t ns clix.com
+		clix.com. name server ns4.dnsmanaged.com.
+		clix.com. name server ns1.dnsmanaged.com.
+		clix.com. name server ns7.dnsmanaged.com.
+		clix.com. name server ns6.dnsmanaged.com.
+
+		> ping -c 1 -q ns4.dnsmanaged.com
+		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) 
+		bytes of data.
+                --- ns4.dnsmanaged.com ping statistics ---
+                1 packets transmitted, 1 received, 0% loss, time 0ms
+                rtt min/avg/max/mdev = 169.466/169.466/169.466/0.000 ms
+
+	O IP deste ns4.dnsmanaged.com é 192.31.80.34.
+	Repita o comando ping noutro nome de servidor DNS, assim ficará com
+	pelo menos 2 IP's de DNS para poder utilizar :-).
+	Se a ferramente de configuração do driver ECIADSL não o deixar
+	seleccionar o DNS do seu provedor, seleccione 'Other' e insira pelo
+	menos um IP de DNS a utilizar.
+	
+
 2.0
 ===============================================================================
 P:	O output do startmodem, eciconf ou eci-doctor mostra:

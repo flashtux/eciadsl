@@ -140,7 +140,8 @@ A:	Most people need them (except those who use ISP DHCP for instance), if you
 		clix.com. name server ns6.dnsmanaged.com.
 
 		> ping -c 1 -q ns4.dnsmanaged.com
-		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) bytes of data.
+		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) bytes of
+		data.
 		--- ns4.dnsmanaged.com ping statistics ---
 		1 packets transmitted, 1 received, 0% loss, time 0ms
 		rtt min/avg/max/mdev = 169.466/169.466/169.466/0.000 ms
