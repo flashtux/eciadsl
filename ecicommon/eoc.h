@@ -86,11 +86,11 @@ struct eoc_registers {
 	char vendorID[8];	/* reg 0 */
 	char revision[2];	/* reg 1 */
 	char serial[32]; 	/* reg 2 */
-	char slefttest[1];	/* reg 3 */
+	char selftest[1];	/* reg 3 */
 	char vendor1[1];	/* reg 4 */
 	char vendor2[1];	/* reg 5 */
 	char attenuation[1];/* reg 6 */
-	char SNRmmargin[1];	/* reg 7 */
+	char SNRmargin[1];	/* reg 7 */
 	char ATURconfig[30];/* reg 8 */
 						/* no reg 9 reserved for future */
 	char linkstate;		/* reg A */

@@ -67,63 +67,63 @@ void eoc_execute(u_int16_t eocmesval) {
 			printf("OEC.C - eco_execute - STEP1 [eocmesval : EOC_OPCODE_READ_0]\n");
 			eocreadpar = eocreadcnt = eocreadpos =eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 8;
-			eocnextrw = &(eocregs->vendorID[0]);
+			eocnextrw = &(eocregs.vendorID[0]);
 			break;
 		case EOC_OPCODE_READ_1:
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_1]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 2;
-			eocnextrw = &(eocregs->revision[0]);
+			eocnextrw = &(eocregs.revision[0]);
 			break;
-		case EOC_OPCODE_READ_2:	//	SERIAL  Number
+		case EOC_OPCODE_READ_2:	/*	SERIAL  Number */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_2]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 32;
-			eocnextrw = &(eocregs->serial[0]);
+			eocnextrw = &(eocregs.serial[0]);
 			break;
-		case EOC_OPCODE_READ_3:	//	Self test Result
+		case EOC_OPCODE_READ_3:	/*	Self test Result */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_3]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 1;
-			eocnextrw = &(eocregs->selftest[0]);
+			eocnextrw = &(eocregs.selftest[0]);
 			break;
-		case EOC_OPCODE_READ_4:	//	Vendor 1
+		case EOC_OPCODE_READ_4:	/*	Vendor 1 */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_4]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 1;
-			eocnextrw = &(eocregs->vendor1[0]);
+			eocnextrw = &(eocregs.vendor1[0]);
 			break;
-		case EOC_OPCODE_READ_5:	//	Vendor 2
+		case EOC_OPCODE_READ_5:	/*	Vendor 2 */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_5]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 1;
-			eocnextrw = &(eocregs->vendor2[0]);
+			eocnextrw = &(eocregs.vendor2[0]);
 			break;
-		case EOC_OPCODE_READ_6:	//	Attenuation
+		case EOC_OPCODE_READ_6:	/*	Attenuation */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_6]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 1;
-			eocnextrw = &(eocregs->Attenuation[0]);
+			eocnextrw = &(eocregs.attenuation[0]);
 			break;
-		case EOC_OPCODE_READ_7:	//	SNR margin
+		case EOC_OPCODE_READ_7:	/*	SNR margin */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_7]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 1;
-			eocnextrw = &(eocregs->SNRmargin[0]);
+			eocnextrw = &(eocregs.SNRmargin[0]);
 			break;
-		case EOC_OPCODE_READ_8:	//	ATUR config
+		case EOC_OPCODE_READ_8:	/*	ATUR config */
 			printf("OEC.C - eco_execute - STEP2 [eocmesval : EOC_OPCODE_READ_8]\n");
 			eocstate = _preread;
 			eocreadpar = eocreadcnt = eocreadpos = eocmescnt = eocmesval = eocstate = 0;
 			eocreadlen = 30;
-			eocnextrw = &(eocregs->ATURconfig[0]);
+			eocnextrw = &(eocregs.ATURconfig[0]);
 			break;
 	}
 	printf("OEC.C - eco_execute - END   [eocmesval : %04x]\n", eocmesval);
@@ -134,8 +134,8 @@ void eoc_execute(u_int16_t eocmesval) {
  */
 
 int eoc_read_next() {
-	char *data;
-	int	mes;
+	u_int16_t data;
+	u_int16_t mes;
 	
 	printf("OEC.C - eco_readnext - START [eocreadpos : %d| eocreadlen : %d]\n", eocreadpos, eocreadlen);
 	if(eocreadpos < eocreadlen) {
@@ -147,13 +147,13 @@ int eoc_read_next() {
 	}
 	if(eocreadpar) {	/* set parity bit and switch eocpar value */
 		mes |= EOC_PARITY_EVEN;
-		eocpar = 0;
+		eocreadpar = 0;
 	} else {
 		mes |= EOC_PARITY_ODD;
-		eocpar = 1;			
+		eocreadpar = 1;			
 	}
-	mes |= (data & 0x01 ) << (7 + 8); /* 1st byte contain lsb in bit 7 */
-	mes |= (data & &0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
+	mes |= (data & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
+	mes |= (data & 0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
 	printf("OEC.C - eco_readnext - END   [mes : %04x]\n", mes);
 	return(mes);
 }
