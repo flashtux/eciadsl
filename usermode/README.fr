@@ -62,7 +62,7 @@ Lisez le fichier TROUBLESHOOTING.fr!
 Comment obtenir de l'aide :
 
 	Support, packages (driver et .bin optionnels) et documentation :
-		- IRC : openprojects.net, canal #eci
+		- IRC : irc.freenode.net, canal #eci
 		- http://eciadsl.flashtux.org
 		  (documentation, forum, liste de diffusion pour utilisateurs, etc.)
 		  
