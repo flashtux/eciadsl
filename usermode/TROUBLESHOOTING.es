@@ -57,7 +57,7 @@ P:	Obtengo el siguiente error cuando ejecuto `make` o `make install`:
 	make: *** No rule to make target `Makefile.config'. Stop.
 
 --------------------------------------------------------------------------------
-R:	¡Usted ejecuto `./configure`? Usted debe poseer una versión >= 0.6-pre4!
+R:	¡Usted ejecuto `./configure`? Usted debe poseer una versión >=0.6-pre4!
 
 
 1.3
@@ -138,7 +138,7 @@ R:	La mayoría de las personas los necesita (excepto aquéllos que usan DHCP por
 	manera de obtener esta información incluso bajo MS Windows. Aquí se muestra
 	la manera para obtener esta información desde Linux, ejecute el siguiente
 	comando:
-		> host -t ns <nombre de dominio del proveedor>
+		>host -t ns <nombre de dominio del proveedor>
 
 	Este comando le devuelve un cantidad de nombres de servidores DNSs. Usted
 	puede ejecutar el comando ping sobre algunos de ellos para obtener las
@@ -151,7 +151,7 @@ R:	La mayoría de las personas los necesita (excepto aquéllos que usan DHCP por
 		clix.com. name server ns7.dnsmanaged.com.
 		clix.com. name server ns6.dnsmanaged.com.
 
-		> ping -c 1 -q ns4.dnsmanaged.com
+		>ping -c 1 -q ns4.dnsmanaged.com
 		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99: 56(84) bytes of
 		data.
 		--- ns4.dnsmanaged.com ping statistics---
@@ -176,7 +176,7 @@ P:	los mensajes emitidos por startmodem, eciconf o eci-doctor indican:
 R:	Verifique la configuración USB de su sistema. Esto puede ser debido a una
 	falta de soporte para el usbdevfs en su configuración del kernel. Si el
 	kernel tiene el soporte para él, pruebe montarlo usando:
-		> mount -t usbdevfs none /proc/bus/usb
+		>mount -t usbdevfs none /proc/bus/usb
 	Esto puede ponerse en su archivo /etc/fstab.
 	Para conseguir que sea montado automaticamente en momento de la
 	inicialización del sistema, agregue esta línea:
@@ -213,7 +213,7 @@ R:	Hotplug probablemente esté habilitado, y este detecta sus módems como un
 	(en /usr/local/bin por omisión).
 
 	O manualmente digite el siguiente comando:
-		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
+		>modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
 	Si este kernel ha sido compilado a mano, también no se olvide de quitar el
 	soporte dabusb de la configuración del kernel.
@@ -253,24 +253,22 @@ R:	¡No! Esto no es en absoluto amistoso.
 P:	`eci-doctor.sh` me informa:
 	El soporte de HDLC no es el adecuado (buggy), usted debe aplicar el parche
 	HDLC a los fuentes del Nucleo (Kernel).
-	(HDLC support is buggy, you should apply the HDLC patch to your kernel
-	source).  
 
 --------------------------------------------------------------------------------
 R:	Siga los pre-requisitos, lea la documentación sobre el problema del N_HDLC.
 
 	Si usted quiere usar la opcion 'persistente' del pppd para reconectar
 	automáticamente cuando es desconectado del proveedor de servicios, usted
-	tendrá que parchar el kernel o use un kernel >= 2.4.18-pre3.
+	tendrá que parchar el kernel o use un kernel >=2.4.18-pre3.
 	Usted puede encontrar el parche n_hdlc.c.diff en el archivo de los drivers
 	del módem Speedtouch en: http://speedtouch.sourceforge.net /.
 	Éstas son las instrucciones sobre cómo usarlo:
-		> cd /usr/src/linux
-		> patch -p1--dry-run < /path/to/n_hdlc.c.diff
+		>cd /usr/src/linux
+		>patch -p1--dry-run < /path/to/n_hdlc.c.diff
 
 	Si ningún mensaje del error ha sido devuelto por el comando anterior, digite
 	la siguiente línea para realizar la corrección del fuente:
-		> patch -p1 < /path/to/n_hdlc.c.diff
+		>patch -p1 < /path/to/n_hdlc.c.diff
 	una vez realizado esto valla a la pregunta de configuración del kernel
 	(5.3).
 
@@ -368,7 +366,7 @@ R:	Vea 4.0.
 	Si usted todavía no puede acceder un host por su nombre usando el comando
 	nslookup, pruebe los siguientes comandos y nos informa los resultados:
 
-	> route -n (o netstat -rn)
+	>route -n (o netstat -rn)
 
 	  Kernel IP routing table
 	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
@@ -381,7 +379,7 @@ R:	Vea 4.0.
 	  debe, diferir de 10.0.0.0 (si es que usted tiene uno).
 	  La línea de UG debe aparecer, esto indica la ruta predefinida al gateway.
 
-	> ifconfig ppp0
+	>ifconfig ppp0
 
 	  ppp0    Link encap:Point-to-Point Protocol
         	  inet addr:80.14.50.227 P-t-P:80.14.50.1 Mask:255.255.255.255
@@ -398,13 +396,13 @@ R:	Vea 4.0.
 
 	Si la ruta predefinida (UG) esta configurada para la interfaz eth0, quítela
 	utilizando el siguiente comando:
-		> route del default dev eth0
+		>route del default dev eth0
 	o quite la línea de "gateway" de su archivo /etc/sysconfig/network, o
 	desactive su red LAN antes de ejecutar el comando startmodem.
 
 	Si la ruta predefinida no es configurada a la interfaz ppp0 aun cuando el
 	ppp0 esté activo, realice el siguiente comando:
-		> route add default dev ppp0
+		>route add default dev ppp0
 
 	Esto puede ser un problema del firewall. Intente desactivarlo, si esto
 	ahora funciona, usted tiene que ajustar la configuración de su firewall.
@@ -593,7 +591,10 @@ R:	Usted no está bebido, pppd no puede comunicarse con el pppoeci (parte del
 P:	Obtengo mensajes "Kernel panic/oops".
 
 --------------------------------------------------------------------------------
-R:	Esto puede provenir de un problema en el módulo del kernel (OHCI?), el
+R:	Espere por la versión 0.7 de eciadsl (hay una falla en la limpieza del URB
+	cuando el pppd se desconecta).
+
+	Esto puede provenir de un problema en el módulo del kernel (OHCI?), el
 	hardware mal soportado, CPU o bus USB muy sobrecargado, o cualquier tipo de
 	problema del sistema a nivel global (incluso un error en el driver).
 
@@ -683,11 +684,11 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 
 
 	Copie el archivo rc.adsl a /etc/init.d:
-		> cp rc.adsl /etc/init.d
-	(al archivo rc.adsl se proporciona con la versión >= 0.7 (o CVS))
+		>cp rc.adsl /etc/init.d
+	(el archivo rc.adsl se proporciona con la versión >= 0.7 (o CVS))
 
 	Para Debian, simplemente digite como root:
-		> update-rc.d rc.adsl defaults 15
+	>update-rc.d rc.adsl defaults 15
 
 	Para otras distribuciones, vea mas adelante:
 
@@ -697,7 +698,7 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	3), de cualquier modo /etc/rc.d/rc5.d pertenece a ese nivel.
 
 	Usted encontrará más información sobre los niveles de inicialización:
-		> man inittab
+		>man inittab
 	o mire su archivo /etc/inittab.
 
 	Para saber qué nivel de inicialización predefinido se alcanza en el
@@ -722,25 +723,25 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	alfabético ascendente).
 
 	Por ejemplo:
-		> ls /etc/rc.d/rc5.d
+		>ls /etc/rc.d/rc5.d
 	shows
 		S01foo
 		S15bar
 		S99dummy
 		K10makemyday
 		K80whatthefuck
-	(tenga el cuidado, es sólo un ejemplo).
+	(tenga cuidado, es sólo un ejemplo).
 	Así cuando se ingresa al nivel de inicialización 5, primero llamará a
 	S01foo, después a S15bar y luego a S99dummy.
 
 	Cuando se deja el nivel de inicialización 5, es lo mismo para los archivos
 	K*. Pero siguiendo el sistema, ellos son llamados en el mismo orden (por xx
-	en forma ascendente), o en un el orden inverso (por xx en modo descendente).
+	en forma ascendente), o en el orden inverso (por xx en modo descendente).
 
 	Ahora usted sabe cómo todo este material trabaja, usted puede hacer los
 	enlaces pertinentes a /etc/init.d en /etc/rc.d/rc5.d:
-		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
-		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		>ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
 
 	Antes que usted cree estos enlaces, asegurese que el archivo S90 es
 	relevante, esto significa que S90* será llamado después de todos los otros
@@ -753,9 +754,9 @@ R:	Sí, usando init.d por ejemplo, o /etc/ppp/ppp_on_boot para los usuarios de
 	usted puede probarlos mediante la reinicialización de su sistema.
 	Usted también puede probarlos sin reiniciar: cierre su sesión de X11, abra
 	una sesión root en modo consola, entonces:
-		> init 3
+		>init 3
 	luego
-		> init 5
+		>init 5
 	¿Entendido lo que hace? Significa dejando el nivel de inicialización 5 yendo
 	al nivel de inicialización 3, luego, ¡regresando al nivel de inicialización
 	5. ¡Los enlaces relevantes S* y K* serán llamados!
@@ -786,8 +787,8 @@ P:	Cómo configuro adecuadamente el kernel a partir de los fuentes para obtener
 
 --------------------------------------------------------------------------------
 R:	Digite los siguientes comandos:
-		> cd /usr/src/linux
-		> make -s menuconfig
+		>cd /usr/src/linux
+		>make -s menuconfig
 
 		  USB support --->
 		  <M> Support for USB
@@ -830,14 +831,14 @@ R:	Digite los siguientes comandos:
 	puede necesitar parámetros adicionales en su configuración del kernel.
 	Usuarios PPPoE o IPoATM, por favor, refiéranse a 5.3.1.
 
-	Una vez el archivo de configuración del kernel ha sido guardado, digite:
-		> make -s dep modules modules_install && depmod -a
+	Una vez que el archivo de configuración del kernel ha sido guardado, digite:
+		>make -s dep modules modules_install && depmod -a
 	o el comando que usted use para compilar e instalar los módulos del kernel.
 	Por supuesto su configuración completa del kernel debe ponerse
 	adecuadamente, y el soporte de módulos cargables activado.
 	También ejecute: `make -s bzImage` ¡si el soporte PPP o USB estuvieran
 	previamente en el kernel en vez de módulos!
-	Usted puede habilitar los todos drivers USB de controlador anfitrión pero
+	Usted puede habilitar todos los drivers USB de controlador anfitrión pero
 	debe utilizar sólo el mas relevante.
 	El módulo DABUSB debe desactivarse.
 
@@ -853,8 +854,7 @@ R:	Digite los siguientes comandos:
 	y también
 		n_hdlc
 
-	Agregue estas líneas siguientes en su / etc/modules.conf si ellos están
-	extrañando:
+	Agregue las líneas siguientes en su /etc/modules.conf si es que ellas no existen:
 		alias char-major-108 ppp_generic
 		alias /dev/ppp ppp_generic
 		alias tty-ldisc-3 ppp_async
@@ -866,10 +866,10 @@ R:	Digite los siguientes comandos:
 		alias char-major-180 usbcore
 	y
 		alias usb-hostadapter usb-uhci
-	or	alias usb-hostadapter usb-ohci
-	or	alias usb-hostadapter uhci
+	o	alias usb-hostadapter usb-ohci
+	o	alias usb-hostadapter uhci
 	entonces
-		> touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+		>touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
 
 
 5.3.1
@@ -878,8 +878,8 @@ P:	¿Cómo configuro adecuadamente el kernel a partir de los fuentes si yo
 	utilizo PPPoE, Bridged Ethernet (RFC1483B) o IPoATM (RFC1483R)?
 
 --------------------------------------------------------------------------------
-R:	La configuración del kernel y principios de la compilación todavía son los
-	mismos (vea 5.3), pero usted necesita esto:
+R:	La configuración del kernel y principios de la compilación todavía son 
+	los mismos (vea 5.3), pero usted necesita esto:
 
 	  Network device support --->
 	  ..
@@ -892,9 +892,9 @@ R:	La configuración del kernel y principios de la compilación todavía son los
 	  <M> PPP over ATM (EXPERIMENTAL)
 
 	entonces digite:
-		> mkdir /dev/net
-		> mknod /dev/net/tun0 c 10 200
-		> ln -s /dev/net/tun0 /dev/net/tun
+		>mkdir /dev/net
+		>mknod /dev/net/tun0 c 10 200
+		>ln -s /dev/net/tun0 /dev/net/tun
 
 	Usuarios PPPoE: lean el archivo INSTALL, hay algunos programas que ustedes
 	necesitan instalar y configurar.
@@ -910,7 +910,7 @@ R:	Verifique que su módem sea soportado. Si su módem no está en la lista de los
 	para ayuda adicional.
 
 	Verifique que protocolo/encapsulado de PPP usa su proveedor bajo MS Windows.
-	También verifique el proveedor utiliza DHCP o si usted usa una dirección IP
+	También verifique si el proveedor utiliza DHCP o si usted usa una dirección IP
 	estática.
 	Use eciconf.sh o eciconftxt.sh para configurarlo adecuadamente. Si no es
 	soportado por el driver o si usted no esta seguro, obtenga la última versión
@@ -953,14 +953,14 @@ R:	Verifique que su módem sea soportado. Si su módem no está en la lista de los
 P:	¿Puedo utilizar mi módem USB con un HUB USB2.0?
 
 --------------------------------------------------------------------------------
-R:	Nosotros hemos encontrado problemas cuando el módem u otro dispositivo es
-	conectado a un HUB USB 2.0 que no es actualmente soportado. En la mayoría de
-	los casos, el módulo HUB USB2.0 tiene que ser descargado. Por esta razón
-	startmodem descarga incondicionalmente el módulo ehci-hcd cuando encuentra
-	que está cargado.
+R:	Nosotros hemos encontrado problemas cuando el módem u otro dispositivo 
+	es conectado a un HUB USB 2.0 que no es actualmente soportado. 
+	En la mayoría de los casos, el módulo correspondiente a HUB USB2.0 debe
+	ser descargado. Por esta razón startmodem descarga incondicionalmente 
+	el módulo ehci-hcd cuando encuentra que está cargado.
 
 	Si los puertos USB2.0 se administran por usb-uhci o usb-ohci, esto puede
-	funcionar, nosotros hemos experimentado tales configuraciones funcionando.
+	funcionar, hemos experimentado tales configuraciones funcionando.
 
 
 5.7
@@ -969,15 +969,15 @@ P:	Poseo varios HUBS USB o varios dispositivos USB. ¿Es esto un problema?
 
 --------------------------------------------------------------------------------
 R:	Podría ser. Si usted no tiene éxito inicializando su módem, intente
-	desactivar todo el hardware adicional los HUBS USB. Nosotros sólo tenemos
-	una experiencia parcial sobre esto.
+	desactivar todo el hardware adicional los HUBS USB. Nosotros sólo 
+	tenemos una experiencia parcial sobre esto.
 
-	Muchos usuarios tienen webcams, ratones u otros dispositivos USB agregados a
-	su módem USB, ambos trabajando al mismo tiempo. Sin embargo esto no excluye
-	los problemas con algún dispositivo USB. A veces el orden de los
-	dispositivos en los puertos USB también puede ser un problema (a ser
-	verificado). También pruebe su módem con todos los otros dispositivos de USB
-	desconectados.
+	Muchos usuarios tienen webcams, ratones u otros dispositivos USB 
+	agregados a su módem USB, ambos trabajando al mismo tiempo. Sin embargo
+	esto no excluye los problemas con algún dispositivo USB. 
+	A veces el orden de los dispositivos en los puertos USB también puede 
+	ser un problema (a ser verificado). También pruebe su módem con todos 
+	los otros dispositivos USB desconectados.
 
 	Si usted tiene HUBS USB 1.1 y 2.0 juntos en su máquina, vea 5.6.
 
@@ -985,18 +985,20 @@ R:	Podría ser. Si usted no tiene éxito inicializando su módem, intente
 5.8
 ================================================================================
 P:	Cambiando de Linux a MS Windows, no puedo usar mi módem y tengo que
-	re-instalar el driver de MS Windows para que el modem trabaje nuevamente.
+	re-instalar el driver de MS Windows para que el modem trabaje 
+	nuevamente.
 
 --------------------------------------------------------------------------------
-R:	Descargue todos los módulos USB relacionados a su módem al dejar Linux. Esto
-	puede ser realizado automáticamente, quizás a través del administrador de
-	USB de su distribución de Linux, o usando init.d, (piense en la descarga de
-	módulos en cascada usando los comandos de post-remove o pre-remove en el
-	archivo /etc/modules.conf).
+R:	Descargue todos los módulos USB relacionados a su módem al dejar Linux.
+	Esto puede ser realizado automáticamente, quizás a través del 
+	administrador de USB de su distribución de Linux, o usando init.d, 
+	(piense en la descarga de módulos en cascada usando los comandos de 
+	post-remove o pre-remove en el archivo /etc/modules.conf).
 
-	Si todavía no funciona, usted tendrá que desconectar manualmente el módem,
-	esperar algunos segundos para que sea reseteado, y luego reconectelo.
-	Entonces, ahora usted puede usarlo bajo MS Windows.
+	Si todavía no funciona, usted tendrá que desconectar manualmente el 
+	módem, esperar algunos segundos para que sea reinicializado, y luego 
+	reconectelo.
+	Ahora usted puede usarlo bajo MS Windows.
 
 	Si el problema todavía persiste, avísenos.
 
@@ -1005,13 +1007,13 @@ R:	Descargue todos los módulos USB relacionados a su módem al dejar Linux. Esto
 
 5.8.1
 ================================================================================
-P:	Cambiando de MS Windows a Linux, el startmodem dice que el firmware ya esta
-	cargado y falla.
+P:	Cambiando de MS Windows a Linux, el startmodem dice que el firmware ya 
+	está cargado y falla.
 
 --------------------------------------------------------------------------------
-R:	Usted tiene que desconectar fisicamente el módem, esperar unos segundos para
-	que este sea reseteado, luego reconectelo. Ahora usted puede reintentar el
-	comando startmodem.
+R:	Usted tiene que desconectar fisicamente el módem, esperar unos segundos
+	para que este sea reseteado, luego reconéctelo. Ahora usted puede 
+	reintentar el comando startmodem.
 
 
 5.9
@@ -1019,8 +1021,8 @@ R:	Usted tiene que desconectar fisicamente el módem, esperar unos segundos para
 P:	¿Puedo utilizar el driver en *BSD?
 
 --------------------------------------------------------------------------------
-R:	Un puerto BSD de la versión 0.5 está en desarrollo.
-	¡Todavía no soportado oficialmente!
+R:	La versión 0.5 esta siendo portada a BSD, pero aún está en desarrollo.
+	¡Todavía no esta soportado oficialmente!
 
 
 5.10
@@ -1029,7 +1031,9 @@ P:	¿Puedo utilizar el driver bajo GNU/Hurd, Darwin, QNX o BeOS u otros
 	sistemas?
 
 --------------------------------------------------------------------------------
-R:	No.
+R:	Es sabido que el driver funciona en muchos sistemas GNU/Linux, incluso 
+	en *BSD (actualmente en desarrollo) pero no es soportado para otros 
+	sistemas basados en kernels no-linux.
 
 
 5.11
@@ -1044,12 +1048,13 @@ R:	Ejecute el siguiente comando: `killall pppd` o `ifconfig ppp0 down`.
 
 	Los usuarios de PPPoE (tap0): `killall pppoe && killall pppoeci`.
 
-	Si usted realmente quiere resetear su módem, descargue el módulo que maneja
-	su HUB USB (`modprobe -r usb-uhci` por ejemplo). Pero esto puede llevar a
-	otros problemas porque otros dispositivos de USB pueden pertenecer a este
-	módulo (!), y usted puede encuentrar problemas re-iniciando startmodem
-	(probablemente necesitará ejecutarlo dos veces o quizá deberá
-	desconectar/reconectar su módem antes de ejecutar `startmodem`).
+	Si usted realmente quiere resetear su módem, descargue el módulo que 
+	maneja su HUB USB (`modprobe -r usb-uhci` por ejemplo). 
+	Pero esto puede llevar a otros problemas porque otros dispositivos de 
+	USB pueden pertenecer a este módulo (!), y usted puede encontrar 
+	problemas re-iniciando startmodem (probablemente necesitará ejecutarlo
+	dos veces o quizá deberá desconectar/reconectar su módem antes de 
+	ejecutar `startmodem`).
 
 
 5.12
@@ -1063,40 +1068,39 @@ R:	Simplemente asegurese que sudo esta instalado en su sistema.
 		username ALL=NOPASSWD:/usr/local/bin/startmodem
 	en donde el username es el nombre del usuario que usted quiere permitir
 	ejecutar el startmodem.
-	Usted puede hacer esto para muchos usuarios o scripts diferentes, agregando
-	la misma línea para un username y el path/name del script que desea que
-	ejecuten.
+	Usted puede hacer esto para muchos usuarios o scripts diferentes, 
+	agregando la misma línea para un username y el path/name del script que
+	desea que ejecuten.
 	Los usuarios autorizados ahora pueden ejecutar el startmodem, digitando:
-		> sudo startmodem
+		>sudo startmodem
 
-	Vea ahora 5.13.
+	Vea también 5.13.
 
 
 5.13
 ================================================================================
-P:	Cuando ejecuto startmodem o sudo startmodem, obtengo este error:
+P:	Cuando ejecuto sudo startmodem, obtengo este error:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-R:	Cheque si el pppd está instalado en su sistema.
+R:	En la consola o terminal como root, digite:
+		>PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
 
-	Para sudo:
-
-	En la consola o terminal como root, digite:
-		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
-
-	Si esto funciona, agregue la línea siguiente a su usuario normal ~/.bashrc o
+	Si esto funciona, agregue la línea siguiente a su usuario normal 
+	~/.bashrc o
 	~/.profile (*):
-		> export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+		>export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
 
-	La próxima vez que usted abra un terminal (si usted ha modificado ~/.bashrc)
-	o la proxima vez que Ud. realice login en la consola o en el ambiente
-	gráfico (si usted ha modificado ~/.profile), ejecutando sudo startmodem este
-	debiera funcionar.
+	La próxima vez que usted abra un terminal (si usted ha modificado 
+	~/.bashrc) o la proxima vez que Ud. realice login en la consola o en 
+	el ambiente gráfico (si usted ha modificado ~/.profile), ejecutando 
+	sudo startmodem este debiera funcionar.
 
-	Usted también puede crear un pequeño script que contenga el primer comando,
-	entonces, sólo tendrá que ejecutar este script. No se olvide de realizar
-	chmod 777 a este script para que sea ejecutable.
+	Usted también puede crear un pequeño script que contenga el primer 
+	comando, entonces, sólo tendrá que ejecutar este script. No se olvide
+	de realizar chmod 777 a este script para que sea ejecutable.
 
-	(*) Atención: Dependiendo de la distribución de Linux que usted use, estos
-	archivos pueden no existir o en su defectos otros sean usados.
+	(*) Atención: 
+	Dependiendo de la distribución de Linux que usted use, estos
+	archivos pueden no existir o en su defecto otros sean utilizados.
+
