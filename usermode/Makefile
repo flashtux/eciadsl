@@ -8,21 +8,24 @@
 # install: should check for "tty-ldisc-13" in /etc/modules.conf
 
 CFLAGS += -Wall -g
-LDFLAGS += -g -Wall
+LDFLAGS += -g -Wall -lpthread
 
 # Final targets
-BIN = eci-load1 eci-load2 pppoeci
+BIN = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
 
 all: ${BIN}
 
 eci-load1: eci-load1.o pusb.o
 eci-load2: eci-load2.o pusb.o
 pppoeci: pppoeci.o pusb.o
-
+check-hdlc: check-hdlc.o
+check-hdlc-bug: check-hdlc-bug.o
 
 pusb.o : pusb.c pusb-linux.c pusb.h
 eci-load2.o : eci-load2.c pusb.h
 pppoa2.o: pppoa2.c pusb.h pool.h modem.h
+check-hdlc.o: check-hdlc.c
+check-hdlc-bug.o: check-hdlc-bug.c
 
 install: all check-char-major-108 check-tty-ldisc-14 check-tty-ldisc-13 \
   install-etc-ppp-peers-adsl
@@ -74,8 +77,10 @@ install-etc-ppp-peers-adsl:
 	@if [ -f /etc/ppp/peers/adsl ]; then \
 		echo "modifying existing /etc/ppp/peers/adsl" ; \
 		user=`grep "^user " /etc/ppp/peers/adsl` ; \
+		persist=`grep "^persist" /etc/ppp/peers/adsl` ; \
 		grep -v "^user " adsl > /etc/ppp/peers/adsl ; \
 		echo $$user >> /etc/ppp/peers/adsl ; \
+		echo $$persist >> /etc/ppp/peers/adsl ; \
 	else \
 		echo "creating /etc/ppp/peers/adsl" ; \
 		cp adsl /etc/ppp/peers/adsl ; \
