@@ -1,2 +1,73 @@
+PRE-REQUISITES
+==============
+
+- a running GNU/Linux system (x86 architecture) with standard tools
+  (MDK9/RH8/top-recent/exotic ones may have (solvable) problems, BSD
+  and other systems are not officially supported yet)
+- USB 1.1 hardware support
+- Linux kernel 2.4.x (>=2.4.18-pre3 or <2.4.18-pre3+N_HDLC patch in
+  order to get automatic pppd reconnection feature working, which is
+  recommanded)
+	- USB support (as modules):
+		- general USB support
+		- USB preliminary fs
+		- your HUB USB controller AS MODULE
+		- no DABUSB module enabled
+	- PPP support (including usermode pppd package >=2.4.0)
+- standard development packages (Linux sources in /usr/src/linux,
+  GNU software like gcc>=2.91.66, GNU make, etc.)
+- single hardware HUB?
+- USB modem (*only* GlobeSpan chipset inside)
+- bash (>=2.x.x)
+- optionally: tcl/tk >= 8.x.x
+- root privileges
+
+
+INSTALLATION
+============
+
 Read the INSTALL file.
+
+
+TROUBLESHOOTING
+===============
+
 If you get problems, look at the TROUBLESHOOTING file.
+
+
+Where to get support:
+	Support, packages (driver and optional synch .bin's) and documentation:
+		- IRC: openprojects.net, #eci channel
+		- http://eciadsl.sf.net or http://eciadsl.flashtux.org?lang=en
+		  (documentation, forum, user mailing list, etc.)
+		  
+	We provide support in both French and English languages.
+
+
+Provide use these info:
+
+	- kernel version (see: `uname -a` or `cat /proc/version`). Tell us if
+	  the kernel is your distro's one or if you compiled it from the sources
+	- Linux distribution
+	- pppd version (see: `pppd --version`)
+	- modutils version (see: `lsmod --version`)
+	- USB Controller (HUB) model (see: `lspci | grep USB`)
+	- eciadsl driver version (see the VERSION file if it exists for version >0.5,
+	  else the package name or CVS date) and :
+		- your Windows driver info if you use it (and also the modulation
+		  type that your provider supports)
+		- the synch .bin you've tried
+	- your modem brand/model
+	- you location (country/state/region/town), your provider
+	- your Linux experience level (for instance: newbie, average, confirmed,
+	  experienced, guru)
+
+It may help a lot if you come and see us with these info. Also get the output of
+the tools from the package you have launched (configure scripts or startmodem),
+also provide us your /var/log/messages, /var/log/log if available, the output
+of `dmesg`, `lsmod` and `cat /proc/bus/usb/devices`.
+
+If you contact us from Windows, and if your Linux partition (ext2 or ext3 only)
+is on the same machine, use explore2fs to get the files directly from your Linux
+partition instead of rebooting each time to Linux to get a file!
+explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
