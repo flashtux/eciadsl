@@ -9,17 +9,17 @@ EXEC_PREFIX="/usr/local/bin"
 case "$1" in
 	start)
 		echo -n "Starting adsl: "
-		PATH=$EXEC_PREFIX:/usr/bin:/usr/sbin:/bin:/sbin startmodem
+		PATH=$EXEC_PREFIX:/usr/bin:/usr/sbin:/bin:/sbin eciadsl-start
 		exit $?
         ;;
 	stop)
 		echo -n "Shutting down adsl: "
-		killall -TERM $EXEC_PREFIX/pppoeci /usr/sbin/pppd
+		PATH=$EXEC_PREFIX:/usr/bin:/usr/sbin:/bin:/sbin eciadsl-stop
 		exit $?
         ;;
 	status)
 		echo -n "Checking for adsl: "
-		/bin/ps ax | /bin/grep $EXEC_PREFIX/pppoeci | /bin/grep -v grep && echo "OK" || echo "No process"
+		/bin/ps ax | /bin/grep $EXEC_PREFIX/eciadsl-pppoeci | /bin/grep -v grep && echo "OK" || echo "No process"
 		;;
 	restart)
 		$0 stop && $0 start

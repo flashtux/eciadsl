@@ -5,9 +5,11 @@ ROOT ?= /
 RPM_ARCH ?= i386,i686
 
 # Final targets
-TARGETS = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
-SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh probe_synch.sh\
-			remove_dabusb makeconfig eci_vendor_device.pl eci_data.pl eci_uc.pl
+TARGETS = eciadsl-firmware eciadsl-synch eciadsl-pppoeci eciadsl-check-hdlc eciadsl-check-hdlc-bug
+SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor eciadsl-config-tk eciadsl-config-text\
+			eciadsl-probe-device eciadsl-probe-synch\
+			eciadsl-remove-dabusb eciadsl-makeconfig\
+			eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl
 DOCS	= README INSTALL TROUBLESHOOTING README.fr INSTALL.fr TROUBLESHOOTING.fr BUGS TODO
 
 TMP_DIR = $(ROOT)/tmp/inst
@@ -15,27 +17,27 @@ TMP_FILE = Makefile.tmp
 
 all: check ${TARGETS} ${SCRIPTS}
 
-eci-load1: eci-load1.o pusb.o util.o
-eci-load2: eci-load2.o pusb.o util.o semaphore.o
-pppoeci: pppoeci.o pusb.o gs7070.o util.o
+eciadsl-firmware: eciadsl-firmware.o pusb.o util.o
+eciadsl-synch: eciadsl-synch.o pusb.o util.o semaphore.o
+eciadsl-pppoeci: eciadsl-pppoeci.o pusb.o gs7070.o util.o
 pppatm: pppatm.o 
 	cc $(LDFLAGS) -latm -o pppatm pppatm.o
-eci-eeprom: eci-eeprom.o pusb.o
-check-hdlc: check-hdlc.o
-check-hdlc-bug: check-hdlc-bug.o
+eciadsl-eeprom: eciadsl-eeprom.o pusb.o
+eciadsl-check-hdlc: eciadsl-check-hdlc.o
+eciadsl-check-hdlc-bug: eciadsl-check-hdlc-bug.o
 pusb.o: pusb.c pusb-linux.c pusb.h
-eci-load1.o: eci-load1.c pusb.h modem.h config.h util.h
-eci-load2.o: eci-load2.c pusb.h modem.h config.h util.h semaphore.h
-pppoeci.o: pppoeci.c util.h pusb.h gs7070.h modem.h config.h
+eciadsl-firmware.o: eciadsl-firmware.c pusb.h modem.h config.h util.h
+eciadsl-synch.o: eciadsl-synch.c pusb.h modem.h config.h util.h semaphore.h
+eciadsl-pppoeci.o: eciadsl-pppoeci.c util.h pusb.h gs7070.h modem.h config.h
 gs7070.o: gs7070.c gs7070.h
 util.o: util.c modem.h config.h util.h
 semaphore.o: semaphore.c semaphore.h
 	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o semaphore.o semaphore.c
-eci-eeprom.o: eci-eeprom.c pusb.h modem.h config.h
-check-hdlc.o: check-hdlc.c
-	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o check-hdlc.o check-hdlc.c
-check-hdlc-bug.o: check-hdlc-bug.c
-	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o check-hdlc-bug.o check-hdlc-bug.c
+eciadsl-eeprom.o: eciadsl-eeprom.c pusb.h modem.h config.h
+eciadsl-check-hdlc.o: eciadsl-check-hdlc.c
+	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc.o eciadsl-check-hdlc.c
+eciadsl-check-hdlc-bug.o: eciadsl-check-hdlc-bug.c
+	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o eciadsl-check-hdlc-bug.o eciadsl-check-hdlc-bug.c
 
 check:
 	@if [ "$(PRODUCT_VERSION)" != "$$(cat VERSION)" ]; then \
@@ -44,6 +46,8 @@ check:
 	fi
 
 install: check install_no_system_fixes modules_conf
+	@echo "EciAdsl driver installed!"; \
+	echo "Now issue 'make cfg' command to configure driver."
 
 install-strip: install
 	for FILE in $(TARGETS); \
@@ -54,7 +58,7 @@ install-strip: install
 		fi; \
 	done
 
-install_no_system_fixes: all install_dirs install_scripts install_docs uninstall_old_bin_files
+install_no_system_fixes: all install_dirs install_scripts install_docs install_links uninstall_old_bin_files
 	$(INSTALL_DATA) firmware00.bin synch01.bin modemeci.gif providers.db modems.db $(ROOT)$(CONF_DIR)
 	$(INSTALL_EXEC) $(TARGETS) $(ROOT)$(BIN_DIR)
 
@@ -102,6 +106,12 @@ install_docs:
 	@for FILE in $(DOCS); do \
 		$(INSTALL_DATA) $$FILE $(ROOT)$(DOC_DIR); \
 	done
+
+install_links:
+	ln -f -s eciadsl-start $(ROOT)$(BIN_DIR)/startmodem
+	ln -f -s eciadsl-firmware $(ROOT)$(BIN_DIR)/eci-load1
+	ln -f -s eciadsl-synch $(ROOT)$(BIN_DIR)/eci-load2
+	ln -f -s eciadsl-pppoeci $(ROOT)$(BIN_DIR)/pppoeci
 
 install_dirs:
 	if [ -n "$(ROOT)$(PREFIX)" -a "$(ROOT)$(PREFIX)" != "/" ]; then $(INSTALL_DIR) $(ROOT)$(PREFIX); fi
@@ -151,14 +161,20 @@ modules_conf:
 		fi; \
 	fi
 
-uninstall: uninstall_old_bin_files uninstall_dirs uninstall_bin uninstall_scripts uninstall_docs
+uninstall: uninstall_old_bin_files uninstall_dirs uninstall_bin uninstall_links uninstall_scripts uninstall_docs
 	$(RM) $(ROOT)$(CONF_DIR)/modemeci.gif
-	@echo "the driver has been uninstalled"
+	@echo "EciAdsl driver has been uninstalled."
 
 uninstall_bin:
 	@for FILE in $(TARGETS); do \
 		$(RM) $(ROOT)$(BIN_DIR)/$$FILE; \
 	done
+
+uninstall_links:
+	$(RM) $(ROOT)$(BIN_DIR)/startmodem
+	$(RM) $(ROOT)$(BIN_DIR)/eci-load1
+	$(RM) $(ROOT)$(BIN_DIR)/eci-load2
+	$(RM) $(ROOT)$(BIN_DIR)/pppoeci
 
 uninstall_scripts:
 	@for FILE in $(SCRIPTS); do \
@@ -220,5 +236,5 @@ tgzdistclean:
 
 cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
-	sh $(TMP_FILE) && $(ROOT)$(BIN_DIR)/eciconf.sh || $(ROOT)$(BIN_DIR)/eciconftxt.sh
+	sh $(TMP_FILE) && $(ROOT)$(BIN_DIR)/eciadsl-config-tk || $(ROOT)$(BIN_DIR)/eciadsl-config-text
 	$(RM) $(TMP_FILE)

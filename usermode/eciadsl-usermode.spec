@@ -57,22 +57,23 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 # executable files should be : rwxr-xr-x
 %defattr(755,root,root)
 %dir /usr/local/bin
-/usr/local/bin/startmodem
-/usr/local/bin/eci-load1
-/usr/local/bin/eci-load2
-/usr/local/bin/pppoeci
-/usr/local/bin/eci-doctor.sh
-/usr/local/bin/check-hdlc
-/usr/local/bin/check-hdlc-bug
-/usr/local/bin/eciconf.sh
-/usr/local/bin/eciconftxt.sh
-/usr/local/bin/remove_dabusb
-/usr/local/bin/probe_synch.sh
-/usr/local/bin/probe_device.sh
-/usr/local/bin/eci_vendor_device.pl
-/usr/local/bin/eci_data.pl
-/usr/local/bin/eci_uc.pl
-/usr/local/bin/makeconfig
+/usr/local/bin/eciadsl-start
+/usr/local/bin/eciadsl-stop
+/usr/local/bin/eciadsl-firmware
+/usr/local/bin/eciadsl-synch
+/usr/local/bin/eciadsl-pppoeci
+/usr/local/bin/eciadsl-doctor
+/usr/local/bin/eciadsl-check-hdlc
+/usr/local/bin/eciadsl-check-hdlc-bug
+/usr/local/bin/eciadsl-config-tk
+/usr/local/bin/eciadsl-config-text
+/usr/local/bin/eciadsl-remove-dabusb
+/usr/local/bin/eciadsl-probe-synch
+/usr/local/bin/eciadsl-probe-device
+/usr/local/bin/eciadsl-vendor-device.pl
+/usr/local/bin/eciadsl-data.pl
+/usr/local/bin/eciadsl-uc.pl
+/usr/local/bin/eciadsl-makeconfig
 %dir /usr/local/doc/eciadsl
 /usr/local/doc/eciadsl/BUGS
 /usr/local/doc/eciadsl/INSTALL
