@@ -111,11 +111,11 @@ sub print_one_descriptor {
 	} elsif ($descriptor_type eq 2) { # CONFIGURATION Descriptor
 
 		$bNumInterfaces = ord(substr $buf,4,1);
-#		$bConfigurationValue = ord(substr $buf,5,1);
+		$bConfigurationValue = ord(substr $buf,5,1);
 		$iConfiguration = ord(substr $buf,6,1);
 		$MaxPower = 2 * ord(substr $buf,8,1);
 		
-		print "  configuration " . $iConfiguration
+		print "  configuration " . $bConfigurationValue
 			. ", " . $bNumInterfaces . " interface(s) [$iConfiguration], "
 				. $MaxPower . "mA\n";
 		
@@ -204,6 +204,23 @@ sub print_descriptor {
 	} while (length($buf) > 0);
 }
 
+# parse command line option
+# there are two command line options:
+# --without-in  : don't display the content of received data
+# --without-urb : don't display number of each URB.
+
+$without_in  = 0;
+$without_urb = 0;
+
+foreach $option (@ARGV) {
+    if ($option eq '--without-in') {
+        $without_in = 1;
+    }
+    if ($option eq '--without-urb') {
+        $without_urb = 1;
+    }
+}
+
 # For each URB, we have the following fields ($urb is the original URB number)
 # $urb_list{$urb}{'exist'} = 'yes' / 'no'
 # $urb_list{$urb}{'t'}   is initialized at "going down"
@@ -226,7 +243,7 @@ undef ($urb_direction);
 
 # we read the snoopy log file on stdin.
 
-while (<>) {
+while (<STDIN>) {
 
 	if (/URB ([0-9]+) going down/) {
 		$urb_direction = 'out';
@@ -439,7 +456,11 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 
 	$k = $urb_t{$t};
 # $kd is to be used for nice displaying of the value of $k
-    $kd = sprintf("%4d", $k);
+    if ($without_urb) {
+        $kd = "    ";
+    } else {
+        $kd = sprintf("%4d", $k);
+    }
 
 	if (!defined ($urb_list{$k}{'type'})) {
 		next;
@@ -478,7 +499,10 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		print " request=$urb_list{$k}{'request'} value=$urb_list{$k}{'value'} index=$urb_list{$k}{'index'}\n";
 
 		if ($display_buffer) {
-			print_buffer ($urb_list{$k}{'buf'});
+            if (($transfer_direction eq 'in ') && $without_in) {
+            } else {
+                print_buffer ($urb_list{$k}{'buf'});
+            }
 		}
 	} elsif ($type eq "BULK_OR_INTERRUPT" && $display_bulk_or_interrupt) {
 
@@ -503,7 +527,10 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 		print "BULK/INT $transfer_direction endpoint="
 			. sprintf("%02x",$endpoint) . " size=$size\n";
 		if ($display_buffer) {
-			print_buffer ($buf);
+            if (($transfer_direction eq 'in ') && $without_in) {
+            } else {
+                print_buffer ($buf);
+            }
 		}
 	} elsif ($type eq "ISO_TRANSFER" && $display_iso) {
 
@@ -525,7 +552,10 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 			print "ISO $transfer_direction endpoint="
 				. sprintf("%02x",$endpoint) . " size=$size\n";
 			if ($display_buffer) {
-				print_buffer ($buf);
+                if (($transfer_direction eq 'in ') && $without_in) {
+                } else {
+                    print_buffer ($buf);
+                }
 			}
 		}
 	} elsif ($type eq "GET_DESCRIPTOR_FROM_DEVICE") {
