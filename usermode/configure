@@ -561,8 +561,19 @@ declare -i QUIET=0 DEBUG=0 WARNINGS=1 MAINTAINER=0
 declare -i PLATFORM_GUESS=1
 declare -i MAKE_CHECK=1 MAKE_CHECK_VERSION=1
 declare -i GCC_CHECK=1 GCC_CHECK_VERSION=1
-declare -i PPPD_CHECK=1 PPPD_CHECK_VERSION=0
+declare -i PPPD_CHECK=1 PPPD_CHECK_VERSION=1
 declare -i WISH_CHECK=1
+if [ $UID -ne 0 ]
+then
+	let PPPD_CHECK=0
+else
+	if [ $MAINTAINER -ne 1 ]
+	then
+		display 1 "warning: you're running this script as root"
+		display 1 "root is only required to make install and make cfg"
+		display 1 ""
+	fi
+fi
 DIST_PREFIX_DEFAULT="/usr/local"
 DIST_ETC_PREFIX_DEFAULT="/"
 DIST_CONF_PREFIX_DEFAULT="/"
