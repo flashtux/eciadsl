@@ -2,7 +2,7 @@ QUESTIONS FRÉQUEMMENT POSÉES ET PROBLÈMES COURANTS
 ==================================================
 
 Public concerné :
-Utilisateurs du driver ECI ADSL USB (jusqu'à la version 0.6).
+Utilisateurs du driver ECI ADSL USB (jusqu'à la version 0.7).
 
 Avant de lire la suite ceci :
 la liste suivante de questions/réponses n'est *pas* exhaustive.

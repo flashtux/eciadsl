@@ -169,14 +169,14 @@ frame .bloc0.call
 frame .bloc0.call.vpi
 label .bloc0.call.vpi.label -text {VPI:} -width 10 -anchor e
 entry .bloc0.call.vpi.edit -textvariable vpi -background lightblue -width 4
-bind .bloc0.call.vpi.edit <Enter> {pushstate "VPI given by your provider (8 for France)"}
+bind .bloc0.call.vpi.edit <Enter> {pushstate "Virtual Path Identifier of your provider (8 for France)"}
 bind .bloc0.call.vpi.edit <Leave> {popstate}
 pack .bloc0.call.vpi.label .bloc0.call.vpi.edit -side left
 
 frame .bloc0.call.vci
 label .bloc0.call.vci.label -text {VCI:} -width 10 -anchor e
 entry .bloc0.call.vci.edit -textvariable vci -background lightblue -width 4
-bind .bloc0.call.vci.edit <Enter> {pushstate "VCI given by your provider (35 for France)"}
+bind .bloc0.call.vci.edit <Enter> {pushstate "Virtual Channel Identifier of your provider (35 for France)"}
 bind .bloc0.call.vci.edit <Leave> {popstate}
 pack .bloc0.call.vci.label .bloc0.call.vci.edit -side left
 
@@ -428,9 +428,9 @@ pack .bloc1.modem.vidpid2
 bind .bloc1.modem.liste.contenu <ButtonRelease> {select_modem}
 bind .bloc1.modem.liste.contenu <Enter> {pushstate "Select a modem"}
 bind .bloc1.modem.liste.contenu <Leave> {popstate}
-bind .bloc1.modem.vidpid1 <Enter> {pushstate "These are the vendor ID and product ID of your modem (4-digit hexa)"}
+bind .bloc1.modem.vidpid1 <Enter> {pushstate "These are the Vendor ID and Product ID of your modem (4-digit hexa)"}
 bind .bloc1.modem.vidpid1 <Leave> {popstate}
-bind .bloc1.modem.vidpid2 <Enter> {pushstate "These are the vendor ID and product ID of your modem once initialized (4-digit hexa)"}
+bind .bloc1.modem.vidpid2 <Enter> {pushstate "These are the Vendor ID and Product ID of your modem once initialized (4-digit hexa)"}
 bind .bloc1.modem.vidpid2 <Leave> {popstate}
 
 frame .bloc1.espace3 -width 15
