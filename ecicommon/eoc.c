@@ -215,6 +215,9 @@ void eoc_execute(u_int16_t eocmesval) {
 					eocwritelen = 30;
 					eocdatareg = &(eocregs.ATURconfig[0]);
 					break;
+				default:
+					eoc_encode(EOC_OPCODE_UTC);
+					break;
 			}
 			break;
 		case _preread:
@@ -416,3 +419,12 @@ int has_eocs(){
 	printf("EOC.C - has_eocs  [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	return (eoc_out_buffer_pos);
 }
+void eoc_encode(u_int16_t eoc_opcode) {
+	u_int16_t mes;
+		
+	mes = 0x5301;
+	mes |= (eoc_opcode & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
+	mes |= (eoc_opcode & 0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
+	eoc_out_buf[eoc_out_buffer_pos-2] = mes & 0xff;
+	eoc_out_buf[eoc_out_buffer_pos-1] = (mes >> 8) & 0xff;		
+};
