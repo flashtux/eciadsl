@@ -39,7 +39,7 @@ fi
 
 if [ $# -ne 9 -a $# -ne 10 ]; then
     echo -e "Error: invalid number of parameters."
-    echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> <path_bin>"
+    echo -e "Syntax:\n  makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2> <vpi> <vci> <vidpid1> <vidpid2> [<path_bin>]"
     exit 1
 fi
 
