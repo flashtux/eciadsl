@@ -1,21 +1,14 @@
-Source: eciadsl-usermode.0.5
+Source: eciadsl-usermode
 Section: unknown
 Priority: optional
-Maintainer: Jean-Sébastien <jeanseb@libertysurf.fr>
+Maintainer: Benoit PAPILLAULT <benoit.papillault@free.fr>
 Build-Depends: debhelper (>> 3.0.0)
 Standards-Version: 3.5.2
 
-Package: eciadsl-usermode.0.5
+Package: eciadsl-usermode
 Architecture: any
 Depends: ${shlibs:Depends}
 Description: usermode drivers for eci adsl modem.
- The eciadsl-usermode package contains the driver for the ADSL USB modem
- called ECI Hi-Focus. It is not a kernel module, but a user-mode program
- that handles the modem. A kernel module is under development.
-
-Package: eciadsl-usermode.0.5-doc
-Architecture: all
-Description: Documentation for eciadsl-usermode.0.5
  The eciadsl-usermode package contains the driver for the ADSL USB modem
  called ECI Hi-Focus. It is not a kernel module, but a user-mode program
  that handles the modem. A kernel module is under development.
