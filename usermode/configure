@@ -321,8 +321,9 @@ function configure_env()
 					display 1 $GCC_VERSION
 					
 					case "$GCC_VERSION" in
-						egcs-*)	GCC_VERSION=${GCC_VERSION:5};;
-						*)		;;
+						egcs-*)			GCC_VERSION=${GCC_VERSION:5};;
+						"gcc (GCC)"*)	GCC_VERSION=$(echo "$GCC_VERSION" | head -1 | cut -d " " -f 3);;
+						*)				;;
 					esac
 
 					GCC_VERSION_TMP="$GCC_VERSION"
