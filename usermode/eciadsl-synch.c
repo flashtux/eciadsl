@@ -438,7 +438,7 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 	memset(&block, 0, sizeof(block));
 
 	intHandData->bWaiting =0;
-	while ((ftell(fp) < size) && (doCycle==0 || (memcmp(sEpResponse, sEpResponseOK,2)==-1)))	{
+	while ((ftell(fp) < size) && (doCycle==0 || (memcmp(sEpResponse, sEpResponseOK,2)!=0)))	{
 		nbr_urbs_sent++;
 	    /*printf ("test : 0 - %02x %02x ; 1 - %02x %02x\n", sEpResponse[0], sEpResponseOK[0], sEpResponse[1], sEpResponseOK[1]);*/
 		if (!usb_block_read(fp, &block)){
