@@ -1,5 +1,8 @@
 CC=gcc
 MODCFLAGS := -Wall -DMODULE -DMODVERSIONS -D__KERNEL__ -DLINUX -O2
+
+all: pppoatm.so eci.o
+
 eci.o: eci.c usb_packets.h
 	$(CC) $(MODCFLAGS) -c -I/usr/src/linux/include eci.c 
 install:
@@ -7,8 +10,7 @@ install:
 	chown root:root /lib/modules/`uname -r `/kernel/drivers/usb
 	depmod -a 
 pppoatm.o:pppoatm.c
-	$(CC) -c -O pppoatm.c
+	$(CC) -c -g -O pppoatm.c
 
 pppoatm.so:pppoatm.o
-	$(CC) -shared -a -o pppoatm.so pppoatm.o
-pppoatm:pppoatm.so
+	$(CC) -shared -a -o pppoatm.so pppoatm.o -latm
