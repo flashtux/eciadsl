@@ -614,7 +614,7 @@ Q:	How to properly configure kernel from the sources to get USB/PPP/N_HDLC
 	support?
 
 --------------------------------------------------------------------------------
-A	Type the following commands:
+A:	Type the following commands:
 		cd /usr/src/linux
 		make -s menuconfig
 
