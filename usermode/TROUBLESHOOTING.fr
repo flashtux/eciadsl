@@ -636,11 +636,13 @@ R:	Tapez les commandes suivantes :
 		  ..
 		  <M> PPP (point-to-point protocol) support
 		  [ ]	PPP multilink support (EXPERIMENTAL)
+		  [ ]	PPP filtering
 		  <M>	PPP support for async serial ports
 		  <M>	PPP support for sync tty ports
 		  <M>	PPP Deflate compression
 		  <M>	PPP BSD-Compress compression
 		  < >	PPP over Ethernet (EXPERIMENTAL)
+		  < >	PPP over ATM (EXPERIMENTAL)
 		 ..
 
 		make -s dep modules modules_install && depmod -a
