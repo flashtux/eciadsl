@@ -24,6 +24,9 @@
 static int eocmescnt;	/*	Message counter */
 static int eocmesval;	/*	last received message	*/
 static eoc_state eocstate;	/*	State of the oec system	*/
+static int eocreadpar;		/*	0 odd, 1 even	*/
+static int eocreadcnt;		/* readcounter	*/	
+static int eocreadpos;		/* position index in readed register	*/
 
 static char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
@@ -44,13 +47,42 @@ u_int16t eoc_decode(char b1, char b2) {
 }
 
 /*
- * Handle the oec messages
+ * Handle the oec messages in idle state
  */
 void eoc_execute(u_int16_t eocmesval) {
-	switch(EOC_OPCODE(eocmesval) {
+	switch(EOC_OPCODE(eocmesval)) {
+		case EOC_OPCODE_READ_0:
+			eocstate = preread;
+			eocreadpar = oecreadcnt = eocreadpos = 0;
+			eocreadlen = 8;
+			break;
 		default:
+			/* break; useless	*/
 	}
 }
+
+/*
+ * Handle the eoc next opcode depending on the current state	
+ */
+
+void eoc_next() {
+	int	mes;
+	
+	switch(eocstate) {
+		case preread:
+			eocstate = read;
+		break;
+		case read:
+			if(eocreadpos < eocreadlen) {
+				mes=0;
+				mes | = 0 ;		
+			} else {
+				mes = EOC_OPCAODE_REP_EOD;
+			}
+		break;
+	}
+}
+
 /*
 	parse and handle eoc code from the buffer
 	
@@ -58,6 +90,7 @@ void eoc_execute(u_int16_t eocmesval) {
 
 int parse_eoc_buffer(char *buffer, int bufflen) {
 	int i=0; 
+	int err
 	u_int16t eoccode;
 	
 	assert(bufflen < EOC_MAX_LEN);
@@ -76,20 +109,24 @@ int parse_eoc_buffer(char *buffer, int bufflen) {
 				continue;
 			}
 			if(++oecmescnt>2) {
-				if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-					eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
-					eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
-					eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
-				} else {
-					return -EIO;
-				}
-				
 				switch(eocstate) {
+					case preread:
+							switch(EOC_OPCODE(eocmesval)) {
+								case EOC_OPCODE_NEXT:
+								eoc_handle_next();
+								break;
+							}
+							break;
 					case idle:
-						eoc_execute(eocmesval);
-					break;
+						if((err = eoc_execute(eocmesval)) <0) return err;
+						if(eoc_out_buffer_pos < 31) { /* do the echo to ack it */
+							eoc_out_buff[eoc_out_buffer_pos++] = eocmesval;
+						} else {
+							return -EIO;
+						}
+						break;
 				}
-			}
+			}				
 		}
 	}
 	return 0;
