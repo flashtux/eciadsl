@@ -91,6 +91,7 @@ install_scripts:
 		fi; \
 		$(INSTALL_EXEC) $(ROOT)$(TMP_DIR)/$$FILE $(ROOT)$(BIN_DIR); \
 	done
+	$(MAKE) externdistclean
 
 install_docs:
 	@for FILE in $(DOCS); do \
@@ -111,14 +112,16 @@ install_dirs:
 clean:
 	$(RM) ${TARGETS} *.o
 
-distclean: clean
+distclean: clean externdistclean
 	$(RM) Makefile.config config.h
 	@for FILE in $(SCRIPTS); do \
 		$(RM) $(ROOT)$(TMP_DIR)/$$FILE; \
 	done
+	@./configure --clean
+
+externdistclean:
 	$(RM) $(ROOT)$(TMP_DIR)/*.sed
 	$(RM) -r $(ROOT)$(TMP_DIR)
-	@./configure --clean
 
 modules_conf:
 # check/set ppp_generic, ppp_synctty and n_hdlc aliases in /etc/modules.conf
@@ -182,11 +185,14 @@ debian: all
 	@dpkg-buildpackage -rfakeroot
 
 rpm: check
-	@echo "not yet implemented"
-#   tar zcvf /tmp/eciadsl-usermode-x.y.tar.gz eciadsl-usermode-x.y
-#	rpm -ta /tmp/eciadsl-usermode-x.y.tar.gz
-#   RPMS : /usr/src/RPM/RPMS/i686/eciadsl-usermode-0.5-2.i686.rpm
-#	SRPMS: /usr/src/RPM/SRPMS/eciadsl-usermode-0.5-2.src.rpm
+	# TODO: checkout from tag $PRODUCT_VERSION in cvs to /tmp/eciadsl-usermode-$(PRODUCT-VERSION)
+	cd /tmp; \
+	tar -czf eciadsl-usermode-$(PRODUCT_VERSION).tar.gz eciadsl-usermode-$(PRODUCT_VERSION); \
+	rpm -ta eciadsl-usermode-$(PRODUCT_VERSION).tar.gz; \
+	echo "RPM should be in /usr/src/RPM/RPMS or /usr/src/packages/RPMS (SuSE)"; \
+	echo "SRPMS should be /usr/src/RPM/SRPMS or /usr/src/packages/SRPMS (SuSE)"; \
+	rm -Rf ./eciadsl-usermode-$(PRODUCT_VERSION)
+	rm ./eciadsl-usermode-$(PRODUCT_VERSION).tar.gz
 
 cfg: check
 	echo -e "#!/bin/sh\n# \\\\\nexec wish \"$(TMP_FILE)\"\nexit 0\n" > $(TMP_FILE)
