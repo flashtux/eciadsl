@@ -735,7 +735,7 @@ case "$1" in
         echo "Press ENTER to create config files or Ctrl+C to exit now without saving."
         read quitte
 
-        $BIN_DIR/makeconfig "$mode" "$user" "$password2" "$BIN_DIR/pppoeci" "$dns1" "$dns2" \
+        $BIN_DIR/makeconfig "$mode" "$user" "$password1" "$BIN_DIR/pppoeci" "$dns1" "$dns2" \
 			"$vpi" "$vci" "$vid1$pid1" "$vid2$pid2" "$binfile" "$firmware" \
 			"$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"
         if [ $? -eq 0 ]; then
