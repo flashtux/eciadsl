@@ -15,7 +15,7 @@ function commandlinehelp()
 	echo "          $BASE [<switch>..] [dir]"
 	echo "Switches:"
 	echo "          --try-all              try all the synch .bin even if one is OK"
-	echo "          --full-init            reset modem between each synch .bin test"
+#	echo "          --full-init            reset modem between each synch .bin test"
 	echo "          --batch                disable default interactive mode"
 	echo "          --version or -v        show version number then exit"
 	echo "          --help or -h           show this help then exit"
@@ -59,7 +59,7 @@ declare -i ALL=0 INTERACTIVE=1 FULL_INIT=0
 while [ -n "$1" ]
 do
 	case "$1" in
-		"--full_init")		let FULL_INIT=1;;
+#		"--full_init")		let FULL_INIT=1;;
 		"--try-all")		let ALL=1;;
 		"--batch")			let INTERACTIVE=0;;
 		"--version"|"-v")	version;;
@@ -72,7 +72,7 @@ done
 if [ $UID -ne 0 ]
 then
 	echo -e "\nYou must be root to run this script!"
-	exit 1
+#	exit 1
 fi
 
 
@@ -121,7 +121,7 @@ fi
 LIST=""
 for FILE in $(find "$DIR" -maxdepth 1 -type f -name "*.bin" | grep -v firm)
 do
-	test -n "$LIST" && LIST="$LIST\n$FILE" || LIST="$FILE";;
+	test -n "$LIST" && LIST="$LIST\n$FILE" || LIST="$FILE"
 done
 
 if [ -z "$LIST" ]
