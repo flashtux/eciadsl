@@ -83,11 +83,11 @@ int eoc_read_next() {
 		} else {
 			mes |= EOC_PARITY_ODD;
 		}
-		mes |= 0; // should or the register here but with bit manipulation 
+		mes |= 0; /* should or the register here but with bit manipulation */
 	} else {
 		mes = EOC_OPCODE_EOD;
 	}
-	return mes;
+	return(mes);
 }
 
 /*
@@ -96,7 +96,8 @@ int eoc_read_next() {
 */
 
 int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
-	int i=0; 
+	int i=0;
+	int mes; 
 	u_int16_t eoccode;
 	
 	assert(bufflen < EOC_MAX_LEN);
@@ -143,7 +144,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 					if(eocmescnt >=2) /* execute third time with same message */
 						eoc_execute(eocmesval);
 					if(eoc_out_buffer_pos < 30) { /* do the echo to ack it */
-						eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval 0xff00) >> 8;
+						eoc_out_buf[eoc_out_buffer_pos++] = (eocmesval & 0xff00) >> 8;
 						eoc_out_buf[eoc_out_buffer_pos++] = eocmesval & 0x00ff;
 					} else {
 						return -EIO;
