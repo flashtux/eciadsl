@@ -2,6 +2,7 @@
 
 # Author: Benoit PAPILLAULT <benoit.papillault@free.fr>
 # Creation: 01/02/2002
+# Licence: GPL
 
 # 02/02/2002: added the permission check for check-hdlc & check-hdlc-bug
 # 07/02/2002: added check on the pppd output. added the CVS Id.

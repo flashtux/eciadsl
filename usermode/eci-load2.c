@@ -1,6 +1,7 @@
 /*
   Author : Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation : 20/07/2001
+  Licence : GPL
 
 *********************************************************************
  File		: 	$RCSfile$

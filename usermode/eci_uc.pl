@@ -2,6 +2,7 @@
 
 # Auteur : Benoit PAPILLAULT <benoit.papillault@free.fr>
 # Creation : 01/07/2001
+# Licence : GPL
 
 # 16/07/2001 : stopped the firmware image generation after "DriverUnload"
 

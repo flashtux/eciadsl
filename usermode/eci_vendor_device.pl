@@ -2,6 +2,7 @@
 
 # Auteur : Benoit PAPILLAULT <benoit.papillault@free.fr>
 # Creation :23/11/2001
+# Licence : GPL
 
 # 23/11/2001 : copy from eci_data.pl, left old comments
 

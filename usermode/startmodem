@@ -2,6 +2,7 @@
 
 # Author   : Jean-Sebastien VALETTE <jean-sebastien.valette@libertysurf.fr>
 # Creation : 06/12/2001
+# Licence  : GPL
 
 # 03/02/2002: added a sleep 2 after loading USB controller driver, as suggested
 # by Sebastien YAPO <sebastien.yapo@free.fr>.

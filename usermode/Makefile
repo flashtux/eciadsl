@@ -1,4 +1,5 @@
 # 23/12/2001 Benoit PAPILLAULT
+# Licence GPL
 #   make the file /etc/ppp/peers/adsl writable for user root (since most of
 #   the time, he must change the "user").
 

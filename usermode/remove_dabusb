@@ -8,6 +8,8 @@
 # *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
 # *           - Crevetor : ziva@caramail.com                             *
 # *                                                                      *
+# *          Lincence : GPL                                              *
+# *                                                                      *
 # ************************************************************************
 
 lsmod|grep dabusb

@@ -2,6 +2,7 @@
  File		: 	$RCSfile$
  Version	:	$Revision$
  Modified by	:	$Author$ ($Date$)
+ Licence	:	GPL
 *********************************************************************/
 
 /* Simple portable USB interface */

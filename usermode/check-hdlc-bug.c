@@ -1,6 +1,7 @@
 /*
   Author: Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation: 01/02/2002
+  Licence: GPL
 
   Goal: test if the HDLC support is ok and if the HDLC bug is corrected or not.
 

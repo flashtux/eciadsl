@@ -1,6 +1,7 @@
 /*
   Author : Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation : 17/07/2001
+  Licence : GPL
 
   First : Upload the firwmare to the EZUSB part of the ECI USB ADSL modem
   It uses a firmware file generate by a perl script (eci_uc.pl) from Windows

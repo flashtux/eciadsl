@@ -1,6 +1,7 @@
 /*
   Author: Benoit PAPILLAULT <benoit.papillault@free.fr>
   Creation: 14/02/2002
+  Licence: GPL
 
   THIS PROGRAM WILL MAKE YOUR MODEM UNUSABLE. I REPEAT:
   DO NOT USE THIS PROGRAM.

@@ -2,6 +2,7 @@
 
 # Auteur : Benoit PAPILLAULT <benoit.papillault@free.fr>
 # Creation : 01/07/2001
+# Licence: GPL
 
 # usage : used to analyze snoopy log file passed on STDIN. This script displays
 # complete information on ISO, BULK, INTERRUPT and VENDOR_DEVICE (subset of

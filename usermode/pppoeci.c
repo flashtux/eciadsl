@@ -6,6 +6,7 @@
  File		: 	$RCSfile$
  Version	:	$Revision$
  Modified by	:	$Author$ ($Date$)
+ Licence	:	GPL
 *********************************************************************
 
   Design of a new way to handle endpoint for the ECI USB ADSL modem

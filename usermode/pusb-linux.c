@@ -6,6 +6,7 @@
  File		: 	$RCSfile$
  Version	:	$Revision$
  Modified by	:	$Author$ ($Date$)
+ Licence	:	GPL
 *********************************************************************
 
   Portable USB user library -- Linux implementation
