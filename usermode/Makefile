@@ -30,7 +30,7 @@ check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
 
 check:
-	if [ "$(PRODUCT_VERSION)" != "$$(cat VERSION)" ]; then \
+	@if [ "$(PRODUCT_VERSION)" != "$$(cat VERSION)" ]; then \
 		echo "Version has changed since your last ./configure call"; \
 		echo "You should re-run ./configure"; \
 	fi
