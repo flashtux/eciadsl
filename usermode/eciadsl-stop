@@ -1,5 +1,5 @@
-#/bin/sh
-#
+#!/bin/sh
+
 # eciadsl-stop: stop EciAdsl connection
 #
 # returns: 0 = ok, driver is stopped
