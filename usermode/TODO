@@ -14,17 +14,20 @@ Sorted according to priority (the upper in the list, the prior):
 * eciconftxt.sh
 * probe_device.sh
 + add auto modes to probe_device.sh
-+ synch bin auto selection (config time only)
-+ packaging: ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
-  modify scripts
-  - fix ETC_DIR use (separate installtion and syst configuration uses)
-  - updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
++? synch bin auto selection (config time only)
++ packaging:
+  * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
+    modify scripts
+  - fix eciconf* and/or makeconfig: adsl file seems to be blank or not written sometimes
+  -? fix ETC_DIR use (separate installation and syst configuration uses)
+  -? updates tcl and sh scripts to get configured by ./configure or to use a eciadsl/conf file
   - some more checks in ./configure (see TODO inside)
-+ eciadsl.sf.net update
++ unify websites: eciadsl.sf.net update/move to flashtux
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)
-- fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
+- pppoeci and eci-load* must rehook TERM (if possible) and STOP signal to cleanup thing and exit
+-? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
 - code clean up & normalization
 - submit driver to GNU/Linux distro managers
 
