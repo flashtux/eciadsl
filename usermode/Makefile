@@ -15,13 +15,13 @@ pppoa2.o: pppoa2.c pusb.h pool.h modem.h
 
 install: all
 	cp eci-load1 /usr/local/bin
-	chmod 500 /usr/local/bin/eci-load2 
-	cp eci-load1 /usr/local/bin
-	chmod 500 /usr/local/bin/eci-load2 
+	chmod 500 /usr/local/bin/eci-load1
+	cp eci-load2 /usr/local/bin
+	chmod 500 /usr/local/bin/eci-load2
 	cp eci_firm_kit_wanadoo.bin /usr/local/bin
 	chmod 500 /usr/local/bin/eci_firm_kit_wanadoo.bin
 	cp eci_wan3.bin /usr/local/bin/eci_wan3.bin
-	chmod 500 /usr/local/bin/pppoeci
+	chmod 500 /usr/local/bin/eci_wan3.bin
 	cp pppoeci /usr/local/bin
 	chmod 500 /usr/local/bin/pppoeci
 	chown root:root /usr/local/bin/pppoeci
