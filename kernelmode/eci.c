@@ -446,7 +446,7 @@ typedef const uni_cell_t * uni_cell_list_crs_t ;
 static int _uni_cell_list_init(uni_cell_list_t *) ;
 
 /* Reset a list */
-static void _uni_cell_list_reset(uni_cell_list_t *) ;
+static void inline _uni_cell_list_reset(uni_cell_list_t *) ;
 
 /* Alloc a new list */
 static uni_cell_list_t * _uni_cell_list_alloc(void) ;
@@ -1151,28 +1151,9 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 	/* Manage Send */
 	switch (vcc->qos.aal) {
 	case ATM_AAL5:
-/*		DBG_OUT("Manage new AAL5 data\n") ;
-		lv_rc = _eci_tx_aal5(vcc->vpi, vcc->vci, lp_outinst, skb) ;
-		if (lv_rc) {
-			ERR_OUT("_eci_tx_aal5 failed\n") ;
-			atomic_inc(&vcc->stats->tx_err) ;
-		} else {
-			atomic_inc(&vcc->stats->tx) ;
-			DBG_OUT("AAL5 sent\n") ;
-		}
-*/
 		DBG_OUT("queue AAL5 data for bh_atm\n") ;
-		lp_newskb = alloc_skb (skb->len, in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
-		if (lp_newskb) {
-			skb_put(lp_newskb, skb->len) ;
-			memcpy(lp_newskb->data, skb->data, skb->len) ;
-			//spin_lock_irqsave (&lp_outinst->txq.lock, flags);
-			skb_queue_tail (&lp_outinst->txq, lp_newskb);
+			skb_queue_tail (&lp_outinst->txq, skb);
 			tasklet_schedule (&lp_outinst->bh_atm);
-			//spin_unlock_irqrestore (&lp_outinst->txq.lock, flags);
-		} else {
-			ERR_OUT("not enough memory for skb\n") ;
-		}
 		break ;
 
 	case ATM_AAL0:
@@ -1185,11 +1166,11 @@ static int eci_atm_send(struct atm_vcc *vcc, struct sk_buff *skb)
 			lv_rc = -ENOTSUPP ;
 		}
 		atomic_inc(&vcc->stats->tx_err) ;
+		/* Free Socket Buffer */
+		FREE_SKB(vcc, skb) ;
 		break ;
 	}
 
-	/* Free Socket Buffer */
-	FREE_SKB(vcc, skb) ;
 
 	DBG_OUT("eci_atm_send out\n");
 	return lv_rc ;
@@ -1213,7 +1194,7 @@ static void eci_bh_atm (unsigned long param) {
 	       return ;
 	}
 
-	while ((lp_skb = skb_dequeue(&lp_instance->txq))) {
+	if((lp_skb = skb_dequeue(&lp_instance->txq))) {
 		DBG_OUT("Manage new AAL5 data\n") ;
 		lv_rc = _eci_tx_aal5(lp_vcc->vpi, lp_vcc->vci, lp_instance, lp_skb) ;
 		if (lv_rc) {
@@ -1223,7 +1204,8 @@ static void eci_bh_atm (unsigned long param) {
 			atomic_inc(&lp_vcc->stats->tx) ;
 			DBG_OUT("AAL5 sent\n") ;
 		}
-		dev_kfree_skb (lp_skb);
+		/* Free Socket Buffer */
+		FREE_SKB(lp_instance->pcurvcc, lp_skb) ;
 	}
 	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&lp_instance->lock, flags);
@@ -1467,11 +1449,9 @@ static void eci_bh_iso(unsigned long instance)
 {
 	int flags;
 
-	DBG_OUT("Locking Instance\n");
 	spin_lock_irqsave(&(((struct eci_instance *)instance)->lock), flags);
  	eci_atm_receive_cell(((struct eci_instance *)instance),
 		&(((struct eci_instance *)instance)->iso_cells));
-	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&(((struct eci_instance *)instance)->lock), flags);
 }
 
@@ -1485,7 +1465,6 @@ static void eci_iso_callback(struct urb *urb)
 	int 			received = 0;	/* boolean for cell in frames */
 
 	instance = (struct eci_instance *)urb->context;
-	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 	if ((!urb->status || urb->status == EREMOTEIO)  && urb->actual_length)
 	{
@@ -1494,13 +1473,6 @@ static void eci_iso_callback(struct urb *urb)
 			if (!urb->iso_frame_desc[i].status &&
 				 urb->iso_frame_desc[i].actual_length)
 			{
-
-				DBG_OUT("Data available in frame [%d]\n", i) ;
-				/*DBG_RAW_OUT(
-					"received data", 
-					urb->transfer_buffer +
-						urb->iso_frame_desc[i].offset,
-					urb->iso_frame_desc[i].actual_length);*/
 				if(instance->iso_celbuf_pos)
 				{
 					pos = ATM_CELL_SZ - instance->iso_celbuf_pos;
@@ -1592,11 +1564,7 @@ static void eci_iso_callback(struct urb *urb)
 		urb->iso_frame_desc[i].length = ECI_ISO_PACKET_SIZE;
 		urb->iso_frame_desc[i].actual_length = 0 ;
 	}
-	DBG_OUT("Unlocking Instance\n");
-	spin_unlock_bh(&instance->lock);
-	/*
-	DBG_OUT("Iso Callback Exit\n");
-	*/
+	spin_unlock_bh(&instance->lock);	
 }
 
 static int eci_usb_send_urb(struct eci_instance *instance, 
@@ -1630,7 +1598,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 
 	DBG_OUT("eci_bh_bulk IN\n") ;
 	instance = (struct eci_instance *)pinstance;
-	DBG_OUT("Locking Instance\n");
 	spin_lock_irqsave(&instance->lock , flags);
 	if(instance->bulkisfree)
 	{
@@ -1657,7 +1624,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 		}
 		/*if(_uni_cell_list_crs_next(&cell)) break;*/
 	}
-	//DBG_RAW_OUT("new bulk",buf,bufpos);
 	FILL_BULK_URB(urb, instance->usb_wan_dev, 
 		usb_sndbulkpipe(instance->usb_wan_dev, ECI_BULK_PIPE),
 		buf, bufpos, eci_bulk_callback, instance);
@@ -1673,7 +1639,6 @@ static void eci_bh_bulk(unsigned long pinstance)
 	else
 		instance->bulkisfree = 0;
 	}
-	DBG_OUT("Unlocking Instance\n");
 	spin_unlock_irqrestore(&instance->lock, flags);
 	DBG_OUT("eci_bh_bulk OUT\n") ;
 	return;	
@@ -1690,7 +1655,6 @@ static void eci_bulk_callback(struct urb *urb)
 	}
 	DBG_OUT("Bulk URB Completed, length %d", urb->actual_length);
 	instance = (struct eci_instance *)urb->context;
-	DBG_OUT("Locking Instance\n");
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
 	if(_uni_cell_list_nbcells(&instance->bulk_cells))
@@ -1699,7 +1663,14 @@ static void eci_bulk_callback(struct urb *urb)
 			_uni_cell_list_nbcells(&instance->bulk_cells));
 		tasklet_schedule(&instance->bh_bulk);
 	}
-	DBG_OUT("Unlocking Instance\n");
+	else
+	{
+		/*	Schedule ATM in case of pending data
+			as many schedule may have been canceled
+			by one call to bh_atm	*/
+		DBG_OUT("Rescheduling ATM BH from bulk callback");
+		tasklet_schedule(&instance->bh_atm);
+	}
 	spin_unlock_bh(&instance->lock);
 }
 /**********************************************************************
@@ -1725,11 +1696,6 @@ static int _eci_tx_aal5(
 	uni_cell_list_t 	lv_list ;
 	
 	DBG_OUT("_eci_tx_aal5 IN\n");
-	/* Check Interface */
-	if (!pinstance || !pskb) {
-		ERR_OUT("Interface Error\n") ;
-		return -EINVAL ;
-	}
 
 	lv_rc = _uni_cell_list_init(&lv_list) ;
 	if (lv_rc) return lv_rc ;
@@ -1750,19 +1716,13 @@ static int _eci_tx_aal5(
 	/* Send the Cells to USB layer */
 	lv_nbsent = eci_usb_send_urb(pinstance, &lv_list) ;
 
-/*
-	if (!lv_nbsent || 
-*/
-	if(lv_nbsent != _uni_cell_list_nbcells(&lv_list)) {
+	if(lv_rc = _uni_cell_list_nbcells(&lv_list)) {
 	       ERR_OUT(
 			       "Not all the cells where sent (%d/%d)\n",
 			       lv_nbsent,
 			       _uni_cell_list_nbcells(&lv_list)) ;
-	       lv_rc = -1 ;
+		_uni_cell_list_reset(&lv_list) ;
 	}
-
-	_uni_cell_list_reset(&lv_list) ;
-
 
 	DBG_OUT("_eci_tx_aal5 OUT\n");
 	return lv_rc ;
@@ -1818,10 +1778,7 @@ static int eci_atm_receive_cell(
  		}
 	}
 
-	/* Parse The complete list */
-	do {
-
-		/* Manage a complete AAL5 */
+	/* Manage a complete AAL5 */
 		do {
 			lp_cell = _uni_cell_list_extract(plist) ;
 			if (!lp_cell) {
@@ -1853,7 +1810,7 @@ static int eci_atm_receive_cell(
 
 		/* Reset AAL5 */
 		_aal5_clean(lp_aal5) ;
-	} while (true) ;
+
 		
 	end:
 
@@ -1866,9 +1823,12 @@ static int eci_atm_receive_cell(
  	} else {
  		_aal5_free(lp_aal5) ;
  	}
-	//_uni_cell_list_free(plist) ;
+	if(_uni_cell_list_nbcells(plist))
+	{
+		tasklet_schedule(&pinstance->bh_iso);
+	}
 	_uni_cell_list_reset(plist);
-	DBG_OUT("eci_atm_receive_cell IN\n");
+	DBG_OUT("eci_atm_receive_cell OUT\n");
 	return 0 ;
 }
 
@@ -2088,7 +2048,7 @@ static uni_cell_t * _uni_cell_alloc(void) {
 		 * The list might be empty
 		 * Allocate a new one
 		 */
-		DBG_OUT("No availlable cell create new one\n") ;
+		ERR_OUT("No availlable cell create new one\n") ;
 		lp_cell = (uni_cell_t *) kmalloc(
 				sizeof(uni_cell_t),
 				GFP_ATOMIC) ;
@@ -2726,10 +2686,10 @@ static int _uni_cell_list_init(uni_cell_list_t *plist) {
 
 /* Reset a list (free each cells) */
 
-static void _uni_cell_list_reset(uni_cell_list_t *plist) {
+static inline void _uni_cell_list_reset(uni_cell_list_t *plist) {
 	uni_cell_t *	lp_cell = NULL ;
 
-	if (!plist) return ;
+/*	if (!plist) return ;*/
 
 	/* Free each cells of the list */
 	while ((lp_cell = _uni_cell_list_extract(plist))) {
@@ -3387,3 +3347,4 @@ static uni_cell_t * _aal5_get_next(aal5_t *paal5) {
 }
 
 /*----------------------------------------------------------------------*/
+
