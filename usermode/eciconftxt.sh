@@ -14,7 +14,7 @@
 
 # target "etc" directory (useful for testing this script)
 # TODO: here confdir must be set to PREFIX_CONF/eciadsl by ./configure
-confdir=/home/flashcode/etc/eciadsl
+confdir=/etc/eciadsl
 tmpbin=/tmp/binfile.tmp
 
 if [ $UID -ne 0 ]; then
