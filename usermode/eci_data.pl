@@ -199,7 +199,7 @@ sub print_descriptor {
 # For each URB, we have the following fields ($urb is the original URB number)
 # $urb_list{$urb}{'exist'} = 'yes' / 'no'
 # $urb_list{$urb}{'t'}   is initialized at "going down"
-#                      AND when transfer_direction is 'in '
+#                      OR when transfer_direction is 'in '
 # $urb_list{$urb}{'type'} = 'VENDOR_DEVICE' / 'BULK_OR_INTERRUPT'
 #                           / 'ISO_TRANSFER' / 'GET_DESCRIPTOR_FROM_DEVICE'
 #                           / 'SELECT_CONFIGURATION'
@@ -223,7 +223,6 @@ while (<>) {
 	if (/URB ([0-9]+) going down/) {
 		$urb_direction = 'out';
 		$urb = $1;
-		$buffer_ok = 1;
 
 		if (defined ($urb_list{$urb})) {
 			print "Fatal error : URB $urb is duplicated\n";
@@ -241,7 +240,6 @@ while (<>) {
 	if (/URB ([0-9]+) coming back/) {
 		$urb_direction = 'in ';
 		$urb = $1;
-		$buffer_ok = 1;
 
 		$urb_list{$urb}{'exist'} = 'yes';
 		next;
@@ -279,7 +277,31 @@ while (<>) {
 	}
 
 	if (/USBD_TRANSFER_DIRECTION_IN/) {
-		$urb_list{$urb}{'transfer_direction'} = 'in ';
+        $transfer_direction = 'in ';
+
+        $endpoint = $urb_list{$urb}{'endpoint'};
+        if (defined($endpoint)) {
+
+# we compute the direction transfer for the endpoint value
+            if ($endpoint & 0x80) {
+                $endpoint_direction = 'in ';
+            } else {
+                $endpoint_direction = 'out';
+            }
+
+            if ($endpoint_direction ne $transfer_direction) {
+                print "Warning: bad direction for URB $urb\n";
+                $transfer_direction = $endpoint_direction;
+            }
+        }
+
+        $urb_list{$urb}{'transfer_direction'} = $transfer_direction;
+
+        if ($transfer_direction eq $urb_direction) {
+            $buffer_ok = 1;
+        } else {
+            $buffer_ok = 0;
+        }
 
 		$t ++;
 		$urb_list{$urb}{'t'} = $t;
@@ -287,7 +309,32 @@ while (<>) {
 	}
 
 	if (/USBD_TRANSFER_DIRECTION_OUT/) {
-		$urb_list{$urb}{'transfer_direction'} = 'out';
+        $transfer_direction = 'out';
+
+        $endpoint = $urb_list{$urb}{'endpoint'};
+        if (defined($endpoint)) {
+
+# we compute the direction transfer for the endpoint value
+            if ($endpoint & 0x80) {
+                $endpoint_direction = 'in ';
+            } else {
+                $endpoint_direction = 'out';
+            }
+
+            if ($endpoint_direction ne $transfer_direction) {
+                print "Warning: bad direction for URB $urb\n";
+                $transfer_direction = $endpoint_direction;
+            }
+        }
+
+        $urb_list{$urb}{'transfer_direction'} = $transfer_direction;
+
+        if ($transfer_direction eq $urb_direction) {
+            $buffer_ok = 1;
+        } else {
+            $buffer_ok = 0;
+        }
+
 		next;
 	}
 
@@ -307,8 +354,9 @@ while (<>) {
     }
 
 	if (/TransferBufferLength[ \t]+=[ \t]+([0-9a-f]+)/i) {
-		if (defined ($urb_list{$urb}{'transfer_direction'})) {
-			$transfer_direction = $urb_list{$urb}{'transfer_direction'};
+        $transfer_direction = $urb_list{$urb}{'transfer_direction'};
+
+		if (defined ($transfer_direction)) {
 			if (($transfer_direction eq 'out')
 				&& ($urb_direction eq 'out')) {
 				$urb_list{$urb}{'length'} = $1;
@@ -361,6 +409,10 @@ print "Summing up ... \n";
 
 foreach $urb (keys %urb_list) {
 	$t = $urb_list{$urb}{'t'};
+    if (!defined($t)) {
+        print "Fatal error: t is undefined for urb ${urb}\n";
+        exit;
+    }
 	$urb_t{$t} = $urb;
 }
 
@@ -423,8 +475,12 @@ foreach $t (sort {$a <=> $b} (keys %urb_t)) {
 	} elsif ($type eq "BULK_OR_INTERRUPT" && $display_bulk_or_interrupt) {
 
 		if (!defined($urb_list{$k}{'length'})) {
-			print "Fatal error: URB $k has undefined TransferBufferLength\n";
-			exit ;
+
+# we only print a warning, since the TransferBufferLength is decoded in
+# the response URB of IN request. And maybe such URB never comes before the
+# end of the USB log.
+
+			print "Warning: URB $k has undefined TransferBufferLength\n";
 		}
 
 		$endpoint = $urb_list{$k}{'endpoint'};
