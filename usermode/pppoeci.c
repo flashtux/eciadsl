@@ -94,11 +94,11 @@ static char id[] =
 #include "modem.h"
 
 /* max size of data endpoint (originally : 448). */
-#define MAX_EP_SIZE 53
+#define MAX_EP_SIZE 106
 /* number of simultaneous URB submitted to data endpoint */
 #define NB_PKT_EP_DATA_IN 100
 /* number of ISO packet per URB */
-#define PKT_NB 83
+#define PKT_NB 41
 
 /* ATM level : adapt according your ADSL provider settings */
 int my_vpi = -1;
@@ -493,6 +493,9 @@ aal5_read(unsigned char *cell_buf, size_t count,
 				 vpi, vci, my_vpi, my_vci);
 			dump(cell_buf, CELL_DATA);
 		}
+		pusb_reset_ep(ep_data_in);
+		pusb_reset_ep(ep_data_out);
+		pusb_reset_ep(ep_int);
 
 		return(0);
 	
