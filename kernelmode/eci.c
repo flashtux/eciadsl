@@ -584,7 +584,7 @@ static const struct atmdev_ops eci_atm_devops =
 	open: 	eci_atm_open,
 	send: 	eci_atm_send,
 	close: 	eci_atm_close,
-	ioctl:	eci_atm_ioctl
+	ioctl:	NULL /* eci_atm_ioctl */
 };
 #endif /* __USE_ATM__ */
 
