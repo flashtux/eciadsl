@@ -10,7 +10,7 @@
   #define OS "Win32 non-GNU"
  #else
   /* Cygwin */
-  #define OS "Win32+Cygwin"
+  #define OS "Win32+Cygwin/MingW"
  #endif
 #elif defined(__MACOS__)
  /* MacOS */
