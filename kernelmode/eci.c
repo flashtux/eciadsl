@@ -583,6 +583,8 @@ void *eci_usb_probe(struct usb_device *dev,unsigned int ifnum ,
 	const struct usb_device_id *id);
 void eci_usb_disconnect(struct usb_device *dev, void *p);
 int eci_usb_ioctl(struct usb_device *usb_dev,unsigned int code, void * buf);
+static int eci_usb_send_urb(struct eci_instance *instance, 
+			struct uni_cell_list *cells);
 
 
 /*	structures	*/
@@ -1291,17 +1293,17 @@ static void eci_int_callback(struct urb *urb)
 
 static void eci_iso_callback(struct urb *urb)
 {
-	struct eci_instance 	*instance;	/* Driver private structre	*/
-	int 			i;		/* Frame Counter		*/
- 	int 			pos;		/* Buffer curent pos counter	*/
- 	struct uni_cell_q	*cells;		/* New computed queue of cell	*/
-	struct uni_cell 	*cell;		/* Working cell			*/
-	unsigned char 		*buf;		/* Working buffer pointer 	*/
+	struct eci_instance 	*instance;	/* Driver private structre */
+	int 			i;		/* Frame Counter	*/
+ 	int 			pos;		/* Buffer curent pos counter */
+ 	struct uni_cell_q	*cells;		/* New computed queue of cell */
+	struct uni_cell 	*cell;		/* Working cell		*/
+	unsigned char 		*buf;		/* Working buffer pointer */
 
 	instance = (struct eci_instance *)urb->context;
 	if (!urb->status)
 	{
- 		cells = _uni_cell_qalloc();
+ 		cells = _uni_cell_list_alloc();
 		for (i=0;i<ECI_NB_ISO_PACKET;i++)
 		{
 			if (!urb->iso_frame_desc[i].status &&
@@ -1322,7 +1324,7 @@ static void eci_iso_callback(struct urb *urb)
  					cell = _uni_cell_alloc();
  					memcpy(cell->raw, buf + pos,
  						ATM_CELL_SZ);
- 					if(_uni_cell_qpush(cell, cells))
+ 					if(_uni_cell_list_append(cells, cell))
  					{
  					  ERR_OUT("Couldn't queue One cell\n");
  					  _uni_cell_free(cell);
@@ -1351,7 +1353,8 @@ static void eci_iso_callback(struct urb *urb)
 	*/
 }
 
-static int eci_usb_send_urb(struct eci_instance *instance, struct uni_cell_q *cells)
+static int eci_usb_send_urb(struct eci_instance *instance, 
+			struct uni_cell_list *cells)
 {
 	int 		ret;		/* counter			*/
 	int 		nbcell;		/* cellcount expected		*/
@@ -1362,16 +1365,15 @@ static int eci_usb_send_urb(struct eci_instance *instance, struct uni_cell_q *ce
 	struct uni_cell	*cell;		/* current computed cell	*/
 	struct urb	*urb;		/* urb pointer to sent urb	*/
 
-	nbcells = cells->nbcells;	/* Must be change to use	*/
-	buflen = ATM_CELL_SZ * 
-			cells->nbcells;	/* abstraction function	*/
+	nbcells = _uni_cell_list_nbcells(cells);
+	buflen = ATM_CELL_SZ * nbcells;
 	if(!(buf=(unsigned char *)kmalloc(buflen, GFP_KERNEL)))
 	{
 		ERR_OUT("Can't allocate bulk urb Buffer\n");
 		return(0);
 	}
 	bufpos = ret = 0;
- 	cell = cells->first;
+ 	cell = _uni_cell_list_first(cells);
  	while(ret < nbcells)
 	{
  		if(cell)
@@ -1391,6 +1393,7 @@ static int eci_usb_send_urb(struct eci_instance *instance, struct uni_cell_q *ce
 	if(!(urb = usb_alloc_urb(0)))
 	{
 		ERR_OUT("Can't alloacate bulk URB\n");
+		kfree(buf);
 		return(0);
 	}
 	FILL_BULK_URB(urb, instance->usb_wan_dev, 
@@ -1399,6 +1402,7 @@ static int eci_usb_send_urb(struct eci_instance *instance, struct uni_cell_q *ce
 	if(!(usb_submit_urb(urb)))
 	{
 		ERR_OUT("Can't submit bulk urb\n");
+		kfree(buf);
 		return(0);
 	}
 	return(ret);	
