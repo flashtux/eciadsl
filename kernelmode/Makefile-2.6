@@ -1,0 +1,65 @@
+#
+## Makefile for ECI USB ADSL Modem
+#
+#TODO: 
+#include Makefile.config
+#
+# Builds the module for your currently running kernel.  If you want to build for
+# another kernel, or want to explicitly specify where the kernel source is, then
+# either give the path on the "make" command line, for example compile using
+# 	make KERNELDIR=/usr/src/linux
+# rather than just "make", or set the path in the KERNELDIR line, for example
+#	KERNELDIR := /usr/src/linux
+#
+# The module will not compile if you haven't compiled your kernel source!
+
+ifndef KERNELDIR
+	KERNELDIR := /lib/modules/$(shell uname -r)/build
+endif
+
+eci-files := eci.c Makefile
+obj-m := eci.o
+
+TARGETS= converter
+converter = converter.o
+converter.o = converter.c
+
+ifneq ($(KERNELRELEASE),)
+
+ifndef CONFIG_USB
+$(error USB support not turned on in the kernel!)
+endif
+ifndef CONFIG_ATM
+$(error ATM support not turned on in the kernel!)
+endif
+
+$(obj-m): $(eci-objs)
+	$(LD) -r -o $@ $(eci-objs)
+
+$(eci-objs): $(eci-files)
+else
+	PWD := $(shell pwd)
+	VERSIONFILE := $(KERNELDIR)/include/linux/version.h
+	VERSION := $(shell awk -F\" '/REL/ {print $$2}' $(VERSIONFILE))
+	INSTALLDIR := /lib/modules/$(VERSION)/kernel/drivers/usb
+
+all: check $(TARGETS) $(obj-m)
+	cc  $(CFLAGS)  -D _XOPEN_SOURCE -c -o converter.o converter.c
+
+$(obj-m): $(eci-files)
+	$(MAKE) -C $(KERNELDIR) SUBDIRS=$(PWD) modules
+
+check:
+	@if [ "$(PRODUCT_VERSION)" != "$$(cat VERSION)" ]; then \
+		echo "Version has changed since your last ./configure call"; \
+		echo "You should re-run ./configure"; \
+	fi
+
+install: $(obj-m)
+	install -d $(INSTALLDIR)
+	install -c $(obj-m) $(INSTALLDIR)
+	depmod -a
+
+clean:
+	rm -f *.o .*.flags
+endif	
