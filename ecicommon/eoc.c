@@ -51,8 +51,8 @@ void eoc_init() {
  */
 u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
 	printf("OEC.C - eco_decode - START [b1b2 : %02x%02x]\n", b1, b2);
-	printf("OEC.C - eco_decode - END     [b1b2 : %04x]\n", ((b2>>2) & 0x3f) || ((b1 & 0xfe) << 5));
-	return (((b2>>2) & 0x3f) || ((b1 & 0xfe) << 5));
+	printf("OEC.C - eco_decode - END     [b1b2 : %04x]\n", (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0xfe)));
+	return (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0xfe));
 }
 
 /*
@@ -210,7 +210,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  	int i;
  	
  	assert(eoc_out_buffer_pos<32);
- 	printf("OEC.C - get_oec_answer - START\n");
+ 	printf("OEC.C - get_oec_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	
  	for(i=0; i< 32; i++) {	/* to be optimized */
  			eocoutbuff[i] = 0x0c;
@@ -223,5 +223,5 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 }
 
 int has_eocs(){
-	return (eocmescnt);
+	return (eoc_out_buffer_pos);
 }
