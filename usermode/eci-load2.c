@@ -508,12 +508,7 @@ int main(int argc, char** argv)
 	int option_verbose = 0;
 	unsigned int option_timeout = 0;
 
-	/* read the configuration file */
-
-	read_config_file();
-
 	/* parse command line options */
-
 	for (i = 1, j = 1; i < argc; i++)
 	{
 		if ((strcmp(argv[i], "-V") == 0) || (strcmp(argv[i], "--version") == 0))
@@ -536,6 +531,9 @@ int main(int argc, char** argv)
 
 	argc = j;
 	
+	/* read the configuration file */
+	read_config_file();
+
 	if (argc == 2)
 	{
 		file = argv[1];

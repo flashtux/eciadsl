@@ -405,12 +405,7 @@ int main(int argc, char** argv)
 	unsigned int option_timeout = 0;
 	pid_t child_pid;
 
-	/* read the configuration file */
-
-	read_config_file();
-
 	/* parse command line options */
-
 	for (i = 1, j = 1; i < argc; i++)
 	{
 		if ((strcmp(argv[i], "-V") == 0) || (strcmp(argv[i], "--version") == 0))
@@ -431,6 +426,9 @@ int main(int argc, char** argv)
 			argv[j++] = argv[i];
 	}
 	argc = j;
+
+	/* read the configuration file */
+	read_config_file();
 
 	/* parse remaining command line arguments */
 	if (argc == 2)
