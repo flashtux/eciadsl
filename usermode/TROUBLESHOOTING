@@ -597,7 +597,8 @@ A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
 Q:	I cannot connect in console mode whereas it works fine under X11.
 
 --------------------------------------------------------------------------------
-A:	<TODO: try to explain that we dunno why (yet)>
+A:	This may be a framebuffer issue. Try to boot your Linux without framebuffer
+	console support.
 
 
 5.2
@@ -835,7 +836,7 @@ A:	Unload all USB modules related to you modem when leaving Linux. This could
 	few seconds so that it's resetted, and replug it. Then, you can use it under
 	Windows.
 
-	<TODO: unverified problems with ericsson and usermode 0.5>
+	<TODO: unverified problems with Ericsson modems and usermode 0.5>
 
 
 5.9

@@ -610,7 +610,7 @@ Q:	Je ne peux pas me connecter en console alors que cela fonctionne bien sous
 	X11.
 
 --------------------------------------------------------------------------------
-R:	<A FAIRE: essayer d'expliquer pourquoi on ne sait pas (encore)>
+R:	Essayez de booter Linux sans le framebuffer.
 
 
 5.2
