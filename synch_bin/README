@@ -14,6 +14,7 @@ Available Synch .bin files list:
 	synch12.bin (formerly eci_bastia.bin)
 	synch13.bin (formerly eci_wan2.troll.bin - Italy/Napoli/Telecom Italia)
 	synch14.bin (formerly eci_cergy.bin)
+	synch15.bin (formerly Blade_sync.bin - Italy/Verona/Telecom Italia)
 
 WARNING:
 the former names are DEPRECATED, because they are not friendly since they do NOT
