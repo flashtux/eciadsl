@@ -81,7 +81,7 @@
                      - specify the frame header length in array frame_header_len 
                      - update max_frame_header_len if necessary 
 	Antoine REVERSAT aka Crevetor 4/1/2004 : These last days : got rid of linux/ * includes (thanks to MD)
-		   				 Added support for 2.6 kernels (binary stays the same but works for both kernels
+		   				 Added support for 2.6 kernels (binary stays the same but works for both kernels)
 		   				 Changed pusb_set_interface_alt to allow alt setting 0 to be used (which wasn't the case before)
 */
 
