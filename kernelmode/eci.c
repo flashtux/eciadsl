@@ -421,34 +421,54 @@ typedef const uni_cell_t * cell_list_crs_t ;
 /*-- F U N C T I O N S -------------------------------------------------*/
 
 /* Init a list */
-static int _cell_list_init(cell_list_t *) ;
+static int _uni_cell_list_init(cell_list_t *) ;
+
+/* Reset a list */
+static void _uni_cell_list_reset(cell_list_t *) ;
 
 /* Alloc a new list */
-static cell_list_t * _cell_list_alloc(void) ;
+static cell_list_t * _uni_cell_list_alloc(void) ;
 
 /* Free a list (free each cells) */
-static void _cell_list_free(cell_list_t *) ;
+static void _uni_cell_list_free(cell_list_t *) ;
 
 /* Get number of Cells in list (<0 : error)*/
-static inline int _cell_list_nbcells(cell_list_t *) ;
+static inline int _uni_cell_list_nbcells(cell_list_t *) ;
 
 /* Get First cell of list */
-static inline const uni_cell_t * _cell_list_first(cell_list_t *) ;
+static inline const uni_cell_t * _uni_cell_list_first(cell_list_t *) ;
 
 /* Get Last cell of list */
-static inline const uni_cell_t * _cell_list_last(cell_list_t *) ;
+static inline const uni_cell_t * _uni_cell_list_last(cell_list_t *) ;
 
 /* Extract First cell of list */
-static uni_cell_t * _cell_list_extract(cell_list_t *) ;
+static uni_cell_t * _uni_cell_list_extract(cell_list_t *) ;
 
 /* Insert a new cell at the beginning of the list */
-static int _cell_list_insert(cell_list_t *, uni_cell_t *) ;
+static int _uni_cell_list_insert(cell_list_t *, uni_cell_t *) ;
 
 /* Add a new cell at the end of the list */
-static int _cell_list_append(cell_list_t *, uni_cell_t *) ;
+static int _uni_cell_list_append(cell_list_t *, uni_cell_t *) ;
+
+/* Concatenate 2 lists (reset second list) */
+static int _uni_cell_list_cat(cell_list_t*, cell_list_t*) ;
 
 /* Move cursor forward */
-static inline int _cell_list_crs_next(cell_list_crs_t *) ;
+static inline int _uni_cell_list_crs_next(cell_list_crs_t *) ;
+
+/*
+ *
+ * Split raw AAL5 frame into UNI cells
+ * We need to format the AAL5 trailer
+ *
+ */
+static int _aal5_to_cells(
+		int,				/* IN: VPI		*/
+		int,				/* IN: VCI		*/
+		size_t,				/* IN: AAL5 size	*/
+		byte*,				/* IN: AAL5 raw data	*/
+		cell_list_t*			/* IN/OUT: filled cells */
+) ;
 
 /*----------------------------------------------------------------------*/
 
@@ -545,6 +565,10 @@ static void _eci_bulk_callback(struct urb *) ;
  */
 static int _eci_usb_rx(
 	uni_cell_t *		/* IN: UNI Cell		*/
+) ;
+static int eci_atm_receive_cell(
+		struct eci_instance *,
+		cell_list_t *
 ) ;
 
 static const struct atmdev_ops eci_atm_devops =
@@ -1487,151 +1511,46 @@ static int _eci_tx_aal5(
 		struct eci_instance *	pinstance,
 		struct sk_buff *	pskb	
 ) {
-	size_t		lv_szdata	= 0 ;
-	size_t		lv_szpadd	= 0 ;
-	byte *		lp_data		= NULL ;
-	byte		lv_aal5trl[ATM_CELL_PAYLOAD] ;
-	u32		lv_crc32	= 0 ;
-	int		lc_1 		= 0 ;
 	int		lv_rc 		= 0 ;
-	aal5_t *	lp_aal5 	= NULL ;
+	int		lv_nbsent ;
+	cell_list_t 	lv_list ;
 	
 	/* Check Interface */
-	if (!pinstance || !pskb || !pskb->len || !pskb->data) {
+	if (!pinstance || !pskb) {
 		ERR_OUT("Interface Error\n") ;
 		return -EINVAL ;
 	}
 
-	lv_szdata 	= pskb->len ;
-	lp_data		= pskb->data ;
-	
-	if (lv_szdata > ((2^16) - 1)) {
-		ERR_OUT("data to long to be hold in aal5 frame\n") ;
-		return -EINVAL ;
-	}
+	lv_rc = _uni_cell_list_init(&lv_list) ;
+	if (lv_rc) return lv_rc ;
 
-	lp_aal5 = _aal5_alloc() ;
-	if (!lp_aal5) {
-		ERR_OUT("Failed to init new AAL5 frame\n") ;
-		return -ENOMEM ;
-	}
-
-	/*
-	 * Format the AAL5 trailer
-	 * |------------------|---------|---------|--------|-----|
-	 * |    User Data     |   PAD   | Control | Length | CRC |
-	 * |------------------|---------|---------|--------|-----|
-	 *        0-65535        0-47        2        2       4
-	 *
-	 * PAD : to make the full frame to fit 48 bytes boundery
-	 * Control(UU + CPI) : Reserved (set to 0)
-	 *
-	 */
-
-	/* Compute size of padding */
-	lv_szpadd = (lv_szdata 
-			+ ATM_AAL5_TRAILER 
-			+ ATM_CELL_PAYLOAD - 1) 
-		/ ATM_CELL_PAYLOAD ;
-	lv_szpadd = (ATM_CELL_PAYLOAD * lv_szpadd) 
-		- ATM_AAL5_TRAILER 
-		- lv_szdata ;
-	
-	/* Set the padding and reset Control */
-	memset(lv_aal5trl, 0, ATM_CELL_PAYLOAD - 6) ;
-	
-	/* Set the length (no CPI & no UU) */
-	lv_aal5trl[ATM_CELL_PAYLOAD - 6] = (lv_szdata & 0xffff) >> 8 ;
-	lv_aal5trl[ATM_CELL_PAYLOAD - 5] = (lv_szdata & 0x00ff) ;
-
-	/* 
-	 * Set the CRC after compute 
-	 */
-	/* CRC for Datas */
-	lv_crc32 = _calc_crc(
-				lp_data,
-				lv_szdata,
-				-1) ;
-	
-	/* CRC for padding */
-	for (lc_1 = 0 ; lc_1 < lv_szpadd ; lc_1++)
-		lv_crc32 = _calc_crc("\0", 1, lv_crc32) ;
-	
-	/* CRC for trailer */
-	lv_crc32 = ~ _calc_crc(
-			lv_aal5trl 
-			+ (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER),
-			ATM_AAL5_TRAILER - 4,
-			lv_crc32) ;
-
-	lv_aal5trl[ATM_CELL_PAYLOAD - 4] = lv_crc32 >> 24 ;
-	lv_aal5trl[ATM_CELL_PAYLOAD - 3] = (lv_crc32 & 0x00ff0000) >> 16 ;
-	lv_aal5trl[ATM_CELL_PAYLOAD - 2] = (lv_crc32 & 0x0000ff00) >> 8 ;
-	lv_aal5trl[ATM_CELL_PAYLOAD - 1] = (lv_crc32 & 0x000000ff) ;
-
-	/* Split AAL5 into UNI Cells */
-	lc_1 = 0 ;
-	while (lv_szdata > ATM_CELL_PAYLOAD) {
-		
-		/* Enqueue slice */
-		lv_rc = _eci_make_aal5(
-				lp_aal5,
-				vpi,
-				vci,
-				false,
-				ATM_CELL_PAYLOAD,
-				lp_data) ;
-		if (lv_rc) {
-			ERR_OUT("_eci_make_aal5 failed\n") ;
-			_aal5_free(lp_aal5) ;
-			return lv_rc ;
-		}
-		lp_data += ATM_CELL_PAYLOAD ;
-		lv_szdata -= ATM_CELL_PAYLOAD ;
-	}
-	
-	/* 
-	 * Manage Last data padded cell
-	 * 2 possilble cases :
-	 * - Enought free room to happend trailer
-	 * - Not enought => need one more cell
-	 */
-	if (lv_szdata > (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER)) {
-
-		/* Enqueue this before last slice */
-		lv_rc = _eci_make_aal5(
-				lp_aal5,
-				vpi,
-				vci,
-				false,
-				lv_szdata,
-				lp_data) ;
-		if (lv_rc) {
-			ERR_OUT("_eci_make_aal5 failed on last cell\n") ;
-			_aal5_free(lp_aal5) ;
-			return lv_rc ;
-		}
-	} else {
-		/* copy remaining data in trailer cell */
-		memcpy(lv_aal5trl, lp_data, lv_szdata) ;
-	}
-
-	/* Manage the last cell */
-	lv_rc = _eci_make_aal5(
-			lp_aal5,
+	/* Split AAL5 frame */
+	lv_rc = _aal5_to_cells(
 			vpi,
 			vci,
-			true,
-			ATM_CELL_PAYLOAD,
-			lv_aal5trl) ;
+			pskb->len,
+			pskb->data,
+			&lv_list) ;
 	if (lv_rc) {
-		ERR_OUT("_eci_make_aal5 failed on last cell\n") ;
-		_aal5_free(lp_aal5) ;
+		ERR_OUT("Failed to split aal5 frame\n") ;
+		_uni_cell_list_reset(&lv_list) ;
 		return lv_rc ;
 	}
 
-	/* lp_aal5 is free by eci_usb_send_urb */
-	return eci_usb_send_urb(pinstance, lp_aal5) ;
+	/* Send the Cells to USB layer */
+	lv_nbsent = eci_usb_send_urb(pinstance, &lv_list) ;
+
+	if (!lv_nbsent || lv_nbsent != _uni_cell_list_nbcells(&lv_list)) {
+	       ERR_OUT(
+			       "Not all the cells where sent (%d/%d)\n",
+			       lv_nbsent,
+			       _uni_cell_list_nbcells(&lv_list)) ;
+	       lv_rc = -1 ;
+	}
+
+	_uni_cell_list_reset(&lv_list) ;
+
+	return lv_rc ;
 }
 
 /*----------------------------------------------------------------------
@@ -1646,6 +1565,83 @@ static int _eci_usb_rx(
 	DBG_OUT("_eci_usb_rx in\n") ;
 	DBG_OUT("_eci_usb_rx out\n") ;
 	return lv_rc ;
+}
+
+/*----------------------------------------------------------------------
+ * 
+ * Send Cell to ATM
+ *
+ */
+static int eci_atm_receive_cell(
+		struct eci_instance * pinstance,
+		cell_list_t *		plist
+) {
+	uni_cell_t *		lp_cellfirst	= NULL ;
+	uni_cell_t *		lp_cellprv	= NULL ;
+	uni_cell_t *		lp_cell		= NULL ;
+	bool			lf_last 	= false ;
+	int			lv_vpi ;
+	int			lv_vci ;
+	int			lv_crc ;
+	size_t			lv_size 	= 0 ;
+	struct sk_buff *	lp_skb		= NULL ;
+
+	if (!pinstance || !plist)
+		return -EINVAL ;
+
+	/*
+	 * Get the Cells that constitute a full AAL5 frame
+	 */
+	/*
+	lp_cellfirst		= 
+		lp_cell 	= 
+		lp_cellprv 	= _uni_cell_qpop(pinstance->prx_q) ;
+	if (!lp_cell) {
+		ERR_OUT("Empty rx q\n") ;
+		return -EINVAL ;
+	}
+	*/
+	lv_size += ATM_CELL_PAYLOAD ;
+	lv_crc = _calc_crc(
+			_uni_cell_getPayload(lp_cell),
+			ATM_CELL_PAYLOAD,
+			-1) ;
+	
+	while (lp_cell && !(lf_last = _uni_cell_islast(lp_cell))) {
+
+		lp_cellprv->next	= lp_cell ;
+		lp_cellprv 		= lp_cell ;
+		/*
+		lp_cell 		= _uni_cell_qpop(pinstance->prx_q) ;
+		*/
+
+		lv_size 		+= ATM_CELL_PAYLOAD ;
+		lv_crc = ~ _calc_crc(
+				_uni_cell_getPayload(lp_cell),
+				ATM_CELL_PAYLOAD,
+				lv_crc) ;
+	}
+
+	if (!lp_cell || !lf_last) {
+		/* Something goes wrong */
+		ERR_OUT("failed to browse the AAL5 frame\n") ;
+		lp_cell = lp_cellfirst ;
+		while ((lp_cellprv = lp_cell)) {
+			lp_cell = lp_cellprv->next ;
+			_uni_cell_free(lp_cellprv) ;
+		}
+		return -EINVAL ;
+	}
+
+	/*
+	 * Compare CRC
+	 */
+	
+	/* TODO ... */
+
+	return 0 ;
+
+
 }
 
 /*----------------------------------------------------------------------
@@ -1683,7 +1679,7 @@ static int _eci_rx_aal5(
 	*/
 	lv_size += ATM_CELL_PAYLOAD ;
 	lv_crc = _calc_crc(
-			_uni_cell_getPayload(lp_cell) + ATM_CELL_HDR,
+			_uni_cell_getPayload(lp_cell),
 			ATM_CELL_PAYLOAD,
 			-1) ;
 	
@@ -1697,7 +1693,7 @@ static int _eci_rx_aal5(
 
 		lv_size 		+= ATM_CELL_PAYLOAD ;
 		lv_crc = ~ _calc_crc(
-				_uni_cell_getPayload(lp_cell) + ATM_CELL_HDR,
+				_uni_cell_getPayload(lp_cell),
 				ATM_CELL_PAYLOAD,
 				lv_crc) ;
 	}
@@ -2154,7 +2150,7 @@ static inline byte * _uni_cell_getPayload(
 	/*
 	DBG_OUT("_uni_cell_getPayload out\n") ;
 	*/
-	return &(pcell->raw[0]) ;
+	return &(pcell->raw[0]) + ATM_CELL_HDR ;
 }
 
 /*----------------------------------------------------------------------*/
@@ -2378,7 +2374,7 @@ static uni_cell_t * _uni_cell_qhead(
 /*----------------------------------------------------------------------*/
 
 /* Init a list */
-static int _cell_list_init(cell_list_t *plist) {
+static int _uni_cell_list_init(cell_list_t *plist) {
 	if (!plist) return -EINVAL ;
 	memset(plist, 0x00, sizeof(cell_list_t)) ;
 	return 0 ;
@@ -2386,15 +2382,36 @@ static int _cell_list_init(cell_list_t *plist) {
 
 /*----------------------------------------------------------------------*/
 
+/* Reset a list (free each cells) */
+
+static void _uni_cell_list_reset(cell_list_t *plist) {
+	uni_cell_t *	lp_cell = NULL ;
+
+	if (!plist) return ;
+
+	/* Free each cells of the list */
+	while ((lp_cell = _uni_cell_list_extract(plist))) {
+		_uni_cell_free(lp_cell) ;
+	}
+	
+	plist->nbcells	= 0 ;
+	plist->first	= NULL ;
+	plist->last	= NULL ;
+
+}
+
+
+/*----------------------------------------------------------------------*/
+
 /* Alloc a new list */
 
-static cell_list_t * _cell_list_alloc(void) {
+static cell_list_t * _uni_cell_list_alloc(void) {
 	cell_list_t * lp_list = NULL ;
 
 	lp_list = kmalloc(sizeof(cell_list_t), GFP_KERNEL) ;
 	if (!lp_list) return NULL ;
 
-	if (_cell_list_init(lp_list)) {
+	if (_uni_cell_list_init(lp_list)) {
 		kfree(lp_list) ;
 		return NULL ;
 	}
@@ -2405,15 +2422,12 @@ static cell_list_t * _cell_list_alloc(void) {
 
 /* Free a list (free each cells) */
 
-static void _cell_list_free(cell_list_t *plist) {
-	uni_cell_t *	lp_cell = NULL ;
+static void _uni_cell_list_free(cell_list_t *plist) {
 
 	if (!plist) return ;
 
 	/* Free each cells of the list */
-	while ((lp_cell = _cell_list_extract(plist))) {
-		_uni_cell_free(lp_cell) ;
-	}
+	_uni_cell_list_reset(plist) ;
 
 	kfree(plist) ;
 }
@@ -2422,7 +2436,7 @@ static void _cell_list_free(cell_list_t *plist) {
 
 /* Get number of Cells in list (<0 : error)*/
 
-static inline int _cell_list_nbcells(cell_list_t *plist) {
+static inline int _uni_cell_list_nbcells(cell_list_t *plist) {
 	return (plist 
 			? plist->nbcells 
 			: -EINVAL) ;
@@ -2431,7 +2445,7 @@ static inline int _cell_list_nbcells(cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Get First cell of list */
-static inline const uni_cell_t * _cell_list_first(cell_list_t *plist) {
+static inline const uni_cell_t * _uni_cell_list_first(cell_list_t *plist) {
 	return (plist
 			? (const uni_cell_t*) plist->first
 			: NULL) ;
@@ -2440,7 +2454,7 @@ static inline const uni_cell_t * _cell_list_first(cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Get Last cell of list */
-static inline const uni_cell_t * _cell_list_last(cell_list_t *plist) {
+static inline const uni_cell_t * _uni_cell_list_last(cell_list_t *plist) {
 	return (plist
 			? (const uni_cell_t*) plist->last
 			: NULL) ;
@@ -2449,7 +2463,7 @@ static inline const uni_cell_t * _cell_list_last(cell_list_t *plist) {
 /*----------------------------------------------------------------------*/
 
 /* Extract First cell of list */
-static uni_cell_t * _cell_list_extract(cell_list_t *plist) {
+static uni_cell_t * _uni_cell_list_extract(cell_list_t *plist) {
 	uni_cell_t * lp_cell = NULL ;
 
 	if (!plist || !plist->first) return NULL ;
@@ -2469,7 +2483,7 @@ static uni_cell_t * _cell_list_extract(cell_list_t *plist) {
 
 /* Insert a new cell at the beginning of the list */
 
-static int _cell_list_insert(cell_list_t *plist, uni_cell_t *pcell) {
+static int _uni_cell_list_insert(cell_list_t *plist, uni_cell_t *pcell) {
 	if (!plist || !pcell) return -EINVAL ;
 
 	/* Manage empty list case */
@@ -2490,7 +2504,7 @@ static int _cell_list_insert(cell_list_t *plist, uni_cell_t *pcell) {
 
 /* Add a new cell at the end of the list */
 
-static int _cell_list_append(cell_list_t *plist, uni_cell_t *pcell) {
+static int _uni_cell_list_append(cell_list_t *plist, uni_cell_t *pcell) {
 	if (!plist || !pcell) return -EINVAL ;
 
 	pcell->next = NULL ;
@@ -2509,12 +2523,247 @@ static int _cell_list_append(cell_list_t *plist, uni_cell_t *pcell) {
 
 /*----------------------------------------------------------------------*/
 
+/* Concatanate 2 lists */
+static int _uni_cell_list_cat(
+		cell_list_t *phead,
+		cell_list_t *ptail) {
+	if (!phead || !ptail) return -EINVAL ;
+	if (!ptail->nbcells) return 0 ;
+
+	phead->nbcells += ptail->nbcells ;
+	if (phead->last) {
+		phead->last->next	= ptail->first ;
+		phead->last		= ptail->last ;
+	} else {
+		phead->first		= ptail->first ;
+		phead->last		= ptail->last ;
+	}
+
+	/* Reset Second List */
+	ptail->nbcells	= 0 ;
+	ptail->first	= NULL ;
+	ptail->last	= NULL ;
+
+	return 0 ;
+}
+
+/*----------------------------------------------------------------------*/
+
 /* Move cursor forward */
 
-static inline int _cell_list_crs_next(cell_list_crs_t *pcursor) {
+static inline int _uni_cell_list_crs_next(cell_list_crs_t *pcursor) {
 	if (!pcursor || !*pcursor) return -EINVAL ;
 	*pcursor = (cell_list_crs_t) ((uni_cell_t*)*pcursor)->next ;
 	return 0 ;
+}
+
+/*----------------------------------------------------------------------
+ *
+ * Split raw AAL5 frame into UNI cells
+ * We need to format the AAL5 trailer
+ *
+ */
+static int _aal5_to_cells(
+		int			vpi,	/* IN: VPI		*/
+		int			vci,	/* IN: VCI		*/
+		size_t			szaal5,	/* IN: AAL5 size	*/
+		byte *			aal5,	/* IN: AAL5 raw data	*/
+		cell_list_t *		plist	/* IN/OUT: filled cells */
+) {
+	size_t		lv_szdata	= szaal5 ;
+	byte *		lp_data		= aal5 ;
+	size_t		lv_szpadd	= 0 ;
+	byte		lv_aal5trl[ATM_CELL_PAYLOAD] ;
+	u32		lv_crc32	= -1 ;
+	int		lv_rc 		= 0 ;
+	uni_cell_t *	lp_cell		= NULL ;
+	cell_list_t	lv_tmplist ;
+	
+	/* Check Interface */
+	if (!aal5 || !plist) {
+		ERR_OUT("Interface Error\n") ;
+		return -EINVAL ;
+	}
+
+	/* Check aal5 size */
+	if (szaal5 > ((2^16) - 1)) {
+		ERR_OUT("data to long to be hold in aal5 frame\n") ;
+		return -EINVAL ;
+	}
+
+	/*
+	 * |------------------|---------|---------|--------|-----|
+	 * |    User Data     |   PAD   | Control | Length | CRC |
+	 * |------------------|---------|---------|--------|-----|
+	 *        0-65535        0-47        2        2       4
+	 *
+	 * PAD : to make the full frame to fit 48 bytes boundery
+	 * Control(UU + CPI) : Reserved (set to 0)
+	 *
+	 */
+
+	/* Split AAL5 into UNI Cells */
+	while (lv_szdata > ATM_CELL_PAYLOAD) {
+
+		lp_cell = _uni_cell_alloc() ;
+		if (!lp_cell) {
+			_uni_cell_list_reset(&lv_tmplist) ;
+			return -ENOMEM ;
+		}
+		
+		/* Format slice */
+		lv_rc = _uni_cell_format(
+				vpi,
+				vci,
+				false,
+				ATM_CELL_PAYLOAD,
+				lp_data,
+				lp_cell) ;
+		if (lv_rc) {
+			ERR_OUT("_uni_cell_format failed\n") ;
+			_uni_cell_free(lp_cell) ;
+			_uni_cell_list_reset(&lv_tmplist) ;
+			return lv_rc ;
+		}
+
+		/* compute crc on the fly */
+		lv_crc32 = _calc_crc(
+				_uni_cell_getPayload(lp_cell),
+				ATM_CELL_PAYLOAD,
+				lv_crc32) ;
+
+		/* Append slice to cell list */
+		lv_rc = _uni_cell_list_append(&lv_tmplist, lp_cell) ;
+		if (lv_rc) {
+			_uni_cell_free(lp_cell) ;
+			_uni_cell_list_reset(&lv_tmplist) ;
+			return lv_rc ;
+		}
+
+		lp_data += ATM_CELL_PAYLOAD ;
+		lv_szdata -= ATM_CELL_PAYLOAD ;
+	}
+	
+	/* 
+	 * Manage Last data padded cell
+	 * 2 possilble cases :
+	 * - Enought free room to happend trailer
+	 * - Not enought => need one more cell
+	 */
+	if (lv_szdata > (ATM_CELL_PAYLOAD - ATM_AAL5_TRAILER)) {
+
+		lp_cell = _uni_cell_alloc() ;
+		if (!lp_cell) {
+			_uni_cell_list_reset(&lv_tmplist) ;
+			return -ENOMEM ;
+		}
+
+		/* Format this before last slice */
+		lv_rc = _uni_cell_format(
+				vpi,
+				vci,
+				false,
+				lv_szdata,
+				lp_data,
+				lp_cell) ;
+		if (lv_rc) {
+			ERR_OUT("_uni_cell_format failed on before last cell\n") ;
+			_uni_cell_free(lp_cell) ;
+			_uni_cell_list_reset(&lv_tmplist) ;
+			return lv_rc ;
+		}
+
+		lp_data		+= lv_szdata ;
+		lv_szdata	= 0 ;
+
+		/* compute crc on the fly */
+		lv_crc32 = _calc_crc(
+				_uni_cell_getPayload(lp_cell),
+				ATM_CELL_PAYLOAD,
+				lv_crc32) ;
+
+		/* Append slice to cell list */
+		lv_rc = _uni_cell_list_append(&lv_tmplist, lp_cell) ;
+		if (lv_rc) {
+			_uni_cell_free(lp_cell) ;
+			_uni_cell_list_reset(&lv_tmplist) ;
+			return lv_rc ;
+		}
+
+	} else {
+		/* copy remaining data in trailer cell */
+		memcpy(lv_aal5trl, lp_data, lv_szdata) ;
+	}
+
+	/* 
+	 * Format the trailer
+	 */
+
+	/* Compute size of padding */
+	lv_szpadd = ATM_CELL_PAYLOAD - lv_szdata - ATM_AAL5_TRAILER ;
+	
+	/* Set the padding and reset Control */
+	memset(
+		lv_aal5trl + lv_szdata, 
+		0, 
+		lv_szpadd + 2) ;
+	
+	/* Set the length (no CPI & no UU) */
+	lv_aal5trl[ATM_CELL_PAYLOAD - 6] = (szaal5 & 0xffff) >> 8 ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 5] = (szaal5 & 0x00ff) ;
+
+	/* finalize CRC computing */
+	lv_crc32 = ~ _calc_crc(
+			lv_aal5trl, 
+			ATM_CELL_PAYLOAD - 4,
+			lv_crc32) ;
+
+	/* 
+	 * Set the CRC 
+	 */
+	lv_aal5trl[ATM_CELL_PAYLOAD - 4] = lv_crc32 >> 24 ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 3] = (lv_crc32 & 0x00ff0000) >> 16 ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 2] = (lv_crc32 & 0x0000ff00) >> 8 ;
+	lv_aal5trl[ATM_CELL_PAYLOAD - 1] = (lv_crc32 & 0x000000ff) ;
+
+	/* Append the last Cell */
+	lp_cell = _uni_cell_alloc() ;
+	if (!lp_cell) {
+		_uni_cell_list_reset(&lv_tmplist) ;
+		return -ENOMEM ;
+	}
+
+	/* Format this before last slice */
+	lv_rc = _uni_cell_format(
+			vpi,
+			vci,
+			false,
+			ATM_CELL_PAYLOAD,
+			lv_aal5trl,
+			lp_cell) ;
+	if (lv_rc) {
+		ERR_OUT("_uni_cell_format failed on last cell\n") ;
+		_uni_cell_free(lp_cell) ;
+		_uni_cell_list_reset(&lv_tmplist) ;
+		return lv_rc ;
+	}
+
+	/* Append slice to cell list */
+	lv_rc = _uni_cell_list_append(&lv_tmplist, lp_cell) ;
+	if (lv_rc) {
+		_uni_cell_list_reset(&lv_tmplist) ;
+		return lv_rc ;
+	}
+
+	/* Append the built list */
+	lv_rc = _uni_cell_list_cat(plist, &lv_tmplist) ;
+	if (lv_rc) {
+		ERR_OUT("Could not return the built list\n") ;
+	}
+
+	_uni_cell_list_reset(&lv_tmplist) ;
+
+	return lv_rc ;
 }
 
 /*----------------------------------------------------------------------*/
