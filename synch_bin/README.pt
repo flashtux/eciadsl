@@ -132,8 +132,7 @@ Lista de ficheiros de synch .bin disponíveis:
 	synch31.bin (gerado em Italia/Turin, provedor Infostrada, tipo de
 		     modulação desconhecido)
 	synch32.bin (gerado em Italia/Pisa, provedor Tiscali, G-lite)
-	synch33.bin (gerado em França/Avignon, provedor Club-Internet, tipo de
-		     modulação desconhecido)
+	synch33.bin (gerado em França/Avignon, provedor Club-Internet, G.DMT)
 
 Se gerou o seu próprio ficheiro .bin, por favor envie-nos juntamente com alguma
 informação relativa à localização/provedor.
