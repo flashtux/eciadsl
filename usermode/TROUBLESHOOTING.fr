@@ -582,6 +582,10 @@ R:	Oui, en utilisant par exemple init.d, ou /etc/ppp/ppp_on_boot pour les
 
 	Copier le fichier rc.adsl vers /etc/init.d: cp rc.adsl /etc/init.d
 
+	Sous Debian, tapez simplement en root : update-rc.d rc.adsl defaults 15
+
+	Pour les autres distributions, voir ci-dessous :
+
 	Dans /etc/rc.d, chaque répertoire rc*.d correspond à un runlevel d'init. Par
 	exemple, le runlevel 5 est celui qui est atteint par défaut au démarrage de
 	nombreuses distributions Linux, permettant un login graphique (parfois c'est
