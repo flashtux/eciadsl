@@ -1,0 +1,132 @@
+#/bin/sh
+# ************************************************************************
+# *                                                                      *
+# *      makeconfig v0.1 - ECI Linux driver configuration script         *
+# *                        by FlashCode and Crevetor (c) 14/04/2002      *
+# *                                                                      *
+# *          For any support, contact one of us :                        *
+# *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr   *
+# *           - Crevetor : ziva@caramail.com                             *
+# *                                                                      *
+# *        Parameters for this script :                                  *
+# *          $1 = username + domain (username@domain)                    *
+# *          $2 = password (given by provider)                           *
+# *          $3 = path to pppoeci (eg: /usr/local/bin/pppoeci)           *
+# *          $4 = DNS 1 (depends on provider)                            *
+# *          $5 = DNS 2 (depends on provider)                            *
+# *                                                                      *
+# ************************************************************************
+
+#
+# target "etc" directory (useful for testing this script)
+#
+
+base_etc=/etc
+
+#
+# check parameters :
+#
+
+if [ $UID -ne 0 ]; then
+    echo -e "Error: you must be root in order to run this script.\n"
+    exit 255
+fi
+
+if [ $# -ne 5 ]; then
+    echo -e "Error: invalid number of parameters."
+    echo -e "Syntax: makeconfig <username> <password> <path_to_pppoeci> <dns1> <dns2>"
+    exit 1
+fi
+
+#
+# backup and create resolv.conf
+#
+
+nomresolv=${base_etc}/resolv.conf
+if [ -s $nomresolv ]; then
+    nombak="${nomresolv}.bak"
+    numero=0
+    while [ -s $nombak ]
+    do
+        numero=`expr $numero + 1`
+        nombak="${nomresolv}.bak$numero"
+    done
+    echo -n "Backing up $nomresolv (to $nombak)... "
+    cp -f $nomresolv $nombak
+    echo "ok"
+fi
+echo -n "Creating $nomresolv..."
+echo "nameserver $4" >$nomresolv
+echo "nameserver $5" >>$nomresolv
+echo "ok"
+
+#
+# backup and create chap-secrets, pap-secrets
+#
+
+for auth in "chap" "pap"
+{
+    nomsecret=${base_etc}/ppp/${auth}-secrets
+    if [ -s $nomsecret ]; then
+        nombak="${nomsecret}.bak"
+        numero=0
+        while [ -s $nombak ]
+        do
+            numero=`expr $numero + 1`
+            nombak="${nomsecret}.bak$numero"
+        done
+        echo -n "Backing up $nomsecret (to $nombak)... "
+        cp -f $nomsecret $nombak
+        echo "ok"
+    fi
+    echo -n "Creating $nomsecret... "
+    echo "# Secrets for authentication using $auth" >$nomsecret
+    echo -e "$1\t*\t$2\t*\t" >>$nomsecret
+    echo "ok"
+}
+
+#
+# backup and create adsl script
+#
+
+nomadsl=${base_etc}/ppp/peers/adsl
+if [ -s $nomadsl ]; then
+    nombak="${nomadsl}.bak"
+    numero=0
+    while [ -s $nombak ]
+    do
+        numero=`expr $numero + 1`
+        nombak="${nomadsl}.bak$numero"
+    done
+    echo -n "Backing up $nomadsl (to $nombak)... "
+    cp -f $nomadsl $nombak
+    echo "ok"
+fi
+echo -n "Creating $nomadsl... "
+cat <<EOF >$nomadsl
+# 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
+# 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+#
+# This file could be rename but its place is under /etc/ppp/peers
+# To connect to Internet using this configuration file
+# pppd call adsl, where "adsl" stands for the name of this file
+
+debug
+kdebug 1
+noipdefault
+defaultroute
+pty "$3 -vpi 8 -vci 35"
+sync
+user "$1"
+noaccomp
+nopcomp
+noccp
+novj
+holdoff 1
+maxfail 0
+usepeerdns
+noauth
+#lcp-echo-interval 600
+#lcp-echo-failure 10
+EOF
+echo "ok"
