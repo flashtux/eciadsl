@@ -25,7 +25,7 @@ ps: dvi
 	dvips -f $(base).dvi >$(base).ps
 
 pdf: dvi
-	dvipdf $(base).dvi
+	dvips -j0 -P generic -q -f $(base).dvi | gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile=$(base).pdf -dCompatibilityLevel=1.3 -c save pop -
 
 ascii: html
 	lynx -dump $(base).html >$(base).txt
