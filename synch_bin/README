@@ -132,6 +132,7 @@ Available Synch .bin files list:
 	synch34.bin (generated in Switzerland/Lucerne, provider Sunrise, unknown modulation type)
 	synch35.bin (generated in Italia/Torino, provider Tiscali, G.DMT)
 	synch36.bin (generated in India/Vishakhapatnam, provider DishnetDSL, modulation G.Lite)
+	synch37.bin (generated in India/Bangalore, provider DishnetDSL, modulation G.Lite)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider
