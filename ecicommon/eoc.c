@@ -31,6 +31,8 @@ static int eocreadpos;		/* position index in readed register	*/
 static char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
+struct eoc_registers eocregs;
+
 /*
  * 	init the eoc stuff
  */
