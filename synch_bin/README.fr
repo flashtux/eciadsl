@@ -33,6 +33,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch18.bin (généré en France/Strasbourg, provider Club-Internet)
 	synch19.bin (généré en France/Antibes)
 	synch20.bin (généré en Italie/Brescia, provider Tiscali)
+	synch21.bin (généré en Italie/Belluno, provider Tiscali)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
@@ -41,6 +42,6 @@ Instructions d'installation :
 - toutes versions jusqu'à 0.5 : dans votre script startmodem, remplacez chaque
   occurence de "/etc/eciadsl/eci_wan3.bin" par le chemin/nom du fichier .bin
   que vous utilisez (2 lignes à modifier).
-- version > 0.5 : copiez tous les fichiers .bin dans le répertoire eciadsl/ (par
+- version >= 0.6 : copiez tous les fichiers .bin dans le répertoire eciadsl/ (par
   défaut /etc/eciadsl). Lancez alors eciconftxt.sh ou eciconf.sh et suivez les
   instructions.
