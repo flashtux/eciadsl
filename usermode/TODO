@@ -1,0 +1,24 @@
+Benoit PAPILLAULT, 30/04/2002
+
+Packaging:
+
+- copy the GPL header in all source file
+- add a COPYING file
+- make a .rpm & .deb package
+
+Functionnality:
+
+- make a separate, clean & portable libpusb
+- make a separate, clean & portable libatm
+- handle several modems (with the same vid/pid)
+- display the modem MAC or EEPROM content
+- make a GPL firmware, to resolve the DMT/CAP modulation issues
+- closer examination of synchronisation (need experiments, see JoKer case).
+- rewrite USB code to avoid ISO (use BULK instead)
+
+Support:
+
+- make a separate FAQ
+- check for cvs $Id$
+- add the doc in the rpm package
+
