@@ -708,7 +708,8 @@ static int __init eci_init(void)
 	/*	Must register driver and claim for hardware */
 	DBG_OUT("init module in\n");
 
-	printk("ECI HiFocus ADSL Modem Driver loading\n");
+	printk("ECI HiFocus ADSL Modem Driver  loading\n");
+	DBG_OUT("$Id$");
 	lv_res = usb_register(&eci_usb_driver) ;
 
 	DBG_OUT("init module out\n");
@@ -1730,7 +1731,11 @@ static void eci_bulk_callback(struct urb *urb)
 	spin_lock_bh(&instance->lock);
 	instance->bulkisfree = 1;
 	if(_uni_cell_list_nbcells(&instance->bulk_cells))
+	{
+		DBG_OUT("Nb Cells %d\n",
+			_uni_cell_list_nbcells(&instance->bulk_cells));
 		tasklet_schedule(&instance->bh_bulk);
+	}
 	spin_unlock_bh(&instance->lock);
 }
 /**********************************************************************
