@@ -2,7 +2,10 @@
 CFLAGS += -Wall -g
 LDFLAGS += -g -Wall
 
-all: eci-load1 eci-load2 pppoeci
+# Final targets
+BIN = eci-load1 eci-load2 pppoeci
+
+all: ${BIN}
 
 eci-load1: eci-load1.o pusb.o
 eci-load2: eci-load2.o pusb.o
@@ -33,3 +36,5 @@ install: all
 	chown root:root /etc/ppp/peers/adsl
 	echo "dont forget to edit adsl and chap-secrets files\n"
 
+clean:
+	rm -f ${BIN} *.o 2>/dev/null
