@@ -1,15 +1,15 @@
 #!/usr/bin/wish
 # ****************************************************************************
 # *                                                                          *
-# *   eciconf - Tcl/tk GUI for ECI Linux driver configuration (makeconfig)   *
-# *   v0.6      by FlashCode and Crevetor (c) 2002/04/14                     *
+# *   eciadsl-config-tk - Tcl/tk GUI for ECI Linux driver configuration      *
+# *               (c) 2002/04/14 by FlashCode and Crevetor                   *
 # *                                                                          *
-# *          For any support, contact one of us :                            *
-# *           - FlashCode: flashcode@free.fr  http://flashcode.free.fr       *
-# *           - Crevetor : areversat@tuxfamily.org			     *
+# *                     http://eciadsl.flashtux.org                          *
 # *                                                                          *
 # ****************************************************************************
 #
+# 2004/04/17, FlashCode :
+#   Renamed script to eciadsl-config-tk
 # 2002/11/03, FlashCode :
 #   Added 3 providers : Infostrada, Sunrise, Econophone
 # 2002/10/19, FlashCode :
@@ -480,7 +480,7 @@ add_bins "$CONF_DIR"
 
 set bin_choisi [.bloc2.listebin.liste.contenu curselection]
 set bin_initial $bin_choisi
-bind .bloc2.listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eci-load2 or LCP timeouts !)"}
+bind .bloc2.listebin.liste.contenu <Enter> {pushstate "Choose another .bin (ONLY if driver hangs up into eciadsl-synch or LCP timeouts !)"}
 bind .bloc2.listebin.liste.contenu <Leave> {popstate}
 scrollbar .bloc2.listebin.liste.scroll -command ".bloc2.listebin.liste.contenu yview"
 pack .bloc2.listebin.liste.contenu .bloc2.listebin.liste.scroll -side left -fill y
@@ -523,8 +523,8 @@ label .bloc2.modes.libelle -text "Select a PPP mode:" -relief groove -background
 pack .bloc2.modes.libelle
 
 list modes
-set tmpfile "/tmp/eciconf.sh.tmp"
-catch {exec $BIN_DIR/pppoeci --modes >& "$tmpfile"}
+set tmpfile "/tmp/eciadsl-config-tk.tmp"
+catch {exec $BIN_DIR/eciadsl-pppoeci --modes >& "$tmpfile"}
 set file [open "$tmpfile" r]
 fconfigure $file -buffering line
 while {[eof $file]!=1} {
@@ -734,7 +734,7 @@ proc conf_report {exit msg color sortie} {
 }
 
 #
-# ===== calls to makeconfig =====
+# ===== calls to eciadsl-makeconfig =====
 #
 
 proc run_makeconfig_synch {} {
@@ -743,11 +743,11 @@ proc run_makeconfig_synch {} {
     if {[string compare $majbin "oui"] == 0} {
         set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
         set synch [.bloc2.listebin.liste.contenu get $numero_bin_choix]
-	    set returncode [catch {exec $BIN_DIR/makeconfig --synch "$synch"} sortie]
+	    set returncode [catch {exec $BIN_DIR/eciadsl-makeconfig --synch "$synch"} sortie]
     	if {$returncode != 0} {
 	        conf_report "non" "Synch .bin has NOT been set.\n\nThis is the error from makeconfig:" "#ffbbbb" $sortie
     	} else {
-	        conf_report "non" "Synch .bin has been changed and will\nbe used the next time you run startmodem." lightgreen ""
+	        conf_report "non" "Synch .bin has been changed and will\nbe used the next time you run eciadsl-start." lightgreen ""
     	}
 	}
 }
@@ -761,20 +761,22 @@ proc run_makeconfig {} {
         set synch [.bloc2.listebin.liste.contenu get [.bloc2.listebin.liste.contenu curselection]]
     }
 
-    set returncode [catch {exec $BIN_DIR/makeconfig "$mode" "$username" "$password" "$BIN_DIR/pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" "$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"} sortie]
+    set returncode [catch {exec $BIN_DIR/eciadsl-makeconfig "$mode" "$username" "$password" "$BIN_DIR/eciadsl-pppoeci" "$dns1" "$dns2" $vpi $vci "$vid1$pid1" "$vid2$pid2" "$synch" "$firm" "$staticip" "$gateway" "$use_staticip" "$use_dhcp" "$modem" "$provider"} sortie]
     if {$returncode != 0} {
-        conf_report "non" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
+        conf_report "non" "eciadsl-makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
     } else {
-        conf_report "oui" "Configuration files updated with success!\n\nThis is makeconfig output:" lightgreen $sortie
+        conf_report "oui" "Configuration files updated with success!\n\nThis is eciadsl-makeconfig output:" lightgreen $sortie
     }
 }
 
 #
-# ===== call to remove_dabusb =====
+# ===== call to eciadsl-remove-dabusb =====
 #
 
 proc run_dabusb {} {
-    set returncode [catch {exec remove_dabusb} sortie]
+    global BIN_DIR
+    
+    set returncode [catch {exec $BIN_DIR/eciadsl-remove-dabusb} sortie]
     toplevel .dab
     wm title .dab "dabusb"
     if {$returncode != 0} {
@@ -782,7 +784,7 @@ proc run_dabusb {} {
         set vmtitle "Error"
         set color "#ffbbbb"
     } else {
-        set msg "Dabusb succesfully removed.\n\nThis is dabusb output:"
+        set msg "Dabusb succesfully removed.\n\nThis is eciadsl-remove-dabusb output:"
         set vmtitle "OK"
         set color lightgreen
     }
@@ -826,7 +828,7 @@ proc popstate {} {
 }
 
 #
-# ===== invert fai state (enabled/disabled) =====
+# ===== invert provider state (enabled/disabled) =====
 #
 
 proc invert_fai {} {
