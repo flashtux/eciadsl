@@ -1,10 +1,10 @@
 # to build : rpm -ba eciadsl-usermode.spec
-# or       : rpm -ta eciadsl-usermode-0.7.tar.gz
-# the tar.gz should contain a directory eciadsl-usermode-0.7
+# or       : rpm -ta eciadsl-usermode-0.10.tar.gz
+# the tar.gz should contain a directory eciadsl-usermode-0.10
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
 Name:     eciadsl-usermode
-Version:	0.9
+Version:	0.10
 Release:	1
 URL:      http://eciadsl.flashtux.org/
 License:	GPL
@@ -117,6 +117,8 @@ echo "and INSTALL files located in /usr/local/doc/eciadsl."
 	rm -rf %buildroot
 
 %changelog
+* Tue Nov 02 2004 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.10-1
+- Updated to the 0.10 release
 * Sat Apr 03 2004 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.9-1
 - Updated to the 0.9 release
 * Tue Jul 01 2003 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.8-1

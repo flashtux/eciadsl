@@ -206,6 +206,8 @@ if [ -s "$CONF_DIR/eciadsl.conf" ]; then
     vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
     pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
     mode=`grep -E "^[ \t]*MODE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+    VPI=`grep "^VPI=" "${CONF_DIR}/eciadsl.conf" | sed -e 's/.*=\(.*\)/\1/'`
+    VCI=`grep "^VCI=" "${CONF_DIR}/eciadsl.conf" | sed -e 's/.*=\(.*\)/\1/'`
     firmware=`grep -E "^[ \t]*FIRMWARE[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
     synch=`grep -E "^[ \t]*SYNCH[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
     staticip=`grep -E "^[ \t]*STATICIP[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
@@ -423,21 +425,23 @@ fi
 
 case "$mode" in
 "LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH"|"LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
-    # load tap/tun module
-    echo -ne "Loading TAP/TUN support... "
-    modprobe -l | grep -E "/tun\." > /dev/null
-    if [ $? -ne 0 ]; then
-        echo "Warning: tun module doesn't exist"
+
+    # loading TUN/TAP support if needed
+    
+    if ! modprobe -l | grep -q '/tun\.'; then
+        echo "Warning: tun/tap module does not exist"
     else
-        modprobe tun
-        sleep 2
-        lsmod | grep -E "^tun[ \t]" > /dev/null
-        if [ $? -ne 0 ]; then
-            echo "couldn't load tun module"
-        else
-            echo "tun loaded successfully"
+        if ! lsmod | grep -q '^tun '; then
+            echo "Loading tun/tap module..."
+            modprobe tun
+            if ! lsmod | grep -q '^tun '; then
+                echo "couldn't load tun module"
+            else
+                echo "tun loaded successfully"
+            fi
         fi
     fi
+
     # verify that /dev/net/tun exists
     if [ ! -c /dev/net/tun ]; then
         echo "/dev/net/tun doesn't exist"
@@ -547,7 +551,8 @@ case "$mode" in
 
 "LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH")
 
-    $BIN_DIR/eciadsl-pppoeci $pppoeci_options
+    $BIN_DIR/eciadsl-pppoeci -vendor "0x${vid2}" -product "0x${pid2}" -alt 4 \
+        -vpi "${VPI}" -vci "${VCI}" -mode "${mode}" $pppoeci_options
     if [ $? -ne 0 ]; then
         echo "ERROR: failed to connect"
         exit $STEP
@@ -561,7 +566,8 @@ case "$mode" in
 
 "LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
 
-    $BIN_DIR/eciadsl-pppoeci $pppoeci_options
+    $BIN_DIR/eciadsl-pppoeci -vendor "0x${vid2}" -product "0x${pid2}" -alt 4 \
+        -vpi "${VPI}" -vci "${VCI}" -mode "${mode}" $pppoeci_options
     if [ $? -ne 0 ]; then
         echo "ERROR: failed to connect"
         exit $STEP

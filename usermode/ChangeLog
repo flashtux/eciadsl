@@ -3,6 +3,14 @@ EciAdsl - Driver for USB ADSL modems with Globespan chipset
 
 ChangeLog - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
 
+2004-11-02 Benoit PAPILLAULT <benoit.papillault@free.fr>
+
+	* Corrected Makefile with proper use of filenames that may contain
+	spaces. Tested.
+	* Corrected use of head/tail programs (added the -n switch)
+	* Corrected eciadsl-start to use the correct eciadsl-pppoeci options
+	when used with non-rfc 2364 mode. Tested with rfc 1483 bridged ethernet
+
 2004-11-01 Benoit PAPILLAULT <benoit.papillault@free.fr>
 
 	* Updated eciadsl-doctor to work on 2.6 kernels properly.

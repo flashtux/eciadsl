@@ -25,7 +25,9 @@ v 0.10:
   ? use standard ./configure script (autoconf/make tools)
   ? URB cleaning on decnx (prevents kernel oops)
   ? fix: multiple physical HUBs, select USB device may fail (benoit's lib or usbfs?)
-
+  ? remove use of IFS in eciadsl-probe-device
+  ? check that /proc/bus/usb/devices is not harcoded (Suse 9.1 case)
+  ? all VIDs/PIDs should be in hexa : 0x0547 (not 0547).
 
 Future versions:
 
@@ -37,7 +39,7 @@ Future versions:
 v 0.6:
 
   * merging of pending patches (LCP timeouts, LLC/LLC_SNAP, eci-load* timeout detection, oliverthered*)
-  * fix: problems with USB 2.0 HUBs (ehci-hdc)
+  * fix: problems with USB 2.0 HUBs (ehci-hcd)
   * synch_bin in repository
   * ANSIC89 compliance
   * eciconftxt.sh

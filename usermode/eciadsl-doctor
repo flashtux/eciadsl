@@ -251,7 +251,7 @@ need_usb_support() {
 #   and /sys/bus/pci/drivers/*_hcd on 2.6)
 # - if yes, we are done
 # - if no, check if we need OHCI support (using /sys/bus/pci/devices/*/class
-#   or lspci or /proc/pci [we might detecte EHCI as OHCI... but since there is
+#   or lspci or /proc/pci [we might detect EHCI as OHCI... but since there is
 #   always an OCHI controller along EHCI, it is OK)
 #   - if no, we are done
 #   - if yes, try to load OHCI module
@@ -406,12 +406,12 @@ else
 fi
 
 if [ -s "$CONF_DIR/eciadsl.conf" ]; then
-	vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -d " \t"`
-	eciload1_options=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
-	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	vid1=`grep -E "^[ \t]*VID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	pid1=`grep -E "^[ \t]*PID1[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	vid2=`grep -E "^[ \t]*VID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	pid2=`grep -E "^[ \t]*PID2[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -d " \t"`
+	eciload1_options=`grep -E "^[ \t]*ECILOAD1_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
+	eciload2_options=`grep -E "^[ \t]*ECILOAD2_OPTIONS[ \t]*=" "$CONF_DIR/eciadsl.conf" | tail -n 1 | cut -f 2 -d '=' | tr -s "\t" " "`
 else
 	echo -e "\ncouldn't find $CONF_DIR/eciadsl.conf, default config assumed"
 fi
@@ -526,13 +526,13 @@ if [ -f $PPPD_DIR/options ]; then
 fi
 
 # check for an existing PPP connection (select the first one if several)
-PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
+PPP=`ifconfig | grep "^ppp" | head -n 1 | awk '{print $1}'`
 if [ "$PPP" = "" ]; then
 	echo "No existing PPP connection... trying to make one (please wait)" ;
 	nice --20 pppd call adsl updetach | tee /tmp/ppp.log
 
 # check if we succeed in making a new PPP connection
-	PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
+	PPP=`ifconfig | grep "^ppp" | head -n 1 | awk '{print $1}'`
 	if [ "$PPP" = "" ]; then
 		# check for usermode driver crash
 		grep "Modem hangup" /tmp/ppp.log > /dev/null
