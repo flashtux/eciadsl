@@ -5,7 +5,7 @@ PPPD_DIR = $(ETC_DIR)/ppp
 # Final targets
 TARGETS = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
 SCRIPTS = startmodem eci-doctor.sh eciconf.sh eciconftxt.sh probe_device.sh \
-			remove_dabusb makeconfig
+			remove_dabusb makeconfig eci_vendor_device.pl eci_data.pl eci_uc.pl
 
 TMP_DIR = inst
 TMP_FILE = Makefile.tmp
@@ -14,7 +14,7 @@ all: ${TARGETS} ${SCRIPTS}
 
 eci-load1: eci-load1.o pusb.o
 eci-load2: eci-load2.o pusb.o
-pppoeci: pppoeci.o pusb.o
+pppoeci: pppoeci.o pusb.o gs7070.o
 eci-eeprom: eci-eeprom.o pusb.o
 check-hdlc: check-hdlc.o
 check-hdlc-bug: check-hdlc-bug.o
@@ -23,6 +23,7 @@ pusb.o : pusb.c pusb-linux.c pusb.h
 eci-load1.o: eci-load1.c modem.h pusb.h
 eci-load2.o: eci-load2.c modem.h pusb.h
 pppoeci.o: pppoeci.c modem.h pusb.h
+gs7070.o: gs7070.c gs7070.h
 eci-eeprom.o: eci-eeprom.c modem.h pusb.h
 check-hdlc.o: check-hdlc.c
 check-hdlc-bug.o: check-hdlc-bug.c
@@ -59,11 +60,11 @@ install_scripts:
 	echo "s/set CONF_DIR .\+/set CONF_DIR \"$$confdir\"/" >> $(TMP_DIR)/tcl.sed; \
 	echo "s/set PPPD_DIR .\+/set PPPD_DIR \"$$pppddir\"/" >> $(TMP_DIR)/tcl.sed; \
 	echo "s/set VERSION .\+/set VERSION \"$$version\"/" >> $(TMP_DIR)/tcl.sed; \
-	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$bindir\"/" > $(TMP_DIR)/pl.sed; \
-	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$etcdir\"/" >> $(TMP_DIR)/pl.sed; \
-	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$confdir\"/" >> $(TMP_DIR)/pl.sed; \
-	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$pppddir\"/" >> $(TMP_DIR)/pl.sed; \
-	echo "s/\$$VERSION =.\+/\$$VERSION = \"$$version\"/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$BIN_DIR =.\+/\$$BIN_DIR = \"$$bindir\";/" > $(TMP_DIR)/pl.sed; \
+	echo "s/\$$ETC_DIR =.\+/\$$ETC_DIR = \"$$etcdir\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$CONF_DIR =.\+/\$$CONF_DIR = \"$$confdir\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$PPPD_DIR =.\+/\$$PPPD_DIR = \"$$pppddir\";/" >> $(TMP_DIR)/pl.sed; \
+	echo "s/\$$VERSION =.\+/\$$VERSION = \"$$version\";/" >> $(TMP_DIR)/pl.sed; \
 	echo "s/BIN_DIR=.\+/BIN_DIR=\"$$bindir\"/" > $(TMP_DIR)/sh.sed; \
 	echo "s/ETC_DIR=.\+/ETC_DIR=\"$$etcdir\"/" >> $(TMP_DIR)/sh.sed; \
 	echo "s/CONF_DIR=.\+/CONF_DIR=\"$$confdir\"/" >> $(TMP_DIR)/sh.sed; \
