@@ -1,9 +1,6 @@
-usermode (0.3-1) unstable; urgency=low
+eciadsl-ursermode.0.5 (1-1) unstable; urgency=low
 
-  * Initial release.
+  * Initial Release.
 
- -- Jean-Sébastien <jeanseb@libertysurf.fr>  Wed,  2 Jan 2002 19:35:08 +0100
+ -- Jean-Sébastien <jeanseb@libertysurf.fr>  Thu,  2 May 2002 22:19:27 +0200
 
-Local variables:
-mode: debian-changelog
-End:
