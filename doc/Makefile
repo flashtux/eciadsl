@@ -1,5 +1,13 @@
+# For the users of the driver :
 # Just do "make" and you'll get your doc in the following formats
 # dvi html ps pdf ascii
+
+# For the developers :
+# Just do "make site" and the following actions will be auto executed :
+# - gets the last Tex file via anonymous cvs
+# - gets the last doc Makefile and move it to Makefile2
+# - executes Makefile2
+# - saves Makefile2 as Makefile
 
 base = howto
 pwd = `pwd`
@@ -21,13 +29,16 @@ pdf: dvi
 
 ascii: html
 	lynx -dump $(base).html >$(base).txt
-
+	
 site:	clean site2
 site2:
 	cvs -d$(cvsroot) login
 	cvs -d$(cvsroot) update $(base).tex
+	cvs -d$(cvsroot) update Makefile
 	cvs -d$(cvsroot) logout
-	make
+	mv Makefile Makefile2
+	make -f Makefile2
+	mv Makefile2 Makefile
 
 keep-useful-files-only:
 	rm -f labels.pl warnings $(base).log $(base).aux $(base).toc
