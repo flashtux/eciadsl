@@ -141,6 +141,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch43.bin (généré en Australie/Perth, fournisseur Arachnet, G.DMT)
 	synch44.bin (généré en France/Kremlin Bicetre, fournisseur 9online, T1.413)
 	synch45.bin (généré en Italie/Padova, fournisseur Tin.it, G.DMT)
+	synch46.bin (généré en Belgique/Wavre, fournisseur Skynet, modulation inconnue)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
