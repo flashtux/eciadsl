@@ -287,7 +287,7 @@ int eoc_read_next() {
 	}
 	printf("EOC.C - eco_readnext - STEP1 [mes : %04x| data : %02x]\n", mes, data);
 	mes |= (data & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
-	mes |= (data & 0xFE) << 1 ; /* 2d byte contain 7 msb in bits 1 to 7 */
+	mes |= (data & 0xFE); /* 2d byte contain 7 msb in bits 1 to 7 */
 	printf("EOC.C - eco_readnext - STEP2 [mes : %04x| data : %02x]\n", mes, data);
 	printf("EOC.C - eco_readnext - END   [mes : %04x]\n", mes);
 	return(mes);
