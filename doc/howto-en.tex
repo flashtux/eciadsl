@@ -1,0 +1,562 @@
+% latex for the driver doc
+% to compile it:
+% make
+
+% 27/09/2002 FlashCode <flashcode@flashtux.org>
+% update this documentation
+% translated to english by Red prophet <boristheblade@freesurf.fr>
+
+% 07/02/2002 Benoit PAPILLAULT
+% howto add an http link:
+% - add the beginning of the document: \usepackage{html}
+% - to add a link \htmladdnormallink{text}{URL}
+
+% 15/02/2002 Benoit PAPILLAULT
+%   change the name log by log.txt to be easier to send as an attachement
+%   to an email. (.txt is automatically recognize).
+
+% CVS $Id$
+% Tag $Name$
+
+\documentclass[a4paper,12pt]{article}
+\usepackage[english]{babel}
+\usepackage{html}
+\usepackage[latin1]{inputenc}
+\baselineskip=16pt
+
+\title{\huge{How-to Linux driver for the ECI USB ADSL modem or Globespan based modems}}
+\author{Bertrand Rougier, Thierry De Baere, Florent Manens, Benoît Papillault, FlashCode\\
+\\Translated from french to english by \htmladdnormallink{\textbf{Red prophet}}{mailto:boristheblade@freesurf.fr}}
+
+\begin{document}
+\pagenumbering{arabic}
+\maketitle
+\newpage
+\tableofcontents
+\newpage
+
+\section{Introduction}
+
+\subsection{Who was that document written for ?}
+
+That document was written for all the ADSL ECI USB modem owners ( or a modem equipped with a
+GLOBESPAN chip) wanting to use it under Linux.
+You will find the updated version of this document at this URL :
+\htmladdnormallink{http://eciadsl.flashtux.org}{http://eciadsl.flashtux.org},
+in the Documentation section.
+
+The supported modem list (or supposed to be supported) along with the minimal version of
+the driver needed for each modem is accessible at this URL :
+\htmladdnormallink{http://eciadsl.flashtux.org/modems.php}{http://eciadsl.flashtux.org/modems.php}
+
+\subsection{Conventions}
+
+In the shell commands examples, the commands to type as normal user are preceded by \$
+and the commands to type as root are preceded by \#.
+
+\section{Requirements}
+
+%    Check first that your kernel is at least 2.4.0
+
+\subsection{Distributions}
+
+    Distributions in which the driver is known to work properly :
+    \begin{itemize}
+    \item   Mandrake Linux 8.1 (kernel 2.4.8-26mk)
+    \item   Redhat Linux 7.2 (kernel 2.4.7-10)
+    \item   Debian 2.2 or up (kernel 2.4.0 mimimun)
+    \item   Slackware
+    \item   etc...
+    \end{itemize}
+
+    Distributions in which the driver is known to not work at all :
+    \begin{itemize}
+    \item   Redhat Linux 7.1 (kernel 2.4.2-2)
+    \end{itemize}
+
+    The driver is currently being adapted for *Bsd and MacOs X.\\
+    Contact the \htmladdnormallink{developers}{http://eciadsl.flashtux.org/support.php}
+    to know more about the progress of the adaptation.
+
+\subsection{Kernels}
+
+To know the version of your kernel, type:
+\begin{verbatim}
+$ uname -r
+\end{verbatim}
+
+    Tested kernels list :
+
+    \begin{itemize}
+    \item kernel 2.4.0 : ok [usb-uhci]
+    \item kernel 2.4.1 : ok [usb-uhci]
+    \item kernel 2.4.2 : ok [usb-uhci]
+    \item kernel 2.4.3 : ok [usb-uhci]
+    \item kernel 2.4.4 : ok [usb-uhci]
+    \item kernel 2.4.5 : ok [usb-uhci]
+    \item kernel 2.4.6 : ok [usb-uhci]
+    \item kernel 2.4.7 : ok [usb-uhci]
+    \item kernel 2.4.8 : ok [usb-uhci]
+    \item kernel 2.4.9 : ok [usb-uhci]
+    \item kernel 2.4.10 : kernel panic process\_iso [usb-uhci] , ok [uhci]
+    \item kernel 2.4.12 : ok [usb-uhci]
+    \item kernel 2.4.13 : ok [usb-uhci]
+    \item kernel 2.4.14 : ok [usb-uhci]
+    \item kernel 2.4.15 : ok [usb-uhci]
+    \item kernel 2.4.16 : ok [usb-uhci]
+    \item kernel 2.4.17 : ok [usb-uhci]
+    \item kernel 2.4.18 : ok [usb-uhci]
+    \item kernel 2.4.19 : ok [usb-uhci]
+    \item kernel 2.5.0 : ok [usb-uhci]
+    \end{itemize}
+
+Other kernels are being tested.
+
+\subsection{pppd}
+
+To know which version of pppd you own, type:
+\begin{verbatim}
+$ pppd --version
+\end{verbatim}
+
+List of tested versions:
+\begin{itemize}
+\item pppd 2.4.0
+\item pppd 2.4.1
+\end{itemize}
+
+    This list isn't exhaustive. If you manage to connect to the internet
+    with another distribution or with another kernel,
+    please don't hesitate to contact us.
+
+\section {Installation procedure (to do only once)}
+
+Reference : the archive \textit{usermode-X.Y.tgz} is accessible at
+\htmladdnormallink{http://eciadsl.flashtux.org}{http://eciadsl.flashtux.org},
+in the Download section.
+
+\subsection{Driver preparation}
+
+    Login as root then type :
+
+\begin{verbatim}
+$ cd usermode
+$ make
+# make install
+# eciconf.sh
+\end{verbatim}
+
+    NB: eciconf.sh is a graphic configuration tool for the driver.
+    It must consequently be run under X-window and requires the
+    Tcl/Tk libraries.
+
+    Sometimes it happens that the modem is on when you launch your
+    computer, which is due to the dabusb module. You will need to
+    remove it to install the driver and use the modem.
+
+    There are two ways to remove that module :
+
+    \textbf{1)} With eciconf.sh : unplug your modem  then in the eciconf.sh interface
+    click on "Remove dabusb module".
+
+    \textbf{2)} Type the following commands replacing VERSION by your Linux kernel version:
+    \footnote{(To get your kernel version type : uname -r)}
+
+    rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz
+    \footnote{( or rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o depending of the distributions)}\\
+    depmod -a
+
+    If you want to avoid a reboot :
+    \begin {itemize}
+    \item Type lsmod.
+    \item If you see a dabusb item: type rmmod dabusb
+    \end{itemize}
+
+\subsection{ Kernel configuration (optional) }
+
+If you want to use the 'persist' option of pppd to reconnect automatically
+when disconnected, then you will have to patch your kernel or use a
+kernel >= 2.4.18-pre3. You can find the patch
+\textit{n\_hdlc.c.diff} in the drivers' archive of the Speedtouch modem :
+\htmladdnormallink{http://speedtouch.sourceforge.net/}{http://speedtouch.sourceforge.net/}.
+These are the instruction of how to use it :
+
+\begin{verbatim}
+$ cd /usr/src/linux
+$ patch -p1 --dry-run < /driver's folder/n_hdlc.c.diff  ( There are 2 dashes in front of dry-run )
+\end{verbatim}
+
+If no error message is returned by the patch command, type
+the following lines to make the source's patch :
+
+\begin{verbatim}
+$ cd /usr/src/linux
+$ patch -p1 < /driver's folder/n_hdlc.c.diff
+\end{verbatim}
+
+Then, compile those modules for your kernel :
+
+\begin{verbatim}
+$ cd /usr/src/linux
+$ make menuconfig
+     Character devices --->
+     [*] Non-standard serial port support
+     <M> HDLC line discipline support
+     [*]Unix98 PTY support
+$ make clean dep modules
+# make modules_install (as root)
+\end{verbatim}
+
+\subsection{pppd configuration for starting connection}
+
+If you used eciconf.sh, you can go to the section 4.
+
+\subsubsection{Script /etc/ppp/peers/adsl :}
+\label{cha:peers}
+
+That script is in the \textit{usermode-X.Y.tgz} archive and is placed with the
+make install. It must look like this :
+
+\begin{verbatim}
+# 12/04/2001 Benoit PAPILLAULT <benoit.papillault@free.fr>
+# 08/05/2001 Updated. Added "novj" & removed "kdebug 7"
+# 07/02/2002 Replace "maxfail 0" by "maxfail 10"
+# 29/04/2002 Added the option "linkname" to easily locate the running pppd
+#
+# This file could be rename but its place is under /etc/ppp/peers
+# To connect to Internet using this configuration file, type
+# pppd call adsl, where "adsl" stands for the name of this file
+
+debug
+kdebug 1
+noipdefault
+defaultroute
+pty "/usr/local/bin/pppoeci -v 1 -vpi 8 -vci 35 -vendor 0x0915 -product 0x8000"
+sync
+user "adsl@adsl"
+noaccomp
+nopcomp
+noccp
+novj
+holdoff 10
+
+# This will store the pid of pppd in the first line of /var/run/ppp-eciadsl.pid
+# and the interface created (like ppp0) on the second line.
+linkname eciadsl
+
+# maxfail is the number of times pppd retries to execute pppoeci after
+# an error. If you put 0, pppd retries forever, filling up the process table
+# and thus, making the computer unusable.
+maxfail 10
+
+usepeerdns
+noauth
+
+# If your PPP peer answer to LCP EchoReq (lcp-echo requests), you can
+# use the lcp-echo-failure to detect disconnected links with:
+#
+# lcp-echo-interval 600
+# lcp-echo-failure 10
+#
+# However, if your PPP peer DOES NOT answer to lcp-echo request, you MUST
+# desactivate this feature with the folowing line
+#
+lcp-echo-interval 0
+
+# You may need the following, but ONLY as a workaround
+# mtu 1432
+\end{verbatim}
+
+\subsubsection{TO DO :}
+\label{cha:TODO}
+
+    \begin{tabular}{ll}
+    - If your ISP is wanadoo :&
+    replace :\\
+        & user "\textit{adsl@adsl}"\\
+    &by :\\
+        &user "\textit{ fti/your\_login@fti}"\\
+
+    - If your ISP is club-internet :&
+    replace :\\
+        &user "\textit{adsl@adsl}"\\
+    &by :\\
+        &user "\textit{your\_login@clubadsl1}"\\
+    \end{tabular}
+
+    HINT for some computers under Linux :
+
+        If your firsts connections fail, check in \textit{ /var/log/messages}
+        If pppd stops on a LCP message, then do the following :\\
+        in \textit{ /etc/ppp/peers/adsl :}
+        UN-comment the last two lines about LCP.
+
+\subsubsection{pppd authentification script}
+
+    Your connection password is stocked in an authentification script
+    which depends on your ISP :
+
+
+    \begin{tabular}{ll}
+      For wanadoo :&     \textit{ /etc/ppp/chap-secrets}\\
+      For club-internet :&   \textit{ /etc/ppp/pap-secrets}\\
+    \end{tabular}
+
+
+    These two scripts have the same syntax.
+    You have to create a line as following :
+
+
+    \begin{tabular}{ll}
+For wanadoo       :& \textit{ fti/your\_login@fti * your\_password *}\\
+For club-internet :& \textit{ your\_login@clubadsl1 * your\_password *}\\
+    \end{tabular}
+
+
+    WARNING :\\
+    - the "*" are importants.\\
+    - the Login entered here and the 'user' content of \textit{ /etc/ppp/peers/adsl}
+    HAVE TO BE the same.
+
+\section{Connection procedure}
+
+\subsection{Manual (to do every time you connect to internet)}
+
+It's very simple, the startmodem script does almost everything :
+
+\begin{verbatim}
+$ /usr/local/bin/startmodem | tee log.txt
+\end{verbatim}
+
+IT DOESN'T WORK : If you can't surf the web after one of the 3
+procedures, please refer to the \ref{cha:problems} chapter.
+
+\subsection{Automatic during Linux booting}
+
+Will come in the future driver's verions. Useless as long as
+the driver is in beta stages.
+
+\subsection{Automatic reconnection when disconnected}
+
+As the driver is still in beta stages, that part isn't stable yet.
+Nevertheless, here are the instructions to do it. First, check that
+the HDLC module isn't bugged. You can easily do it with
+\textit{eci-doctor.sh}. Then, add \textbf{persist} to the
+\textit{/etc/ppp/peers/adsl} file. Restart pppd, and normally,
+your connection should be operational 24/7.
+
+\section{Known Issues}
+\label{cha:problems}
+
+The driver is shipped with a diagnostic util for the most common
+errors. To use it, go in the \textit{usermode} folder of the drivers'
+archive and type \textit{./eci-doctor.sh}.
+
+\begin{verbatim}
+# cd usermode
+# ./eci-doctor.sh
+\end{verbatim}
+
+If everything is correct, eci-doctor will return the following messages:
+
+\begin{verbatim}
+Support for USB is OK
+Preliminary USB device filesystem is OK
+UHCI support is OK
+/dev/ppp is OK
+HDLC support is OK
+HDLC support is OK (no bug)
+/etc/ppp/chap-secrets is OK
+PPP connection is OK
+Default route over ppp0 is OK
+Everything is OK
+\end{verbatim}
+
+Before contacting the diffusion list or whoever, please read the following.
+Otherwise, don't forget to attach the \textit{log.txt}
+obtained when executing startmodem.
+
+Describe your problems and the solutions you found on the diffusion list
+eci@ml.free.fr We shall incorporate them HERE.
+
+\subsection{Eci-load2 can't get synchronization // freezing at packet 259 (or any other packet)}
+
+It can happen that the driver can't get synchronization.
+Restart the driver (We advise you restarting from the beginning
+by unplugging and replugging the modem, and then restart: \textit{./startmodem})
+
+On the other hand, if the freeze is systematically on the same packet after several attempts,\\
+you will have to change the .bin file, which is used to synchronize the modem.
+Some pregenerated .bin files are available here :
+\htmladdnormallink{http://eciadsl.flashtux.org/download.php#sync}{http://eciadsl.flashtux.org/download.php#sync}
+If none of the .bin work, you will have to create your own.
+(please refer to the documentation available at the above link)
+
+There are two ways to change your .bin :
+
+    \subsubsection{1 :}
+        With a driver's version > 0.5 (CVS ou >= 0.6) :\\
+        it is possible to change it in eciconf.sh
+
+    \subsubsection{2 :}
+        With any version of the driver, you can do the following :\\
+        overwrite /etc/eciadsl/eci_wan3.bin by another .bin\\
+
+    	Example :
+\begin{verbatim}
+cp /my_path/eci_wan3.bordeaux.bin /etc/eciadsl/eci_wan3.bin
+\end{verbatim}
+
+\subsection{The PPP connection is fine, I can see ppp0 with ifconfig, but I can't go on the internet}
+
+    \subsubsection{Action 1 :}
+        Check that your DNS are right :
+        in \textit{/etc/resolv.conf}
+        there are two lines beginning by "nameserver".
+
+        Until now :
+
+%       \begin {tabular}{l} ptete que e v mettre un tableau après ... on verra
+        For wanadoo :\\
+\begin{verbatim}
+nameserver 193.252.19.3
+nameserver 193.252.19.4
+\end{verbatim}
+
+        For Club Internet :\\
+\begin{verbatim}
+nameserver 194.117.200.15
+nameserver 194.117.200.10
+\end{verbatim}
+
+        For 9 Telecom :\\
+\begin{verbatim}
+nameserver 212.30.96.108
+nameserver 213.203.124.146
+\end{verbatim}
+
+        For Cegetel :\\
+\begin{verbatim}
+nameserver 194.6.128.3
+nameserver 194.6.128.4
+\end{verbatim}
+
+        For World Online :\\
+\begin{verbatim}
+nameserver 212.83.128.3
+nameserver 212.83.128.4
+\end{verbatim}
+
+        For Telecom Italia :\\
+\begin{verbatim}
+nameserver 212.216.112.112
+nameserver 212.216.172.62
+\end{verbatim}
+
+        For Tiscali Italia :\\
+\begin{verbatim}
+nameserver 195.130.224.18
+nameserver 195.130.225.129
+\end{verbatim}
+
+        For Pipex UK :\\
+\begin{verbatim}
+nameserver 158.43.240.4
+nameserver 158.43.240.3
+\end{verbatim}
+
+        If there aren't the two lines beginning by "nameserver", then create them.
+
+    \subsubsection{Action 2 :}
+        Type : nslookup www.wanadoo.fr
+
+        If you get no answer and ppp0 is still mentionned by ifconfig :\\
+        You surely have a routing problem :\\
+        type route -n, you'll get an output like the following :\\
+
+        \begin{tabular}{llllllll}
+        Destination  &   Gateway    &    Genmask     &    Indic& Metric& Ref &   Use& Iface\\
+        127.0.0.0   &    0.0.0.0    &     255.0.0.0   &    U  &   0  &    0    &    0 &lo\\
+        0.0.0.0    &     212.194.0.1  &   0.0.0.0    &     UG  &  0  &    0    &    0 &ppp0\\
+        \end{tabular}
+
+        The last line is important, because it is the default Gateway that gives you access to the
+        Internet...
+
+        If there isn't any gateway, you can't get to the net, so type in the shell :
+\begin{verbatim}
+# route add default dev ppp0
+\end{verbatim}
+
+        It should work.
+
+\subsection{pppd stops on an error : LCP timeout}
+
+    1st case : you have a timeout problem with the PPP connection :
+
+        \textit{Édit etc/ppp/peers/adsl}
+
+        UN-comment the last 2 lines :
+\begin{verbatim}
+lcp-echo-interval 600
+lcp-echo-failure 10
+\end{verbatim}
+
+    2nd case : you have an authentification problem (PPP doesn't always tell it explicitly)
+
+        Correct your scripts :\\
+
+            \textit{/etc/ppp/peers/adsl}\\
+            and\\
+            \textit{/etc/ppp/chap-secrets} (wanadoo) or \textit{/etc/ppp/pap-secrets} (club-internet)\par
+
+        => Back to chapters : \ref{cha:peers} et \ref{cha:TODO}
+
+\subsection{You get that error message : Can't find your ECI Telecom USB ADSL Loader}
+
+    \subsubsection{Error Message }
+    \begin{verbatim}
+    [root@hwi usermode]# ./startmodem
+    /proc/bus/usb: No such file or directory
+    Can't find your ECI Telecom USB ADSL Loader
+    ECI Load 1 : failed!
+    /proc/bus/usb: No such file or directory
+    Can't find your ECI Telecom USB ADSL WAN Modem
+    ECI Load 2 : failed!
+    \end{verbatim}
+
+    If you get a message that looks like the one above, it's because you didn't mount the filesystem for USB.
+
+    \subsubsection{Solution }
+\begin{verbatim}
+# mount -t usbdevfs none /proc/bus/usb
+\end{verbatim}
+
+\subsection{Messages "Timeout USB" once connected}
+
+    Add "mtu 1432" in your /etc/ppp/peers/adsl script (or UN-comment it).
+
+\section{Contacts}
+
+\subsection{Support}
+
+All the ways to contact the support are here :
+\htmladdnormallink{http://eciadsl.flashtux.org/support.php}{http://eciadsl.flashtux.org/support.php}
+
+\subsection{Diffusion list}
+
+For any question, subscribe to this project's diffusion list
+sending a blank mail to :
+\htmladdnormallink{\textbf{eci-request@ml.free.fr}}{mailto:eci-request@ml.free.fr?subject=subscribe}
+with \textbf{subscribe} in the subject field, then post your remarks or suggestions to :
+\htmladdnormallink{\textbf{eci@ml.free.fr}}{mailto:eci@ml.free.fr}.
+
+\subsection{IRC}
+
+You can connect to the IRC server
+\htmladdnormallink{OpenProjects.Net}{http://www.openprojects.net/} on
+the \textbf{\#eci} channel on the server :
+\htmladdnormallink{\textbf{irc.openprojects.net}}{irc://irc.openprojects.net/eci}
+for example.
+
+\end{document}
