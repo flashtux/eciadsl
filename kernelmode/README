@@ -1,17 +1,19 @@
 First:
-	setup tap0 device and PPP's IP over ATM support in kernel config.
+	setup PPP's IP over ATM support in kernel config.
 Second:
-	setup pppd tu use pppoe over tap0 device
-Third:
 	Compile kernelmode driver using following command line :
-	$ make eci.o atmtotap
+	$ make eci.o
+	
+Third:
+	Compil or download usermode binary for eci-load1. 
+	
 Fourth:
-	Compil or download usermode binary for eci-load1.
+	copy the kmadsl peer file into /etc/ppp/peer and setup username.
+	
 Fifth:
 	run the following command in a shell (as root):
 	# insmod eci.o
 	# eci-load1 /where/is/the/firm/firm01.bin
 	wait for the synch then
-	# /where/is/kernelmode/atmtotap &
-	# pppd call pppoe_peer_file
+	# pppd call kmadsl
 that all folks
