@@ -14,8 +14,6 @@ Sorted according to priority (the upper in the list, the prior):
 * ANSIC89 compliance
 * eciconftxt.sh
 * probe_device.sh
-+? add auto modes to probe_device.sh
-- redesign probe_synch.sh to reset the modem between each synch .bin test
 * synch bin auto selection (config time only)
 * packaging:
   * ./configure and .sk, changes to config files (get them from cnx, inc. startmodem?) and
@@ -27,13 +25,15 @@ Sorted according to priority (the upper in the list, the prior):
     other util stuff..)
   * --with-kernel-sources=<PATH> in ./configure -> pusb-linux.c's linux/* includes
 * unify websites: eciadsl.sf.net update/move to flashtux
-- update the spec file
 * redesign eciconf.sh UI
 * see if selected modem/provider/synchbin can be still coloured when an item from another
   listbox is selected.
--? see if synch_bin update function (invert_bin in eciconf.sh) can use invert_fai's scheme (minor).
 * add grep -m check to ./configure, else use egrep (fixed temporarily).
++? add auto modes to probe_device.sh
++ redesign probe_synch.sh to reset the modem between each synch .bin test
+- update the spec file
 - synch_bin installation (asks or greps to/into makeconfig or startmodem for CONF_DIR)
+-? see if synch_bin update function (invert_bin in eciconf.sh) can use invert_fai's scheme (minor).
 * use section numbers in TROUBLESHOOTING files
 * fix TROUBLESHOOTING file regarding the USB2 warns.
 * fix EICON problems with 0.6-preX
@@ -45,11 +45,11 @@ Sorted according to priority (the upper in the list, the prior):
 * merge oliverthered's pending patches (stability, gs7070), update doc if necessary
 * merge flynux's pending extra-AAL5-encaps patch, -mode selection (protocol) using eciconf*, update doc
 * remove synch and firm link, all scripts and exec must use eciadsl.conf (startmodem for instance)
-- reimplement the .bak system in makeconfig (yak!)
 * eciload* and pppoeci should read the .conf file by default (see pending patch or merge wwp's previous implementation)
 * fix a hole in makeconfig: updated a pre-existing eciadsl.conf does not re-add missing fields
-+ complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
-- add better documentation in the TROUBLESHOOTING/INSTALL files about DHCP/static IP and the PPP mode.
+* complete translations, create README files, replace "jump previs/next question" w/ "see x.y" in the TROUBLESHOOTING files
++ add better documentation in the TROUBLESHOOTING/INSTALL files about DHCP/static IP and the PPP mode.
+- reimplement the .bak system in makeconfig (yak!)
 - eciconf*: allow/disallow username/passwd DHCP or STATICIP following the PPP MODE selected:
   if (VCM_RFC2364 || LLC_RFC2364) -> !DHCP, !staticip, user/pass
   if RFC1483_ETH for both -> (dhcp && if !dhcp -> static ip), !user/pass
