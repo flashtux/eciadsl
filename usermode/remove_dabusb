@@ -20,20 +20,27 @@ PPPD_DIR="/etc/ppp"
 VERSION=""
 # </CONFIG>
 
-if [ "$1" == "--version" -o "$1" == "-v" ]; then
+if [ "$1" == "--version" -o "$1" == "-v" ]
+then
 	echo "$VERSION"
 	exit 0
 fi
 
+if [ $UID -ne 0 ]
+then
+	echo "you must be root to run this script"
+	exit 0
+fi
+
 lsmod | grep dabusb
-if [ $? -ne 0 ]; then
-    echo "dabusb not present - nothing to do !"
-else
+if [ $? -eq 0 -o "$1" == "--force" ]
+then
 	module=$(modprobe -l | grep dabusb)
-	if [ -n "$module" ]: then
+	if [ -n "$module" ]
 	then
-	    mv "$module" "$module.removed"
-	    if [ $? -eq 0 ]; then
+	    mv -f "$module" "$module.removed"
+	    if [ $? -eq 0 ]
+		then
 			echo -e "\ndabusb module file renamed to $module.removed"
 			depmod -a
 		else
@@ -45,9 +52,12 @@ else
     modprobe -r dabusb
 	sleep 1
     lsmod | grep dabusb
-    if [ $? -ne 0 ]; then
+    if [ $? -ne 0 ]
+	then
         echo "dabusb successfully unloaded"
     else
-        echo "couldn't unload dabusb module... try to rmmod dabusb after unplugging your modem"
+        echo "couldn't unload dabusb module, unplug your modem first"
     fi
+else
+    echo "dabusb is not loaded"
 fi
