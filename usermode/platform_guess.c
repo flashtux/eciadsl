@@ -43,12 +43,14 @@
  #endif
 #endif
 
-int main(int argc, char** argv)
+int main()
 {
-	short int word;
+    const int i = 1;
+    const char * ptr = (const char *) &i;
 
-	word=0x00FF;
-	fprintf(stdout, OS " (%s endian), c:%d si:%d i:%d li:%d", *(&word)?"little":"big",
-		sizeof(char), sizeof(short int), sizeof(int), sizeof(long int));
-	return(0);
+	fprintf(stdout, OS " (%s endian), c:%d si:%d i:%d li:%d",
+            (*ptr)?"little":"big",
+            sizeof(char), sizeof(short int), sizeof(int), sizeof(long int));
+
+    return 0;
 }
