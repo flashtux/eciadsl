@@ -106,6 +106,7 @@
 #include <linux/if.h>
 #endif
 
+#include "util.h"
 /* my USB library */
 #include "pusb.h"
 /* GS 7070 control routines */
@@ -114,6 +115,8 @@
 #define LOG_FILE "/tmp/pppoeci.log"
 
 #define PPP_BUF_SIZE 64*1024
+
+extern struct config_t config;
 
 typedef enum
 {
@@ -1387,36 +1390,6 @@ void sig_term(int sig)
 	fatal_error(ERR_SIGTERM, errText);
 }
 
-void get_unsigned_value(const char* param, unsigned int* var)
-{
-	unsigned int value;
-	char* chk;
-
-	value = (unsigned int)strtoul(param, &chk, 10);
-	if (!*chk)
-		*var = value;
-}
-
-void get_signed_value(const char* param, int* var)
-{
-	int value;
-	char* chk;
-
-	value = (int)strtol(param, &chk, 10);
-	if (!*chk)
-		*var = value;
-}
-
-void get_hexa_value(const char* param, unsigned int* var)
-{
-	unsigned int value;
-	char* chk;
-
-	value = strtoul(param, &chk, 0);
-	if (!*chk)
-		*var = value;
-}
-
 int tap_open(char* dev, int tun)
 {
 	struct ifreq ifr;
@@ -1451,6 +1424,12 @@ int main(int argc, char** argv)
 
 	this_process = getpid();
 	log = 0;
+
+	/* read the configuration file */
+
+	read_config_file();
+
+	/* parse command line options */
 
 	for (i = 1; i < argc; i++)
 	{
@@ -1521,12 +1500,26 @@ int main(int argc, char** argv)
 				usage(-1);
 	}
 
+	/* try to assume default values from the config file */
+	if ((my_vci == 0xffff) && (config.vci))
+			my_vci = config.vci;
+	if ((my_vpi == 0xffff) && (config.vpi))
+			my_vpi = config.vpi;
+	if ((!vendor) && (config.vid2))
+			vendor = config.vid2;
+	if ((!product) && (config.pid2))
+			product = config.pid2;
+
 	if (my_vci == 0xffff || my_vpi == 0xffff
-		|| verbose < 0 || verbose > 2
-		|| vendor == 0 || product == 0
-		|| pusb_set_interface_alt < 0
+		|| vendor == 0 || product == 0)
+	{
+		printf("no default parameters found in config file, couldn't assume default values\n");
+		usage(-1);
+	}	
+
+	if (pusb_set_interface_alt < 0
 		|| data_timeout < 0
-		)
+		|| verbose < 0 || verbose > 2)
 		usage(-1);
 
 
@@ -1551,7 +1544,7 @@ int main(int argc, char** argv)
 	
 	if (frame_type > VCM_RFC2364)
 		syncHDLC = 0;
-						
+exit(0);						
 
 	/* duplicate in and out fd */
 #if !defined(__FreeBSD__) && !defined(__NetBSD__)
