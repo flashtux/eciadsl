@@ -13,9 +13,9 @@
 CFLAGS += -Wall -g
 LDFLAGS += -g -Wall -lpthread
 
-prefix=/home/papillau/usr/local
+prefix=/usr/local
 binprefix=$(prefix)/bin
-ETCDIR=/home/papillau/etc
+ETCDIR=/etc
 
 # Final targets
 BIN = eci-load1 eci-load2 pppoeci check-hdlc check-hdlc-bug
