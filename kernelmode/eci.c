@@ -1901,7 +1901,7 @@ static int eci_atm_receive_cell(
 	for(s = vcc_sklist; s; s = s->next)
 	{
 		vcc = s->protinfo.af_atm;
-		if(vcc->dev == pinstance) break;
+		if(vcc->dev->dev_data == pinstance) break;
 	}
 	read_unlock(&vcc_sklist_lock);
 	if(!s)	return -ENXIO ;
@@ -1910,11 +1910,11 @@ static int eci_atm_receive_cell(
 		head = &vcc_hash[i];
 		sk_for_each(s, node, head) {
 				vcc = atm_sk(s);
-				if(vcc->dev == pinstance) break;
+				if(vcc->dev->dev_data == pinstance) break;
 		}
-		if(vcc->dev == pinstance) break;
+		if(vcc->dev->dev_data == pinstance) break;
 	}
-	if(vcc->dev != pinstance) return -ENXIO;
+	if(vcc->dev->dev_data != pinstance) return -ENXIO;
 #endif
 #endif
  	/* Manage backlog AAL5 */
