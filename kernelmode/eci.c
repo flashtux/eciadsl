@@ -758,8 +758,8 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 				if (i->isourbs[cnt]->status == -EINPROGRESS)
 					usb_unlink_urb(i->isourbs[cnt]);
 				usb_free_urb(i->isourbs[cnt]);
-					i->isourbs[cnt] = 0;
-			    	}
+				i->isourbs[cnt] = 0;
+			}
 	if(i->vendor_urb) 	{
 		if (i->vendor_urb->status == -EINPROGRESS)
 			usb_unlink_urb(i->vendor_urb);
@@ -777,6 +777,18 @@ static int _eci_cleanup_instance(struct eci_instance *i) {
 			usb_unlink_urb(i->bulk_urb);
 		usb_free_urb(i->bulk_urb);
 		i->bulk_urb = 0;
+	}
+	if(i->bh_bulk) {
+		tasklet_disable(i->bh_bulk);
+		i->bh_bulk = 0;
+	}
+	if(i->bh_iso) {
+		tasklet_disable(i->bh_iso);
+		i->bh_iso = 0;
+	}
+	if(i->bh_atm) {
+		tasklet_disable(i->bh_atm);
+		i->bh_atm = 0;
 	}
 	_uni_cell_list_free(&i->iso_cells);
 	_uni_cell_list_free(&i->bulk_cells);
