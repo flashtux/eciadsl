@@ -1821,7 +1821,7 @@ static int eci_atm_receive_cell(
  	aal5_t *		lp_aal5 	= NULL ;
 	int			lv_rc ;
 	struct atm_vcc *vcc;
-#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,22))	
+#if (LINUX_VERSION_CODE > KERNEL_VERSION(2,4,22))
 	struct sock *s;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(2,6,0))
 	struct hlist_head *head;
@@ -1829,17 +1829,17 @@ static int eci_atm_receive_cell(
 	int i;
 #endif
 #endif
-	
+
 	/* Check Interface */
 	if (!pinstance || !plist)
 		return -EINVAL ;
 
 	/* Check if VCC available */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))	
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,4,23))
 	if (!(vcc = = pinstance->atm_dev->last)){
 		ERR_OUT("No opened VC\n") ;
 		return -ENXIO ;
-	} 
+	}
 #else
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
 	read_lock(vcc_sklist_lock);
@@ -1861,7 +1861,7 @@ static int eci_atm_receive_cell(
 	}
 	if(vcc->dev != pinstance) return -ENXIO;
 #endif
-
+#endif
  	/* Manage backlog AAL5 */
  	if (pinstance->pbklogaal5) {
  		lp_aal5 = pinstance->pbklogaal5 ;
@@ -1891,7 +1891,7 @@ static int eci_atm_receive_cell(
 				_uni_cell_free(lp_cell) ;
 				continue ;
 			}
-			
+
 			lv_rc = _aal5_add_cell(lp_aal5, lp_cell) ;
 			if (lv_rc) {
 				ERR_OUT("Failed to add new cell drop frame\n") ;
@@ -1905,7 +1905,7 @@ static int eci_atm_receive_cell(
 		_eci_rx_aal5(pinstance, lp_aal5, vcc) ;
 
 		/* Reset AAL5 */
-		_aal5_clean(lp_aal5) ;		
+		_aal5_clean(lp_aal5) ;
 
 end:
  	/* Manage AAL5 backlog */
@@ -1926,9 +1926,9 @@ end:
 }
 
 /*----------------------------------------------------------------------
- * 
+ *
  * Send data to ATM
- * 
+ *
  * Gotta add some check for which vcc somewhere !!!
  *
  */
@@ -1969,7 +1969,7 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 	lp_skb->stamp = xtime ;
 #else
 	lp_skb->stamp = vcc->stamp ;
-#endif 	
+#endif
 	/* Copy data */
 	lp_data = lp_skb->data ;
 	while (lv_size > ATM_CELL_PAYLOAD) {
@@ -1980,8 +1980,8 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 			return -1 ;
 		}
 		memcpy(
-			lp_data, 
-			_uni_cell_getPayload(lp_cell), 
+			lp_data,
+			_uni_cell_getPayload(lp_cell),
 			ATM_CELL_PAYLOAD) ;
 		lp_data += ATM_CELL_PAYLOAD ;
 		lv_size -= ATM_CELL_PAYLOAD ;
@@ -1995,8 +1995,8 @@ static int _eci_rx_aal5(struct eci_instance *	pinstance,
 		return -1 ;
 	}
 	memcpy(
-		lp_data, 
-		_uni_cell_getPayload(lp_cell), 
+		lp_data,
+		_uni_cell_getPayload(lp_cell),
 		lv_size) ;
 	vcc->push(pinstance->pcurvcc, lp_skb) ;
 	atomic_inc(&vcc->stats->rx) ;
