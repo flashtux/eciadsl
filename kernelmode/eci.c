@@ -1989,7 +1989,7 @@ static uni_cell_t * _uni_cell_alloc(void) {
 		DBG_OUT("No availlable cell create new one\n") ;
 		lp_cell = (uni_cell_t *) kmalloc(
 				sizeof(uni_cell_t),
-				GFP_KERNEL) ;
+				GFP_ATOMIC) ;
 		if (!lp_cell) {
 			ERR_OUT("Not enought memory for new cell\n") ;
 			return NULL ;
@@ -2652,7 +2652,7 @@ static void _uni_cell_list_reset(uni_cell_list_t *plist) {
 static uni_cell_list_t * _uni_cell_list_alloc(void) {
 	uni_cell_list_t * lp_list = NULL ;
 
-	lp_list = kmalloc(sizeof(uni_cell_list_t), GFP_KERNEL) ;
+	lp_list = kmalloc(sizeof(uni_cell_list_t), GFP_ATOMIC) ;
 	if (!lp_list) return NULL ;
 
 	if (_uni_cell_list_init(lp_list)) {
@@ -3058,7 +3058,7 @@ static int _aal5_init(aal5_t * paal5) {
 static aal5_t * _aal5_alloc(void) {
 	aal5_t * lp_aal5 = NULL ;
 
-	lp_aal5 = kmalloc(sizeof(aal5_t), GFP_KERNEL) ;
+	lp_aal5 = kmalloc(sizeof(aal5_t), GFP_ATOMIC) ;
 	if (!lp_aal5) return NULL ;
 	
 	if (_aal5_init(lp_aal5)) {
