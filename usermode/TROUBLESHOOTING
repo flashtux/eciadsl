@@ -117,6 +117,41 @@ A:	See 1.4.
 	disable the loading of dabusb.
 
 
+1.6
+================================================================================
+Q:	I don't know my provider's DNS IP.
+
+--------------------------------------------------------------------------------
+A:	Most people need them (except those who use ISP DHCP for instance), if you
+	can't find them at your provider's website or in the configuration CD or the
+	paper they've send to you, or even under MS Windows, there's a way to guess
+	them. Here is the way to do this under Linux:
+
+		host -n dn <your provider domain name>
+
+	This returns you a bunch of DNS server names. You can ping some of them in
+	order to get the IP.
+
+	For instance:
+		> host -t ns clix.com
+		clix.com. name server ns4.dnsmanaged.com.
+		clix.com. name server ns1.dnsmanaged.com.
+		clix.com. name server ns7.dnsmanaged.com.
+		clix.com. name server ns6.dnsmanaged.com.
+
+		> ping -c 1 -q ns4.dnsmanaged.com
+		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) bytes of data.
+		--- ns4.dnsmanaged.com ping statistics ---
+		1 packets transmitted, 1 received, 0% loss, time 0ms
+		rtt min/avg/max/mdev = 169.466/169.466/169.466/0.000 ms
+
+	The IP of this ns4.dnsmanaged.com is 192.31.80.34.
+	Repeat the ping command with another DNS server name, then you'll get at
+	least 2 DNS IP to use :-).
+	If the config tool from the ECIADSL driver don't allow you to select your
+	provider's DNS, select 'Other' and type in at least one DNS IP to use.
+
+
 2.0
 ================================================================================
 Q:	startmodem, eciconf or eci-doctor's output shows:
