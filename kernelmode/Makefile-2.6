@@ -57,9 +57,9 @@ check:
 
 install: $(obj-m)
 	install -d $(INSTALLDIR)
-	install -c $(obj-m) $(INSTALLDIR)
+	install -c eci.ko $(INSTALLDIR)
 	depmod -a
 
 clean:
-	rm -f *.o .*.flags
+	rm -f *.ko *.mod.c *.o .*.flags
 endif	
