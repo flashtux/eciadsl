@@ -4,7 +4,7 @@ Available Synch .bin files list:
 	synch02.bin (formerly eci_paris19_9telecom.bin)
 	synch03.bin (formerly eci_bordeaux_wanadoo.bin)
 	synch04.bin (formerly eci_montsoult_clubinternet.bin)
-	synch05.bin (formerly eci_lens.bin (56 Ko) eci_telecom_italia.bin)
+	synch05.bin (formerly eci_lens.bin, eci_telecom_italia.bin or eci_guada.bin)
 	synch06.bin (formerly eci_wisecom_italia.bin)
 	synch07.bin (formerly eci_libero_italia.bin)
 	synch08.bin (formerly eci_telecom_italia.bin)
@@ -15,7 +15,6 @@ Available Synch .bin files list:
 	synch13.bin (formerly eci_wan2.troll.bin - Italy/Napoli/Telecom Italia)
 	synch14.bin (formerly eci_cergy.bin)
 	synch15.bin (formerly Blade_sync.bin - Italy/Varese/Telecom Italia)
-	synch16.bin (formerly eci_guada.bin - Guadeloupe)
 
 WARNING:
 the former names are DEPRECATED, because they are not friendly since they do NOT

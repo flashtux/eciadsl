@@ -4,7 +4,7 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch02.bin (anciennement eci_paris19_9telecom.bin)
 	synch03.bin (anciennement eci_bordeaux_wanadoo.bin)
 	synch04.bin (anciennement eci_montsoult_clubinternet.bin)
-	synch05.bin (anciennement eci_lens.bin (56 Ko) eci_telecom_italia.bin)
+	synch05.bin (anciennement eci_lens.bin, eci_telecom_italia.bin or eci_guada.bin)
 	synch06.bin (anciennement eci_wisecom_italia.bin)
 	synch07.bin (anciennement eci_libero_italia.bin)
 	synch08.bin (anciennement eci_telecom_italia.bin)
@@ -15,7 +15,6 @@ Liste des fichiers .bin disponibles pour la synchro :
 	synch13.bin (anciennement eci_wan3.troll.bin - Italie/Naples/Telecom Italia)
 	synch14.bin (anciennement eci_cergy.bin)
 	synch15.bin (anciennement Blade_sync.bin - Italie/Varese/Telecom Italia)
-	synch16.bin (anciennement eci_guada.bin - Guadeloupe)
 
 ATTENTION:
 Les anciens noms sont OBSOLETES, ils n'indiquaient aucune certitude quant aux lieux
