@@ -11,6 +11,7 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/sem.h>
+#include <string.h>
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
