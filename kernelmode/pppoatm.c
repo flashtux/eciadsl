@@ -16,9 +16,12 @@
 #include <linux/atm.h>
 #include <linux/atmdev.h>
 #include <linux/atmppp.h>
-#include <sys/stat.h>
 #include <net/if.h>
+#include <linux/if_ppp.h>
+#include <sys/stat.h>
 #include <sys/ioctl.h>
+#include <errno.h>
+#include <fcntl.h>
 
 #include <string.h>
 
@@ -35,6 +38,7 @@ static bool vc_encaps = 0;
 static int device_got_set = 0;
 static int pppoatm_max_mtu, pppoatm_max_mru;
 static struct channel pppoatm_channel;
+static int dev_fd;
 
 static char *bad_options[] = {
 	"noaccomp", "-ac",
@@ -86,6 +90,7 @@ static int setdevname_pppoatm(const char *cp)
 		return -1;*/
 	memcpy(&pvcaddr, &addr, sizeof pvcaddr);
 	strlcpy(devnam, cp, sizeof devnam);
+	info("devnam = %s\n", devnam);
 	devstat.st_mode = S_IFSOCK;
 	if(the_channel != &pppoatm_channel) {
 		info("registering channel\n");
@@ -175,9 +180,21 @@ static void pre_close_restore_pppoatm(int fd)
 }
 
 
+int generic_establish_ppp (int fd)
+{
+    return -1;
+}
+
+
+
+
+
+
 static int set_line_discipline_pppoatm(int fd)
 {
 	struct atm_backend_ppp be;
+	int x;
+	int index;
 	be.backend_num = ATM_BACKEND_PPP;
 
 	info("set line dicipline pppoatm\n");
@@ -189,20 +206,59 @@ static int set_line_discipline_pppoatm(int fd)
 		be.encaps = PPPOATM_ENCAPS_AUTODETECT;
 	if (ioctl(fd, ATM_SETBACKEND, &be) < 0)
 		fatal("ioctl(ATM_SETBACKEND): %m");
+	if(ioctl(fd, PPPIOCGCHAN,&index) == -1)
+	{
+		error("Couldn't get channel number: %m");
+		goto set_disc_err;
+	}
+	dblog("using channel %d", index);
+	fd = open("/dev/ppp", O_RDWR);
+	if(ioctl(fd, PPPIOCATTCHAN,&index) == -1)
+	{
+		error("Couldn't attach channel number: %d", index);
+		goto set_disc_err;
+	}
+	ifunit = req_unit;
+	x = ioctl( fd, PPPIOCNEWUNIT, &ifunit);
+	if(x<0 && req_unit >= 0 && errno == EEXIST)
+	{
+		warn("Couldn't allocate PPP unit %d as it is already in use");
+		ifunit = -1;
+		x = ioctl( fd, PPPIOCNEWUNIT, &ifunit);
+	}
+	if(x < 0)
+	{
+		error("Couldn't create new ppp unit %m");
+		goto set_disc_err_close;
+	}
+	add_fd(fd);
+	if(ioctl(fd, PPPIOCCONNECT, &ifunit) <0)
+	{
+		error("Couoldn't attach to PPP unit %d: %m", ifunit);
+		goto set_disc_err_close;
+	}
+	dev_fd = fd;
 	return fd ;
+
+set_disc_err_close:
+	close(fd);
+set_disc_err:
+	return -1;
 }
 
 
-/*
+
 static void reset_line_discipline_pppoatm(int fd)
 {
 	atm_backend_t be = ATM_BACKEND_RAW;
-*/
 	/* 2.4 doesn't support this yet */
-/*
-	(void) ioctl(fd, ATM_SETBACKEND, &be);
+	/*(void) ioctl(fd, ATM_SETBACKEND, &be);*/
+	close(dev_fd);
+	dev_fd = -1;
+	if(ifunit >=0 && ioctl(dev_fd, PPPIOCDETACH) <0)
+		error("Couldn't release ppp unit: %m");
+	remove_fd(dev_fd);
 }
-*/
 
 
 static void send_config_pppoatm(int mtu, u_int32_t asyncmap,
@@ -210,6 +266,7 @@ static void send_config_pppoatm(int mtu, u_int32_t asyncmap,
 {
 	int sock;
 	struct ifreq ifr;
+	info("send_config_pppoatm\n");
 	if (mtu > pppoatm_max_mtu)
 		error("Couldn't increase MTU to %d", mtu);
 	sock = socket(AF_INET, SOCK_DGRAM, 0);
@@ -227,6 +284,7 @@ static void send_config_pppoatm(int mtu, u_int32_t asyncmap,
 static void recv_config_pppoatm(int mru, u_int32_t asyncmap,
 	int pcomp, int accomp)
 {
+	info("recv_config_pppoatm\n");
 	if (mru > pppoatm_max_mru)
 		error("Couldn't increase MRU to %d", mru);
 }
@@ -313,11 +371,9 @@ options: my_options,
 process_extra_options: &options_for_pppoatm,
 check_options: NULL,
 connect: &open_device_pppoatm,
-//connect: NULL,
 disconnect: NULL,
 establish_ppp: &set_line_discipline_pppoatm,
-//establish_ppp: NULL,
-disestablish_ppp: NULL,
+disestablish_ppp: &reset_line_discipline_pppoatm,
 send_config: &send_config_pppoatm,
 recv_config: &recv_config_pppoatm,
 close: NULL,

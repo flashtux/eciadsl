@@ -13,4 +13,4 @@ pppoatm.o:pppoatm.c
 	$(CC) -c -g -O pppoatm.c
 
 pppoatm.so:pppoatm.o
-	$(CC) -shared -a -o pppoatm.so pppoatm.o -latm
+	$(CC) -shared -a -o pppoatm.so pppoatm.o -latm -fPIC
