@@ -148,7 +148,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 						return -EIO;
 					}
 					break;
-				case read:
+				case _read:
 					switch(EOC_OPCODE(eocmesval)) {
 							case EOC_OPCODE_NEXT:
 								mes = eoc_read_next();
