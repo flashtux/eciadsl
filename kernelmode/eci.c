@@ -23,10 +23,6 @@
                     Include stuf
 ***********************************************************************/
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))
-#include <linux/modversions.h>
-#endif
-
 #include <linux/module.h>
 
 #include <linux/init.h>
@@ -1060,7 +1056,7 @@ erreure:
 static void eci_usb_disconnect(struct usb_device *dev, void *p) {
 #else
 static void eci_usb_disconnect(struct usb_interface *interface) {
-	struct usb_device *dev = interface_to_dev(interface);
+	struct usb_device *dev = interface_to_usbdev(interface);
 #endif
 	struct urb *urb;
 	
@@ -1373,7 +1369,7 @@ static void eci_init_vendor_callback(struct urb *urb, struct pt_regs *regs) {
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(2,6,0))	
 static void eci_control_callback(struct urb *urb) {
 #else
-static void eci_control_callback(struct urb *urb, struc pt_regs *regs) {
+static void eci_control_callback(struct urb *urb, struct pt_regs *regs) {
 #endif
 	kfree(urb->context);
 	return;
