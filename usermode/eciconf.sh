@@ -68,36 +68,26 @@ pack .dabusb.texte .dabusb.remove .dabusb.espace -side left
 pack .dabusb -padx 10 -pady 15 -side top
 
 #
-# ===== pppoeci path, user and password =====
+# ===== user and password =====
 #
 
 frame .frame1
-label .frame1.label_chemin -text { Path to pppoeci:} -width 15 -anchor e
-set path_pppoeci "$BIN_DIR/pppoeci"
-entry .frame1.chemin -textvariable path_pppoeci -background lightblue -width 35
-bind .frame1.chemin <Enter> {pushstate "Enter path to run pppoeci (in case of doubt, don't modify this path)"}
-bind .frame1.chemin <Leave> {popstate}
-pack .frame1.label_chemin .frame1.chemin -side left
-pack configure .frame1.chemin -padx 15
-pack .frame1 -padx 15 -pady 3
-
-frame .frame2
-label .frame2.label_user -text {User:} -anchor e
+label .frame1.label_user -text {User:} -anchor e
 set username "username@domain"
-entry .frame2.user -textvariable username -background lightblue -width 17
-bind .frame2.user <Enter> {pushstate "Enter your username and domain (given by your provider)"}
-bind .frame2.user <Leave> {popstate}
-pack .frame2.label_user .frame2.user -side left
-pack configure .frame2.user -padx 10
+entry .frame1.user -textvariable username -background lightblue -width 17
+bind .frame1.user <Enter> {pushstate "Enter your username and domain (given by your provider)"}
+bind .frame1.user <Leave> {popstate}
+pack .frame1.label_user .frame1.user -side left
+pack configure .frame1.user -padx 10
 
-label .frame2.label_password -text { Password:} -anchor e
+label .frame1.label_password -text { Password:} -anchor e
 set password ""
-entry .frame2.password -show * -textvariable password -background lightblue -width 13
-bind .frame2.password <Enter> {pushstate "Enter your password (given by your provider)"}
-bind .frame2.password <Leave> {popstate}
-pack .frame2.label_password .frame2.password -side left
-pack configure .frame2.password -padx 10
-pack .frame2 -padx 15 -pady 6
+entry .frame1.password -show * -textvariable password -background lightblue -width 13
+bind .frame1.password <Enter> {pushstate "Enter your password (given by your provider)"}
+bind .frame1.password <Leave> {popstate}
+pack .frame1.label_password .frame1.password -side left
+pack configure .frame1.password -padx 10
+pack .frame1 -padx 15 -pady 6
 
 frame .ligne_vide1 -height 15
 pack .ligne_vide1
@@ -425,7 +415,7 @@ pack .ligne_vide3
 #
 
 frame .boutons
-button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig "$username" "$password" "$path_pppoeci" "$dns1" "$dns2" $vpi $vci $vid1 $pid1 $vid2 $pid2} -state disabled -background lightgray
+button .boutons.create -text {Create config !} -width 15 -height 1 -command {run_makeconfig "$username" "$password" "$dns1" "$dns2" $vpi $vci $vid1 $pid1 $vid2 $pid2} -state disabled -background lightgray
 bind .boutons.create <Enter> {pushstate "Save modifications then quit: select a modem first"}
 bind .boutons.create <Leave> {popstate}
 frame .boutons.espace -width 20
@@ -493,7 +483,7 @@ proc run_eciconftxt {} {
 	}
 }
 
-proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci vid1 pid1 vid2 pid2} {
+proc run_makeconfig {username password dns1 dns2 vpi vci vid1 pid1 vid2 pid2} {
 	global majfai majbin BIN_DIR
 
     if {[string compare $majfai "oui"] == 0} {
@@ -506,9 +496,9 @@ proc run_makeconfig {username password path_pppoeci dns1 dns2 vpi vci vid1 pid1 
     if {[string compare $majbin "oui"] == 0} {
         set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
         set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
-        set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$path_pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2 "$nom_bin_choix"} sortie]
+        set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$BIN_DIR/pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2 "$nom_bin_choix"} sortie]
     } else {
-        set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$path_pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2} sortie]
+        set returncode [catch {exec $BIN_DIR/makeconfig "$username" "$password" "$BIN_DIR/pppoeci" "$srvdns1" "$srvdns2" $vpi $vci $vid1$pid1 $vid2$pid2} sortie]
     }
     if {$returncode != 0} {
         conf_report "oui" "Makeconfig did not update your files.\n\nThis is the error:" "#ffbbbb" $sortie
