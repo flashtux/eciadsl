@@ -274,7 +274,7 @@ if [ $? -ne 0 ]; then
 	./check-hdlc ;
 	if [ $? -ne 0 ]; then
 		echo "HDLC support: alias is missing... trying to add" ;
-		echo "alias tty-ldisc-13 n_hdlc" >> $(ETC_DIR)/modules.conf ;
+		echo "alias tty-ldisc-13 n_hdlc" >> "$ETC_DIR/modules.conf" ;
 		depmod -a ;
 # checking again
 		./check-hdlc ;
