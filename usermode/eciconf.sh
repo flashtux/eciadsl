@@ -10,8 +10,10 @@
 # *                                                                          *
 # ****************************************************************************
 #
+# 2002/06/13, FlashCode :
+#   Added modem selection
 # 2002/05/19, FlashCode :
-#   Added .bin selection feature
+#   Added .bin selection
 # \
 exec wish "$0" "$@" & exit 0
 
@@ -136,6 +138,9 @@ pack .bloc1.fai.majdns .bloc1.fai.ligne1 .bloc1.fai.ligne2 .bloc1.fai.ligne3 .bl
 
 set fai wanadoo
 
+frame .bloc1.fai.espacevertic -height 15
+pack .bloc1.fai.espacevertic
+
 frame .bloc1.fai.espacedns -width 30
 label .bloc1.fai.labeldns -text "DNS : " -width 6
 entry .bloc1.fai.dns1 -textvariable dns1 -background lightblue -width 14
@@ -157,28 +162,44 @@ frame .bloc1.espace1 -width 30
 
 frame .bloc1.modem
 
-label .bloc1.modem.libelle -text "Your modem :" -relief groove -background "#ffcc99" -width 25
+label .bloc1.modem.libelle -text "Your modem :" -relief groove -background "#ffcc99" -width 28
 pack .bloc1.modem.libelle
 
-radiobutton .bloc1.modem.eci -text "ECI HiFocus/B-Focus" -width 18 -variable modem -value eci -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
+radiobutton .bloc1.modem.eci -text "ECI HiFocus/B-Focus" -width 22 -variable modem -value eci -command {set vidpid1 "05472131"; set vidpid2 "09158000"} -padx 10 -selectcolor blue
 .bloc1.modem.eci configure -anchor w
 pack .bloc1.modem.eci
+bind .bloc1.modem.eci <Enter> {pushstate "ECI HiFocus/B-Focus : VendorID/ProductID = 0x0547 / 0x2131, 0x915 / 0x8000"}
+bind .bloc1.modem.eci <Leave> {popstate}
 
-radiobutton .bloc1.modem.eicon -text "Eicon Diva" -width 18 -variable modem -value eicon -command {set vidpid1 "071dac81"; set vidpid2 "0915ac82"} -padx 10 -selectcolor blue
+radiobutton .bloc1.modem.eicon -text "Eicon Diva" -width 22 -variable modem -value eicon -command {set vidpid1 "071dac81"; set vidpid2 "0915ac82"} -padx 10 -selectcolor blue
 .bloc1.modem.eicon configure -anchor w
 pack .bloc1.modem.eicon
+bind .bloc1.modem.eicon <Enter> {pushstate "Eicon Diva : VendorID/ProductID = 0x071d / 0xac81, 0x915 / 0xac82"}
+bind .bloc1.modem.eicon <Leave> {popstate}
 
-radiobutton .bloc1.modem.ericsson -text "Ericsson hm120dp" -width 18 -variable modem -value ericsson -command {set vidpid1 "08ea00c9"; set vidpid2 "091500ca"} -padx 10 -selectcolor blue
+radiobutton .bloc1.modem.ericsson -text "Ericsson hm120dp" -width 22 -variable modem -value ericsson -command {set vidpid1 "08ea00c9"; set vidpid2 "091500ca"} -padx 10 -selectcolor blue
 .bloc1.modem.ericsson configure -anchor w
 pack .bloc1.modem.ericsson
+bind .bloc1.modem.ericsson <Enter> {pushstate "Ericsson hm120dp : VendorID/ProductID = 0x08ea / 0x00c9, 0x915 / 0x00ca"}
+bind .bloc1.modem.ericsson <Leave> {popstate}
 
-radiobutton .bloc1.modem.aztech -text "Aztech 100U" -width 18 -variable modem -value aztech -command {set vidpid1 "05090801"; set vidpid2 "09150802"} -padx 10 -selectcolor blue
+radiobutton .bloc1.modem.wisecom -text "Wisecom ad80usg or EA100" -width 22 -variable modem -value wisecom -command {set vidpid1 "09150001"; set vidpid2 "09150002"} -padx 10 -selectcolor blue
+.bloc1.modem.wisecom configure -anchor w
+pack .bloc1.modem.wisecom
+bind .bloc1.modem.wisecom <Enter> {pushstate "Wisecom ad80usg or EA100 : VendorID/ProductID = 0x0915 / 0x0001, 0x915 / 0x0002"}
+bind .bloc1.modem.wisecom <Leave> {popstate}
+
+radiobutton .bloc1.modem.aztech -text "Aztech 100U" -width 22 -variable modem -value aztech -command {set vidpid1 "05090801"; set vidpid2 "09150802"} -padx 10 -selectcolor blue
 .bloc1.modem.aztech configure -anchor w
 pack .bloc1.modem.aztech
+bind .bloc1.modem.aztech <Enter> {pushstate "Aztech 100U : VendorID/ProductID = 0x0509 / 0x0801, 0x915 / 0x0802"}
+bind .bloc1.modem.aztech <Leave> {popstate}
 
-radiobutton .bloc1.modem.fujitsu -text "Fujitsu FDX310" -width 18 -variable modem -value fujitsu -command {set vidpid1 "0e600101"; set vidpid2 "09150102"} -padx 10 -selectcolor blue
+radiobutton .bloc1.modem.fujitsu -text "Fujitsu FDX310" -width 22 -variable modem -value fujitsu -command {set vidpid1 "0e600101"; set vidpid2 "09150102"} -padx 10 -selectcolor blue
 .bloc1.modem.fujitsu configure -anchor w
 pack .bloc1.modem.fujitsu
+bind .bloc1.modem.fujitsu <Enter> {pushstate "Fujitsu FDX310 : VendorID/ProductID = 0x0e60 / 0x0101, 0x915 / 0x0102"}
+bind .bloc1.modem.fujitsu <Leave> {popstate}
 
 set modem "eci"
 set vidpid1 "05472131"
@@ -306,13 +327,11 @@ bind .bloc2.vpci.image <Leave> {popstate}
 
 pack .bloc2.vpci.libelle .bloc2.vpci.vpi_espace .bloc2.vpci.vpi .bloc2.vpci.vci .bloc2.vpci.espace .bloc2.vpci.image -side top
 
-#frame .bloc2.vpci -width 25
-
 frame .bloc2.espace2 -width 20
 
 pack .bloc2.listebin .bloc2.espace1 .bloc2.vpci .bloc2.espace2 -side left -anchor n
 
-pack .bloc2 -anchor w
+pack .bloc2
 
 frame .ligne_vide3 -height 15
 pack .ligne_vide3
@@ -352,9 +371,9 @@ global titre_fenetre majdns majbin
         set srvdns1 0
         set srvdns2 0
     }
-    set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
-    set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
     if {[string compare $majbin "oui"] == 0} {
+        set numero_bin_choix [.bloc2.listebin.liste.contenu curselection]
+        set nom_bin_choix [.bloc2.listebin.liste.contenu get $numero_bin_choix]
         set returncode [catch {exec makeconfig $username $password $path_pppoeci $srvdns1 $srvdns2 $vpi $vci $vidpid1 $vidpid2 $nom_bin_choix} sortie]
     } else {
         set returncode [catch {exec makeconfig $username $password $path_pppoeci $srvdns1 $srvdns2 $vpi $vci $vidpid1 $vidpid2} sortie]
@@ -472,6 +491,10 @@ proc invert_bin {} {
 global majbin bin_choisi bin_initial
     if {[string compare $majbin "oui"] == 0} {
         if {[.bloc2.listebin.liste.contenu size] > 0} {
+            if {[string compare $bin_choisi ""] == 0} {
+                .bloc2.listebin.liste.contenu selection set 0
+                set bin_choisi [.bloc2.listebin.liste.contenu curselection]
+            }
             .bloc2.listebin.liste.contenu configure -foreground black -selectbackground "#00ccff" -selectforeground black
             .bloc2.listebin.liste.contenu selection clear 0 end
             .bloc2.listebin.liste.contenu selection set $bin_choisi
