@@ -876,7 +876,7 @@ Q:	Is it possible to run startmodem as any user?
 
 --------------------------------------------------------------------------------
 A:	Simply ensure that sudo is installed on your system.
-	Edit your /etc/sudoers file and add a line:
+	Edit your /etc/sudoers file as root and add a line:
 		username ALL=NOPASSWD:/usr/local/bin/startmodem
 	where username is the name of the user you want to allow to run startmodem.
 	You can do this for many users or different scripts, adding the same line
