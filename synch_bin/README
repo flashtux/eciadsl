@@ -50,7 +50,7 @@ PLEASE PLEASE: READ THE WARNING BELOW BEFORE READING THE REST OF THE DOCUMENT!
 **
 **  The former names are DEPRECATED, because they are not friendly since they
 **  do NOT indicate AT ALL the place in where the .bin should work.
-**  For instance: do not try eci_lens.bin because you leave near Lens (France).
+**  For instance: do not try eci_lens.bin because you live near Lens (France).
 **  This .bin has been generated in Lens, but it should work for some people in
 **  Tchapamawak, and may not work for people leaving in Petaouchnok.
 **  Of course if you live in Lens, try synch05.bin first, this is obvious
