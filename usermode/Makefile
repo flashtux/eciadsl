@@ -34,7 +34,6 @@ check:
 		echo "Version has changed since your last ./configure call"; \
 		echo "You should re-run ./configure"; \
 	fi
-	exit
 
 install: check install_no_system_fixes modules_conf
 
