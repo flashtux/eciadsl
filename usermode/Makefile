@@ -12,7 +12,7 @@
 #   added ETCDIR, prefix and binprefix
 
 CFLAGS += -Wall -ansi -pedantic
-LDFLAGS += -ansi -pedantic -Wall -lpthread
+LDFLAGS += -Wall -lpthread
 
 # you can define ROOT by "make ROOT=/tmp" else it defaults to /
 ROOT ?= /
