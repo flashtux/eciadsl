@@ -318,7 +318,7 @@ then
 	update_entry "VCI" "$vci"
 	update_entry "FIRMWARE" "$TMPFIRMWARE"
 	update_entry "SYNCH" "$TMPSYNCH"
-	update_entry "USERNAME" "$TMPUSERNAME"
+	update_entry "PPPD_USER" "$TMPUSERNAME"
 	update_entry "STATICIP" "$staticip"
 	update_entry "GATEWAY" "$gateway"
 	update_entry "USE_DHCP" "$use_dhcp"
