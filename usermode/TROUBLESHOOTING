@@ -252,6 +252,11 @@ Q:	startmodem is stalled at block xxx.
 --------------------------------------------------------------------------------
 A:	Follow the pre-requisites.
 
+	Ensure that the phone line is properly plugged at both ends (modem and wall
+	jack), and that DSL microfilters are placed between the wall adapters and
+	any device (telephone, fax, answering devices), check if your microfilters
+	are OK.
+
 	Upgrade your eciadsl driver version (0.5 owners: get version 0.6 or the
 	latest CVS).
 
@@ -637,7 +642,7 @@ A:	This may be a framebuffer issue. Try to boot your Linux without framebuffer
 Q:	I cannot connect under X11 whereas it works fine in console mode.
 
 --------------------------------------------------------------------------------
-A:	See 3.1.
+A:	See 5.1.
 
 
 5.3

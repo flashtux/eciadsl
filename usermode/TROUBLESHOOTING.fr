@@ -208,14 +208,6 @@ R:	Votre modem n'est probablement pas supporté, lisez cette FAQ depuis
 	le début.
 
 
-3.0
-================================================================================
-Q:	startmodem affiche : ECI-load2: timeout
-
---------------------------------------------------------------------------------
-R:	Voir la question suivante.
-
-
 2.7
 ================================================================================
 Q:	startmodem/probe_device.sh/eci-doctor.sh ne trouvent pas mon modem.
@@ -253,6 +245,12 @@ Q:	startmodem s'arrête au bloc xxx.
 
 --------------------------------------------------------------------------------
 R:	Suivez les pré-requis.
+
+	Assurez-vous que le câble téléphonique est correctement branché à ses deux
+	extrémités (le modem et la prise murale par exemple).
+	Il faut un microfiltre entre chaque prise murale et chaque appareil de
+	téléphonie (téléphone, fax, répondeur, etc.). Vérifiez le bon fonctionnement
+	de vos microfiltres.
 
 	Téléchargez une version plus récente du driver (utilisateurs de la 0.5 :
 	prenez la version 0.6 ou la dernière CVS).
