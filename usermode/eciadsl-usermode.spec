@@ -13,6 +13,7 @@ Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papill
 Source:		http://prdownloads.sourceforge.net/eciadsl/eciadsl-usermode-0.6.tar.gz
 
 BuildRoot:	%_tmppath/%name-%version-%release
+Prefix: /usr
 
 %description
 The eciadsl-usermode package contains the driver for the ADSL USB modem
@@ -28,12 +29,10 @@ that handles the modem. A kernel module is under development.
 
 %build
 # compile executable
-	cd /usr/src/packages/BUILD/eciadsl-usermode-0.6
 	./configure --enable-rpm-maintainer-mode
 	make -s ROOT="$RPM_BUILD_ROOT"
 
 %install
-	cd /usr/src/packages/BUILD/eciadsl-usermode-0.6
 	./configure --enable-rpm-maintainer-mode
 	make -s ROOT="$RPM_BUILD_ROOT" install
 
