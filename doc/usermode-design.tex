@@ -1,30 +1,60 @@
 \documentclass[a4paper,12pt]{article}
+\usepackage[latin1]{inputenc}
 \usepackage[colorlinks,urlcolor=blue,linkcolor=blue]{hyperref}
+\usepackage{html}
 
 \begin{document}
 
 \title{\huge{Design of a usermode driver for the ECI ADSL USB modem}}
-\author{Benoît PAPILLAULT, \href{mailto:benoit.papillault@free.fr}{benoit.papillault@free.fr}}
+\author{Benoît PAPILLAULT,
+\htmladdnormallink{benoit.papillault@free.fr}{mailto:benoit.papillault@free.fr}}
 
 \maketitle
 \newpage
 \tableofcontents
 \newpage
 
+\section*{About this document}
+
+The \textbf{eciadsl} project was started in year 2001 to produce a
+Linux driver for the ECI ADSL USB modem. One basic choice was to
+produce a usermode driver so that installation will not need a kernel
+compilation, which is even tedious for beginner. That also mean that
+we have to use a usermode library to access USB devices. This document
+will try to describe a possible design for the usermode driver.
+
+This document is part of the \textbf{eciadsl} project documentation,
+available on the web at
+\htmladdnormallink{http://eciadsl.flashtux.org/}{http://eciadsl.flashtux.org}.
+The original source file is \textbf{usermode-design.tex}. Other
+formats have been generated from this source file.
+
 \section{Introduction}
 
 This document was started March 2003, 04. There is a need of a totally
-new design for the usermode driver, since :
+new design for the usermode driver, since:
 
 \begin{itemize}
-\item the current driver is based on a lot of workaround in the USB
-filesystem. This can result to buggy driver anytime someone make a
-modification.
+
+\item On Linux, the current driver is based on a lot of workaround in
+the USB filesystem. This can result in buggy driver anytime if someone
+make a modification in the usermode driver source code.
+
 \item the current driver is using ISO USB transfers which seems to be
 the reason of most disconnections.
+
 \end{itemize}
 
-The new design has to be modular.
+The new design has to be modular. That means that source code for the
+PPP layer and the USB layer should be in different source files for
+instance.
+
+As far as USB libraries are concerned, the only Existing library
+\textbf{libusb} do not support ISO transfer. That means it is not
+usable in our project. See
+\htmladdnormallink{http://libusb.sourceforge.net/}
+{http://libusb.sourceforge.net/} for further information on the libusb
+project, maintained by Johannes Erdfelt.
 
 \section{Basic design}
 
@@ -48,82 +78,389 @@ FreeBSD).
 \item PPP access should be done through a layer of module, one module
 handling only its own layer.
 \item Modem access should be done by a separate module. In this way,
-we can hope to handle several modem using different protocols (like
+we can hope to handle several modems using different protocols (like
 the ECI ADSL USB modem and the Speedtouch modem).
 \end{itemize}
 
 \section{USB library}
 
-To avoid having to deal with OS differences, this library should be
-complete. To be used in different projects, this library should be packaged
-separately. The package name will be \textbf{pusb}.
+To avoid having to deal with differences in various OS, this library
+should be complete. That means that everything which is possible to do
+with USB should be possible using this library. To be used in
+different projects, this library should be packaged separately. The
+package name will be \textbf{pusb}. The library should take into
+account the fact that a USB device may be added or removed to the
+system at any time.
 
-\subsection{USB library : initialisation and destruction}
+\vspace{0.3cm}
+
+For further information on the USB protocol, you can browse
+documentation at
+\htmladdnormallink{http://www.usb.org/developers/docs}
+{http://www.usb.org/developers/docs}
+
+\vspace{0.3cm}
+
+Target OS:
+\begin{itemize}
+\item Linux (done for the speedtouch modem)
+\item OpenBSD, NetBSD, FreeBSD (done for the speedtouch modem)
+\item QNX
+
+  Documentation about USB support under QNX is available. Everything
+  is already done in usermode : \\
+  \htmladdnormallink{http://www.qnx.com/developer/docs/momentics621\_docs/ddk\_en/usb/about.html}
+  {http://www.qnx.com/developer/docs/momentics621_docs/ddk_en/usb/about.html}.
+
+\item Mac OS
+\item Mac OS X
+\item BeOS
+\item Solaris
+\end{itemize}
+
+Pour chaque OS : 
+
+-> document d'installation + fichiers à télécharger
+-> installation d'un env. dev. (emacs, cvs, gcc, ssh client/server)
+-> documentation USB (lib, ddk, .h)
+-> package (rpm, deb, autres)
+
+\subsection{USB library: initialization and destruction}
+
+Initialisation and destruction functions in a library are always a
+pain if your library is used by several other libraries that are used
+at the same time in your project. In this case, that means your
+initialisation function can be called multiple times and if we are in
+a multithreaded programs, we need to use mutexes to avoid
+bugs. Currently, we don't need such functions. So, we will not
+implement them and will not use them. However, we keep their
+definitions here, in case it is later needed.
 
 To initialize the library:
 
 \begin{verbatim}
-pusb\_init();
+void pusb_init();
 \end{verbatim}
+
+Should return a bool indicating the success of the init ?
+
 
 To free all the memory internally allocated by the library:
 
 \begin{verbatim}
-pusb\_done();
+void pusb_done();
 \end{verbatim}
 
-\subsection{USB library : enumerating devices}
+\subsection{USB library: enumerating devices}
 
 The first step is to enumerate devices to find the one you want to handle:
 
 \begin{verbatim}
-int pusb\_enumerate\_first();
+int pusb_enum_init(pusb_enum_t *ref);
 \end{verbatim}
+
+This function returns \textbf{TRUE} if there are some USB devices in
+the system and in this case initializes the value pointed by
+\textit{ref}. If there is no USB device in the system, the function
+returns \textbf{FALSE}.
 
 \begin{verbatim}
-int pusb\_enumerate\_next();
+int pusb_enum_next(pusb_enum_t *ref);
 \end{verbatim}
 
-\subsection{Opening and closing USB devices}
+This function is used to enumerate the next USB device in the list. If
+there is such a device, the function returns \textbf{TRUE} and the
+value pointed by \textit{ref} is initialized with the next USB
+device. If there is no next USB device, the function returns
+\textbf{FALSE}.
 
 \begin{verbatim}
-pusb\_device\_t pusb\_open(const char *path);
-
-int pusb\_close(pusb\_device\_t dev);
+void pusb_enum_done(pusb_enum_t * ref);
 \end{verbatim}
 
-\subsection{USB library : sending and receiving data}
+This function free the memory allocated for \textit{ref} by
+\textit{pusb\_enum\_init} or \textit{pusb\_enum\_next}.
 
-A USB device can handle 4 types of transfers :
+The typical use of such functions is like in the following code
+sample:
+\begin{verbatim}
+    pusb_enum_t ref;
+
+    pusb_enum_init(&ref);
+
+    while (pusb_enum_next(&ref)
+    {
+        /* do something with ref even break; */
+    }
+
+    pusb_enum_done(&rref);
+\end{verbatim}
+
+\subsubsection*{Note:}
+
 \begin{itemize}
-\item CTRL transfers
-\item BULK transfers
-\item INT  transfers
-\item ISO tranfers
+
+\item The order in which USB devices are reported may vary from call
+to call and from OS to OS.
+
 \end{itemize}
 
-\subsubsection{CTRL transfers}
+\subsubsection*{Questions:}
 
-int pusb\_control\_msg(pusb\_device\_t dev,
-		     int request\_type, int request,
-		     int value, int index, 
-		     unsigned char *buf, int size, int timeout);
+\begin{itemize}
+\item
+What happens if a USB device is added or removed while
+\textit{pusb\_enum\_next}() is called?
 
-\subsubsection{BULK transfers}
+The result is undefined. However, if a device is present when
+\textit{pusb\_enum\_init}() is called and is still present when
+\textit{pusb\_enum\_done}() is called, the device will be
+listed. Devices added or removed between those two calls may or may
+not get listed, depending on the implementation of the library.
+
+\item
+Why not creating a \textit{pusb\_open\_device}(int vid, int pid) which
+return the first device matching vid/pid?
+
+Such function could ease the developpement of simple device driver,
+however this will have the main drawback that the result is undefined
+if more than once device with the same pid and vid exist in the
+system.
+
+\end{itemize}
 
 \begin{verbatim}
-int pusb\_endpoint\_read(pusb\_endpoint\_t ep, 
-		       unsigned char *buf, int size, int timeout);
+int pusb_get_device_class(pusb_enum_t * ref); // 8 bits
 
-int pusb\_endpoint\_write(pusb\_endpoint\_t ep, 
-			const unsigned char *buf, int size, int timeout);
+int pusb_get_device_subclass(pusb_enum_t * ref); // 8 bits
+
+int pusb_get_device_protocol(pusb_enum_t * ref); // 8 bits
+
+int pusb_get_device_vendor(pusb_enum_t * ref); // 16 bits
+
+int pusb_get_device_product(pusb_enum_t * ref); // 16 bits
+
+int pusb_get_device_version(pusb_enum_t * ref); // 16 bits
 \end{verbatim}
 
-\subsubsection{INT transfers}
+All those functions gives some information about the device. 
 
-\subsubsection{ISO transfers}
+\subsection{USB library: opening and closing a device}
 
-\subsection{USB library : how to use it}
+\begin{verbatim}
+pusb_device_t pusb_device_open(pusb_enum_t * ref);
+
+int pusb_device_close(pusb_device_t dev);
+\end{verbatim}
+
+\textit{pusb\_open}() is used to open a USB device. If the function
+fails, the return value is NULL. \textit{pusb\_close}() is used to close
+the device once it has been successfully opened with
+\textit{pusb\_open}(). What happens to endpoint that has been opened
+using this device if the device is closed?
+
+\subsection{USB library: configuring the device}
+
+A USB device is made up of one or several configurations. Only one
+configuration can be set at any given time.  The differences between
+each configurations might be the electrical power needed. Next, each
+configuration can have several alternate settings. Each alternate
+settins determine the set of endpoints that will be presented to the
+application. Once again, only one alternate settings can be selected
+at any given time. Now, each endpoints of the active configuration and
+alternate setting can use used together at the same time.
+
+For instance, here is a list of all the possible configuration of the ECI ADSL USB modem:
+\begin{verbatim}
+Device: VendorID=0x0915 ProductID=0x8000 Class=ff/ff/ff, 1 configuration(s)
+Manufacturer: GlobeSpan Inc. Product: USB-ADSL Modem SN: FFFFFF
+  configuration 1, 1 interface(s) []
+    interface 0 alt 0 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x82 [Bulk] 64 bytes 0 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+    interface 0 alt 1 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x88 [Isoc] 1008 bytes 1 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+    interface 0 alt 2 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x88 [Isoc] 912 bytes 1 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+    interface 0 alt 3 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x88 [Isoc] 736 bytes 1 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+    interface 0 alt 4 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x88 [Isoc] 448 bytes 1 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+    interface 0 alt 5 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x88 [Isoc] 240 bytes 1 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+    interface 0 alt 6 class ff/ff/ff, 3 endpoint(s) []
+      endpoint 0x88 [Isoc] 96 bytes 1 ms
+      endpoint 0x02 [Bulk] 64 bytes 0 ms
+      endpoint 0x86 [Intr] 64 bytes 3 ms
+\end{verbatim}
+
+We need to add some function like:
+
+\begin{verbatim}
+
+int pusb_device_set_configuration(pusb_device_t dev, int config);
+
+int pusb_device_set_interface(pusb_device_t dev, int interface, int alternate);
+
+\end{verbatim}
+
+\subsection{USB library: opening and closing an endpoint}
+
+\begin{verbatim}
+pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum);
+
+int pusb_endpoint_close(pusb_endpoint_t ep)
+\end{verbatim}
+
+\textit{pusb\_endpoint\_open} open the endpoint whose number if
+\textit{epnum} from the device specified by \textit{dev}. If an error
+occurs, NULL is returned. \textit{pusb\_endpoint\_close} close a
+endpoint that was sucessfully opened with \textit{pusb\_endpoint\_open}.
+
+\subsubsection*{Note:}
+
+\textit{epnum} is a 8 bit value defining a USB endpoint. USB endpoints
+are either read-only or write-only. You cannot read and write on the
+same endpoints.
+
+\subsection{USB library: sending and receiving data}
+
+A USB device can handle 4 types of transfers:
+\begin{itemize}
+\item Control transfers
+\item Bulk transfers
+\item Interrupt transfers
+\item Isochronous tranfers
+\end{itemize}
+
+For all kind of transfer, you can set a timeout value.
+
+\begin{verbatim}
+int pusb_endpoint_set_timeout(pusb_endpoint_t ep, int timeout);
+
+int pusb_endpoint_get_timeout(pusb_endpoint_t ep);
+\end{verbatim}
+
+If the timeout is zero, which is the \textbf{default}, transfer will
+be blocking. That means that each read/write functions will wait for
+ever for its result. This work like the usual read and write
+functions.
+
+If the timeout is non-zero, it defines a delay in milliseconds. The
+read/write functions will wait for the specified duration for the
+result, if no result comes, an error is returned.
+
+\subsubsection{Control transfers}
+
+Control transfers are used for configuring a USB device. Data are
+delivered as best effort. No bandwidth can be reserved for control
+tranfers.
+
+\begin{verbatim}
+int pusb_control_msg(pusb_device_t dev,
+		     int request_type, int request,
+		     int value, int index, 
+		     unsigned char *buf, int size);
+\end{verbatim}
+
+Directions of the transfer is determined by bit 7 of
+\textit{request\_type}: a value of 0 indicates a WRITE and a value of
+1 indicates a READ.
+
+Meaning of request\_type ? request? value ? index ? buf ? size ?
+Range for all of those values?
+
+\textit{size} is the number of bytes from the buffer \textit{buf} that
+will be transfered. The return value, if positive, indicates the
+number of bytes that was transfered.
+
+\subsubsection{Bulk transfers}
+
+Bulk transfers have the following properties:
+
+\begin{itemize}
+\item Access to the USB on a bandwidth-available basis
+\item Retry of transfers, in the case of occasional delivery failure
+due to errors on the bus
+\item Guaranteed delivery of data but no guarantee of bandwidth or latency
+\end{itemize}
+
+The following functions should be used :
+
+\begin{verbatim}
+int pusb_endpoint_bulk_read(pusb_endpoint_t ep,
+                            unsigned char *buf, int size);
+
+int pusb_endpoint_bulk_write(pusb_endpoint_t ep,
+                             const unsigned char *buf, int size);
+\end{verbatim}
+
+\subsubsection{Interrupt transfers}
+
+Interrupt transfers have the following properties:
+
+\begin{itemize}
+\item Guaranteed maximum service period for the pipe
+\item Retry of transfer attempts at the next period, in the case of
+occasional delivery failure due to error on the bus
+\end{itemize}
+
+The following functions should be used :
+
+\begin{verbatim}
+int pusb_endpoint_int_read(pusb_endpoint_t ep,
+                           unsigned char *buf, int size);
+
+int pusb_endpoint_int_write(pusb_endpoint_t ep,
+                            const unsigned char *buf, int size);
+\end{verbatim}
+
+Questions: 
+\begin{itemize}
+\item What call is used to read from/write to Interrupt endpoint?
+\item Blocking/non-blocking calls?
+\item How to stop reading from/writing to an Interrupt endpoint?
+\end{itemize}
+
+\subsubsection{Isochronous transfers}
+
+Isochronous transfers have the following properties:
+
+\begin{itemize}
+\item Guaranteed access to USB bandwidth with bounded latency
+\item Guaranteed constant data rate through the pipe as long as data
+is provided to the pipe
+\item In the case of a delivery failure due to error, no retrying of
+the attempt to deliver the data
+\end{itemize}
+
+The following functions should be used :
+
+\begin{verbatim}
+int pusb_endpoint_iso_read(pusb_endpoint_t ep,
+                           unsigned char *buf, int size);
+
+int pusb_endpoint_iso_write(pusb_endpoint_t ep,
+                            const unsigned char *buf, int size);
+\end{verbatim}
+
+Questions:
+\begin{itemize}
+\item What calls to read from/write to an Isochronous endpoint?
+\end{itemize}
+
+\subsection{USB library: how to use it}
 
 At the top of your source code, just add:
 
@@ -131,15 +468,126 @@ At the top of your source code, just add:
 #include <pusb.h>
 \end{verbatim}
 
-In your \textbf{Makefile}, add the following:
+If you are using a \textbf{Makefile}, add the following:
 
 \begin{verbatim}
-LDLIBS += -lpusb
+CFLAGS  += -I/usr/local/include
+LDFLAGS += -L/usr/local/lib
+LDLIBS  += -lpusb
 \end{verbatim}
 
-\section{modem library}
+If you are using a \textbf{configure.ac} file, add the following:
 
-\section{layer module}
+\begin{verbatim}
+AM_PATH_PUSB(,,)
+\end{verbatim}
+
+You also need to copy the content of \textbf{pusb.m4} into your
+\textbf{configure.ac} file before using \textit{AM\_PATH\_PUSB}.
+
+Also add the following to \textbf{Makefile.in} :
+
+\begin{verbatim}
+CFLAGS += @PUSB_CFLAGS@
+LDLIBS += @PUSB_LIBS@
+\end{verbatim}
+
+\section{Modem library}
+
+The goal is to create a library that will not be modem specific, as
+far as possible. In fact, we can sum up the behavior of most ADSL
+modems by the followings steps:
+
+\begin{itemize}
+\item some ADSL modems need a firmware and there is a specific
+  procedure to follow to load such firmware once, ie each time it's
+  plugged on the USB bus.
+
+\item all ADSL modems needs a specific procedure to synchronize with
+  the ADSL line. This involves some modulation detection and settings
+  (G.DMT, T1.143, ...).
+
+\item all ADSL modems have a way to send and receive ATM cells. This
+  layer is the common denominator to all ADSL modems.
+
+\end{itemize}
+
+\section{Layer module}
+
+The goal is to be able to quickly build up a protocol layer using
+basic module for each layer. Let's examine the protocol layer of some
+ADSL connections.
+
+\subsection{ADSL connections using PPPoA}
+
+PPPoA is a protocol describe in \htmladdnormallink{RFC
+2364}{http://www.ietf.org/rfc/rfc2364.txt}. It describes a way to
+encapsulate PPP packets into AAL5 (ATM Adaptation Layer 5). There are two types of encapsulation to do this:
+
+\begin{itemize}
+\item VC-multiplexed PPP (VC-mux)
+\item LLC encapsulated PPP (LLC-encap)
+\end{itemize}
+
+\subsubsection{PPPoA: VC-mux}
+
+This is the simplest encapsulation since one PPP packet is directly
+the payload of an AAL5 packet. In the current driver, this
+encapsulation is called \textbf{VCM\_RFC2364}.
+
+\subsubsection{PPPoA: LLC-encap}
+
+In this encapsulation type, the PPP packet is preceded by the byte
+sequence: 0xfe 0xfe 0x03 0xcf and put into the payload of an AAL5
+packet. In the current driver, this encapsulation is called
+\textbf{LLC\_RFC2364}.
+
+\subsection{ADSL connections using PPPoE}
+
+\subsubsection{PPPoE: LLC-encap Routed Protocol non-ISO}
+
+In this encapsulation type, the IP packet is preceded by the byte
+sequence: 0xaa 0xaa 0x03 0x00 0x00 0x00 0x08 0x00 and put into the
+payload of an AAL5 packet. In the current driver, this encapsulation
+is called \textbf{LLC\_RFC1483\_ROUTED\_IP}.
+
+\subsubsection{PPPoE: LLC-encap Bridged Ethernet/802.3}
+
+In this encapsulation type, the Ethernet packet is preceded by the
+byte sequence: 0xaa 0xaa 0x03 0x00 0x80 0xc2 0x00 0x07 and put into
+the payload of an AAL5 packet. In the current driver, this
+encapsulation is called
+\textbf{LLC\_SNAP\_RFC1483\_BRIDGED\_ETH\_NO\_FCS}.
+
+\subsubsection{PPPoE: VC-mux Routed Protocol}
+
+In this encapsulation type, the IP packet is put into the payload of
+an AAL5 packet. In the current driver, this encapsulation is called
+\textbf{VCM\_RFC1483\_ROUTED\_IP}.
+
+\subsubsection{PPPoE: VC-mux Bridged Ethernet/802.3}
+
+In this encapsulation type, the Ethernet packet is preceded by the
+byte sequence: 0x00 0x00 and put into the payload of an AAL5
+packet. In the current driver, this encapsulation is called
+\textbf{VCM\_RFC\_1483\_BRIDGED\_ETH}.
+
+\subsection{basic layers}
+
+From the above examples, we notice that there are some common
+layers. Thus, our goal is to provide basic module for each layer.
+
+\begin{itemize}
+
+\item PPP
+
+\item PPPoA
+
+\item PPPoE
+
+\end{itemize}
 
 \end{document}
 
+% email mutley : eau@phear.org
+% email hb     : bhuisgen@wanadoo.fr
