@@ -508,12 +508,15 @@ int main(int argc, char** argv)
 	mychild_pid = child_pid;
 	/* wait for child process and intercept child abortion due to signal (user abort or timeout) */
 	do
+	{
+		status = 0;
 		if (waitpid(child_pid, &status, 0) == -1)
 			if (errno == EINTR)
 			{
 				perror("child failed (aborted)");
 				fail();
 			}
+	}
 	while(errno != ECHILD);
 	alarm(0);
 

@@ -603,12 +603,15 @@ int main(int argc, char** argv)
 
 	/* wait for child process and intercept child abortion due to signal (user abort or timeout) */
 	do
+	{
+		status = 0;
 		if (waitpid(mychild_pid, &status, 0) == -1)
 			if (errno == EINTR)
 			{
 				perror("child failed (aborted)");
 				_exit(1);
 			}
+	}
 	while(errno != ECHILD);
 	alarm(0);
 
