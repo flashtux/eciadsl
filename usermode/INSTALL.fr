@@ -39,6 +39,10 @@ Toujours sous root:
    tcl/tk soit installé au préalable)
  - en mode console, lancer eciconftxt.sh
 
+Vous pouvez aussi taper:
+	make cfg
+cela exécutera automatiquement l'outil de configuration approprié.
+
 En cas de problème, utiliser eci-doctor.sh et consulter le fichier
 TROUBLESHOOTING.fr avant de crier à l'aide :-)
 

@@ -36,6 +36,10 @@ Still as root:
    to be installed)
  - in console mode, run eciconftxt.sh
 
+Typing:
+	make cfg
+will automatically run the relevant configuration tool.
+
 If you encounter problems, try using eci-doctor.sh et please read the
 TROUBLESHOOTING file before asking for support online :-)
 
