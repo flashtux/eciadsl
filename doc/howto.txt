@@ -241,6 +241,17 @@ CA NE MARCHE PAS :
 	
 	mount -t usbdevfs none /proc/bus/usb
 
+5.4) eci-load2 n'arrive pas a avoir la synchronisation // blockage au packet 259
+	5.4.1) Problème
+	
+	Le driver n'arrive pas a avoir la synchronisation, il faut alors le relancer.
+	
+	5.4.2) Solution
+	
+	Pour relancer le driver, nous vous conseillons de repartir du début en débranchant et en rebranchant le modem, il faut ensuite refaire :
+	./startmodem
+	
+
 6) Contacts
 
 	Pour toute question, abonnez-vous à la liste de diffusion de ce projet 
