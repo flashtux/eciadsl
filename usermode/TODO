@@ -25,6 +25,7 @@ Sorted according to priority (the upper in the list, the prior):
   - --with-kernel=<PATH> in ./configure
 + unify websites: eciadsl.sf.net update/move to flashtux
 - update the spec file
+- redesign eciconf.sh UI
 
 0.7:
 - URB cleaning on decnx (prevents kernel oops)
