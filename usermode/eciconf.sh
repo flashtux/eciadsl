@@ -211,6 +211,7 @@ set modems {
 			"GVC BB039"							"0915"	"0001"	"0915"	"0002"
 			"Siemens Santis"					"0915"	"0001"	"0915"	"0002"
 			"Topcom Webr@cer 850"				"0915"	"0001"	"0915"	"0002"
+			"Topcom XPlorer 850"				"0547"	"2131"	"0915"	"8000"
 			"US Robotics 8500"					"0baf"	"00e6"	"0915"	"00e7"
 			"Webpower Ipmdatacom"				"0915"	"0001"	"0915"	"0002"
 			"Wisecom ad80usg or EA100"			"0915"	"0001"	"0915"	"0002"
