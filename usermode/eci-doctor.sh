@@ -9,6 +9,9 @@
 # CVS $Id$
 # Tag $Name$
 
+# 16/02/2002 Benoit PAPILLAULT
+#   Check for an existing pppd and display its version
+
 PATH=/bin:/sbin:/usr/bin:/usr/sbin
 
 if [ `whoami` != "root" ]; then
@@ -286,6 +289,21 @@ if [ $? -ne 0 ]; then
 	echo "I cannot find your ADSL modem: Fatal"
 	fatal;
 fi
+
+# check for an existing pppd
+x=`which pppd`
+if [ "$x" = "" ]; then
+	echo "No pppd is intalled: Fatal" ;
+	exit -1;
+fi
+
+# check the pppd version
+ppp_version=`pppd -V 2>&1 | grep version | cut -d" " -f 3` ;
+msg="";
+if [ "$ppp_version" != "2.4.0" -a "$ppp_version" != "2.4.1" ]; then
+	msg=" (untested)" ;
+fi
+echo "You are using pppd version $ppp_version$msg" ;
 
 # check for an existing PPP connection (select the first one if several)
 PPP=`ifconfig | grep "^ppp" | head -1 | awk '{print $1}'`
