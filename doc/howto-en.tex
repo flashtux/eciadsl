@@ -143,23 +143,28 @@ in the Download section.
 $ cd usermode
 $ make
 # make install
-# eciconf.sh
+# eciconf.sh     (or eciconftxt.sh)
 \end{verbatim}
 
     NB: eciconf.sh is a graphic configuration tool for the driver.
     It must consequently be run under X-window and requires the
     Tcl/Tk libraries.
+    
+    If X or Tcl/Tk isn't installed, you can run eciconftxt.sh
+    (same tool as eciconf.sh, but can be run in a terminal / console).
 
     Sometimes it happens that the modem is on when you launch your
     computer, which is due to the dabusb module. You will need to
     remove it to install the driver and use the modem.
 
-    There are two ways to remove that module :
+    There are 3 ways to remove that module :
 
     \textbf{1)} With eciconf.sh : unplug your modem  then in the eciconf.sh interface
     click on "Remove dabusb module".
+    
+    \textbf{2)} With eciconftxt.sh : choice 2, and then follow instructions.
 
-    \textbf{2)} Type the following commands replacing VERSION by your Linux kernel version:
+    \textbf{3)} Type the following commands replacing VERSION by your Linux kernel version:
     \footnote{(To get your kernel version type : uname -r)}
 
     rm -f /lib/modules/VERSION/kernel/drivers/usb/dabusb.o.gz
@@ -396,7 +401,7 @@ There are two ways to change your .bin :
 
     \subsubsection{1 :}
         With a driver's version > 0.5 (CVS ou >= 0.6) :\\
-        it is possible to change it in eciconf.sh
+        it is possible to change it in eciconftxt.sh
 
     \subsubsection{2 :}
         With any version of the driver, you can do the following :\\

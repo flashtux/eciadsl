@@ -144,24 +144,29 @@ section T\'el\'echargement.
 $ cd usermode
 $ make
 # make install
-# eciconf.sh
+# eciconf.sh     (ou eciconftxt.sh)
 \end{verbatim}
 
     NB: eciconf.sh est un utilitaire de configuration graphique du driver.
     Il doit par cons\'equent \^etre lanc\'e sous X-window et n\'ecessite la pr\'esence
     des librairies Tcl/Tk.
+    
+    Si vous n'avez pas X ou Tcl/Tk installé, vous pouvez lancer eciconftxt.sh
+    (meme outil qu'eciconf.sh mais en mode texte pour console / terminal).
 
     Il arrive parfois que le modem soit allum\'e quand vous 
     d\'emarrez votre ordinateur, cela est dû au module dabusb,
     il faut l'enlever pour pouvoir installer le driver et faire 
     fonctionner le modem.
     
-    2 possibilit\'es pour enlever ce module :
+    3 possibilit\'es pour enlever ce module :
     
     \textbf{1)} Par eciconf.sh : d\'ebranchez votre modem puis dans eciconf.sh cliquez
     sur "Remove dabusb module".
     
-    \textbf{2)} Tapez les commandes suivantes en remplaçant VERSION par la version de
+    \textbf{2)} Par eciconftxt.sh : choix 2, puis suivez les instructions.
+    
+    \textbf{3)} Tapez les commandes suivantes en remplaçant VERSION par la version de
     votre noyau Linux : 
     \footnote{(pour conna\^{\i}tre la version du noyau tapez : uname -r)}
     
@@ -402,7 +407,7 @@ Il y a 2 façons de changer le .bin :
 
     \subsubsection{Façon 1 :}
         Avec une version du driver strictement sup\'erieure \`a 0.5 (CVS ou >= 0.6) :\\
-        le changement se fait dans eciconf.sh
+        le changement se fait dans eciconftxt.sh
     
     \subsubsection{Façon 2 :}
         Avec toutes les versions du driver, vous pouvez effectuer ceci :\\
