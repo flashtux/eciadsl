@@ -662,7 +662,7 @@ int main(int argc, char** argv)
 	alarm(0);
 
 	semaphore_done(shared_sem);
-	if (status || !ret)
+	if (WEXITSTATUS(status) || !ret)
 		return(1);
 
 	printf("ECI load 2: success\n");
