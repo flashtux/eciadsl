@@ -117,18 +117,18 @@
 
 typedef enum
 {
-	VCM_RFC2364=0, /* must be the first element since (frame_type==0) must mean no encapsulation */
-	LLC_RFC2364=1,
-	LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS=2,
-	VCM_RFC_1483_BRIDGED_ETH=3,
-	LLC_RFC1483_ROUTED_IP=4,
-	VCM_RFC1483_ROUTED_IP=5,  
-	modes_count=6
+	VCM_RFC2364 = 0, /* must be the first element since (frame_type==0) must mean no encapsulation */
+	LLC_RFC2364,
+	LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS,
+	VCM_RFC_1483_BRIDGED_ETH,
+	LLC_RFC1483_ROUTED_IP,
+	VCM_RFC1483_ROUTED_IP, 
+	modes_count
 } encapsulation_mode;
 
 int frame_type=VCM_RFC2364; /* defaults to VC Multiplexed PPP (no encapsulation) */
 
-const char *mode_name[]=
+const char* mode_name[] =
 {
 	"VCM_RFC2364",
 	"LLC_RFC2364",
@@ -144,25 +144,25 @@ const char *mode_name[]=
 #define HDLC_HEADER (short)0x03ff
 #endif
 
-const char *frame_header[]=
+const char* frame_header[] =
 {
-	"",                                        /* VCM_RFC2364 */
-	"\xfe\xfe\x03\xcf",                        /* LLC_RFC2364 */
+	"",											/* VCM_RFC2364 */
+	"\xfe\xfe\x03\xcf",							/* LLC_RFC2364 */
 	"\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00", /* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
-	"\x00\x00", /* VCM_RFC_1483_BRIDGED_ETH */
-	"\xaa\xaa\x03\x00\x00\x00\x08\x00", /* LLC_RFC1483_ROUTED_IP */
-	"" /* VCM_RFC1483_ROUTED_IP */
+	"\x00\x00", 								/* VCM_RFC_1483_BRIDGED_ETH */
+	"\xaa\xaa\x03\x00\x00\x00\x08\x00",			/* LLC_RFC1483_ROUTED_IP */
+	""											/* VCM_RFC1483_ROUTED_IP */
 };
 
 #define max_frame_header_len 10
-const size_t frame_header_len[]=
+const size_t frame_header_len[] =
 {
-	0, /* VCM_RFC2364 */
-	4, /* LLC_RFC2364 */
-	10, /* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
-	2, /* VCM_RFC_1483_BRIDGED_ETH */
-	8, /* LLC_RFC1483_ROUTED_IP */
-	0 /* VCM_RFC1483_ROUTED_IP */
+	0,	/* VCM_RFC2364 */
+	4,	/* LLC_RFC2364 */
+	10,	/* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
+	2,	/* VCM_RFC_1483_BRIDGED_ETH */
+	8,	/* LLC_RFC1483_ROUTED_IP */
+	0 	/* VCM_RFC1483_ROUTED_IP */
 };
 
 /* #define CHECK_FRAME_HEADER 1  // just overload i suppose.. */
@@ -190,15 +190,15 @@ typedef enum
 char errText[ERR_BUFSIZE + 1];
 
 #define PAD_SIZE 11
-/*	For debugging only */
-void dump_urb(char *buffer, int size);
+/* for debugging only */
+void dump_urb(char* buffer, int size);
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
 
 /* USB level */
 #define DATA_TIMEOUT 300
-int data_timeout=0;
+int data_timeout = 0;
 
 #include "modem.h"
 
@@ -222,21 +222,21 @@ int pusb_set_interface_alt = 0;
 #define CELL_HDR  05
 #define CELL_DATA 48
 
-int syncHDLC=1;
+int syncHDLC = 1;
 
 #define synclen 2
 
 /* global parameters */
 int verbose = 0;
-int usb_sync  = 1;
+int usb_sync = 1;
 pusb_device_t fdusb;
 /* unsigned char lbuf[20][4400]; */
 pusb_endpoint_t ep_data_out, ep_data_in, ep_int;
-pid_t this_process;		/* always the current process pid */
+pid_t this_process;	 /* always the current process pid */
 
 /* predeclarations */
 
-int aal5_read(unsigned char *cell_buf, /*size_t count,*/
+int aal5_read(unsigned char* cell_buf, /* size_t count, */
 				unsigned int vpi, unsigned int vci,
 				unsigned int pti, int fdout);
 
@@ -321,7 +321,7 @@ unsigned long crc32tab[256] =
 	0xBCB4666DL, 0xB8757BDAL, 0xB5365D03L, 0xB1F740B4L
 };
 
-unsigned int calc_crc(unsigned char *mem, int len, unsigned int initial)
+unsigned int calc_crc(unsigned char* mem, int len, unsigned int initial)
 {
 	unsigned int crc;
 
@@ -369,22 +369,18 @@ void fatal_error(const error_codes err, const char* text)
 	else \
 		printf(".");
 
-void dump(unsigned char *buf, int len)
+void dump(unsigned char* buf, int len)
 {
 	int i, j;
 
 	for (i = 0; i < len; i += 16)
 	{
-
 		for (j = i; j < len && j < i + 16; j++)
 			printf("%02x ", buf[j]);
-
 		for (; j < i + 16; j++)
 			printf("   ");
-
 		for (j = i; j < len && j < i + 16; j++)
 			PRINTCHAR(buf[j])
-
 		printf("\n");
 	}
 }
@@ -395,26 +391,27 @@ void dump(unsigned char *buf, int len)
  * 0 should indicates that pppd exited (not tested).
  */
 
-int ppp_read(int fd, unsigned char **buf, int *n)
+int ppp_read(int fd, unsigned char** buf, int* n)
 {
 	/*
 	 * we must handle HDLC framing, since this is what pppd
 	 * sends to us. I use some code from rp-pppoe
 	 */
 
-	static unsigned char frame_buf[max_frame_header_len+PPP_BUF_SIZE];
-	static unsigned char *ppp_buf;
+	static unsigned char frame_buf[max_frame_header_len + PPP_BUF_SIZE];
+	static unsigned char* ppp_buf;
 
 	int r;
 
-        if (frame_type) {
-            if(syncHDLC)
-                ppp_buf=frame_buf+frame_header_len[frame_type]-synclen;
+        if (frame_type)
+		{
+            if (syncHDLC)
+                ppp_buf = frame_buf+frame_header_len[frame_type]-synclen;
             else
-                ppp_buf=frame_buf+frame_header_len[frame_type];
+                ppp_buf = frame_buf+frame_header_len[frame_type];
         }
         else
-		ppp_buf=frame_buf;
+			ppp_buf = frame_buf;
 
 	for (;;)
 	{
@@ -464,7 +461,7 @@ int ppp_read(int fd, unsigned char **buf, int *n)
 
 			if (frame_type)
 			{
-				unsigned char *s;
+				unsigned char* s;
 				int i;
 				int l;
 
@@ -484,7 +481,7 @@ int ppp_read(int fd, unsigned char **buf, int *n)
 		}
 		else /* no syncHDLC for pppoe */
 		{
-			unsigned char *s;
+			unsigned char* s;
 			int i;
 			int l;
 			
@@ -504,24 +501,22 @@ int ppp_read(int fd, unsigned char **buf, int *n)
 				continue;
 			}
 
-
-				l = frame_header_len[frame_type];
-				s = (unsigned char*)frame_header[frame_type];
-				for (i = 0; l--; ++i)
-					frame_buf[i] = s[i];
-				*buf = frame_buf;
-				*n = r + frame_header_len[frame_type];
+			l = frame_header_len[frame_type];
+			s = (unsigned char*)frame_header[frame_type];
+			for (i = 0; l--; ++i)
+				frame_buf[i] = s[i];
+			*buf = frame_buf;
+			*n = r + frame_header_len[frame_type];
 
 			return(*n);
 		}
-		
 		break;
 	}
 }
 
 #define NOBUF_RETRIES 5
 
-int ppp_write(int fd, unsigned char *buf, int n)
+int ppp_write(int fd, unsigned char* buf, int n)
 {
 	/* static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE]; */
 	static int errs = 0;
@@ -531,8 +526,8 @@ int ppp_write(int fd, unsigned char *buf, int n)
 
 	if (syncHDLC)
 	{
-		static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE];
-		*(short*)ppp_buf=HDLC_HEADER;
+		static unsigned char ppp_buf[synclen+max_frame_header_len + PPP_BUF_SIZE];
+		*(short*)ppp_buf = HDLC_HEADER;
 
 		if (frame_type)
 		{
@@ -614,7 +609,7 @@ int ppp_write(int fd, unsigned char *buf, int n)
 	else /* no syncHDLC for pppoe */ 
 	{
 
-	    static unsigned char ppp_buf[max_frame_header_len+PPP_BUF_SIZE];
+	    static unsigned char ppp_buf[max_frame_header_len + PPP_BUF_SIZE];
 
 #ifdef CHECK_FRAME_HEADER 
 			int l;
@@ -698,7 +693,7 @@ int ppp_write(int fd, unsigned char *buf, int n)
  * an AAL5 frame.
  */
 
-int cell_read(unsigned char *cellbuf, /*size_t count,*/ int fdout)
+int cell_read(unsigned char* cellbuf, /* size_t count, */ int fdout)
 {
 	unsigned int vpi, vci, pti;
 
@@ -709,14 +704,14 @@ int cell_read(unsigned char *cellbuf, /*size_t count,*/ int fdout)
 
 	if (vpi != my_vpi || vci != my_vci)
 	{
-		/*there's some junk so try to re-sync*/
-		return -2;
+		/* there's some junk so try to re-sync */
+		return(-2);
 	}
 	/* filling our AAL5 frame */
-	return(aal5_read(cellbuf + CELL_HDR, /*CELL_DATA,*/ vpi, vci, pti, fdout));
+	return(aal5_read(cellbuf + CELL_HDR, /* CELL_DATA, */ vpi, vci, pti, fdout));
 }
 
-int cell_write(unsigned char *cellbuf, unsigned char *buf, int n,
+int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
 			 unsigned int vpi, unsigned int vci, unsigned int pti)
 {
 	unsigned char gfc = 0;
@@ -748,7 +743,7 @@ int cell_write(unsigned char *cellbuf, unsigned char *buf, int n,
  * (0 otherwise)
  */
 
-int aal5_read(unsigned char *cell_buf, /*size_t count,*/
+int aal5_read(unsigned char* cell_buf, /* size_t count, */
 		unsigned int vpi, unsigned int vci, unsigned int pti, int fdout)
 {
 	static unsigned char buf[64 * 1024];
@@ -856,7 +851,7 @@ int aal5_read(unsigned char *cell_buf, /*size_t count,*/
  * with its layer.
  */
 
-int aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
+int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 {
 	/* add the trailer */
 	int total_len = 48 * ((n + 8 + CELL_DATA - 1) / 48);
@@ -871,7 +866,7 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 	int ptr;
 	int ret;
 /*
-	unsigned char * bigbuf = (unsigned char *)malloc(1367 * 53);
+	unsigned char* bigbuf = (unsigned char*)malloc(1367 * 53);
 	if (bigbuf == NULL)
 		return(-1);
 */
@@ -950,7 +945,7 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char *buf, int n)
 }
 /* returns -1 in case of errors */
 
-int decode_usb_pkt(unsigned char *buf, int len)
+int decode_usb_pkt(unsigned char* buf, int len)
 {
 	static unsigned char rbuf [64 * 1024];
 	static int rlen = 0;
@@ -984,14 +979,14 @@ int decode_usb_pkt(unsigned char *buf, int len)
 	pos = 0;
 	while ((rlen - pos) >= CELL_SIZE)
 	{
-		if ((r = cell_read(rbuf + pos, /*CELL_SIZE,*/ gfdout)) < 0 && r != -2)
+		if ((r = cell_read(rbuf + pos, /* CELL_SIZE, */ gfdout)) < 0 && r != -2)
 		{
 			rlen -= pos;
 			if (rlen != 0)
 				memcpy(rbuf, rbuf + pos, rlen);
 			return(r);
 		}
-		if (r==-2)
+		if (r == -2)
 			/* we got out of sync or there was some junk so try to find the next
 			block header (just add 1 onto pos!!) for now!! */
 			pos++;
@@ -1066,184 +1061,184 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 
 	return(0);
 }
-void handle_ep_int(unsigned char * buf, int size, pusb_device_t fdusb)
+
+void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 {
-        static int lost_synchro = 0;
-        static GS7070int* gs=0;
+	static int lost_synchro = 0;
+	static GS7070int* gs = 0;
 
+	unsigned char outbuf[40] =
+	{
+		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c
+	};
+	int i, outi = 0;
+	int dataBlock = 0;
 
-        unsigned char outbuf[40] =
-        {
-                0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-                0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-                0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-                0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-                0x0c, 0x0c
-        };
-        int i, outi = 0;
-        int dataBlock=0;
+	if (gs==0)
+		gs=allocateGS7070int();
 
-        if(gs==0){
-                gs=allocateGS7070int();
-        }
+	if (verbose > 1)
+	{
+		snprintf(errText, ERR_BUFSIZE,
+				"reading from ep int: len=%d", size);
+		message(errText);
+		dump(buf, size);
+	}
 
-        if (verbose > 1)
-        {
-                snprintf(errText, ERR_BUFSIZE,
-                                                "reading from ep int: len=%d", size);
-                message(errText);
-                dump(buf, size);
-        }
+	if (!lost_synchro || 1)
+	{
+		for (i = 3; i < 18; i++)
+		{
+			unsigned short code = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
 
-        if (!lost_synchro || 1)
-        {
-                for (i = 3; i < 18; i++)
-                {
-                        unsigned short code = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
-                        if(code !=0x0c0c){ /*don't bother with 0c0c blocks, there 'empty'*/
-                                dataBlock=-1;
-                                gs7070SetControl(gs,buf+i*2);
-                        }
+			if (code != 0x0c0c)
+			{ /* don't bother with 0c0c blocks, there 'empty' */
+				dataBlock=-1;
+				gs7070SetControl(gs, buf + i * 2);
+			}
 
-                        /* this code need to be put into gs7070.c
-                        if (w != 0x0c0c && w != 0x734d && w != 0x7311 && w != 0xf301
-                                && w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w!=0xf313 && w!=0x7341)
-                        {
+			/* this code need to be put into gs7070.c
+			if (w != 0x0c0c && w != 0x734d && w != 0x7311 && w != 0xf301
+				&& w != 0xf34f && w!= 0xf343 && w!= 0x5311 && w != 0xf313
+				&& w != 0x7341)
+			{
+				snprintf(errText, ERR_BUFSIZE,
+						"synchro loss! w=%04x", w);
+				message(errText);
+				lost_synchro = 1;
+			}*/
+		}
+	}
+	if (dataBlock == 0)
+		/* no data/control information so don't bother to respond */
+		return;
 
-                                snprintf(errText, ERR_BUFSIZE,
-                                                "synchro loss! w=%04x", w);
-                                message(errText);
-                                lost_synchro = 1;
-                        }*/
-                }
-        }
-        if(dataBlock==0){/*no data/control information so don't bother to respond*/
-                return;
-        }
-        for (i = 0; i < 15; i++)
-        {
-                unsigned char b1, b2;
+	for (i = 0; i < 15; i++)
+	{
+		unsigned char b1, b2;
 
-                b1 = buf[6 + 2 * i + 0];
-                b2 = buf[6 + 2 * i + 1];
+		b1 = buf[6 + 2 * i + 0];
+		b2 = buf[6 + 2 * i + 1];
 
-                /* each word != 0x0c 0x0c is copied in the output buffer */
+		/* each word != 0x0c 0x0c is copied in the output buffer */
 
-                if (b1 != 0x0c || b2 != 0x0c)
-                {
-                        if ((unsigned int)(10 + outi) >= sizeof(outbuf))
-                        {
-                                message("warning: outbuf is too small");
-                                dump(buf, size);
-                                break;
-                        }
-                        outbuf[10 + outi] = b1;
-                        outbuf[10 + outi+1] = b2;
-                        gs7070GetResponse(gs,outbuf+10+outi);
-                        outi+=2;
-                }
-        }
+		if (b1 != 0x0c || b2 != 0x0c)
+		{
+			if ((unsigned int)(10 + outi) >= sizeof(outbuf))
+			{
+				message("warning: outbuf is too small");
+				dump(buf, size);
+				break;
+			}
+			outbuf[10 + outi] = b1;
+			outbuf[10 + outi+1] = b2;
+			gs7070GetResponse(gs, outbuf + 10 + outi);
+			outi += 2;
+		}
+	}
 
-        if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
-                                                sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
-        {
-                message("error on sending vendor device URB");
-                perror("error: can't send vendor device!");
-        }
-        else
-        {
-                if (verbose > 1)
-                {
-                        snprintf(errText, ERR_BUFSIZE,
-                                        "ctrl msg sent: len=%d", sizeof(outbuf));
-                        message(errText);
-                        dump(outbuf, sizeof(outbuf));
-                }
-        }
+	if (pusb_control_msg(fdusb, 0x40, 0xdd, 0xc02, 0x580, outbuf,
+			sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
+	{
+		message("error on sending vendor device URB");
+		perror("error: can't send vendor device!");
+	}
+	else
+	{
+		if (verbose > 1)
+		{
+			snprintf(errText, ERR_BUFSIZE,
+			"ctrl msg sent: len=%d", sizeof(outbuf));
+			message(errText);
+			dump(outbuf, sizeof(outbuf));
+		}
+	}
 }
 
-
-
-
-void handle_ep_data_in(unsigned char * buf, int size)
+void handle_ep_data_in(unsigned char* buf, int size)
 {
 	decode_usb_pkt(buf, size);
 }
 
 void handle_urb(pusb_urb_t urb)
 {
-	unsigned char * buf, * sbuf;
+	unsigned char* buf;
+	unsigned char* sbuf;
 	int idx, size, ret;
 
 	switch (pusb_urb_get_epnum(urb))
 	{
-	case EP_INT:
-		/* printf("interrupt!\n"); */
+		case EP_INT:
+			/* printf("interrupt!\n"); */
 
-		if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
-		{
-			do
+			if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
 			{
-/*
-				printf("interrupt %02x, packet len = %d\n",
-					   EP_INT, size);
-				dump(buf, size);
-*/
-				handle_ep_int(buf, size, fdusb);
-
-			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
-
-			/* we use the last buffer & size. And since, there is ONLY
-			   one buffer in INT transfer, this works
-			*/
-			ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, 0); /* SIGRTMIN); */
-			if (ret < 0)
-			{
-				message("error on re-submit URB on EP_INT");
-				perror("error: can't re-submit on EP_INT");
-			}
-		}
-		break;
-
-	case EP_DATA_IN:
-		/* printf("data in!\n"); */
-
-		if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
-		{
-			sbuf = buf;
-
-			do
-			{
-				if (size != 0)
+				do
 				{
-/*
-					printf("data_in %02x, packet len = %d\n",
-						   EP_DATA_IN, size);
+/*					printf("interrupt %02x, packet len = %d\n",
+						   EP_INT, size);
 					dump(buf, size);
 */
-					handle_ep_data_in(buf, size);
+					handle_ep_int(buf, size, fdusb);
+
 				}
-			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
+				while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
 
-			ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, MAX_EP_SIZE,
-							  PKT_NB, 0); /* SIGRTMIN); */
-			if (ret < 0)
-			{
-				message("error on re-submit URB on EP_DATA_IN");
-				perror("error: can't re-submit on ep EP_DATA_IN");
+				/* we use the last buffer & size. And since, there is ONLY
+				   one buffer in INT transfer, this works
+				*/
+				ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, 0); /* SIGRTMIN); */
+				if (ret < 0)
+				{
+					message("error on re-submit URB on EP_INT");
+					perror("error: can't re-submit on EP_INT");
+				}
 			}
-		}
-		break;
+			break;
 
-	case EP_DATA_OUT:
-		/* ok, nothing to say */
-		break;
+		case EP_DATA_IN:
+			/* printf("data in!\n"); */
 
-	default:
-		snprintf(errText, ERR_BUFSIZE,
-				"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
-		message(errText);
-		break;
+			if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
+			{
+				sbuf = buf;
+
+				do
+				{
+					if (size != 0)
+					{
+/*						printf("data_in %02x, packet len = %d\n",
+							   EP_DATA_IN, size);
+						dump(buf, size);
+*/
+						handle_ep_data_in(buf, size);
+					}
+				}
+				while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
+
+				ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, MAX_EP_SIZE,
+								  PKT_NB, 0); /* SIGRTMIN); */
+				if (ret < 0)
+				{
+					message("error on re-submit URB on EP_DATA_IN");
+					perror("error: can't re-submit on ep EP_DATA_IN");
+				}
+			}
+			break;
+
+		case EP_DATA_OUT:
+			/* ok, nothing to say */
+			break;
+
+		default:
+			snprintf(errText, ERR_BUFSIZE,
+					"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
+			message(errText);
+			break;
 	}
 }
 
@@ -1252,8 +1247,8 @@ void handle_urb(pusb_urb_t urb)
   and init_ep_data_int()
 */
 
-void handle_ep_data_in_ep_int(/*pusb_endpoint_t ep_data_in,
-							  pusb_endpoint_t ep_int, int fdout*/)
+void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
+							  pusb_endpoint_t ep_int, int fdout */)
 {
 	pusb_urb_t urb;
 
@@ -1272,7 +1267,7 @@ void handle_ep_data_in_ep_int(/*pusb_endpoint_t ep_data_in,
 		   Anyway, it's a quick fix.
 		*/
 
-		free (urb);
+		free(urb);
 	}
 
 	message("end of handle_ep_data_in_ep_int");
@@ -1288,8 +1283,8 @@ void handle_ep_data_in_ep_int(/*pusb_endpoint_t ep_data_in,
 void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 {
 	int r, n, tcount;
-	unsigned char *buf;
-	tcount=0;
+	unsigned char* buf;
+	tcount = 0;
 	
 	for (;;)
 	{
@@ -1314,10 +1309,13 @@ void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 			if (tcount > 3)
 			    break;
 		}
-	    else if (tcount > 0) tcount--;
+	    else
+			if (tcount > 0)
+				tcount--;
 	}
 
-	snprintf(errText, ERR_BUFSIZE, "end of handle_ep_data_out tcount=%d", tcount);
+	snprintf(errText, ERR_BUFSIZE,
+			"end of handle_ep_data_out tcount=%d", tcount);
 	message(errText);
 }
 
@@ -1386,8 +1384,8 @@ void get_unsigned_value(const char* param, unsigned int* var)
 	unsigned int value;
 	char* chk;
 
-	value = (unsigned int) strtoul(param, &chk, 10);
-	if (! *chk)
+	value = (unsigned int)strtoul(param, &chk, 10);
+	if (!*chk)
 		*var = value;
 }
 
@@ -1396,8 +1394,8 @@ void get_signed_value(const char* param, int* var)
 	int value;
 	char* chk;
 
-	value = (int) strtol(param, &chk, 10);
-	if (! *chk)
+	value = (int)strtol(param, &chk, 10);
+	if (!*chk)
 		*var = value;
 }
 
@@ -1407,45 +1405,49 @@ void get_hexa_value(const char* param, unsigned int* var)
 	char* chk;
 
 	value = strtoul(param, &chk, 0);
-	if (! *chk)
+	if (!*chk)
 		*var = value;
 }
 
-int tap_open(char *dev, int tun)
+int tap_open(char* dev, int tun)
 {
-    struct ifreq ifr;
-    int fd, err;
+	struct ifreq ifr;
+	int fd, err;
 
-    if( (fd = open("/dev/net/tun", O_RDWR | O_SYNC)) < 0 )
-       return -1;
+	if ((fd = open("/dev/net/tun", O_RDWR | O_SYNC)) < 0)
+	return(-1);
 
-    memset(&ifr, 0, sizeof(ifr));
-    if (tun) ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
-     else ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
-    if( *dev )
-       strncpy(ifr.ifr_name, dev, IFNAMSIZ);
- 
-    if( (err = ioctl(fd, TUNSETIFF, (void *) &ifr)) < 0 ){
-       close(fd);
-       return err;
-    }
-    strcpy(dev, ifr.ifr_name);
-    return fd;
+	memset(&ifr, 0, sizeof(ifr));
+	if (tun)
+		ifr.ifr_flags = IFF_TUN | IFF_NO_PI;
+	else
+		ifr.ifr_flags = IFF_TAP | IFF_NO_PI;
+	if (*dev)
+		strncpy(ifr.ifr_name, dev, IFNAMSIZ);
+
+	if ((err = ioctl(fd, TUNSETIFF, (void*) &ifr)) < 0)
+	{
+		close(fd);
+		return(err);
+	}
+	strcpy(dev, ifr.ifr_name);
+	return(fd);
 }
 
-int main(int argc, char *argv[])
+int main(int argc, char** argv)
 {
-	const char *logfile = LOG_FILE;
-	int   fdin, fdout, log;
-	int   i;
-	char dev[20]="";
+	const char* logfile = LOG_FILE;
+	int fdin, fdout, log;
+	int i;
+	char dev[20] = "";
 
 	this_process = getpid();
 	log = 0;
 
 	for (i = 1; i < argc; i++)
 	{
-		if (((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbosity") == 0) ) && (i + 1 < argc))
+		if (((strcmp(argv[i], "-v") == 0) || (strcmp(argv[i], "--verbosity") == 0) )
+			&& (i + 1 < argc))
 			get_signed_value(argv[++i], &verbose);
 		else
 		if ((strcmp(argv[i], "-vpi") == 0) && (i + 1 < argc))
@@ -1475,7 +1477,8 @@ int main(int argc, char *argv[])
 		if ((strcmp(argv[i], "--help") == 0) || (strcmp(argv[i], "-h") == 0))
 			usage(ERR_NONE);
 		else
-		if (((strcmp(argv[i], "-f") == 0) || (strcmp(argv[i], "--logfile") == 0) ) && (i + 1 < argc))
+		if (((strcmp(argv[i], "-f") == 0) || (strcmp(argv[i], "--logfile") == 0) )
+			&& (i + 1 < argc))
 		{
 			logfile = argv[++i];
 			if (!verbose)
@@ -1485,23 +1488,23 @@ int main(int argc, char *argv[])
 			if ((strcmp(argv[i], "-mode") == 0) && (i + 1 < argc))
 			{
 				int j;
-				char *mode;
+				char* mode;
 
-				mode=argv[++i];
-				j=-1;
-				while (++j<modes_count)
+				mode = argv[++i];
+				j = -1;
+				while (++j < modes_count)
 				{
-					if (!strcasecmp(mode,mode_name[j]))
+					if (!strcasecmp(mode, mode_name[j]))
 					{
-						frame_type=j;
+						frame_type = j;
 						break;
 					}
 				}
-				if (frame_type!=j)
+				if (frame_type != j)
 					usage(-1);
 			}
 			else
-			usage(-1);
+				usage(-1);
 	}
 
 	if (my_vci == 0xffff || my_vpi == 0xffff
@@ -1532,8 +1535,8 @@ int main(int argc, char *argv[])
 	if (!data_timeout)
 		data_timeout=DATA_TIMEOUT;
 	
-	if(frame_type > VCM_RFC2364)
-		syncHDLC=0;
+	if (frame_type > VCM_RFC2364)
+		syncHDLC = 0;
 						
 
 	/* duplicate in and out fd */
@@ -1545,8 +1548,14 @@ int main(int argc, char *argv[])
 	    fdout = dup(1);
 #if !defined(__FreeBSD__) && !defined(__NetBSD__)
 	}
-	else if ((frame_type == LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS ) || (frame_type == VCM_RFC_1483_BRIDGED_ETH)) fdin = fdout = tap_open(dev,0);
-	   else if ((frame_type == LLC_RFC1483_ROUTED_IP) || (VCM_RFC1483_ROUTED_IP)) fdin = fdout = tap_open(dev,1);
+	else
+		if ((frame_type == LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS)
+			|| (frame_type == VCM_RFC_1483_BRIDGED_ETH))
+			fdin = fdout = tap_open(dev, 0);
+		else
+			if ((frame_type == LLC_RFC1483_ROUTED_IP)
+				|| (VCM_RFC1483_ROUTED_IP))
+				fdin = fdout = tap_open(dev, 1);
 #endif	
 
 	/*
@@ -1617,7 +1626,7 @@ int main(int argc, char *argv[])
 		perror("reason");
 	}
 
-#if defined(__FreeBSD__) || defined(__NetBSD__)
+#if defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__)
 #define SOCKBUF (64 * 1024)
 	{
 		int sbuf, ss = sizeof(sbuf);
@@ -1792,7 +1801,7 @@ int main(int argc, char *argv[])
 	  Relay data betwwen ep_data_in (USB) =>  fdout (PPP)
 	*/
 
-	handle_ep_data_in_ep_int(/*ep_data_in, ep_int, fdout*/);
+	handle_ep_data_in_ep_int(/* ep_data_in, ep_int, fdout */);
 
 	/* we release all the interface we'd claim before exiting */
 	if (pusb_release_interface(fdusb, 0) < 0)

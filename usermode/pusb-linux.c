@@ -50,7 +50,7 @@ struct pusb_urb_t
 {
 	int ep;
 	int buf_nb;
-	unsigned char * buf [MAXBUFFER];
+	unsigned char* buf [MAXBUFFER];
 	int buf_size[MAXBUFFER];
 };
 
@@ -60,7 +60,8 @@ static const char id[] = "@(#) $Id$";
 static const char usb_path[] = "/proc/bus/usb";
 
 /* Device descriptor */
-struct usb_device_descriptor {
+struct usb_device_descriptor
+{
 	__u8  bLength;
 	__u8  bDescriptorType;
 	__u16 bcdUSB;
@@ -82,61 +83,61 @@ struct usb_device_descriptor {
    a usable file descriptor in this case. Else returns -1.
 */
 
-int test_file(const char *path, int vendorID, int productID)
+int test_file(const char* path, int vendorID, int productID)
 {
 	int fd;
 	struct usb_device_descriptor desc;
 	
-	fd = open(path,O_RDWR);
+	fd = open(path, O_RDWR);
 	if (fd == -1)
     {
 		perror(path);
 		return -1;
     }
   
-	if (read(fd,&desc,sizeof(desc)) == sizeof(desc))
+	if (read(fd, &desc, sizeof(desc)) == sizeof(desc))
     {
 		/* great, we read something */
 		
 		/* check, it match the correct structure */
-		
+
 		if (desc.bLength == sizeof(desc))
 		{
 			/*	  
-				  printf("=== %s ===\n",path);
-				  printf("  bLength         = %u\n",desc.bLength);
-				  printf("  bDescriptorType = %u\n",desc.bDescriptorType);
-				  printf("  bcdUSB          = %04x\n",desc.bcdUSB);
-				  printf("  idVendor        = %04x\n",desc.idVendor);
-				  printf("  idProduct       = %04x\n",desc.idProduct);
-				  printf("  bcdDevice       = %04x\n",desc.bcdDevice);
+				  printf("=== %s ===\n", path);
+				  printf("  bLength         = %u\n", desc.bLength);
+				  printf("  bDescriptorType = %u\n", desc.bDescriptorType);
+				  printf("  bcdUSB          = %04x\n", desc.bcdUSB);
+				  printf("  idVendor        = %04x\n", desc.idVendor);
+				  printf("  idProduct       = %04x\n", desc.idProduct);
+				  printf("  bcdDevice       = %04x\n", desc.bcdDevice);
 			*/
 			if (vendorID == desc.idVendor
 				&& productID == desc.idProduct)
-				return fd;
+				return(fd);
 		}
     }
 	
 	close(fd);
-	return -1;
+	return(-1);
 }
 
 /* search for a vendorID, productID. return -1 if search failed
    or a usable file descriptor
 */
 
-int usbfs_search(const char *path, int vendorID, int productID)
+int usbfs_search(const char* path, int vendorID, int productID)
 {
 	int result = -1;
 	
-	DIR * dir;
-	struct dirent * dirp;
+	DIR* dir;
+	struct dirent* dirp;
 	
 	dir = opendir(path);
 	if (dir == NULL)
     {
 		perror(path);
-		return -1;
+		return(-1);
     }
 	
 	while ((dirp=readdir(dir)) != NULL)
@@ -144,14 +145,14 @@ int usbfs_search(const char *path, int vendorID, int productID)
 		char file[PATH_MAX+1];
 		struct stat statbuf;
 		
-		if (strcmp(dirp->d_name,".")==0)
+		if (strcmp(dirp->d_name, ".")==0)
 			continue;
-		if (strcmp(dirp->d_name,"..")==0)
+		if (strcmp(dirp->d_name, "..")==0)
 			continue;
 		
-		sprintf(file,"%s/%s",path,dirp->d_name);
+		sprintf(file, "%s/%s", path, dirp->d_name);
 		
-		if (stat(file,&statbuf)!=0)
+		if (stat(file, &statbuf)!=0)
 		{
 			perror(file);
 			continue;
@@ -159,7 +160,7 @@ int usbfs_search(const char *path, int vendorID, int productID)
 		
 		if (S_ISDIR(statbuf.st_mode))
 		{
-			if ((result = usbfs_search(file,vendorID,productID)) < 0)
+			if ((result = usbfs_search(file, vendorID, productID)) < 0)
 				continue;
 			else
 				break;
@@ -173,7 +174,7 @@ int usbfs_search(const char *path, int vendorID, int productID)
 			if (statbuf.st_size != sizeof(struct usb_device_descriptor))
 				continue;
 			
-			if ((result=test_file(file,vendorID,productID)) < 0)
+			if ((result=test_file(file, vendorID, productID)) < 0)
 				continue;
 			else
 				break;
@@ -181,46 +182,46 @@ int usbfs_search(const char *path, int vendorID, int productID)
     }
 	
 	closedir(dir);
-	return result;
+	return(result);
 }
 
 static pusb_device_t make_device(int fd)
 {
     pusb_device_t dev;
 
-    if(!(dev = malloc(sizeof(*dev))))
+    if (!(dev = malloc(sizeof(*dev))))
 	{
 		close (fd);
-		return 0;
+		return(0);
 	}
 	
     dev->fd = fd;
-    return dev;
+    return(dev);
 }
 
 pusb_device_t pusb_search_open(int vendorID, int productID)
 {
 	int fd;
 
-	fd = usbfs_search("/proc/bus/usb",vendorID,productID);
+	fd = usbfs_search("/proc/bus/usb", vendorID, productID);
 	if (fd < 0)
-		return NULL;
+		return(NULL);
 
-	return make_device(fd);
+	return(make_device(fd));
 }
 
-pusb_device_t pusb_open(const char *path)
+pusb_device_t pusb_open(const char* path)
 {
 	int fd; 
 
-	fd = open(path,O_RDWR);
+	fd = open(path, O_RDWR);
 	if (fd < 0)
 	{
 		perror(path);
-		return NULL;
+		return(NULL);
 	}
 
-	return make_device(fd);
+	return(make_device(fd));
 }
 
 int pusb_close(pusb_device_t dev)
@@ -228,22 +229,22 @@ int pusb_close(pusb_device_t dev)
 	int ret;
 
 	ret = close (dev->fd);
-	free (dev);
+	free(dev);
 
-	return ret;
+	return(ret);
 }
 
 int pusb_control_msg(pusb_device_t dev,
 		     int request_type, int request,
 		     int value, int index, 
-		     unsigned char *buf, int size, int timeout)
+		     unsigned char* buf, int size, int timeout)
 {
 	int ret;
 	struct usbdevfs_ctrltransfer ctrl;
 /*
 	printf("URB xxx: out request_type=0x%02x request=%08x value=%08x index=%08x\n",
 		   request_type, request, value, index);
-	dump(buf,size);
+	dump(buf, size);
 */
 	ctrl.requesttype = request_type;
 	ctrl.request     = request;
@@ -253,16 +254,16 @@ int pusb_control_msg(pusb_device_t dev,
 	ctrl.timeout     = timeout;
 	ctrl.data        = buf;
 
-	ret = ioctl(dev->fd,USBDEVFS_CONTROL,&ctrl);
-	return ret;
+	ret = ioctl(dev->fd, USBDEVFS_CONTROL, &ctrl);
+	return(ret);
 }
 
 int pusb_set_configuration(pusb_device_t dev, int config)
 {
   int ret;
 
-  ret = ioctl(dev->fd,USBDEVFS_SETCONFIGURATION,&config);
-  return ret;
+  ret = ioctl(dev->fd, USBDEVFS_SETCONFIGURATION, &config);
+  return(ret);
 }
 
 int pusb_set_interface(pusb_device_t dev, int interface, int alternate)
@@ -273,8 +274,8 @@ int pusb_set_interface(pusb_device_t dev, int interface, int alternate)
   setintf.interface = interface;
   setintf.altsetting = alternate;
 
-  ret = ioctl(dev->fd,USBDEVFS_SETINTERFACE,&setintf);
-  return ret;
+  ret = ioctl(dev->fd, USBDEVFS_SETINTERFACE, &setintf);
+  return(ret);
 }
 
 pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
@@ -283,23 +284,23 @@ pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 	int foo;
 
 	foo=flags||foo; /* trick for pedantic C compilers */
-	ep = (pusb_endpoint_t) malloc(sizeof(*ep));
+	ep = (pusb_endpoint_t)malloc(sizeof(*ep));
 	if (ep == NULL)
-		return NULL;
+		return(NULL);
 
 	ep->fd = dev->fd;
 	ep->ep = epnum & 0xf;
 
-	return ep;
+	return(ep);
 }
 
-int pusb_endpoint_rw_no_timeout(int fd,int ep,
-		       unsigned char *buf, int size)
+int pusb_endpoint_rw_no_timeout(int fd, int ep,
+		       unsigned char* buf, int size)
 {
-	struct usbdevfs_urb urb, * purb = &urb;
+	struct usbdevfs_urb urb, *purb = &urb;
 	int ret;
 
-	memset(purb,0,sizeof(urb));
+	memset(purb, 0, sizeof(urb));
 
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep;
@@ -310,30 +311,32 @@ int pusb_endpoint_rw_no_timeout(int fd,int ep,
 
 	do
 	{
-		ret = ioctl(fd,USBDEVFS_SUBMITURB,purb);
-	} while (ret < 0 && errno == EINTR);
+		ret = ioctl(fd, USBDEVFS_SUBMITURB, purb);
+	}
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0)
-		return ret;
+		return(ret);
 
 	do
 	{
-		ret = ioctl(fd,USBDEVFS_REAPURB,&purb);
-	} while (ret < 0 && errno == EINTR);
+		ret = ioctl(fd, USBDEVFS_REAPURB, &purb);
+	}
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0)
-		return ret;
+		return(ret);
 
 	if (purb != &urb)
-		printf("purb=%p, &urb=%p\n",(void*)purb,(void*)&urb);
+		printf("purb=%p, &urb=%p\n", (void*)purb, (void*)&urb);
 
 	if (purb->buffer != buf)
-		printf("purb->buffer=%p, buf=%p\n",(void*)purb->buffer,(void*)buf);
+		printf("purb->buffer=%p, buf=%p\n", (void*)purb->buffer, (void*)buf);
 
-	return purb->actual_length;
+	return(purb->actual_length);
 }
 
-int pusb_endpoint_rw(int fd,int ep,unsigned char * buf,int size,int timeout)
+int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int timeout)
 {
 	struct usbdevfs_bulktransfer bulk;
 	int ret, received = 0;
@@ -349,12 +352,12 @@ int pusb_endpoint_rw(int fd,int ep,unsigned char * buf,int size,int timeout)
 
 		do
 		{
-			ret = ioctl(fd,USBDEVFS_BULK,&bulk);
+			ret = ioctl(fd, USBDEVFS_BULK, &bulk);
 		}
 		while (ret < 0 && errno == EINTR);
 
 		if (ret < 0)
-			return ret;
+			return(ret);
 		
 		buf  += ret;
 		size -= ret;
@@ -363,48 +366,48 @@ int pusb_endpoint_rw(int fd,int ep,unsigned char * buf,int size,int timeout)
     }
 	while (ret==(int)bulk.len && size>0);
 	
-	return received;
+	return(received);
 }
 
 int pusb_endpoint_read(pusb_endpoint_t ep, 
-			unsigned char *buf, int size, int timeout)
+			unsigned char* buf, int size, int timeout)
 {
 	if (timeout == 0)
-		return pusb_endpoint_rw_no_timeout(ep->fd,ep->ep|USB_DIR_IN,buf,size);
-	return pusb_endpoint_rw(ep->fd,ep->ep|USB_DIR_IN,buf,size,timeout);
+		return(pusb_endpoint_rw_no_timeout(ep->fd, ep->ep|USB_DIR_IN, buf, size));
+	return(pusb_endpoint_rw(ep->fd ,ep->ep|USB_DIR_IN, buf, size, timeout));
 }
 
 int pusb_endpoint_write(pusb_endpoint_t ep, 
-			const unsigned char *buf, int size, int timeout)
+			const unsigned char* buf, int size, int timeout)
 {
 	if (timeout == 0)
-		return pusb_endpoint_rw_no_timeout(
+		return(pusb_endpoint_rw_no_timeout(
 				ep->fd,
 				ep->ep | USB_DIR_OUT,
-				(unsigned char*) buf,	/* Not supposed to be filled */
-				size);
+				(unsigned char*) buf, /* Not supposed to be filled */
+				size));
 	
-	return pusb_endpoint_rw(
+	return(pusb_endpoint_rw(
 			ep->fd,
 			ep->ep | USB_DIR_OUT,
-			(unsigned char*)buf,	/* Not supposed to be filled */
+			(unsigned char*)buf, /* Not supposed to be filled */
 			size,
-			timeout);
+			timeout));
 }
 
-int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char * buf,
+int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 							   int size, int signr)
 {
-	struct usbdevfs_urb * purb;
+	struct usbdevfs_urb* purb;
 	int ret;
 /*
-	printf("submit BULK read %p, len %d\n",buf,size);
+	printf("submit BULK read %p, len %d\n", buf, size);
 */
-	purb = (struct usbdevfs_urb *)malloc(sizeof(struct usbdevfs_urb));
+	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	if (purb == NULL)
-		return -1;
+		return(-1);
 	
-	memset(purb,0,sizeof(struct usbdevfs_urb));
+	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_IN;	
 	purb->flags  = USBDEVFS_URB_QUEUE_BULK;
@@ -414,29 +417,30 @@ int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char * buf,
 
 	do
 	{
-		ret = ioctl(ep->fd,USBDEVFS_SUBMITURB,purb);
-	} while (ret < 0 && errno == EINTR);
+		ret = ioctl(ep->fd, USBDEVFS_SUBMITURB, purb);
+	}
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0)
-		free (purb);
+		free(purb);
 
-	return ret;
+	return(ret);
 }
 
-int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char * buf,
+int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 							   int size, int signr)
 {
-	struct usbdevfs_urb * purb;
+	struct usbdevfs_urb* purb;
 	int ret;
 /*
-	printf("URB xxx: BULK/INT endpoint=%d size=%d\n",ep->ep,size);
-	dump(buf,size);
+	printf("URB xxx: BULK/INT endpoint=%d size=%d\n", ep->ep, size);
+	dump(buf, size);
 */
-	purb = (struct usbdevfs_urb *)malloc(sizeof(struct usbdevfs_urb));
+	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	if (purb == NULL)
-		return -1;
+		return(-1);
 	
-	memset(purb,0,sizeof(struct usbdevfs_urb));
+	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_OUT;	
 	purb->flags  = USBDEVFS_URB_QUEUE_BULK;
@@ -446,31 +450,32 @@ int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char * buf,
 
 	do
 	{
-		ret = ioctl(ep->fd,USBDEVFS_SUBMITURB,purb);
-	} while (ret < 0 && errno == EINTR);
+		ret = ioctl(ep->fd, USBDEVFS_SUBMITURB, purb);
+	}
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0)
-		free (purb);
+		free(purb);
 
-	return ret;
+	return(ret);
 }
 
-int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char * buf,
+int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
 								   int size, int signr)
 {
-	struct usbdevfs_urb * purb;
+	struct usbdevfs_urb* purb;
 	int ret;
 
-/*	printf("submit INT read %p, len = %d\n",buf,size);*/
+/*	printf("submit INT read %p, len = %d\n", buf, size);*/
 
-	purb = (struct usbdevfs_urb *)malloc(sizeof(struct usbdevfs_urb));
+	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	if (purb == NULL)
-		return -1;
+		return(-1);
 	
-	memset(purb,0,sizeof(struct usbdevfs_urb));
+	memset(purb, 0, sizeof(struct usbdevfs_urb));
 
 	purb->type = USBDEVFS_URB_TYPE_BULK; /* INTERRUPT is not supported,
-											and BULK works with ep int,so */
+											and BULK works with ep int, so */
 	purb->endpoint = ep->ep | USB_DIR_IN;
 	purb->flags  = USBDEVFS_URB_QUEUE_BULK;
 	purb->buffer = buf;
@@ -479,33 +484,34 @@ int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char * buf,
 
 	do
 	{
-		ret = ioctl(ep->fd,USBDEVFS_SUBMITURB,purb);
-	} while (ret < 0 && errno == EINTR);
+		ret = ioctl(ep->fd, USBDEVFS_SUBMITURB, purb);
+	}
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0)
-		free (purb);
+		free(purb);
 
-	return ret;
+	return(ret);
 }
 
 /* buf is at least pkt_size*pkt_nb bytes */
-int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char * buf,
+int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 								  int pkt_size, int pkt_nb, int signr)
 {
-	struct usbdevfs_urb  *purb;
+	struct usbdevfs_urb* purb;
 	int i, ret;
 
 /*
-	printf("submit ISO read ep=%d buf=%p len=%d\n",ep->ep,buf,pkt_size*pkt_nb);
+	printf("submit ISO read ep=%d buf=%p len=%d\n", ep->ep, buf, pkt_size * pkt_nb);
 */
 	
-	purb = (struct usbdevfs_urb *)malloc(sizeof(struct usbdevfs_urb)
-				 + pkt_nb * sizeof(struct usbdevfs_iso_packet_desc));
+	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb)
+				 + pkt_nb* sizeof(struct usbdevfs_iso_packet_desc));
 	
 	if (purb == NULL)
-		return -1;
+		return(-1);
 	
-	memset(purb,0,sizeof(struct usbdevfs_urb)
+	memset(purb, 0, sizeof(struct usbdevfs_urb)
 		   + pkt_nb * sizeof(struct usbdevfs_iso_packet_desc));
 	
 	purb->type = USBDEVFS_URB_TYPE_ISO;
@@ -517,18 +523,19 @@ int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char * buf,
 	purb->start_frame = 0;
 	purb->number_of_packets = pkt_nb;
 
-	for(i=0;i<pkt_nb;i++) 
+	for (i=0;i<pkt_nb;i++) 
 		purb->iso_frame_desc[i].length = pkt_size;
 	
 	do
 	{
-		ret = ioctl(ep->fd,USBDEVFS_SUBMITURB,purb); 
-	} while (ret < 0 && errno == EINTR);
+		ret = ioctl(ep->fd, USBDEVFS_SUBMITURB, purb); 
+	}
+	while (ret < 0 && errno == EINTR);
 
 	if (ret < 0)
-		free (purb);
+		free(purb);
 
-	return ret;
+	return(ret);
 }
 
 /*
@@ -538,7 +545,7 @@ int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char * buf,
 pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 {
 	int ret;
-	struct usbdevfs_urb * purb;
+	struct usbdevfs_urb* purb;
 	pusb_urb_t urb;
 	int i, offset, retry;
 
@@ -547,18 +554,19 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	{
 		do
 		{
-			ret = ioctl(dev->fd,USBDEVFS_REAPURB /* NDELAY */, &purb);
-		} while (ret < 0 && errno == EINTR);
+			ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
+		}
+		while (ret < 0 && errno == EINTR);
 
 		if (ret < 0 && errno == EAGAIN)
 			/* ok, there was no URB waiting for us */
 			return NULL;
 
 		/* si ioctl echoue, je retourne -1 code d'erreur dans errno	*/
-		if(ret<0)
+		if (ret<0)
 		{
 			perror("ioctl USBDEVFS_REAPURB");
-			return NULL;
+			return(NULL);
 		}
 
 		if (purb->status == -84 /* USB_ST_CRC */)
@@ -572,117 +580,117 @@ pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	
 	if (purb->status !=0 || purb->error_count != 0)
 	{
-		printf("ep=%02x status=%d error_count=%d\n",purb->endpoint,
-			   purb->status,purb->error_count);
-		return NULL;
+		printf("ep=%02x status=%d error_count=%d\n", purb->endpoint,
+			   purb->status, purb->error_count);
+		return(NULL);
 	}
 
 	urb = (pusb_urb_t) malloc(sizeof(struct pusb_urb_t));
 	if (urb == NULL)
 	{
 		perror("malloc");
-		return NULL;
+		return(NULL);
 	}
 
 	urb->ep = purb->endpoint;
 
 	switch (purb->type)
 	{
-	case USBDEVFS_URB_TYPE_ISO:
-		urb->buf_nb = purb->number_of_packets;
-		offset = 0;
-		for (i=0;i<purb->number_of_packets && i<MAXBUFFER;i++)
-		{
-			urb->buf[i] = (unsigned char*)purb->buffer + offset;
-			urb->buf_size[i] = purb->iso_frame_desc[i].actual_length;
-/*
-			printf("size [%d] = %p / %d\n",i,urb->buf[i], urb->buf_size[i]);
-*/
-			offset += purb->iso_frame_desc[i].length;
-		}
-		break;
+		case USBDEVFS_URB_TYPE_ISO:
+			urb->buf_nb = purb->number_of_packets;
+			offset = 0;
+			for (i=0;i<purb->number_of_packets && i<MAXBUFFER;i++)
+			{
+				urb->buf[i] = (unsigned char*)purb->buffer + offset;
+				urb->buf_size[i] = purb->iso_frame_desc[i].actual_length;
+	/*
+				printf("size [%d] = %p / %d\n", i, urb->buf[i], urb->buf_size[i]);
+	*/
+				offset += purb->iso_frame_desc[i].length;
+			}
+			break;
 
-	case USBDEVFS_URB_TYPE_INTERRUPT:
-	case USBDEVFS_URB_TYPE_BULK:
-/*
-		if (purb->endpoint & USB_DIR_IN)
-		{
-			printf("URB xxx : BULK/INT in endpoint=%d size=%d\n",
-				   purb->endpoint, purb->actual_length);
-			dump(purb->buffer,purb->actual_length);
-		}
-*/
-		/* no break here */
+		case USBDEVFS_URB_TYPE_INTERRUPT:
+		case USBDEVFS_URB_TYPE_BULK:
+	/*
+			if (purb->endpoint & USB_DIR_IN)
+			{
+				printf("URB xxx : BULK/INT in endpoint=%d size=%d\n",
+					   purb->endpoint, purb->actual_length);
+				dump(purb->buffer, purb->actual_length);
+			}
+	*/
+			/* no break here */
 
-	case USBDEVFS_URB_TYPE_CONTROL:
-		urb->buf_nb = 1;
-		urb->buf[0] = purb->buffer;
-		urb->buf_size[0] = purb->actual_length;
-		break;
+		case USBDEVFS_URB_TYPE_CONTROL:
+			urb->buf_nb = 1;
+			urb->buf[0] = purb->buffer;
+			urb->buf_size[0] = purb->actual_length;
+			break;
 
-	default:
-		printf("unsupported URB\n");
-		urb->buf_nb = 0;
+		default:
+			printf("unsupported URB\n");
+			urb->buf_nb = 0;
 	}
 
 	/* free it, as it's allocated in pusb_endpoint_[iso_]read */
-	free (purb);
-	return urb;
+	free(purb);
+	return(urb);
 }
 
 
 int pusb_endpoint_reset(pusb_endpoint_t ep)
 {
-	return ioctl(ep->fd,USBDEVFS_RESETEP,&ep->ep);
+	return(ioctl(ep->fd, USBDEVFS_RESETEP, &ep->ep));
 }
 
 int pusb_endpoint_close(pusb_endpoint_t ep)
 {
 	/* nothing to do on the struct content */
-	free (ep);
-	return 0;
+	free(ep);
+	return(0);
 }
 
-int pusb_claim_interface(pusb_device_t dev,int interface)
+int pusb_claim_interface(pusb_device_t dev, int interface)
 {
-  int ret;
+	int ret;
 
-  ret = ioctl(dev->fd, USBDEVFS_CLAIMINTERFACE,&interface);
-  return ret;
+	ret = ioctl(dev->fd, USBDEVFS_CLAIMINTERFACE, &interface);
+	return(ret);
 }
 
-int pusb_release_interface(pusb_device_t dev,int interface)
+int pusb_release_interface(pusb_device_t dev, int interface)
 {
-  int ret;
+	int ret;
 
-  ret = ioctl(dev->fd,USBDEVFS_RELEASEINTERFACE,&interface);
-  return ret;
+	ret = ioctl(dev->fd, USBDEVFS_RELEASEINTERFACE, &interface);
+	return(ret);
 }
 
 int pusb_urb_get_epnum(pusb_urb_t urb)
 {
-	return urb->ep;
+	return(urb->ep);
 }
 
 int pusb_urb_buffer_first(pusb_urb_t urb,
-						  unsigned char ** pbuf, int * psize, int * pidx)
+						  unsigned char** pbuf, int* psize, int* pidx)
 {
-	* pidx = 0;
-	return pusb_urb_buffer_next(urb, pbuf, psize, pidx);
+	*pidx = 0;
+	return(pusb_urb_buffer_next(urb, pbuf, psize, pidx));
 }
 
 int pusb_urb_buffer_next(pusb_urb_t urb,
-						 unsigned char ** pbuf, int * psize, int * pidx)
+						 unsigned char** pbuf, int* psize, int* pidx)
 {
-	int idx = * pidx;
+	int idx = *pidx;
 
 	if (idx < urb->buf_nb && idx < MAXBUFFER)
 	{
 		*pbuf = urb->buf[idx];
 		*psize = urb->buf_size[idx];
 		(*pidx) ++;
-		return 1;
+		return(1);
 	}
 
-	return 0;
+	return(0);
 }
