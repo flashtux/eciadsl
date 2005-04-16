@@ -3,15 +3,15 @@
 # the tar.bz2 should contain a directory eciadsl-usermode-0.10
 
 Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
-Name:     eciadsl-usermode
-Version:	0.10
+Name: @PACKAGE_NAME@
+Version: @PACKAGE_VERSION@
 Release:	1
 URL:      http://eciadsl.flashtux.org/
 License:	GPL
 Group:		Networking/Other
 Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
 
-Source:		http://eciadsl.flashtux.org/download/%{name}-%{version}.tar.bz2
+Source:		http://eciadsl.flashtux.org/download/%{name}-%{version}.tar.gz
 
 BuildRoot:	%_tmppath/%name-%version-%release
 Requires:   ppp, rp-pppoe, tcl, tk
@@ -30,14 +30,12 @@ that handles the modem. A kernel module is under development.
 %setup -q
 
 %build
-# compile executable
-./configure --enable-rpm-maintainer-mode --prefix=/usr \
-    --doc-prefix=/usr/share --doc-dir=doc/%name-%version
-make
+%configure
+%make
 
 %install
 rm -rf "$RPM_BUILD_ROOT"   
-make ROOT="$RPM_BUILD_ROOT" install
+%makeinstall
 
 %pre
 # pre-install script

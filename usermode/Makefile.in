@@ -207,7 +207,7 @@ dist_sysconf_DATA =
 debian_DIST = debian/changelog debian/control debian/copyright debian/rules \
 	debian/docs
 
-rpm_DIST = eciadsl-usermode.spec
+rpm_DIST = eciadsl-usermode.spec eciadsl-usermode.spec.in
 EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
 	eciadsl-start.in eciadsl-stop eciadsl-doctor.in \
 	eciadsl-config-tk.in eciadsl-config-text.in \
