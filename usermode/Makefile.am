@@ -11,7 +11,7 @@ bin_SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor \
 eciadsl_firmware_SOURCES = eciadsl-firmware.c pusb.c pusb.h util.c util.h \
 	gsinterface.c gsinterface.h
 
-eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c pusb.c util.c \
+eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c semaphore.h pusb.c util.c \
 	gsinterface.c
 
 eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c \
@@ -21,8 +21,15 @@ eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
 eciadsl_check_hdlc_bug_SOURCES = eciadsl-check-hdlc-bug.c
 
+debian_DIST = debian/changelog debian/control debian/copyright debian/rules \
+	debian/docs
+
+rpm_DIST = eciadsl-usermode.spec
+
 EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
-	eciadsl-stop
+	eciadsl-stop eciadsl-probe-device eciadsl-probe-synch \
+	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl $(debian_DIST) \
+	$(rpm_DIST)
 
 AM_CPPFLAGS = -DETC_DIR=\"@sysconfdir@\" -DCONF_DIR=\"@sysconfdir@/eciadsl\" \
 	-DDOC_DIR=\"@prefix@/doc/eciadsl@\"
@@ -45,7 +52,7 @@ eciadsl-config-tk: $(srcdir)/eciadsl-config-tk.in Makefile
 	$(edit) < $< > $@.tmp
 	mv $@.tmp $@
 
-eciadsl-config-test: $(srcdir)/eciadsl-config-text.in Makefile
+eciadsl-config-text: $(srcdir)/eciadsl-config-text.in Makefile
 	rm -f $@ $@.tmp
 	$(edit) < $< > $@.tmp
 	mv $@.tmp $@

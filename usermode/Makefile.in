@@ -77,7 +77,7 @@ bin_SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor 	eciadsl-config-tk eciad
 eciadsl_firmware_SOURCES = eciadsl-firmware.c pusb.c pusb.h util.c util.h 	gsinterface.c gsinterface.h
 
 
-eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c pusb.c util.c 	gsinterface.c
+eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c semaphore.h pusb.c util.c 	gsinterface.c
 
 
 eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c 	gsinterface.c
@@ -87,7 +87,12 @@ eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
 eciadsl_check_hdlc_bug_SOURCES = eciadsl-check-hdlc-bug.c
 
-EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h 	eciadsl-stop
+debian_DIST = debian/changelog debian/control debian/copyright debian/rules 	debian/docs
+
+
+rpm_DIST = eciadsl-usermode.spec
+
+EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h 	eciadsl-stop eciadsl-probe-device eciadsl-probe-synch 	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl $(debian_DIST) 	$(rpm_DIST)
 
 
 AM_CPPFLAGS = -DETC_DIR=\"@sysconfdir@\" -DCONF_DIR=\"@sysconfdir@/eciadsl\" 	-DDOC_DIR=\"@prefix@/doc/eciadsl@\"
@@ -100,7 +105,7 @@ edit = sed 	-e 's,\@bindir\@,$(bindir),g' 	-e 's,\@sysconfdir\@,$(sysconfdir),g'
 
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
-CONFIG_CLEAN_FILES =  VERSION
+CONFIG_CLEAN_FILES =  VERSION eciadsl-usermode.spec
 PROGRAMS =  $(bin_PROGRAMS)
 
 
@@ -138,7 +143,8 @@ CCLD = $(CC)
 LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 DIST_COMMON =  README AUTHORS COPYING ChangeLog INSTALL Makefile.am \
 Makefile.in NEWS TODO VERSION.in aclocal.m4 config.guess config.sub \
-configure configure.ac install-sh missing mkinstalldirs
+configure configure.ac eciadsl-usermode.spec.in install-sh missing \
+mkinstalldirs
 
 
 DISTFILES = $(DIST_COMMON) $(SOURCES) $(HEADERS) $(TEXINFOS) $(EXTRA_DIST)
@@ -169,6 +175,8 @@ config.status: $(srcdir)/configure $(CONFIG_STATUS_DEPENDENCIES)
 $(srcdir)/configure: $(srcdir)/configure.ac $(ACLOCAL_M4) $(CONFIGURE_DEPENDENCIES)
 	cd $(srcdir) && $(AUTOCONF)
 VERSION: $(top_builddir)/config.status VERSION.in
+	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
+eciadsl-usermode.spec: $(top_builddir)/config.status eciadsl-usermode.spec.in
 	cd $(top_builddir) && CONFIG_FILES=$@ CONFIG_HEADERS= $(SHELL) ./config.status
 
 mostlyclean-binPROGRAMS:
@@ -323,6 +331,7 @@ distdir: $(DISTFILES)
 	distdir=`cd $(distdir) && pwd`; \
 	cd $(top_srcdir) \
 	  && $(AUTOMAKE) --include-deps --build-dir=$$here --srcdir-name=$(top_srcdir) --output-dir=$$top_distdir --gnu Makefile
+	$(mkinstalldirs) $(distdir)/debian
 	@for file in $(DISTFILES); do \
 	  d=$(srcdir); \
 	  if test -d $$d/$$file; then \
@@ -451,7 +460,7 @@ eciadsl-config-tk: $(srcdir)/eciadsl-config-tk.in Makefile
 	$(edit) < $< > $@.tmp
 	mv $@.tmp $@
 
-eciadsl-config-test: $(srcdir)/eciadsl-config-text.in Makefile
+eciadsl-config-text: $(srcdir)/eciadsl-config-text.in Makefile
 	rm -f $@ $@.tmp
 	$(edit) < $< > $@.tmp
 	mv $@.tmp $@
