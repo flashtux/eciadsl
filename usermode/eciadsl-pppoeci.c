@@ -1359,7 +1359,7 @@ void* fn_handle_ep_data_out(void* ignored)
 
 void version(const int full)
 {
-	printf("%s, part of " PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n",
+	printf("%s, part of " PACKAGE_NAME PACKAGE_VERSION " (" __DATE__ " " __TIME__ ")\n",
 			exec_filename);
 	if (full)
 		printf("%s\n", id);
@@ -1393,7 +1393,7 @@ void usage(const int ret)
 					"\n");
 	fprintf(stderr, "vpi value must be between 0 and %u\n", 0xfff);
 	fprintf(stderr, "vci value must be between 0 and %u\n", 0xffff);
-	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
+	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from " CONF_DIR "/eciadsl.conf\n"
 					"are assumed.\n"
 					"\n");
 	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci used\n"

@@ -1,0 +1,411 @@
+#!/bin/sh
+# ************************************************************************
+# *                                                                      *
+# *   eciadsl-makeconfig - EciAdsl Linux driver configuration script     *
+# *                        by FlashCode and Crevetor (c) 14/04/2002      *
+# *                                                                      *
+# *          For any support, contact one of us :                        *
+# *           - FlashCode: flashcode@flashtux.org                        *
+# *                        http://eciadsl.flashtux.org                   *
+# *           - Crevetor : areversat@caramail.com                        *
+# *                                                                      *
+# *  Parameters for this script :                                        *
+# *    1  = mode                                                         *
+# *    2  = username + domain (username@domain)                          *
+# *    3  = password (given by provider)                                 *
+# *    4  = path to eciadsl-pppoeci (eg: /usr/local/bin/eciadsl-pppoeci) *
+# *    5  = DNS 1 (depends on provider, 0 or "" = skipped)               *
+# *    6  = DNS 2 (depends on provider, 0 or "" = skipped)               *
+# *    7  = VPI (depends on provider)                                    *
+# *    8  = VCI (depends on provider)                                    *
+# *    9  = VID/PID before synchro (example: 05472131 for ECI modem)     *
+# *    10 = VID/PID after synchro  (example: 09158000 for ECI modem)     *
+# *    11 = path to a synch .bin                                         *
+# *    12 = path to a firmware .bin                                      *
+# *    13 = static IP                                                    *
+# *    14 = gateway IP                                                   *
+# *    15 = use static IP (yes/no)                                       *
+# *    16 = use DHCP (yes/no)                                            *
+# *    17 = modem                                                        *
+# *    18 = provider                                                     *
+# *    19 = GlobeSpan Chipset                                            *
+# *    20 = USB alt Interface value for SYNCH process                    *
+# *    21 = USB alt Interface value for PPPOECI process                  *
+# *                                                                      *
+# ************************************************************************
+#  19/10/2004 kolja (gavaatbergamoblog.it)
+#  added new configuration parameters for GS7470 chipset support.
+#  (params 19-21)
+#
+
+function backup()
+{
+	if [ -f "$1" ]
+	then
+	    backupfile="$1.bak"
+	    num=0
+	    while [ -s "$backupfile" ]
+	    do
+	        num=`expr $num + 1`
+	        backupfile="$1.bak$num"
+	    done
+        echo -n "backing up $1 to $backupfile.. "
+        cp -f "$1" "$backupfile"
+		test $? -ne 0 && exit 255
+        echo "OK"
+	fi
+}
+
+function set_synch()
+{
+	if [ -z "$1" ]
+	then
+		echo "ERROR: missing synch .bin file (use --synch /path/filename)"
+		exit 1
+	fi
+	if [ "${1:0:1}" != "/" ]
+	then
+		echo "ERROR: illegal synch .bin path/name"
+    	echo "you must use an absolute path name (for instance: /etc/eciadsl/synchXX.bin)"
+    	exit 1
+	fi
+	if [ ! -s "$1" -o -L "$1" ]
+	then
+    	echo "ERROR: $1 is not a valid synch .bin (must be a regular file)"
+    	exit 1
+	fi
+	if [ ! -f "$conffile" ]
+	then
+		echo "ERROR: couldn't find config file $conffile"
+		exit 1
+	fi
+	backup "$conffile"
+	tmpconffile="/tmp/eciadsl.conf.tmp"
+	TMP=$(echo "$1" | sed "s/\//\\\\\//g")
+	sed "s/^[ \t]*SYNCH[ \t]*=.*/SYNCH=$TMP/g" "$conffile" >> "$tmpconffile"
+	if [ -s "$tmpconffile" ]
+	then
+		mv -f "$tmpconffile" "$conffile"
+	else
+		rm -f "$tmpconffile"
+		echo "SYNCH=$2" >> "$conffile"
+	fi
+	echo "OK"
+}
+
+function update_entry()
+{
+	grep -E "^[ \t]*$1[ \t]*=.*" "$backupfile" > /dev/null
+	if [ $? -eq 0 ]
+	then
+		echo "s/^[ \t]*$1[ \t]*=.*/$1=$2/g" >> "$tmpupdatefile"
+	else
+		echo "$1=$2" >> "$tmpaddfile"
+	fi
+}
+
+
+# <CONFIG>
+BIN_DIR="@bindir@"
+ETC_DIR="@sysconfdir@"
+CONF_DIR="@sysconfdir@/eciadsl"
+PPPD_DIR="@sysconfdir@/ppp"
+VERSION="@PACKAGE_VERSION@"
+# </CONFIG>
+
+TMPFILE="/tmp/${0##*/}.tmp"
+conffile="$CONF_DIR/eciadsl.conf"
+case "$1" in
+"--version"|"-v")	echo "$VERSION"
+					exit 0
+					;;
+"--synch")			set_synch "$2"
+					exit 0
+					;;
+esac
+
+#
+# check parameters
+#
+
+if [ $UID -ne 0 ]
+then
+    echo -e "\nERROR: you must be root in order to run this script"
+    exit 255
+fi
+
+if [ $# -ne 21 ]
+then
+    echo -e "\nERROR: invalid number of parameters"
+    echo -e "syntax:\n  eciadsl-makeconfig <mode> <username> <password> </path/to/eciadsl-pppoeci> <dns1> <dns2> <vpi> <vci>  <vidpid1> <vidpid2> </path/to/synch.bin> </path/to/firmware.bin> <staticip> <gateway> <use_staticip> <use_dhcp> <modem> <provider> <modemchipset> <altsynch> <altpppoeci>"
+    exit 1
+fi
+
+mode="$1"
+username="$2"
+password="$3"
+pppoeci="$4"
+dns1="$5"
+dns2="$6"
+vpi="$7"
+vci="$8"
+vid1=`echo $9 | cut -c 1-4`
+pid1=`echo $9 | cut -c 5-8`
+vid2=`echo ${10} | cut -c 1-4`
+pid2=`echo ${10} | cut -c 5-8`
+synch="${11}"
+firmware="${12}"
+staticip=${13}
+gateway=${14}
+use_staticip=${15}
+use_dhcp=${16}
+modem="${17}"
+provider="${18}"
+chipset="${19}"
+altsynch="${20}"
+altpppoeci="${21}"
+
+test -z "$mode" && mode="$($pppoeci --modes 2>&1 | grep default |cut -d ' ' -f 1)"
+test -z "$synch" && synch="$CONF_DIR/synch01.bin"
+test -z "$firmware" && firmware="$CONF_DIR/firmware00.bin"
+test -z "$modem" && modem="Other"
+test -z "$provider" && provider="Other"
+test -z "$use_staticip" && use_staticip="no"
+test -z "$use_dhcp" && use_dhcp="no"
+test -z "$chipset" && chipset="GS7070"
+
+#
+# check/create directories
+#
+
+test -d "$CONF_DIR" || mkdir -p "$CONF_DIR"
+test -d "$PPPD_DIR" || mkdir -p "$PPPD_DIR"
+test -d "$PPPD_DIR/peers" || mkdir "$PPPD_DIR/peers"
+
+
+if [ ! -f "$pppoeci" -o ! -x "$pppoeci" ]
+then
+    echo "ERROR: $pppoeci is not a valid executable"
+    exit 1
+fi
+if [ $vpi -ge 4096 ]; then
+    echo -e "ERROR: VPI not in range [0-4095]"
+    exit 1
+fi
+if [ $vci -ge 65536 ]; then
+    echo -e "ERROR: VCI not in range [0-65535]"
+    exit 1
+fi
+
+RET=0
+
+#
+# backup and create resolv.conf
+#
+
+resolvconf="$ETC_DIR/resolv.conf"
+if [ -n "$dns1$dns2" -a "$dns1$dns2" != "00" ]
+then
+	backup "$resolvconf"
+
+    echo -n "creating $resolvconf.."
+	:> "$resolvconf"
+	if [ "$dns1" != "0" -a -n "$dns1" ]
+	then
+	    echo "nameserver $dns1" >> "$resolvconf"
+	fi
+	if [ "$dns2" != "0" -a -n "$dns2" ]
+	then
+	    echo "nameserver $dns2" >> "$resolvconf"
+	fi
+    echo "OK"
+fi
+
+#
+# create or backup/modify "chap-secrets" and "pap-secrets"
+#
+
+for auth in "chap" "pap"
+do
+    secretfile="$PPPD_DIR/$auth-secrets"
+    if [ -s $secretfile ]
+	then
+		backup "$secretfile"
+
+        echo -n "modifying $secretfile.. "
+		TMP=$(echo "$username" | sed "s/\\\/\\\\\\\\\\\/g")
+		grep -v -E "^[ \t]*\"?$TMP\"?[ \t]*.*\n?" $backupfile > "$secretfile"
+    else
+        echo -n "creating $secretfile.. "
+        echo "# Secrets for authentication using $auth" > "$secretfile"
+    fi
+    echo -e "\"$username\"\t*\t\"$password\"\t*" >> "$secretfile"
+    echo "OK"
+done
+
+#
+# create or backup/modify "adsl" script
+#
+
+pppdconffile="$PPPD_DIR/peers/adsl"
+tmppppdconffile="/tmp/adsl.tmp"
+if [ -s $pppdconffile ]
+then
+	backup "$pppdconffile"
+
+    echo -n "modifying $pppdconffile.. "
+	TMP=$(echo "$pppoeci" | sed "s/\//\\\\\//g")
+	echo "s/^pty .\+/pty \\\"$TMP -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode\\\"/" > $TMPFILE
+	TMP=$(echo "$username" | sed "s/\//\\\\\//g")
+	echo "s/^user .\+/user \\\"$TMP\\\"/" >> $TMPFILE
+	sed -f $TMPFILE "$backupfile" > "$tmppppdconffile"
+
+	if [ -s "$tmppppdconffile" ]
+	then
+	    echo "OK"
+		mv -f "$tmppppdconffile" "$pppdconffile"
+	else
+		rm -f "$tmppppdconffile"
+		echo -e "\nERROR: failed to set up $pppdconffile"
+		RET=1
+	fi
+else
+    echo -n "creating $pppdconffile.. "
+    cat << EOFADSL > "$pppdconffile"
+# this file has been generated by the configuration tool of the ECIADSL driver
+
+debug
+kdebug 1
+noipdefault
+defaultroute
+pty "$pppoeci -vpi $vpi -vci $vci -vendor 0x$vid2 -product 0x$pid2 -mode $mode"
+sync
+user "$username"
+
+default-asyncmap
+noaccomp
+nopcomp
+noccp
+novj
+holdoff 10
+
+# This will store the pid of pppd in the first line of /var/run/ppp-eciadsl.pid
+# and the interface created (like ppp0) on the second line.
+linkname eciadsl
+
+# maxfail is the number of times pppd retries to execute pppoeci after
+# an error. If you put 0, pppd retries forever, filling up the process table
+# and thus, making the computer unusable.
+maxfail 10
+
+usepeerdns
+noauth
+
+# If your PPP peer answer to LCP EchoReq (lcp-echo requests), you can
+# use the lcp-echo-failure to detect disconnected links with:
+#
+# lcp-echo-interval 600
+# lcp-echo-failure 10
+#
+# However, if your PPP peer DOES NOT answer to lcp-echo request, you MUST
+# desactivate this feature with the following line
+#
+lcp-echo-interval 0
+
+# You may need the following, but ONLY as a workaround
+# mtu 1432
+
+# disable ARP proxy
+noproxyarp
+
+persist
+EOFADSL
+    echo "OK"
+fi
+
+#
+# create eciadsl.conf file
+#
+
+if [ -s "$conffile" ]
+then
+
+	backup "$conffile"
+
+	echo -n "updating $conffile.."
+	tmpconffile="/tmp/eciadsl.conf.tmp"
+	tmpupdatefile="/tmp/eciadsl.conf.update"
+	tmpaddfile="/tmp/eciadsl.conf.add"
+	TMPFIRMWARE=$(echo "$firmware" | sed "s/\//\\\\\//g")
+	TMPSYNCH=$(echo "$synch" | sed "s/\//\\\\\//g")
+	TMPUSERNAME=$(echo "$username" | sed "s/\//\\\\\//g")
+	TMPPASSWD=$(echo "$password" | sed "s/\//\\\\\//g")
+	:> "$tmpupdatefile"
+	:> "$tmpaddfile"
+	update_entry "VID1" "$vid1"
+	update_entry "PID1" "$pid1"
+	update_entry "VID2" "$vid2"
+	update_entry "PID2" "$pid2"
+	update_entry "MODE" "$mode"
+	update_entry "VPI" "$vpi"
+	update_entry "VCI" "$vci"
+	update_entry "FIRMWARE" "$TMPFIRMWARE"
+	update_entry "SYNCH" "$TMPSYNCH"
+	update_entry "PPPD_USER" "$TMPUSERNAME"
+	update_entry "PPPD_PASSWD" "$TMPPASSWORD"
+	update_entry "USE_DHCP" "$use_dhcp"
+	update_entry "USE_STATICIP" "$use_staticip"
+	update_entry "STATICIP" "$staticip"
+	update_entry "GATEWAY" "$gateway"
+	update_entry "MODEM" "$modem"
+	update_entry "MODEM_CHIPSET" "$chipset"
+	update_entry "SYNCH_ALTIFACE" "$altsynch"
+	update_entry "PPPOECI_ALTIFACE" "$altpppoeci"	
+	update_entry "PROVIDER" "$provider"
+	update_entry "DNS1" "$dns1"
+	update_entry "DNS2" "$dns2"
+	test -s "$tmpupdatefile" && sed -f "$tmpupdatefile" "$backupfile" > "$tmpconffile" \
+							|| cp -f "$backupfile" "$tmpconffile"
+	test -s "$tmpaddfile" && cat "$tmpaddfile" >> "$tmpconffile"
+	if [ -s "$tmpconffile" ]
+	then
+		mv -f "$tmpconffile" "$conffile"
+		echo "OK"
+	else
+		rm -f "$tmpconffile"
+		echo -e "\nERROR: failed to set up $conffile"
+		RET=1
+	fi
+	rm -f "$tmpaddfile"
+	rm -f "$tmpupdatefile"
+else
+	echo -n "creating $conffile.."
+	cat << EOFCONF > "$conffile"
+VID1=$vid1
+PID1=$pid1
+VID2=$vid2
+PID2=$pid2
+MODE=$mode
+VCI=$vci
+VPI=$vpi
+FIRMWARE=$firmware
+SYNCH=$synch
+PPPD_USER=$username
+PPPD_PASSWD=$password
+USE_DHCP=$use_dhcp
+USE_STATICIP=$use_staticip
+STATICIP=$staticip
+GATEWAY=$gateway
+MODEM=$modem
+MODEM_CHIPSET=$chipset
+SYNCH_ALTIFACE=$altsynch
+PPPOECI_ALTIFACE=$altpppoeci
+PROVIDER=$provider
+DNS1=$dns1
+DNS2=$dns2
+EOFCONF
+	echo "OK"
+fi
+
+rm -f "$TMPFILE" > /dev/null 2>&1
+exit $RET

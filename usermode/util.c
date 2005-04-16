@@ -74,7 +74,7 @@ char* strDup(char** var, const char* text)
 
 void read_config_file(void)
 {
-	char* filename=CONF_PATH CONF_DIR "/eciadsl.conf";
+	char* filename=CONF_DIR "/eciadsl.conf";
 	FILE* file;
 	char line[8192];
 	char* ptr;

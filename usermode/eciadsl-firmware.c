@@ -362,7 +362,7 @@ int check_modem(unsigned short vid2, unsigned short pid2)
 
 void version(const int full)
 {
-	printf("%s, part of " PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n",
+	printf("%s, part of " PACKAGE_NAME PACKAGE_VERSION " (" __DATE__ " " __TIME__ ")\n",
 			exec_filename);
 	if (full)
 		printf("%s\n", id);
@@ -379,7 +379,7 @@ void usage(const int ret)
 			"       -V or --version               show version information then exit\n"
 			"       -t <num> or --timeout <num>   override the default timeout value (in sec)\n"
 			"\n");
-	printf(	"If ALL parameters but switches are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
+	printf(	"If ALL parameters but switches are omitted, the ones from " CONF_DIR "/eciadsl.conf\n"
 			"are assumed.\n"
 			"If only the firmware.bin is passed, default VID/PID for ECI HiFocus modem\n"
 			"are assumed if no VID/PID can be found in the config file.\n");

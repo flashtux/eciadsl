@@ -3,6 +3,15 @@ EciAdsl - Driver for USB ADSL modems with Globespan chipset
 
 ChangeLog - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
 
+2005-04-16 Benoit PAPILLAULT <benoit.papillault@free.fr>
+	* Created bootstrap, configure.ac and Makefile.am to use automake
+	* Removed ETC_PATH, CONF_PATH, DOC_PATH and PRODUCT_ID from all the
+	source code. Replaced PRODUCT_NAME and PRODUCT_VERSION by
+	PACKAGE_NAME and PACKAGE_VERSION
+	* Define ETC_DIR, CONF_DIR and DOC_DIR in Makefile.am
+	* To efficiently replace CONF_DIR and such in shell scripts, move
+	them to .in version.
+
 2004-11-02 Benoit PAPILLAULT <benoit.papillault@free.fr>
 
 	* Corrected Makefile with proper use of filenames that may contain

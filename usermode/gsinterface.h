@@ -15,36 +15,6 @@
 #ifndef GSINTERFACE_H
 #define GSINTERFACE_H
 
-#include "config.h"
-
-#ifndef PRODUCT_ID
-#error "PRODUCT_ID must be defined"
-#endif
-
-#ifndef PRODUCT_NAME
-#error "PRODUCT_NAME must be defined"
-#endif
-
-#ifndef PRODUCT_VERSION
-#error "PRODUCT_VERSION must be defined"
-#endif
-
-#ifndef ETC_PATH
-#error "ETC_PATH must be defined"
-#endif
-
-#ifndef ETC_DIR
-#error "ETC_DIR must be defined"
-#endif
-
-#ifndef CONF_PATH
-#error "CONF_PATH must be defined"
-#endif
-
-#ifndef CONF_DIR
-#error "CONF_DIR must be defined"
-#endif
-
 /* Vendor/ProdID for "ECI Telecom USB ADSL Loader" */
 #define EZUSB_NAME    "EZUSB USB ADSL Loader"
 #define EZUSB_VENDOR  0x0547 /* 0x0547 */

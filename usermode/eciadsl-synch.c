@@ -710,7 +710,7 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 }
 
 void version(const int full){
-	printf("%s, part of " PRODUCT_NAME " (" PRODUCT_ID ") " PRODUCT_VERSION " (" __DATE__ " " __TIME__ ")\n",
+	printf("%s, part of " PACKAGE_NAME PACKAGE_VERSION " (" __DATE__ " " __TIME__ ")\n",
 			exec_filename);
 	if (full)
 		printf("%s\n", id);
@@ -731,7 +731,7 @@ void usage(const int ret)
 			"       -alt <num> or --alt_interface <num>   override the default altInterface value\n"			
 			"       -mc <string> or --modem_chipset <string>   override the default modem chipset value (could be GS7070[default] or GS7470)\n"
 			"\n");
-	printf(	"If ALL other parameters are omitted, the ones from " CONF_PATH CONF_DIR "/eciadsl.conf\n"
+	printf(	"If ALL other parameters are omitted, the ones from " CONF_DIR "/eciadsl.conf\n"
 			"are assumed.\n"
 			"If only the synch.bin is passed, default VID/PID for ECI HiFocus modem\n"
 			"are assumed if no VID/PID can be found in the config file.\n");

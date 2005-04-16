@@ -38,14 +38,6 @@
 
 # 14/01/2004 : kolja <gava@bergamoblog.it> - enachement for GS7470 chipset support
 
-# <CONFIG>
-# $BIN_DIR = "/usr/local/bin";
-# $ETC_DIR = "/etc";
-# $CONF_DIR = "/etc/eciadsl";
-# $PPPD_DIR = "/etc/ppp";
-# $VERSION = "";
-# </CONFIG>
-
 #initialize input param value - kolja
 $epintval = 0x86;
 $synchnum = 999;
