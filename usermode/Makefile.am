@@ -21,6 +21,9 @@ eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
 eciadsl_check_hdlc_bug_SOURCES = eciadsl-check-hdlc-bug.c
 
+EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
+	eciadsl-stop
+
 AM_CPPFLAGS = -DETC_DIR=\"@sysconfdir@\" -DCONF_DIR=\"@sysconfdir@/eciadsl\" \
 	-DDOC_DIR=\"@prefix@/doc/eciadsl@\"
 
