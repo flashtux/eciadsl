@@ -5,6 +5,8 @@
 #include "util.h"
 #include "gsinterface.h"
 
+const char eciadsl_conf[] = CONF_DIR "/eciadsl.conf";
+
 extern struct eci_device_t eci_device;
 
 struct config_t config;
@@ -74,7 +76,6 @@ char* strDup(char** var, const char* text)
 
 void read_config_file(void)
 {
-	char* filename=CONF_DIR "/eciadsl.conf";
 	FILE* file;
 	char line[8192];
 	char* ptr;
@@ -96,7 +97,7 @@ void read_config_file(void)
 	config.alt_interface_ppp=-1;
 	config.alt_interface_synch=-1;
 	
-	file=fopen(filename, "r");
+	file=fopen(eciadsl_conf, "r");
 	if (file)
 	{
 		num=1;
@@ -226,7 +227,7 @@ void read_config_file(void)
 			config.alt_interface_synch= eci_device.alt_interface_synch;
 	}
 	else
-		fprintf(stderr, "couldn't access %s\n", filename);
+		fprintf(stderr, "couldn't access %s\n", eciadsl_conf);
 /*
 	fprintf(stderr, "VID1=%04x\n"
 					"PID1=%04x\n"
@@ -253,3 +254,9 @@ void printprogres(void){
 		printf ("\r Please Wait.. Synchronisation in progress [%c]", (char)(pchars[ppos]));
 		ppos==3 ? ppos=0 : ppos++;
 }
+
+const char * config_filename()
+{
+    return eciadsl_conf;
+}
+

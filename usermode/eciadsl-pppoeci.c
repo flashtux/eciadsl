@@ -1393,9 +1393,9 @@ void usage(const int ret)
 					"\n");
 	fprintf(stderr, "vpi value must be between 0 and %u\n", 0xfff);
 	fprintf(stderr, "vci value must be between 0 and %u\n", 0xffff);
-	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from " CONF_DIR "/eciadsl.conf\n"
+	fprintf(stderr, "If ALL parameters but switches are omitted, the ones from %s\n"
 					"are assumed.\n"
-					"\n");
+					"\n", config_filename());
 	fprintf(stderr,	"The vpi and vci are numerical values. They define the vpi.vci used\n"
 					"by provider. For instance: 8.35 for France, 0.38 for UK.\n"
 					"\n");

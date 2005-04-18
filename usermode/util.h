@@ -26,4 +26,7 @@ void get_hexa_value(const char*, unsigned int*);
 void read_config_file(void);
 void printprogres(void);
 char* strDup(char** var, const char* text);
+
+const char * config_filename();
+
 #endif

@@ -39,7 +39,7 @@ EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
 CONF_DIR=$(sysconfdir)/eciadsl
 DOC_DIR=$(datadir)/doc/eciadsl
 
-AM_CPPFLAGS = -DETC_DIR=\"$(sysconfdir)\" -DCONF_DIR=\"$(CONFDIR)\" \
+AM_CPPFLAGS = -DETC_DIR=\"$(sysconfdir)\" -DCONF_DIR=\"$(CONF_DIR)\" \
 	-DDOC_DIR=\"$(DOC_DIR)\"
 
 PACKAGE_VERSION=@PACKAGE_VERSION@

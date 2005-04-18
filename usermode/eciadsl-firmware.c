@@ -379,10 +379,11 @@ void usage(const int ret)
 			"       -V or --version               show version information then exit\n"
 			"       -t <num> or --timeout <num>   override the default timeout value (in sec)\n"
 			"\n");
-	printf(	"If ALL parameters but switches are omitted, the ones from " CONF_DIR "/eciadsl.conf\n"
+	printf( "If ALL parameters but switches are omitted, the ones from %s\n"
 			"are assumed.\n"
 			"If only the firmware.bin is passed, default VID/PID for ECI HiFocus modem\n"
-			"are assumed if no VID/PID can be found in the config file.\n");
+			"are assumed if no VID/PID can be found in the config file.\n",
+            config_filename());
 	_exit(ret);
 }
 
