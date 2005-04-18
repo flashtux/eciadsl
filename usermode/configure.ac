@@ -6,6 +6,10 @@ AC_INIT(eciadsl-usermode, 0.10cvs, eci@ml.free.fr)
 AM_INIT_AUTOMAKE([eciadsl-usermode],[0.10cvs])
 AC_CONFIG_SRCDIR([eciadsl-check-hdlc-bug.c])
 
+# if no --sysconfdir is specified, default to /etc
+# --sysconfdir='${prefix}/etc' is considered the system default
+test "x$sysconfdir" = 'x${prefix}/etc' && sysconfdir="/etc"
+
 # Checks for programs.
 AC_PROG_CC
 AC_PROG_INSTALL

@@ -98,7 +98,7 @@ uninstall-local::
 	for FILE in $(etc_DIST); do \
 		$(RM) "$(DESTDIR)$(CONF_DIR)/$${FILE}"; \
 	done
-	rmdir "$(DESTDIR)$(CONF_DIR)"
+	-rmdir "$(DESTDIR)$(CONF_DIR)"
 
 # for files in /usr/share/doc/eciadsl
 
