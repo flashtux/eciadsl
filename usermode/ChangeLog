@@ -3,6 +3,14 @@ EciAdsl - Driver for USB ADSL modems with Globespan chipset
 
 ChangeLog - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
 
+2005-04-17 Benoit PAPILLAULT <benoit.papillault@free.fr>
+	* Tested building debian package on Debian 3.0 (alpha) : OK
+	* Tested building rpm package on RHEL 3 (x86) : OK
+	* Tested building rpm package on FC3 (amd64) : OK
+	* Tested building debian package on Debian 2.2 (x86) : OK
+	* Tested building rpm package on RedHat 9 (x86) : OK
+	* Tested building rpm package on Mandrake Linux 10.0 (x86) : OK
+
 2005-04-16 Benoit PAPILLAULT <benoit.papillault@free.fr>
 	* Created bootstrap, configure.ac and Makefile.am to use automake
 	* Removed ETC_PATH, CONF_PATH, DOC_PATH and PRODUCT_ID from all the

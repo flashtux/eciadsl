@@ -31,7 +31,7 @@ that handles the modem. A kernel module is under development.
 
 %build
 %configure
-%make
+make
 
 %install
 rm -rf "$RPM_BUILD_ROOT"   
@@ -73,10 +73,10 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 /usr/bin/eciadsl-uc.pl
 /usr/bin/eciadsl-makeconfig
 # compatibility links
-/usr/bin/startmodem
-/usr/bin/eci-load1
-/usr/bin/eci-load2
-/usr/bin/pppoeci
+#/usr/bin/startmodem
+#/usr/bin/eci-load1
+#/usr/bin/eci-load2
+#/usr/bin/pppoeci
 # config files should be : rw-r--r--
 %defattr(644,root,root)
 %config /etc/eciadsl/modems.db
@@ -91,6 +91,7 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 %doc README.fr
 %doc README.it
 %doc README.pt
+%doc README_GS7470.txt
 %doc INSTALL
 %doc INSTALL.es
 %doc INSTALL.fr

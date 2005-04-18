@@ -2,37 +2,79 @@ If you have installed the driver using a pre-compiled package, jump to the
 CONFIGURATION section.
 
 
-COMPILATION
-===========
+INSTALLATION
+============
 
-All you have to do is to run in a console or a terminal
-	./configure
-then
-	make
+All steps can be done as a normal user, except the "make install" which needs
+to be run as root.
+
+== Installing from CVS ==
+
+To download the source code from CVS and compile it:
+
+  cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/eciadsl co usermode
+  cd usermode
+  ./bootstrap
+  ./configure
+  make
+  make install
+
+== Building a tar.gz from CVS ==
+
+To create an eciadsl-usermode-*.tar.gz in the current directory:
+
+  cvs -z3 -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/eciadsl co usermode
+  cd usermode
+  ./bootstrap
+  ./configure
+  make dist
+
+== Installing from a tar.gz ==
+
+To compile the source code from a tar.gz:
+
+  tar zxvf eciadsl-usermode-*.tar.gz
+  cd eciadsl-usermode-*
+  ./configure
+  make
+  make install
+
+== Building a rpm package from a tar.gz ==
+
+If you want to build as a normal user, you need to properly configure your
+$HOME/.rpmmacros. Here is an example:
+
+  %_topdir %(echo "${HOME}")/rpm
+
+To build a rpm package (RedHat, Mandrake, Fedora, ...) from a tar.gz:
+
+  rpmbuild -ta eciadsl-usermode-*.tar.gz
+
+== Building a debian package from a tar.gz ==
+
+  tar zxvf eciadsl-usermode-*.tar.gz
+  cd eciadsl-usermode-*
+  dpkg-buildpackage -rfakeroot
+
+== General ==
 
 Check ./configure --help to get a list of optional settings. You may want to
 install the software in a different place than the default one (/usr/local),
 using --prefix=/opt for instance.
 
 Driver's config files can also be installed in a directory you may prefer
-(default is in /etc/eciadsl), using the --conf-prefix (default is /) AND
---conf-fir (default is eci/adsl) parameters. For instance:
-	--conf-prefix=/opt --conf-dir=etc/eciadsl
-or	--conf-prefix=/opt/eciadsl --conf-dir=etc
+(default is in /etc/eciadsl), using the --sysconfdir (default is /etc)
+parameters. For instance:
 
-Be careful, --etc-prefix can be changed too (defaut is /, so /etc is used),
-but it is used to get system config files like resolv.conf or the pppd config
-files. Use --etc-prefix only if you know what you are doing.
+  ./configure --sysconfdir=/etc
 
-See other options using ./configure --help.
+Be careful, --sysconfdir can be changed but it is used to get system config
+files like resolv.conf or the pppd config files. Use --sysconfdir only if you
+know what you are doing.
 
+If you want to know all the availables options:
 
-INSTALLATION
-============
-
-Type (as root)
-	make install
-
+  ./configure --help.
 
 CONFIGURATION
 =============

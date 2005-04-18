@@ -36,10 +36,10 @@ EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
 	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl \
 	$(etc_DIST) $(doc_DIST) $(debian_DIST) $(rpm_DIST)
 
-CONF_DIR=@sysconfdir@/eciadsl
-DOC_DIR=@datadir@/doc/eciadsl
+CONF_DIR=$(sysconfdir)/eciadsl
+DOC_DIR=$(datadir)/doc/eciadsl
 
-AM_CPPFLAGS = -DETC_DIR=\"@sysconfdir@\" -DCONF_DIR=\"$(CONFDIR)\" \
+AM_CPPFLAGS = -DETC_DIR=\"$(sysconfdir)\" -DCONF_DIR=\"$(CONFDIR)\" \
 	-DDOC_DIR=\"$(DOC_DIR)\"
 
 PACKAGE_VERSION=@PACKAGE_VERSION@
@@ -88,32 +88,37 @@ CLEANFILES = eciadsl-start eciadsl-config-tk eciadsl-config-text \
 etc_DIST = firmware00.bin modemeci.gif modems.db providers.db synch01.bin
 
 install-data-local::
-	mkdir -p "$(DESTDIR)/$(CONF_DIR)" && \
+	@echo "DESTDIR=$(DESTDIR) CONF_DIR=$(CONF_DIR) DOC_DIR=$(DOC_DIR)"
+	mkdir -p "$(DESTDIR)$(CONF_DIR)"
 	for FILE in $(etc_DIST); do \
-		$(INSTALL_DATA)	"$(srcdir)/$${FILE}" "$(DESTDIR)/$(CONF_DIR)"; \
+		$(INSTALL_DATA)	"$(srcdir)/$${FILE}" "$(DESTDIR)$(CONF_DIR)"; \
 	done
 
 uninstall-local::
 	for FILE in $(etc_DIST); do \
-		$(RM) "$(DESTDIR)/$(CONF_DIR)/$${FILE}"; \
-	done && \
-	rmdir "$(DESTDIR)/$(CONF_DIR)"
+		$(RM) "$(DESTDIR)$(CONF_DIR)/$${FILE}"; \
+	done
+	rmdir "$(DESTDIR)$(CONF_DIR)"
 
 # for files in /usr/share/doc/eciadsl
 
-doc_DIST = README README.es README.fr README.it README.pt README_GS7470.txt\
+doc_DIST = README README.es README.fr README.it README.pt README_GS7470.txt \
 	INSTALL INSTALL.es INSTALL.fr INSTALL.it INSTALL.pt \
 	TROUBLESHOOTING TROUBLESHOOTING.es TROUBLESHOOTING.fr \
-	TROUBLESHOOTING.it TROUBLESHOOTING.pt BUGS TODO
+	TROUBLESHOOTING.it TROUBLESHOOTING.pt BUGS TODO rc.adsl
 
-install-data-local::
-	mkdir -p "$(DESTDIR)/$(DOC_DIR)" && \
-	for FILE in $(doc_DIST); do \
-		$(INSTALL_DATA) "$(srcdir)/$${FILE}" "$(DESTDIR)/$(DOC_DIR)"; \
-	done
+# We do not install documentation since:
+# - we don't know the proper directory to install (/usr/share/doc, /usr/doc)
+# - it will conflict with documentation installed by rpm or debian packages
 
-uninstall-local::
-	for FILE in $(doc_DIST); do \
-		$(RM) "$(DESTDIR)/$(DOC_DIR)/$${FILE}"; \
-	done && \
-	rmdir "$(DESTDIR)/$(DOC_DIR)"
+#install-data-local::
+#	mkdir -p "$(DESTDIR)$(DOC_DIR)"
+#	for FILE in $(doc_DIST); do \
+#		$(INSTALL_DATA) "$(srcdir)/$${FILE}" "$(DESTDIR)$(DOC_DIR)"; \
+#	done
+
+#uninstall-local::
+#	for FILE in $(doc_DIST); do \
+#		$(RM) "$(DESTDIR)$(DOC_DIR)/$${FILE}"; \
+#	done
+#	rmdir "$(DESTDIR)$(DOC_DIR)"

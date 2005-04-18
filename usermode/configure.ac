@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(eciadsl-usermode, 0.10-cvs, eci@ml.free.fr)
-AM_INIT_AUTOMAKE([eciadsl-usermode],[0.10-cvs])
+AC_INIT(eciadsl-usermode, 0.10cvs, eci@ml.free.fr)
+AM_INIT_AUTOMAKE([eciadsl-usermode],[0.10cvs])
 AC_CONFIG_SRCDIR([eciadsl-check-hdlc-bug.c])
 
 # Checks for programs.
@@ -32,9 +32,7 @@ AC_HEADER_TIME
 AC_FUNC_CLOSEDIR_VOID
 AC_FUNC_FORK
 AC_PROG_GCC_TRADITIONAL
-AC_FUNC_MALLOC
 AC_FUNC_MEMCMP
-AC_FUNC_REALLOC
 AC_FUNC_SELECT_ARGTYPES
 AC_TYPE_SIGNAL
 AC_FUNC_STAT
