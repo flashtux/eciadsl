@@ -997,8 +997,19 @@ int decode_usb_pkt(const unsigned char* buf, int len)
 	pos = 0;
 	while ((rlen - pos) >= eci_device.cell_r_size)
 	{
-		r = cell_read(rbuf + pos, /* CELL_SIZE, */ gfdout);
-        pos += eci_device.cell_r_size;
+		if ((r = cell_read(rbuf + pos, /* CELL_SIZE, */ gfdout)) < 0 && r != -2)
+		{
+			rlen -= pos;
+			if (rlen != 0)
+				memcpy(rbuf, rbuf + pos, rlen);
+			return(r);
+		}
+		if (r == -2)
+			/* we got out of sync or there was some junk so try to find the next
+			block header (just add 1 onto pos!!) for now!! */
+			pos++;
+		else
+			pos += eci_device.cell_r_size;
 	}
 
     /* adjust the buffer (rbuf, rlen) */
