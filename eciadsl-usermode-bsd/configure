@@ -5356,7 +5356,7 @@ s,@abs_top_builddir@,$ac_abs_top_builddir,;t t
 " $ac_file_inputs | (eval "$ac_sed_cmds") >$tmp/out
   rm -f $tmp/stdin
   if test x"$ac_file" != x-; then
-    mv $tmp/out $ac_file
+    cp $tmp/out $ac_file
   else
     cat $tmp/out
     rm -f $tmp/out
