@@ -384,7 +384,6 @@ int pusb_device_get_configuration(pusb_device_t dev)
 int pusb_device_set_interface(pusb_device_t dev, int interface, int alternate)
 {
 	struct usb_alt_interface intf;
-	int config;
 	
 	intf.uai_interface_index = interface;
 	intf.uai_alt_no = alternate;

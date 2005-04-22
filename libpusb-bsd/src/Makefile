@@ -7,6 +7,7 @@ libdir = ${exec_prefix}/lib
 includedir = ${prefix}/include
 
 CC=gcc
+RM=rm -f
 PACKAGE_VERSION=0.1
 
 CFLAGS  += -Wall -O2
@@ -23,7 +24,7 @@ libpusb.so: $(PUSB_OBJ)
 	$(CC) -shared -o $@ $^
 
 clean:
-	$(RM) pusb.o libpusb.so $(DEP)
+	$(RM) pusb.o pusb-common.o libpusb.so $(DEP)
 
 $(DEP): $(PUSB_SRC)
 	$(CC) $(CFLAGS) -MM $^ > $@ -include $(DEP)

@@ -27,7 +27,7 @@ hostinfo               = unknown
 /usr/bin/oslevel       = unknown
 /bin/universe          = unknown
 
-PATH = /usr/local/linux-blackdown-jdk1.4.2/bin:/sbin:/bin:/usr/sbin:/usr/bin:/usr/games:/usr/local/sbin:/usr/local/bin:/usr/X11R6/bin:/home/nuno/bin
+PATH = /sbin:/bin:/usr/sbin:/usr/bin:/usr/games:/usr/local/sbin:/usr/local/bin:/usr/X11R6/bin:/home/nuno/bin
 
 ## ------------ ##
 ## Core tests.  ##
