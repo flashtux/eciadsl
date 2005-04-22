@@ -1,0 +1,82 @@
+Traduzione a cura di: Roberto Inzerillo <robicd@gmx.net>
+
+Se hai installato il driver da un pacchetto precompilato salta alla sezione
+CONFIGURAZIONE
+
+
+COMPILAZIONE
+============
+
+Tutto ciò che bisogna fare è eseguire dal terminale o da una console:
+	./configure
+poi:
+	make
+
+Esegui './configure --help' per avere una lista dei settaggi opzionali. Potresti
+voler installare il software in una directory diversa da quella di default
+(/usr/local), usando ad esempio --prefix=/opt.
+
+I file di configurazione del driver possono essere installati in una directory
+a scelta (di default in /ect/eciadsl), usando i parametri --conf-prefix (il
+default è /) e --conf-dir (il default è eci/adsl). Ad esempio:
+	--conf-prefix=/opt --conf-dir=etc/eciadsl
+o	--conf-prefix=/opt/eciadsl --conf-dir=etc
+
+Fai attenzione, puoi cambiare anche --etc-prefix (il default è /, così viene
+usato /etc), però questo parametro viene usato anche per raggiungere file come
+resolv.conf o il file di configurazione di pppd. Usa --ect-prefix solo se sai
+cosa stai facendo.
+
+Vedi gli altri parametri usando './configure --help'.
+
+
+INSTALLAZIONE
+=============
+
+Esegui (da root):
+	make install
+
+
+CONFIGURAZIONE
+==============
+
+Ancora da root:
+ - in X11, apri un terminale ed esegui eciconf.sh (richiede tcl/tk per essere
+   installato)
+ - in modalità console, esegui eciconftxt.sh
+
+Eseguendo:
+	make cfg
+verranno eseguiti automaticamente gli strumenti di configurazione.
+
+Se incontri problemi, prova ad usare eci-doctor.sh e leggi il file
+TROUBLESHOOTING prima di chiederci supporto online :-)
+
+Se hai bisogno di modificare i file di configurazione, controlla in /etc/eciadsl
+(o /opt/etc/eciadsl se ad es. hai usato il parametro --etc-prefix=/opt con
+./configure). Inoltre guarda in /etc/ppp/peers/adsl per le impostazioni di pppd
+legate al driver ed in /etc/ppp/chap-secrets se il tuo ISP si aspetta una
+autenticazione CHAP.
+
+
+UTILIZZO
+========
+
+Esegui startmodem da root, da qualunque directory tranne quella dei sorgenti.
+
+Utenti di PPPoE:
+Per connetterti al tuo modem attraverso tap0 devi configurare ed usare un
+client PPPoE standard come ad esempio rp-pppoe
+(http://www.roaringpenguin.com/pppoe).
+
+
+DISINSTALLAZIONE
+================
+
+Nella directory dei sorgenti:
+	make uninstall
+ed opzionalmente:
+	make distclean
+
+Da un .rpm:
+	rpm -e eciadsl-usermode

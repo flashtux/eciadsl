@@ -1,0 +1,111 @@
+INTRODUCTION
+============
+
+EciAdsl est un driver pour GNU/Linux permettant de se connecter à Internet
+avec un modem USB ADSL équipé de chipset Globespan.
+Ce driver est utilisable dans un grand nombre de pays et avec un certain
+nombre de modems différents et supporte plusieurs mode d'encapsulation PPP
+(voir http://eciadsl.flashtux.org/modems.php).
+
+
+PRÉ-REQUIS
+==========
+
+- un système GNU/Linux (architecture x86) avec les outils standards
+  (les MDK9/RH8/très récente/exotique peuvent avoir des problèmes
+  (résolvables), BSD et autres systèmes ne sont pas encore officiellement
+  supportés).
+- support matériel USB 1.1
+- noyau Linux 2.4.x (>=2.4.18-pre3 ou <2.4.18-pre3+patch N_HDLC
+  pour avoir la reconnection automatique pppd, ce qui est
+  recommandé)
+	- support USB (sous forme de modules) :
+		- support USB
+		- "USB preliminary fs"
+		- votre "HUB USB controller" EN MODULE
+		- pas de module DABUSB
+	- support PPP (y compris le package pppd usermode >=2.4.0)
+- installation par les sources: outils de développement standards (sources
+  Linux dans /usr/src/linux, outils GNU comme gcc>=2.91.66, GNU make, etc.)
+- modem USB (avec puce GlobeSpan *seulement*)
+- bash (>=2.x.x)
+- facultatif : tcl/tk >= 8.x.x, perl
+- droits root (au moins pour l'installation)
+
+
+INSTALLATION À PARTIR DES SOURCES
+=================================
+
+Consultez le fichier INSTALL.fr.
+
+
+INSTALLATION À PARTIR D'UN PAQUETAGE PRÉ-COMPILÉ
+================================================
+
+Pour installer un .rpm, sous root:
+	rpm -i <the file>.rpm
+
+Il sera peut-être nécessaire de désinstaller une version ultérieurement
+installée par .rpm (vous pouvez aussi utiliser une option d'installation
+du paquetage de façon à ce que cette version déjà installée soit ignorée
+si vous en êtes averti à l'installation).
+Ensuite: consultez le fichier INSTALL.fr, installé par défaut dans
+/usr/local/doc/eciadsl, à partir de la section CONFIGURATION.
+
+
+EN CAS DE PROBLÈME
+==================
+
+Lisez le fichier TROUBLESHOOTING.fr!
+
+
+Comment obtenir de l'aide :
+
+	Support, packages (driver et .bin optionnels) et documentation :
+		- IRC : irc.freenode.net, canal #eci
+		- http://eciadsl.flashtux.org
+		  (documentation, forum, liste de diffusion pour utilisateurs, etc.)
+
+	Nous assurons un support en français et anglais.
+
+
+Infos à nous communiquer :
+
+	- version du noyau (tapez : `uname -a` ou `cat /proc/version`). Dites-nous
+	  si le noyau est celui de votre distribution ou si vous l'avez compilé
+	  depuis les sources
+	- distribution Linux
+	- version de pppd (tapez : `pppd --version`)
+	- version de modutils (tapez : `lsmod --version`)
+	- modèle du controleur USB (HUB) (tapez : `lspci | grep USB`), la liste des
+	  HUB USB que vous avez, notamment s'il s'agit de cartes PCI ou de HUB
+	  externes
+	- la liste des autres périphériques USB que vous utilisez
+	- version du driver eciadsl (regardez le fichier VERSION dans le tarball des
+	  sources s'il existe pour les versions >0.5, ou pppoeci --version, sinon le
+	  nom du package/la date du CVS) et :
+		- les informations sur votre driver MS Windows si vous l'utilisez
+	      (et aussi le type de modulation que votre fournisseur supporte)
+		- les .bin de synchronisation que vous avez essayés
+	- votre modem (les références exactes: fabricant/modèle)
+	- votre situation géographique (pays/département/ville)
+	- votre fournisseur d'accès et les protocoles de communication PPP ainsi
+	  que d'authentification utilisés
+	- votre niveau d'expérience (par exemple : débutant, notions, confirmé
+	  expérimenté, gourou)
+	- votre fichier /etc/eciadsl/eciadsl.conf
+	- éventuellement votre fichier /var/log/messages, en vous assurant qu'il
+	  contient les traces d'activité à partir du dernier démarrage de Linux
+	  jusqu'à votre utilisation du driver ou à votre problème
+
+Cela nous aidera grandement si vous nous fournissez toutes ces infos. Capturez
+aussi la sortie des outils du driver que vous avez lancé (scripts de
+configuration ou startmodem), et donnez nous aussi votre /var/log/messages,
+/var/log/boot.log si disponible, la sortie de `dmesg`, de `lsmod` et de
+`cat /proc/bus/usb/devices`.
+
+Si vous nous contactez depuis MS Windows, et si votre partition Linux (ext2 ou
+ext3 seulement) est sur la même machine, utilisez explore2fs pour lire les
+fichiers directement sur votre partition Linux, au lieu de rebooter Linux à
+chaque fois pour récupérer un fichier !
+explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm

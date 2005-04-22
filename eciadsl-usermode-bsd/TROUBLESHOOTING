@@ -1,0 +1,1126 @@
+FREQUENTLY ASKED QUESTIONS AND SOME COMMON TROUBLES
+===================================================
+
+Intended audience:
+ECI ADSL USB modem driver (up to version 0.8) users.
+
+Before reading the following:
+the following Q/A list is *not* exhaustive.
+It is also possible that you won't find any Q/A that matches your problem.
+Please read them anyway, they may provide you help in fixing your problem
+anyway.
+And even if your problem is listed below, it is possible that the answers don't
+help you anymore to solve it. Then, please contact us, we will try to help you
+finding a solution.
+
+1 - Driver compilation, installation, and configuration
+2 - Modem initialization
+3 - Modem synchronization
+4 - Connection problems
+5 - Various topics
+
+1.0
+================================================================================
+Q:	I don't know if my modem is supported.
+	I don't see my modem in the list (using eciconf.sh or eciconftxt.sh).
+
+--------------------------------------------------------------------------------
+A:	Check the pre-requisites.
+
+	Check at http://eciadsl.flashtux.org/modems.php?lang=en.
+	
+	Install the latest driver version, then launch startmodem or eci-doctor.sh,
+	if they report errors, try to launch probe_device.sh to check your modem
+	compatibility. If still uncertain, contact us!
+
+
+1.1
+================================================================================
+Q:	`./configure` fails and returns some errors :-\
+
+--------------------------------------------------------------------------------
+A:	Please report us the output of `./configure`.
+	Check which options (see `./configure --help`) could help you.
+	For instance, you may use --disable-gcc-check if `./configure` fails in
+	finding gcc or checking its version number whereas gcc is installed and is
+	in your $PATH. This error may happen on some systems, which include a
+	modified gcc (Debian for instance).
+
+
+1.2
+================================================================================
+Q:	I get the following error when I run `make` or `make install`:
+	Makefile:1: Makefile.config: No such file or directory
+	make: *** No rule to make target `Makefile.config'.  Stop.
+
+--------------------------------------------------------------------------------
+A:	Did you run `./configure`? You should have!
+	(>= 0.6-pre4 only)
+
+
+1.3
+================================================================================
+Q:	`eciconf.sh` immediately fails, saying:
+	wish: command not found
+
+--------------------------------------------------------------------------------
+A:	Install tcl/tk, or run `eciconftxt.sh`. Even if tcl/tk is not mandatory,
+	check out the pre-requisites.
+
+
+1.4
+================================================================================
+Q:	probe_device.sh shows me VID1/PID1 that are the same as VID2/VID2, is this
+	normal?
+
+--------------------------------------------------------------------------------
+A:	You must reset your modem (unplug/wait/replug) before launching
+	probe_device.sh.
+	Please read the WARNING displayed by this script when it starts.
+
+	This may be due to more general problems problems in your system's USB
+	configuration. Either hotplug interfers with the driver, or kernel's
+	USB modules have problems with your hardware (might be a kernel bug too).
+
+	Also check if dabusb module is showm in /var/log/messages (see
+	dabusb-related question above).
+
+
+1.5
+================================================================================
+Q:	startmodem, eciconf or eci-doctor.sh report me an unsupported modem!
+
+--------------------------------------------------------------------------------
+A:	See 1.4.
+
+	If your plugged modem isn't showed in /proc/bus/usb/devices, look at
+	/var/log/messages. If you see such lines appearing during the last boot:
+		kernel: usb_control/bulk_msg: timeout
+		kernel: usb.c: USB device not accepting new address=2 (error=-110)
+	there's a problem between you hardware/BIOS/kernel config, it's an
+	interrupts issue. It may worth disabling APIC support in kernel or at boot
+	time (use noapic when booting the kernel, but it may come from other IRQ
+	conflicts between hardware devices, or some other kernel configuration
+	issue, or also to disable/enable USB legacy support in BIOS.
+
+	Such problems are common issues with some USB chipsets like old VIA and
+	SiS 700x. If you don't know which chipset you have or if you want to get
+	confirmation that your problem is a hardware/kernel driver issue, please
+	contact us. If confirmed, a possible solution would be to buy a USB HUB
+	to plug into a free PCI slot (don't try to plug an external USB HUB in a
+	USB port from your embedded USB HUB, this will not work, of course since
+	the problem comes from the on-board chipset). Don't buy such PCI card if
+	you cannot test it before!
+
+	Also check the question that deals with the dabusb module, if dabusb is
+	loaded, you won't be able to use your modem with this driver until you
+	disable the loading of dabusb.
+
+
+1.6
+================================================================================
+Q:	I don't know my provider's DNS IP.
+
+--------------------------------------------------------------------------------
+A:	Most people need them (except those who use ISP DHCP for instance), if you
+	can't find them at your provider's website or in the configuration CD or the
+	paper they've send to you, or even under MS Windows, there's a way to guess
+	them. Here is the way to do this under Linux:
+		> host -t ns <your provider domain name>
+
+	This returns you a bunch of DNS server names. You can ping some of them in
+	order to get the IP.
+
+	For instance:
+		> host -t ns clix.com
+		clix.com. name server ns4.dnsmanaged.com.
+		clix.com. name server ns1.dnsmanaged.com.
+		clix.com. name server ns7.dnsmanaged.com.
+		clix.com. name server ns6.dnsmanaged.com.
+
+		> ping -c 1 -q ns4.dnsmanaged.com
+		PING ns4.dnsmanaged.com (192.31.80.34) from 10.0.0.99 : 56(84) bytes of
+		data.
+		--- ns4.dnsmanaged.com ping statistics ---
+		1 packets transmitted, 1 received, 0% loss, time 0ms
+		rtt min/avg/max/mdev = 169.466/169.466/169.466/0.000 ms
+
+	The IP of this ns4.dnsmanaged.com is 192.31.80.34.
+	Repeat the ping command with another DNS server name, then you'll get at
+	least 2 DNS IP to use :-).
+	If the config tool from the ECIADSL driver don't allow you to select your
+	provider's DNS, select 'Other' and type in at least one DNS IP to use.
+
+
+2.0
+================================================================================
+Q:	startmodem, eciconf or eci-doctor's output shows:
+	/proc/bus/usb: No such file or directory
+
+--------------------------------------------------------------------------------
+A:	Check your system's USB configuration. This may be due to a lack of support
+	for usbdevfs in your kernel configuration. If kernel has support for it, try
+	to mount it using:
+		> mount -t usbdevfs none /proc/bus/usb
+	This can be set in your /etc/fstab. To get his automounted at boot time,
+	add this line:
+		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
+
+	Nota: there will be nothing in /proc/bus/usb until a host controller module
+	is also loaded.
+
+
+2.1
+================================================================================
+Q:	ecidoctor reports me that the DABUSB module is loaded, or startmodem says
+	dabusb has been found, but couldn't remove it!
+
+--------------------------------------------------------------------------------
+A:	Hotplug is probably enabled, and it wrongly detects your modems as an audio
+	device and loads dabusb module in order to add support for this audio
+	device.
+	If /etc/hotplug/blacklist exists, edit it and add a line containing the
+	word 'dabusb' (without the quotes) to it. Restart Linux.
+	
+	If you cannot find such file whereas hotplug is installed and enabled,
+	there must be another way to configure it, but you can also apply the
+	following method (a bit rough):
+
+	Boot your Linux machine with your modem *UNPLUGGED*, then:
+
+	You can remove the dabusb module from your system using eciconf.sh or
+	eciconftxt.sh.
+
+	You can also directly call remove_dabusb (in /usr/local/bin by default).
+
+	Or, manually type the following command:
+		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
+
+	If this kernel has been compiled by hand, don't forget to remove dabusb
+	support from the kernel configuration too.
+
+
+2.2
+================================================================================
+Q:	No way to remove dabusb! At each boot, it is loaded again!
+
+--------------------------------------------------------------------------------
+A:	See 2.1, but use the manual method.
+
+
+2.3
+================================================================================
+Q:	I try to remove the dabusb module, but always get:
+	dabusb: Device or resource busy
+
+--------------------------------------------------------------------------------
+A:	See 2.2.
+
+
+2.4
+================================================================================
+Q:	My modem seems initialized at boot, the LEDs are flashing or fixed. Does this
+	mean that my system recognized my modem and that I don't have to install
+	the driver?
+
+--------------------------------------------------------------------------------
+A:	No! This is not friendly at all.
+	That's a dabusb module issue. See 2.3.
+
+
+2.5
+================================================================================
+Q:	`eci-doctor.sh` reports me:
+	HDLC support is buggy, you should apply the HDLC patch to your kernel source.
+
+--------------------------------------------------------------------------------
+A:	Follow the pre-requisites, read the documentation about the N_HDLC problem.
+
+	If you want to use the 'persist' option of pppd in order to reconnect
+	automatically when disconnected from the provider, then you will have to
+	patch your kernel or use a kernel >= 2.4.18-pre3.
+	You can find the patch n_hdlc.c.diff in the drivers' archive of the
+	Speedtouch modem: http://speedtouch.sourceforge.net/.
+	These are instructions about how to use it:
+		> cd /usr/src/linux
+		> patch -p1 --dry-run < /path/to/n_hdlc.c.diff
+
+	If no error message is returned by the previous command, type the following
+	line to make the source's patch:
+		> patch -p1 < /path/to/n_hdlc.c.diff
+	then jump to the kernel configuration question (5.3).
+
+
+2.6
+================================================================================
+Q:	startmodem says: ECI-load1: timeout
+
+--------------------------------------------------------------------------------
+A:	Your modem is probably not supported, start to read this FAQ from the
+	beginning.
+
+
+2.7
+================================================================================
+Q:	startmodem/probe_device.sh/eci-doctor.sh cannot find my modem.
+
+--------------------------------------------------------------------------------
+A:	Your modem is probably not supported or there's a problem with your USB HUB
+	hardware, it might also be a bug in the kernel modules.
+
+
+3.0
+================================================================================
+Q:	startmodem says: ECI-load2: timeout
+
+--------------------------------------------------------------------------------
+A:	See 3.1.
+
+
+3.1
+================================================================================
+Q:	startmodem says: ECI-load2: failed
+
+--------------------------------------------------------------------------------
+A:	See 3.2.
+
+	Known problem: under GNOME or KDE, eci-load2 may not get the synch. Try the
+	latest version, or contact us.
+	This may also happen if you run startmodem while your CPU is under heavy
+	load.
+
+
+3.2
+================================================================================
+Q:	startmodem is stalled at block xxx.
+
+--------------------------------------------------------------------------------
+A:	Follow the pre-requisites.
+
+	Ensure that the phone line is properly plugged at both ends (modem and wall
+	jack), and that DSL microfilters are placed between the wall adapters and
+	any device (telephone, fax, answering devices), check if your microfilters
+	are OK.
+
+	Upgrade your eciadsl driver version (0.5 owners: get version 0.6 or the
+	latest CVS).
+
+	Try the other synch .bin's (available online).
+
+
+4.0
+================================================================================
+Q:	/var/log/messages shows CHAP or PAP failures.
+
+--------------------------------------------------------------------------------
+A:	Check your /etc/ppp/pap-secrets or /etc/ppp/chap-secrets files. Entries must
+	be like this:
+		"username" * "userpassword" *
+	You can configure this using eciconf.
+
+	Following the pppd version, the syntax of pap-secrets and chap-secrets may
+	differ. If so, try to modify them by hand or contact us.
+
+
+4.1
+================================================================================
+Q:	startmodem went OK, but I still cannot use Internet access?
+
+--------------------------------------------------------------------------------
+A:	See 4.0.
+
+	If you can ping an IP but cannot ping a hostname, check at your
+	/etc/resolv.conf file, it must include your provider's DNS IP.
+	For instance (French Wanadoo ones):
+		nameserver 193.252.19.3
+		nameserver 193.252.19.4
+	You can set this using eciconf.
+
+	If you still cannot access a hostname using nslookup, try the following
+	commands and report us the output:
+	> route -n (or netstat -rn)
+
+	  Kernel IP routing table
+	  Destination     Gateway         Genmask         Flags   MSS Window  irtt Iface
+	* 80.14.50.1      0.0.0.0         255.255.255.255 UH       40 0          0 ppp0
+	* 10.0.0.0        0.0.0.0         255.255.255.0   U        40 0          0 eth0
+	* 127.0.0.0       0.0.0.0         255.0.0.0       U        40 0          0 lo
+	  0.0.0.0         80.14.50.1      0.0.0.0         UG       40 0          0 ppp0
+
+	  The lines with a leading * are optional, your eth local network should
+	  differ from 10.0.0.0 (if you have one).
+	  The UG line must appear, this indicates the default route to the gateway.
+
+	> ifconfig ppp0
+
+	  ppp0    Link encap:Point-to-Point Protocol  
+			  inet addr:80.14.50.227  P-t-P:80.14.50.1  Mask:255.255.255.255
+			  UP POINTOPOINT RUNNING NOARP MULTICAST  MTU:1500  Metric:1
+			  RX packets:80951 errors:0 dropped:0 overruns:0 frame:0
+			  TX packets:85395 errors:0 dropped:0 overruns:0 carrier:0
+			  collisions:0 txqueuelen:3 
+
+	  The IP and other values will be different from the above ones.
+
+	If ppp0 interface is not up, check for error lines in /var/log/messages or
+	/var/log/ppp after having launched startmodem.
+
+	If the default route (UG) is set to eth0, remove it:
+		> route del default dev eth0
+	or remove the "gateway" line from your /etc/sysconfig/network, or disable
+	your LAN network before launching startmodem.
+
+	If the default route is NOT set to ppp0 even if ppp0 is up:
+		> route add default dev ppp0
+
+	This may be a firewall issue. Try to disable your firewall, if this works
+	now, you have to adjust your firewall's settings.
+	Mandrake 9 users: if you see lines like the following in your
+	/var/log/messages:
+		Shorewall:INPUT:REJECT:IN=ppp0 ....
+	then you can be sure that it's a firewall issue.
+
+
+4.1.1
+================================================================================
+Q:	ppp0 seems up (in /var/log/message and startmodem's output) but startmodem
+	still says "no ppp0 device found" after a while.
+
+	The problem could be encountered as well if your configuration requires
+	tap0 or tun0 instead of ppp0.
+
+--------------------------------------------------------------------------------
+A:	This may happen is net-tools package is not installed or not properly
+	configured for the user that runs startmodem (usually root).
+	startmodem needs `route` and `ifconfig` from this package and also /sbin to
+	be somewhere in the user's PATH. Following the system, you may need /sbin or
+	/usr/sbin or /usr/local/sbin or both, please check.
+
+
+4.2
+================================================================================
+Q:	I got disconnected after a while, pppd's persist options seems to work but I
+	cannot access to anything on Internet.
+
+--------------------------------------------------------------------------------
+A:	Do you know that pppd calls /etc/ppp/ip-down when it got desconnected and
+	ip-up once reconnected? Maybe your distro's default ip-down restores basic
+	network route table or removes the DNS in /etc/resolv.conf?
+
+
+4.3
+================================================================================
+Q:	After a few minutes of Internet access, nothing seems to work anymore. No
+	IP ping, neither http access nor nslookup.
+
+--------------------------------------------------------------------------------
+A:	Often seen on some recent distros (MDK9, Slackware 8.1 and RH8).
+	Did you see a disconnection (and a reconnection maybe)? In /var/log/messages
+	or /var/log/ppp? If so, jump to the previous question.
+
+	Else it might be network/firewall configuration related, but not sure. Try
+	`network down` is you have but don't need local network.
+
+
+4.4
+================================================================================
+Q:	I get LCP timeout lines in /var/log/messages then a modem hangup
+	(and eventually another problem more between both) like this:
+		sent [LCP ConfReq id=0x1 <asyncmap 0x0> <magic 0xf990655f>]
+		..
+		LCP: timeout sending Config-Requests
+		Connection terminated.
+
+--------------------------------------------------------------------------------
+A:	If your kernel really OK? N_HDLC support is OK? Check the pre-requisites
+	first (see the README file).
+
+	This may be a synch issue. Try the other synch .bin available at the
+	official download page.
+
+	See 4.5 also, because CHAP/PAP authentication problems are not always
+	verbosely reported by pppd.
+	Questions 4.6 to 4.9 may help too.
+
+	See also below questions related to international users (5.4).
+
+
+4.4.1
+================================================================================
+Q:	I get something like this:
+		pppd[1954]: pppd 2.4.1 started by root, uid 0
+		pppd[1954]: Using interface ppp0
+		pppd[1954]: Connect: ppp0 <--> /dev/pts/1
+
+	endless..
+	or, after a while:
+		pppd[1954]: Child process /usr/local/bin/pppoeci -vpi 8 -vci 35 -vendor
+			0x0915 -product 0x8000 -mode VCM_RFC2364 (pid 1955) terminated
+			with signal 2
+		pppd[1954]: Modem hangup
+		pppd[1954]: Connection terminated.
+		pppd[1954]: Exit.
+--------------------------------------------------------------------------------
+A:	Check your PAP and/or CHAP files (/etc/ppp/pap-secrets and
+	/etc/ppp/chap-secrets). This may happen with broken authentication even if
+	pppd is not verbose regarding to this in /var/log/message.
+
+	See also Q 4.4.
+
+
+4.5
+================================================================================
+Q:	Sometimes I see some LCP timeouts in /var/log/messages, but my connection
+	is still up or it doesn't disconnect every time.
+
+--------------------------------------------------------------------------------
+A:	Try to uncomment the two lines that deal with LCP in /etc/ppp/peers/adsl,
+	and maybe to slightly increase the values.
+
+	This may be due to your provider too, wait for a few minutes/hours if you
+	still can't connect.
+
+	If these LCP timeouts don't affect your PPP connection, simply forget them
+	or try another synch .bin.
+
+
+4.6
+================================================================================
+Q:	I get a modem hangup or I'm not able to connect at all, and I see these
+	lines in /var/log/messages:
+	ioctl(PPP..): Inappropriate ioctl for device
+	Connexion failed
+
+--------------------------------------------------------------------------------
+A:	Check your kernel config (below).
+
+	Upgrade your eciadsl driver version.
+
+	Try another synch .bin.
+
+	This can happen when the invocation of pppoeci in the /etc/ppp/peers/adsl
+	file is corrupted or wrong (probably because it has been edited by hand?).
+	For instance, the use of "-vendor 0915" is wrong. The exact syntax is
+	"-vendor 0x0915". Use eciconf.sh to properly configure the driver!
+
+	More generally, this may also come from a bad configuration, for instance
+	if the PPP mode is not the one you need.
+
+	Enable verbose logging to pppoeci (-v 2), and if you see in pppoeci's log
+	file these lines:
+		hi! I'm the parent process, I handle the endpoint 0x07
+		file descriptors: fdin=3, fdout=4
+		error loading N_HDLC
+	you must ensure that your kernel has n_hdlc module (pre-requisite) see the
+	relevant question (5.3)!
+
+
+4.7
+================================================================================
+Q:	I get some "USB timeout" lines in /var/log/messages.
+
+--------------------------------------------------------------------------------
+A:	Try to uncomment the MTU line in /etc/ppp/peers/adsl.
+	Eventually modify this MTU value (see `man pppd`).
+
+	This may also an kernel/hardware issue (see the following questions).
+
+
+4.8
+================================================================================
+Q:	PPP line sometimes goes down (modem hangup).
+
+--------------------------------------------------------------------------------
+A:	This may be due to high traffic on the line or to any provider problem/daily
+	disconnection (non-exhaustive list).
+
+	Enable the 'persist' option for pppd in /etc/ppp/peers/adsl (this requires
+	N_HDLC support in the kernel, see the kernel configuration related question
+	below). Verify that this persist option is set (by default it is).
+
+	Decreasing the MTU in /etc/ppp/peers/adsl to 1000 or even to 512 may help.
+
+	You may also try using a third-party autoconnect script, and of course check
+	if your configuration has been properly set.
+
+
+4.9
+================================================================================
+Q:	I get modem hangups but my problem doesn't match the previous questions
+	or my modem goes OFF!
+
+--------------------------------------------------------------------------------
+A:	Is your USB chipset an old VIA one or a SiS 700x? Some are known to be buggy
+	and to have problems regarding to the USB power supply or a buggy kernel
+	module. If you modem goes OFF (no power), this might be your case (VIA).
+
+	On some systems (bugged USB chipset or old processors), this may happen
+	when you use multiple USB device that sucks a lot of power (video devices,
+	hdd).
+
+	This may also happen if you CPU is heavily loaded (burning CD or so) or when
+	the USB bus is heavily loaded too (webcam use, etc.).
+
+
+4.10
+================================================================================
+Q:	I see strange characters on the terminal/console after startmodem completes,
+	and I get no PPP connection:
+	Connect Modem ...
+	~ÿ}#ְ!}!}!} }4}"}&} } } } }%}&רןpֶ}
+
+--------------------------------------------------------------------------------
+A:	You are not drunk, pppd cannot communicate with pppoeci (part of the driver)
+	and it must come from a bad pppd version, from a bad ppp configuration
+	inside the kernel, or because you're using the driver on a non supported
+	system.
+
+	Also check your /etc/ppp/peers/adsl file. The pppoeci invocation might be
+	corrupted also, or the file might not exist at all (this is a known bug).
+
+
+4.11
+================================================================================
+Q:	I get kernel panic/oops.
+
+--------------------------------------------------------------------------------
+A:	This may come from a kernel module bug (OHCI?), badly supported hardware,
+	heavily loaded CPU or USB bus, or any kind of global system problem (even a
+	bug in the driver of course).
+
+
+4.12
+================================================================================
+Q:	I get this message in /var/log/messages:
+	kernel: usb-uhci.c: ENXIO 80000xxx, flags 0, urb c5205d60, burb c2ad1120
+
+--------------------------------------------------------------------------------
+A:	<TODO: describe problems with URB endpoints>
+
+	Try to disable all other USB devices to get sure that this problem is
+	related to the use of the modem.
+
+
+4.13
+================================================================================
+Q:	eci-doctor.sh says:
+	Modem hangup
+	Connection terminated.
+	... usb_control/bulk_msg: timeout
+
+--------------------------------------------------------------------------------
+A:	Too many possible reasons! Please contact us.
+	See 1.5 too.
+
+
+4.14
+================================================================================
+Q:	My transfert rate is very slow (for instance 2-5KB/sec instead of the
+	40KB/sec expected)
+
+--------------------------------------------------------------------------------
+A:	Try with another synch .bin.
+
+	Recently, some users from Belgium have had such problems, since their
+	provider now deliver 3.3Mbit/sec bandwidth.
+
+	You can also play with the MTU value.
+
+
+4.15
+================================================================================
+Q:	I use ISP DHCP, `startmodem` goes OK but I still can't access internet.
+
+--------------------------------------------------------------------------------
+A:	Check your routing table: typing `route -n` as root. If no UG line is found
+	(no default route), it might be a DHCP client issue on your side.
+	Most common DHCP clients are pump, dhclient and dhcpcd. Check if your DHCP
+	client is installed, else install another or a more recent version
+	
+	Note: this problem has been reported by users in Finland, Sweden or some
+	countries in Asia.
+
+
+4.16
+================================================================================
+Q:	Startmodem says:
+	eci-load2: failed to create shared semaphore: No space left on device
+
+--------------------------------------------------------------------------------
+A:	That's a bug introduced in version 0.6. It should be fixed in version higher
+	than 0.7. Please upgrade with cvs or any version > 0.7.
+
+
+5.0
+================================================================================
+Q:	Is it possible to launch startmodem at boot time?
+
+--------------------------------------------------------------------------------
+A:	Yes it is, using init.d for instance, or /etc/ppp/ppp_on_boot for Debiam
+	users.
+
+	Making it possible using init.d:
+
+	Pre-requisites:
+	 - ECIADSL driver installed and configured
+	 - the ECIADSL sources package, available at:
+	   http://eciadsl.flashtux.org/download.php?lang=en
+
+	Copy the rc.adsl file to /etc/init.d:
+		> cp rc.adsl /etc/init.d
+	(the rc.adsl file is provided with version >= 0.7 (or CVS))
+
+	For Debian, just type as root: update-rc.d rc.adsl defaults 15
+
+	For other distributions, see below :
+
+	In /etc/rc.d, each rc*.d directory corresponds to an init's runlevel. For
+	instance, runlevel 5 is the one that leads to a graphical login (this is
+	default on most Linux systems, but sometimes it's 3), so /etc/rc.d/rc5.d
+	belongs to that level.
+
+	You will find more information about init levels:
+		> man inittab
+	or look at your /etc/inittab file.
+
+	To know which default init level is reached at boot, find a line like the
+	following in /etc/inittab file:
+		id:5:initdefault:
+	Here, default level is 5.
+	For the operations below, let's say we use init level 5 at boot.
+
+	You have to know that when your system enters an init level, it calls all
+	the	K* files from the last level, then call all the S* files from the new
+	level. All these K* and S* files are in /etc/rc.d/rc<init level>.d they
+	belong to.
+	In fact, these S* and K* files are symlink, and point to scripts located
+	(most of the times) in /etc/init.d.
+
+	Eash S* file is like this: Sxxyyyyy, where xx is a 2-digit number, and
+	yyyyy a service name (the name is human friendly, but you can set it as
+	anything you want).
+	All Sxxyyyyy files are called following the xx number (increasingly), then
+	by the service name (yyyyy, alphabetical increasing order).
+
+	For instance:
+		> ls /etc/rc.d/rc5.d
+	shows
+		S01foo
+		S15bar
+		S99dummy
+		K10makemyday
+		K80whatthefuck
+	(take care, it's only an example).
+	So when init level 5 in entered, it will call S01foo, S15bar then S99dummy.
+
+	When init level 5 is left, this is the same for K* files. But following the
+	system, they are called in the same order (by xx increasingly), or in a
+	reverse order (by xx decreasingly).
+
+	Now you know how all this stuff works, you can make the relevant links to
+	/etc/init.d in /etc/rc.d/rc5.d:
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/S90adsl
+		> ln -s /etc/init.d/rc.adsl /etc/rc.d/rc5.d/K90adsl
+
+	Before you create these links, ensure that the S90 is relevant, this means
+	that S90* will be called after all other network services.
+	Of course, verify that K90 is relevant too. According to some systems
+	(reverse kill order) this would be better to use K00, but simply think of
+	the best order to kill the connection.
+
+	Once all the symlinks are done, you can test it by rebooting your system.
+	You can also test it without rebooting: close your X11 session, open a
+	root session in console mode, then:
+		> init 3
+	then
+		> init 5
+	Understood what it does? It means leaving init level 5 to init level 3, then
+	coming back to init level 5. The relevant S* and K* links will be called!
+
+
+5.1
+================================================================================
+Q:	I cannot connect in console mode whereas it works fine under X11.
+
+--------------------------------------------------------------------------------
+A:	This may be a framebuffer issue. Try to boot your Linux without framebuffer
+	console support.
+
+
+5.2
+================================================================================
+Q:	I cannot connect under X11 whereas it works fine in console mode.
+
+--------------------------------------------------------------------------------
+A:	See 5.1.
+
+
+5.3
+================================================================================
+Q:	How to properly configure kernel from the sources to get USB/PPP/N_HDLC
+	support?
+
+--------------------------------------------------------------------------------
+A:	Type the following commands:
+		> cd /usr/src/linux
+		> make -s menuconfig
+
+		  USB support --->
+		  <M> Support for USB
+		  [ ]   USB verbose debug messages
+		  --- Miscellaneous USB options
+		  [*]   Preliminary USB device filesystem
+		  [ ]   Enforce USB bandwidth allocation (EXPERIMENTAL)
+		  [ ]   Long timeout for slow-responding devices (some MGE Ellipse UPSes)
+		  --- USB Host Controller Drivers
+		  < >   EHCI HCD (USB 2.0) support (EXPERIMENTAL)
+		  <M>   UHCI (Intel PIIX4, VIA, ...) support
+		  <M>   UHCI Alternate Driver (JE) support
+		  <M>   OHCI (Compaq, iMacs, OPTi, SiS, ALi, ...) support
+		  ..
+		  --- USB Multimedia devices
+		  ..
+		  < >   DABUSB driver
+		  ..
+
+		  Character devices --->
+		  ..
+		  [*] Non-standard serial port support
+		  <M>   HDLC line discipline support
+		  ..
+
+		  Network device support --->
+		  ..
+		  <M> PPP (point-to-point protocol) support
+		  [ ]	PPP multilink support (EXPERIMENTAL)
+		  [ ]	PPP filtering
+		  <M>	PPP support for async serial ports
+		  <M>	PPP support for sync tty ports
+		  <M>	PPP Deflate compression
+		  <M>	PPP BSD-Compress compression
+		  < >	PPP over Ethernet (EXPERIMENTAL)
+		  < >	PPP over ATM (EXPERIMENTAL)
+		  ..
+
+	Following the kind of PPP encapulsation your provider uses, you may need
+	extra settings in your kernel configuration. PPPoE or IPoATM users, please
+	refer to 5.3.1.
+
+	Once the kernel configuration file stored, type:
+		> make -s dep modules modules_install && depmod -a
+	or whatever command you use to compile and install the kernal modules.
+	Of course your whole kernel config must be properly set, and the loadable
+	module support turned ON.
+	Also `make -s bzImage` if PPP or USB support was previously in kernel
+	instead of as modules!
+	You can enable all USB Host Controller Drivers but must use the relevant one
+	only!
+	DABUSB must be disabled.
+
+	Upgrade your modutils package.
+
+	Then you must see these available modules when you type `modprobe -l`:
+		usbcore
+	and
+		usb-uhci or ush-ohci or uhci
+	and
+		ppp_generic ppp_async ppp_synctty bsd_comp ppp_deflate
+	and also
+		n_hdlc
+
+	Add these following lines in your /etc/modules.conf if they are missing:
+		alias char-major-108 ppp_generic
+		alias /dev/ppp ppp_generic
+		alias tty-ldisc-3 ppp_async
+		alias tty-ldisc-13 n_hdlc
+		alias tty-ldisc-14 ppp_synctty
+		alias ppp-compress-21 bsd_comp
+		alias ppp-compress-24 ppp_deflate
+		alias ppp-compress-26 ppp_deflate
+		alias char-major-180 usbcore
+	and
+		alias usb-hostadapter usb-uhci
+	or	alias usb-hostadapter usb-ohci
+	or	alias usb-hostadapter uhci
+	then
+		> touch /etc/modules.conf /lib/modules/<kernel version>/modules.dep
+
+
+5.3.1
+================================================================================
+Q:	How to properly configure kernel from the sources if I use PPPoE, Bridged
+	Ethernet (RFC1483B) or IPoATM (RFC1483R)?
+
+--------------------------------------------------------------------------------
+A:	The kernel configuration and compilation principles are still the same
+	(see 5.3), but you need this:
+
+		Network device support --->
+		..
+		[*] Network device support
+	    	..
+	    	<M> Universal TUN/TAP device driver support
+	    	..
+		<M> PPP (point-to-point protocol) support
+		..
+		<M> PPP over ATM (EXPERIMENTAL)
+
+	then type:
+		> mkdir /dev/net
+		> mknod /dev/net/tun0 c 10 200
+		> ln -s /dev/net/tun0 /dev/net/tun
+
+	PPPoE users: read the INSTALL file, there's some software you need to
+	install and configure.
+
+
+5.4
+================================================================================
+Q:	I'm not from France, will the driver work with my modem and provider?
+
+--------------------------------------------------------------------------------
+A:	Verify that your modem is supported. If your modem isn't in the list of
+	the supported modem and is NOT in the list of UN-supported modem, ask
+	us for further help.
+
+	Check which PPP protocol/encapsulation is used under MS Windows by your
+	provider. Also check if DHCP is used by your provider or if you use a
+	static IP.
+	Use eciconf.sh or eciconftxt.sh to properly use it. If it's not supported
+	by the driver or if you are uncertain, get the latest version of the driver
+	or contact us.
+
+	FYI:
+    
+		RFC1483 VC-MUX (or null) PPPoA == RFC2364 VC-MUX aka 
+			RFC2364 PPPoATM NULL Encapsulation
+		RFC1483 LLC PPPoA == RFC2364 LLC Routed
+		RFC1483 BRIDGED ETH with NO FCS (ethernet over ADSL, ETHoA or ETHoATM)
+			is a mode typically used to encapsulate ethernet frames, and
+			is often used in conjunction to PPPoE, ethernet static IP, or
+			DHCP over ADSL.
+			This mode is very flexible, either your provider gives you a
+			user/password to connect with PPPoE, or a static IP and gateway,
+			or you use a DHCP client to connect.  
+		VCM RFC1483 BRIDGED ETH is a similar mode to RFC1483 BRIDGED ETH 
+			with NO FCS but not so widely used.
+		LLC RFC1483 ROUTED IP is used for direct transmition of IP datagrams
+			over ADSL (IPoATM or IPoA) typically in the case of static IP, this
+			protocol requires a static IP and a gateway given by your provider.
+		VCM RFC1483 ROUTED IP is a similar mode to LLC RFC1483 ROUTED IP
+			but not so widely used.
+
+		SNAP is an encapsulation layer more, between ethernet and LLC or
+		between IP and LLC.
+		
+		For more information, please refer to the control application of your
+		modem under MS Windows, it should list the mode used, or to your provider.
+
+		You can also read RFC1483 and RFC2364 which describe all theses
+		modes in detail.
+
+
+5.6
+================================================================================
+Q:	Can I use my USB modem with a USB2.0 HUB?
+
+--------------------------------------------------------------------------------
+A:	We encountered problems when the modem or another device is plugged to a USB
+	2.0 HUB, which is currently not supported. In most cases, USB2.0 HUB module
+	has to be unloaded. That's why startmodem now unload ehci-hcd module
+	unconditionally when it founds it loaded.
+
+	If the USB2.0 ports are managed by usb-uhci or usb-ohci, this can work, we
+	have experienced such working configurations.
+
+
+5.7
+================================================================================
+Q:	I have several hardware USB HUBs or several USB devices. Is this a problem?
+
+--------------------------------------------------------------------------------
+A:	Might be. If you don't succeed in initializing your modem, try to disable
+	all additional hardware USB HUBs. We only have partial experience about
+	this.
+	
+	Many users have webcams, mice or other USB devices added to their USB modem,
+	both working at the same time. This doesn't exclude problems with some USB
+	devices anyway. Sometimes the order of the devices in the USB ports may be a
+	problem too (to be verified). Also try your modem with all other USB devices
+	unplugged.
+
+	If you have USB 1.1 and 2.0 HUBs together in your machine, see 5.6.
+
+
+5.8
+================================================================================
+Q:	Switching from Linux to MS Windows, I cannot use my modem and have to
+	re-install the MS Windows driver to make it working again.
+
+--------------------------------------------------------------------------------
+A:	Unload all USB modules related to you modem when leaving Linux. This could
+	be done automatically, through the USB manager of your Linux distribution
+	maybe, or using init.d, (think of cascading modules unloading using the
+	post-remove or pre-remove commands in /etc/modules.conf file).
+
+	If it still doesn't work, you have to manually unplug you modem, wait for a
+	few seconds so that it's resetted, and replug it. Then, you can use it under
+	MS Windows.
+
+	If the problem still persist, contact us.
+
+	<TODO: unverified problems with Ericsson modems and usermode 0.5>
+
+
+5.8.1
+================================================================================
+Q:	Switching from MS Windows to Linux, startmodem says that the firmware is
+	already loaded and fails.
+
+--------------------------------------------------------------------------------
+A:	You have to manually unplug you modem, wait for a few seconds so that it's
+	resetted, and replug it. Then you can retry startmodem.
+
+
+5.9
+================================================================================
+Q:	Can I use this driver under *BSD?
+
+--------------------------------------------------------------------------------
+A:	A BSD port of the driver is under development.
+	Still not officially supported!
+
+
+5.10
+================================================================================
+Q:	Can I use this driver under GNU/Hurd, Darwin, QNX or BeOS or other systems?
+
+--------------------------------------------------------------------------------
+A:	The driver is known to be running on many GNU/Linux systems, but also on
+	*BSD (work under progress) other non-Linux kernel based systems are not
+	supported. 
+
+
+5.11
+================================================================================
+Q:	How can I stop the PPP connection?
+
+--------------------------------------------------------------------------------
+A:	`killall pppd` or `ifconfig ppp0 down`.
+	This will leave your modem still initialized.
+
+	Routed IP users (tun0): `killall pppoeci`.
+
+	PPPoE users (tap0): `killall pppoe && killall pppoeci`.
+
+	If you really want to reset your modem, unload the module which manages your
+	USB HUB (`modprobe -r usb-uhci` for instance). But this may lead to problems
+	because some other USB devices may belong to this module (!), and you may
+	encounter problems re-starting startmodem (need to run it twice or maybe to
+	unplug/replug your modem then launch `startmodem`).
+	
+	You can also automatically stop the running PPP connection when rebooting or
+	shutting down your system. The proper way to configure this is describbed
+	in Q 5.0.
+
+
+5.12
+================================================================================
+Q:	Is it possible to run startmodem as any user?
+
+--------------------------------------------------------------------------------
+A:	Simply ensure that sudo is installed on your system.
+	Edit your /etc/sudoers file as root and add a line:
+		username ALL=NOPASSWD:/usr/local/bin/startmodem
+	where username is the name of the user you want to allow to run startmodem.
+	You can do this for many users or different scripts, adding the same line
+	with a relevant username and script path/name.
+	Granted users can now run startmodem, typing:
+		> sudo startmodem
+
+	See 5.13 now.
+
+
+5.13
+================================================================================
+Q:	When I run startmodem or sudo startmodem, I get this error:
+	nice: pppd: no such file or directory
+
+--------------------------------------------------------------------------------
+A:	Check if pppd is installed on your system.
+
+	For sudo:
+
+	Otherwise, in the console or terminal as root, type:
+		> PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo startmodem
+
+	If this works, add the following line to your normal user's ~/.bashrc or
+	~/.profile (*):
+		> export PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH"
+
+	Next time you will open a terminal (if you've modified ~/.bashrc) or next
+	time you login in console or graphical environment (if you've modified
+	~/.profile), running sudo startmodem should work.
+
+	You can also create a small script containing the first command, then you
+	will only have to run this script. Don't forget to chmod 777 this script
+	so that it becomes executable.
+
+	(*) caution: following the Linux distro you use, these files may not exist
+	or some other ones be used instead.
+
+
+5.14
+================================================================================
+Q:	My provider use PPPoE (RFC1483, RFC2516), how can I manage to configure
+	this?
+
+--------------------------------------------------------------------------------
+A:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
+	and used by default in Debian kernel. Use rp-pppoe instead as a userland
+	tool to manage the PPP connection. See 5.3.1 and 5.4.
+
+	Of course, the PPP mode defined in the ECIADSL config must be one of the
+	supported PPPoE modes (see `pppoeci --list`).
+
+	You can find rp-pppoe here:
+		http://www.roaringpenguin.com/pppoe
+
+	Install and configure it so that it uses tap0 as ETH interface.
+
+	Run startmodem, then use rp-pppoe to enable the PPP line (see rp-pppoe
+	documentation).
+
+
+5.15
+================================================================================
+Q:	My provider use PPPoA (RFC2364), how can I manage to configure this?
+
+--------------------------------------------------------------------------------
+A:	
+
+
+5.16
+================================================================================
+Q:	My provider use IPoATM (RFC1483), how can I manage to configure this?
+
+--------------------------------------------------------------------------------
+A:	
+
+
+5.17
+================================================================================
+Q:	My provider use a PPP mode I cannot find in the PPP modes list.
+	What can I do?
+
+--------------------------------------------------------------------------------
+A:	Please contact us.
+
+
+5.18
+================================================================================
+Q:	I don't know which PPP mode is used by my provider.
+	What can I do?
+
+--------------------------------------------------------------------------------
+A:	See 5.17.
