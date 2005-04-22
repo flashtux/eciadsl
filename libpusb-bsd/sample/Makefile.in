@@ -1,0 +1,12 @@
+CC=@CC@
+CFLAGS += @PUSB_CFLAGS@
+LDLIBS += @PUSB_LIBS@
+
+default: pusb-view
+
+clean:
+	$(RM) pusb-view pusb-view.o
+
+distclean: clean
+	autoconf
+	$(RM) -r Makefile configure config.* autom4te.cache

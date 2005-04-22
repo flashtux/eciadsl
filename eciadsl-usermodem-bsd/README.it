@@ -1,0 +1,102 @@
+INTRODUZIONE
+============
+
+EciAdsl è un driver GNU/Linux per i modem ADSL USB basati su chipset Globespan.
+Il driver funziona in diversi paesi, per diversi tipi di modem ADSL USB e
+diverse modalità di incapsulamento PPP (vedi la lista dei modem supportati su
+http://eciadsl.flashtux.org/modems.php).
+
+
+PRE-REQUISITI
+=============
+
+- un sistema GNU/Linux funzionante (architettura x86) con gli strumenti standard
+  (distribuzioni MDK9/RH8/recenti/esotiche possono avere problemi (risolvibili),
+  BSD ed altri sistemi non sono ancora ufficialmente supportati)
+- supporto hardware USB 1.1
+- kernel Linux 2.4.x (>=2.4.18-pre3 o <2.4.18-pre3 + patch N_HDLC per attivare
+  la riconnessione pppd automatica, che raccomandiamo)
+	- supporto USB (come modulo):
+		- supporto generale USB
+		- fs USB preliminare
+		- il tuo controller HUB USB come MODULO
+		- modulo DABUSB disabilitato
+	- supporto PPP (incluso il pacchetto pppd usermode >=2.4.0)
+ - installazione dai sorgenti: pacchetti di sviluppo standard (sorgenti di Linux
+   in /usr/src/linux, software GNU come gcc>=2.91.66, GNU make, etc...)
+ - modem USB (*solo* quelli con chipset GlobeSpan)
+ - bash (>=2.x.x)
+ - opzionale: tcl/tk >= 8.x.x
+ - privilegi di root (almeno per installare il driver)
+ 
+
+INSTALLAZIONE (DAI SORGENTI)
+============================
+ 
+Leggi il file INSTALL.
+ 
+
+INSTALLAZIONE DAL PACCHETTO PRECOMPILATO
+========================================
+
+Usando .rpm, da root:
+	rpm -i <the file>.rpm
+
+Potresti dover rimuovere le versioni di questo pacchetto precedentemente
+installate (oppure usare una opzione per ignorare le versioni precedentemente
+installate se ti viene richiesto).
+Poi: leggi il file INSTALL, che trovi di default in /usr/local/doc/eciadsl,
+partendo dalla sezione CONFIGURATION.
+
+
+RISOLUZIONE DI PROBLEMI
+=======================
+ 
+Se hai problemi guarda il file TROUBLESHOOTING.
+ 
+Dove trovare supporto:
+	Supporto, pacchetti (driver e file synch .bin) e documentazione:
+		- IRC: irc.freenode.net, canale #eci
+		- http://eciadsl.flashtux.org
+		  (documentazione, forum, mailing list per gli utenti, etc.)
+         
+Noi forniamo supporto sia in francese che in inglese.
+
+Fornire le seguenti informazioni:
+
+	- versione del kernel (vedi: `uname -a` oppure `cat /proc/version`).
+	  Dicci se il kernel è quello della tua distribuzione o l'hai compilato
+	  dai sorgenti
+	- distribuzione Linux
+	- versione di pppd (vedi: `uname -a` oppure `cat /proc/version`).
+	- versione di modutils (vedi: `uname -a` oppure `cat /proc/version`).
+	- modello del controller (HUB) (vedi: `lspci | grep USB`) e la lista di
+	  tutti gli HUB USB installati (se sono schede PCI o HUB esterni)
+	- altre periferiche USB
+	- versione dei driver eciadsl  (per le versioni >0.5 vedi il file
+	  VERSION nel tarball dei sorgenti, oppure prova `pppoeci --version`,
+	  oppure il nome del pacchetto/data CVS) e:
+		- se usi MS Windows, le informazioni sul suo driver (e quindi anche
+		  il tipo di modulazione supportato dal tuo provider)
+		- il file synch .bin che hai provato
+	- la marca ed il modello esatti del tuo modem
+	- la tua località (paese/stato/regione/città)
+	- il tuo provider ed il protocollo di incapsulamento/autenticazione PPP
+	  usato
+	- il tuo livello di esperienza con Linux (per esempio: newbie, medio,
+	  approfondito, esperto, guru)
+	- l'output di `route -n` prima e dopo aver lanciato starmodem se avviene
+	  un problema di rete dopo startmodem
+	- il tuo file /etc/eciadsl/eciadsl.conf, e se possibile il  tuo
+	  /var/log/messages (verifica che contenga traccie di attività dall'ultimo
+	  boot di Linux fino all'uso del driver o alla comparsa del problema).
+
+Può aiutare molto se ci fai avere queste informazioni. Inoltre raccogli l'output
+dei tools del pacchetto che hai usato (script configure o startmodem), poi
+forniscici il tuo /var/log/messages, /var/log/log se disponibili, l'output di
+`dmesg`, `lsmod` e `cat /proc/bus/usb/devices`.
+
+Se ci contatti da MS Windows, e se la tua partizione Linux (solo ext2 o ext3) è
+sullo stesso computer, usa explore2fs per ottenere i files direttamente dalla tua
+partizione Linux invece di riavviare ogni volta con Linux per ottenere un file!
+explore2fs: http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm

@@ -1,0 +1,12 @@
+openbsd-france-misc-subscribe@openbsd-france.org
+<zograk> et ensuite openbsd-france-misc@openbsd-france.org pour post
+
+ /usr/share/doc/fr/books/developers-handbook/devicedrivers.html
+
+<evilmux> sinon tu peux toujours mailer jmg@freebsd.org
+<evilmux> ou n_hibma@freebsd.org
+<evilmux> ou joe@freebsd.org
+
+<evilmux> joe@ a fait pas mal de boulot y'a pas trop longtemps pour sync notre stack usb avec celle de freebsd
+<evilmux> jmg@ a récemment converti le code a busdma
+<evilmux> pour que ca marche sous sparc64

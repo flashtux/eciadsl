@@ -1,0 +1,85 @@
+Si vous avez installé le driver par le biais d'un paquetage pré-compilé,
+passez directement à la section CONFIGURATION.
+
+
+COMPILATION
+===========
+
+Taper en mode console ou dans un terminal
+	./configure
+puis
+	make
+
+Taper ./configure --help pour voir la liste des options disponibles. Si le
+driver doit être installé dans un autre répertoire de base que celui par défaut
+(/usr/local), utiliser l'option --prefix, par exemple :
+	./configure --prefix=/opt
+
+Les fichiers de configuration du driver peuvent eux aussi être installés
+ailleurs que dans le répertoire par défaut (/etc/eciadsl). Utiliser pour cela
+les options --conf-prefix (par défaut: /) et --conf-dir (par défaut: etc/eciadsl).
+Par exemple:
+	--conf-prefix=/opt --conf-dir=etc/eciadsl
+ou	--conf-prefix=/opt/eciadsl --conf-dir=etc
+
+Attention, l'option --etc-prefix (par défault: /, le répertoire est donc /etc)
+est utilisée pour accéder aux fichiers de configuration de pppd et à resolv.conf
+notamment! N'utiliser donc --etc-prefix qu'en sachant exactement ce que cela
+implique.
+
+D'autres options sont disponibles, ./configure --help vous renseignera sur ce
+point.
+
+
+INSTALLATION
+============
+
+Sous root, lancer
+	make install
+
+
+CONFIGURATION
+=============
+
+Toujours sous root:
+ - sous X11, ouvrir un terminal et lancer eciconf.sh (il est nécessaire que
+   tcl/tk soit installé au préalable)
+ - en mode console, lancer eciconftxt.sh
+
+Vous pouvez aussi taper:
+	make cfg
+cela exécutera automatiquement l'outil de configuration approprié.
+
+En cas de problème, utiliser eci-doctor.sh et consulter le fichier
+TROUBLESHOOTING.fr avant de crier à l'aide :-)
+
+S'il est nécessaire d'éditer la configuration du driver manuellement: les
+fichiers de configurations sont installés dans /etc/eciadsl (ou dans
+/opt/etc/eciadsl si vous avez lancé, par exemple, ./configure --etc-prefix=/opt).
+Voir aussi /etc/ppp/peers/asdl pour la configuration de pppd en rapport avec
+le driver, et dans /etc/ppp/chap-secrets, par exemple, si le FAI utilise le
+protocole CHAP pour l'authentification.
+
+
+UTILISATION
+===========
+
+Lancer startmodem (sous root), à partir d'un autre répertoir que celui
+des sources.
+
+Utilisateurs de PPPoE:
+Vous devez configurer et utiliser un client PPPoE standard tel que rp-pppoe
+(http://www.roaringpenguin.com/pppoe) afin de connecter votre modem ADSL via
+tap0.
+
+
+DÉSINSTALLATION
+===============
+
+A partir du répertoire des sources (dans un terminal ou en mode console):
+	make uninstall
+et éventuellement
+	make distclean
+
+A partir d'un .rpm:
+	rpm -e eciadsl-usermode

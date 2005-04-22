@@ -1,0 +1,105 @@
+INTRODUCTION
+============
+
+EciAdsl is a GNU/Linux driver for Globespan chipset-based ADSL USB modems.
+The driver is known to work in many countries, for different kinds of ADSL
+USB modems, using different kinds of PPP encapsulation layers modes (see the
+supported modems list at http://eciadsl.flashtux.org/modems.php).
+
+
+PRE-REQUISITES
+==============
+
+- a running GNU/Linux system (x86 architecture) with standard tools
+  (MDK9/RH8/top-recent/exotic ones may have (solvable) problems, BSD
+  and other systems are not officially supported yet)
+- USB 1.1 hardware support
+- Linux kernel 2.4.x (>=2.4.18-pre3 or <2.4.18-pre3+N_HDLC patch in
+  order to get automatic pppd reconnection feature working, which is
+  recommanded)
+	- USB support (as modules):
+		- general USB support
+		- USB preliminary fs
+		- your HUB USB controller AS MODULE
+		- no DABUSB module enabled
+	- PPP support (including usermode pppd package >=2.4.0)
+- installation from the sources: standard development packages (Linux
+  sources in /usr/src/linux, GNU software like gcc>=2.91.66, GNU make, etc.)
+- USB modem (*only* GlobeSpan chipset inside)
+- bash (>=2.x.x)
+- optionally: tcl/tk >= 8.x.x, perl
+- root privileges (at least to install the driver)
+
+
+INSTALLATION FROM THE SOURCES
+=============================
+
+Read the INSTALL file.
+
+
+INSTALLATION FROM A PRE-COMPILED PACKAGE
+========================================
+
+Using a .rpm, as root:
+	rpm -i <the file>.rpm
+
+You may have to remove previously installed versions of this
+package (or to use a flag to ignore the previously installed
+one if you are warned to).
+Then: read the INSTALL file, installed in /usr/local/doc/eciadsl by default,
+starting at the CONFIGURATION section.
+
+
+TROUBLESHOOTING
+===============
+
+If you get problems, look at the TROUBLESHOOTING file.
+
+
+Where to get support:
+	Support, packages (driver and optional synch .bin's) and documentation:
+		- IRC: irc.freenode.net, #eci channel
+		- http://eciadsl.flashtux.org?lang=en
+		  (documentation, forum, user mailing list, etc.)
+
+	We provide support in both French and English languages.
+
+
+Provide use these info:
+
+	- kernel version (see: `uname -a` or `cat /proc/version`). Tell us if
+	  the kernel is your distro's one or if you compiled it from the sources
+	- Linux distribution
+	- pppd version (see: `pppd --version`)
+	- modutils version (see: `lsmod --version`)
+	- USB Controller (HUB) model (see: `lspci | grep USB`), and the list of all
+	  the USB HUBs you have (if they are PCI cards or external HUBs)
+	- your other USB peripherals
+	- eciadsl driver version (see the VERSION file in the sources tarball if it
+	  exists for version >0.5, or try pppoeci --version, or the package name/CVS
+	  date) and :
+		- your MS Windows driver info if you use it (and also the modulation
+		  type that your provider supports)
+		- the synch .bin you've tried
+	- your modem exact brand/model
+	- you location (country/state/region/town)
+	- your provider and the PPP encapsulation/authentication protocol used
+	- your Linux experience level (for instance: newbie, average, confirmed,
+	  experienced, guru)
+	- the output of route -n before and after running startmodem if a network
+	  problem occurs after startmodem
+	- your /etc/eciadsl/eciadsl.conf file, and if possible, your
+	  /var/log/messages (verify that it contains activity trace since your last
+	  boot under Linux up to your use of the driver or your problem).
+
+It may help a lot if you come and see us with these info. Also get the output of
+the tools from the package you have launched (configure scripts or startmodem),
+also provide us your /var/log/messages, /var/log/log if available, the output
+of `dmesg`, `lsmod` and `cat /proc/bus/usb/devices`.
+
+If you contact us from MS Windows, and if your Linux partition is on the same
+machine, use one of the tools below to get the files directly from your Linux
+partition instead of rebooting each time to Linux to get a file!
+explore2fs (ext2, ext3): http://uranus.it.swin.edu.au/~jn/linux/explore2fs.htm
+waxfs (xfs): http://sourceforge.net/projects/waxfs/
+p-nand-q (reiserfs): http://p-nand-q.com/e/reiserfs.html

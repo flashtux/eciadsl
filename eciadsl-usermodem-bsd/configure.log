@@ -1,0 +1,26 @@
+settings:
+runtime prefix path = /usr/local (default)
+system conf files prefix path = / (default)
+driver conf files prefix path = / (default)
+driver doc files prefix path = /usr/local (default)
+binaries directory = /bin (default)
+system conf files directory = /etc (default)
+driver conf files directory = /etc/eciadsl (default)
+driver doc files directory = /doc/eciadsl (default)
+kernel sources path = /usr/src/linux (default)
+
+starting configuration for ECIADSL-0.8 in /home/papillau/c/eciadsl/sf/eciadsl-usermode-0.10..
+
+checking make location... /usr/bin/make
+checking make version... 3.79.1
+checking gcc location... /usr/bin/gcc
+checking gcc version... 2.95.4
+checking wish location... /usr/bin/wish
+checking platform/OS type ... GNU/Linux (little endian), c:1 si:2 i:4 li:4
+
+entering ./
+generating Makefile.config... OK
+generating config.h... OK
+leaving ./
+
+configure script has completed successfully

@@ -1,0 +1,2 @@
+pusb.o: pusb.c pusb-bsd.c pusb.h
+pusb-common.o: pusb-common.c pusb.h

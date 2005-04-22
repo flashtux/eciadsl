@@ -1,0 +1,79 @@
+If you have installed the driver using a pre-compiled package, jump to the
+CONFIGURATION section.
+
+
+COMPILATION
+===========
+
+All you have to do is to run in a console or a terminal
+	./configure
+then
+	make
+
+Check ./configure --help to get a list of optional settings. You may want to
+install the software in a different place than the default one (/usr/local),
+using --prefix=/opt for instance.
+
+Driver's config files can also be installed in a directory you may prefer
+(default is in /etc/eciadsl), using the --conf-prefix (default is /) AND
+--conf-fir (default is eci/adsl) parameters. For instance:
+	--conf-prefix=/opt --conf-dir=etc/eciadsl
+or	--conf-prefix=/opt/eciadsl --conf-dir=etc
+
+Be careful, --etc-prefix can be changed too (defaut is /, so /etc is used),
+but it is used to get system config files like resolv.conf or the pppd config
+files. Use --etc-prefix only if you know what you are doing.
+
+See other options using ./configure --help.
+
+
+INSTALLATION
+============
+
+Type (as root)
+	make install
+
+
+CONFIGURATION
+=============
+
+Still as root:
+ - under X11, open a terminal and run ecicon.sh (it requires tcl/tk
+   to be installed)
+ - in console mode, run eciconftxt.sh
+
+Typing:
+	make cfg
+will automatically run the relevant configuration tool.
+
+If you encounter problems, try using eci-doctor.sh et please read the
+TROUBLESHOOTING file before asking for support online :-)
+
+If you need to manually change the config files, check in /etc/eciadsl
+(or /opt/etc/eciadsl if you passed --etc-prefix=/opt to ./configure for
+instance). See also /etc/ppp/peers/asdl for pppd settings related to
+the installed driver and /etc/ppp/chap-secrets if your ISP expects a
+CHAP authentication for instance.
+
+
+USAGE
+=====
+
+Run startmodem as root, from elsewhere but the sources directory.
+
+PPPoE user's:
+You have to configure and use a standard PPPoE client as rp-pppoe
+(http://www.roaringpenguin.com/pppoe) to connect to your adsl modem
+through tap0.
+
+
+DEINSTALLATION
+==============
+
+From within the source tree (in console mode or in a terminal):
+	make uninstall
+and optionally
+	make distclean
+
+From a .rpm:
+	rpm -e eciadsl-usermode
