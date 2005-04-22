@@ -270,9 +270,8 @@ void handle_int_signal(void){
 	_exit(-1);
 }
 
-void read_endpoint(pusb_device_t dev, int epnum){
+void read_endpoint(pusb_endpoint_t ep_int, int epnum){
 	pid_t child_pid;
-	pusb_endpoint_t ep;
 	unsigned char lbuf[0x40];
 	int ret, i;
 	unsigned char* sEpResponse;	
@@ -302,14 +301,6 @@ void read_endpoint(pusb_device_t dev, int epnum){
         _exit(-1);
     }
 
-	/* here, we are running in a child process */
-	ep = pusb_endpoint_open(dev, epnum, O_RDONLY);
-	if (ep == NULL)
-	{
-		perror("pusb_endpoint_open");
-		_exit(-1);
-	}
-
 	/* we DO NOT stop after receiving 100 interrupts */
 	for (i = 0; /* i < 100 */; i++)	{
 		/*
@@ -331,7 +322,7 @@ void read_endpoint(pusb_device_t dev, int epnum){
 		  device. So we revert to the old behaviour : NO TIMEOUTS ...
 		*/
 
-		ret = pusb_endpoint_read(ep, lbuf, sizeof(lbuf), 0);
+		ret = pusb_endpoint_read(ep_int, lbuf, sizeof(lbuf), 0);
 		
 		if (ret < 0)
 		{
@@ -388,8 +379,6 @@ void read_endpoint(pusb_device_t dev, int epnum){
         printf("\rERROR - failed to release shared ep response (shmat)        \n");
         _exit(-1);
     }
-	
-	pusb_endpoint_close(ep);
 	_exit(0);
 }
 
@@ -559,6 +548,8 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 	int ret;
 	long size;	
 	unsigned short int doRetry;
+	/* endpoint var for ep int handling */ 
+	pusb_endpoint_t ep_int=NULL;
 
     /* connect to (and possibly create) the segment for Ep Int data sharing: */
     if ((shmEpIntId = shmget(IPC_PRIVATE, 2, 0644)) == -1) {
@@ -638,7 +629,18 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 		return(0);
 	}
 
-	read_endpoint(dev, eci_device.eci_int_ep);
+	/*open ep int endpoint*/
+	/* here, we are running in a child process */
+	ep_int = pusb_endpoint_open(dev, eci_device.eci_int_ep, O_RDONLY);
+	if (ep_int == NULL)
+	{
+		printf("\rERROR can't set interrupt endpoint %d                         \n", eci_device.eci_int_ep);
+		pusb_close(dev);
+		fclose(fp);
+		return(0);
+	}
+
+	read_endpoint(ep_int, eci_device.eci_int_ep);
 #endif
 
 	ret=1;
@@ -668,6 +670,7 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 					doRetry=1;
 				}
 				if (!ret){
+					pusb_endpoint_close(ep_int);
 					pusb_release_interface(dev, 0);
 					pusb_close(dev);
 					printf("\rERROR eciadsl-synch INITIALIZING: failed                                     \n");
@@ -681,6 +684,7 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 					doRetry=1;
 				}
 				if (!ret){
+					pusb_endpoint_close(ep_int);
 					pusb_release_interface(dev, 0);
 					pusb_close(dev);
 					printf("\rERROR eciadsl-synch CYCLING: failed                                     \n");
@@ -696,14 +700,16 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 				doRetry=1;
 			}
 			if (!ret){
+				pusb_endpoint_close(ep_int);
 				pusb_release_interface(dev, 0);
-				pusb_close(dev);
+				pusb_close(dev);			
 				printf("\rERROR eciadsl-synch SYNCHING: failed                                     \n");
 				fflush(stdout);
 				return(0);
 			}
 		}
 	}
+	pusb_endpoint_close(ep_int);
 	/*pusb_release_interface(dev, 0);*/
 	pusb_close(dev);
 	return(1);
@@ -838,15 +844,16 @@ int main(int argc, char** argv){
 
 	if (!ret){
 		printf("\rERROR eciadsl-synch: failed                                                         \n");
-		fflush(stdout);
+	}else{
+		printf("\rOK eciadsl-synch: success                                                           \n");	
 	}
-
-	/* kill process handling signal interrupt */
-	if (pidIntSigChild)
-		kill(pidIntSigChild, SIGINT);
 	
+	fflush(stdout);
+
+	semaphore_done(shared_sem);
+
 	/* wait for child process and intercept child abortion due to signal (user abort or timeout) */
-	do{
+/*	do{
 		status = 0;
 		if (waitpid(pidEpIntChild, &status, 0) == -1)
 			if (errno == EINTR)
@@ -856,14 +863,18 @@ int main(int argc, char** argv){
 			}
 	}
 	while(errno != ECHILD);
-	alarm(0);
 
-	semaphore_done(shared_sem);
 	if (WEXITSTATUS(status) || !ret)
 		return(1);
+*/
 
-	printf("\rOK eciadsl-synch: success                                                        \n");
-	fflush(stdout);
+	/* kill process handling ep Int urb messages */
+	if (pidEpIntChild)
+		kill(pidEpIntChild, SIGINT);
+
+	/* kill process handling signal interrupt */
+	if (pidIntSigChild)
+		kill(pidIntSigChild, SIGINT);
 
 	return(0);
 }
