@@ -21,7 +21,7 @@ DEP = Makefile.dep
 default: libpusb.so
 
 libpusb.so: $(PUSB_OBJ)
-	$(CC) -shared -o $@ $^
+	$(CC) -shared -o $@ $(PUSB_OBJ)
 
 clean:
 	$(RM) pusb.o pusb-common.o libpusb.so $(DEP)
