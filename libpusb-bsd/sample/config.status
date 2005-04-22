@@ -253,8 +253,8 @@ s,@PACKAGE_BUGREPORT@,Benoit PAPILLAULT <benoit.papillault@free.fr>,;t t
 s,@build_alias@,,;t t
 s,@host_alias@,,;t t
 s,@target_alias@,,;t t
-s,@ECHO_C@,\c,;t t
-s,@ECHO_N@,,;t t
+s,@ECHO_C@,,;t t
+s,@ECHO_N@,-n,;t t
 s,@ECHO_T@,,;t t
 s,@PATH_SEPARATOR@,:,;t t
 s,@DEFS@,-DHAVE_LIBPUSB=1 ,;t t
