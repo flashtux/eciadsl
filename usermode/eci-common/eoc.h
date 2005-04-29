@@ -102,7 +102,7 @@ struct eoc_registers {
 						/* no reg B to F reserved for future */
 };
 
-u_int16_t eoc_decode(unsigned char b1, unsigned char b2) 
+u_int16_t eoc_decode(unsigned char b1, unsigned char b2);
 void eoc_encode(u_int16_t eoc_opcode);
 void eoc_execute(u_int16_t eocmesval);
 void eoc_init(void); 
