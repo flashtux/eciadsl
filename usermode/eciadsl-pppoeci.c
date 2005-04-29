@@ -91,6 +91,9 @@
   	Make process works also with altInterface 0 for GS7470 modem chipset
   	 - this change involve the EP_DATA_IN process :
   	 		the EP_DATA_IN number became  0x83 and it uses Interrupt instead ISOCH.
+
+	29/04/2005 Kolja (gavaatbergamoblog.it)
+	Add new eoc handlig process defined in eci-common .
 */
 
 #define _GNU_SOURCE
@@ -126,6 +129,8 @@
 #include "pusb.h"
 /* GS interface control routines */
 #include "gsinterface.h"
+/* eoc handling interface */
+#include "eci-common/eoc.h"
 
 #define LOG_FILE "/tmp/eciadsl-pppoeci.log"
 
@@ -1038,8 +1043,13 @@ int init_ep_int(pusb_endpoint_t ep_int)
 
 	int i, ret;
 
+/* setup new oec handling - kolja */
+#if 0
 	/* allocate variables for GS interface - kolja */
 	allocateGSint();
+#else
+	eoc_init();
+#endif
 
 	for (i = 0; i < NB_PKT_EP_INT; i++)
 	{
@@ -1122,8 +1132,6 @@ int init_ep_data_in_int(pusb_endpoint_t ep_data_in)
 
 void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 {
-	static int lost_synchro = 0;
-
 	unsigned char outbuf[40] =
 	{
 		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
@@ -1133,7 +1141,8 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 		0x0c, 0x0c
 	};
 	
-
+#if 0
+	static int lost_synchro = 0;
 	int i, outi = 0;
 	int dataBlock = 0;
 
@@ -1164,7 +1173,22 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 	if (dataBlock == 0)
 		/* no data/control information so don't bother to respond */
 		return;
+#else
+	if (verbose > 1)
+	{
+		snprintf(errText, ERR_BUFSIZE,
+				"reading from ep int: len=%d", size);
+		message(errText);
+		dump(buf, size);
+	}
 
+	parse_eoc_buffer(buf+(eci_device.ep_int_data_start_point+1), 32);
+	
+	if (has_eocs() == 0)
+		/* no data/control information so don't bother to respond */
+		return;
+	get_eoc_answer(outbuf+8);		
+#endif
 
 	if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
 			sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
