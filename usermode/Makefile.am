@@ -16,6 +16,9 @@ eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c semaphore.h pusb.c util.c \
 
 eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c \
 	gsinterface.c
+	
+	
+eciadsl_pppoeci_LDADD = eci-common/eoc.o eci-common/interrupt.o
 
 eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
