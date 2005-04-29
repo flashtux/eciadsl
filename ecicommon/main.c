@@ -50,16 +50,16 @@ int main()
 {
 	eoc_init();
 	parse_eoc_buffer(buffer, 16);
-	get_oec_answer(outbuf);
+	get_eoc_answer(outbuf);
 	dump(outbuf,32);
 
 	eoc_init();
 	parse_eoc_buffer(buffer01+4, 32);
-	get_oec_answer(outbuf);
+	get_eoc_answer(outbuf);
 	dump(outbuf,32);
 
 	parse_eoc_buffer(buffer02+4, 32);
-	get_oec_answer(outbuf);
+	get_eoc_answer(outbuf);
 	dump(outbuf,32);
 
 }
