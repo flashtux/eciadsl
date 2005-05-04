@@ -870,11 +870,11 @@ int main(int argc, char** argv){
 
 	/* kill process handling ep Int urb messages */
 	if (pidEpIntChild)
-		kill(pidEpIntChild, SIGINT);
+		kill(pidEpIntChild, SIGQUIT);
 
 	/* kill process handling signal interrupt */
 	if (pidIntSigChild)
-		kill(pidIntSigChild, SIGINT);
+		kill(pidIntSigChild, SIGQUIT);
 
 	return(0);
 }
