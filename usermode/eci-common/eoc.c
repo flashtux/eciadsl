@@ -55,8 +55,9 @@ void eoc_init() {
 		eocregs.selftest[0] 	= 0x00;
 		eocregs.vendor1[0]	 	= 0x00;
 		eocregs.vendor2[0] 		= 0x00;
-		eocregs.attenuation[0]	= 0x00;
-		eocregs.SNRmargin[0]	= 0x00;
+		/* setup std value used in win driver - kolja */
+		eocregs.attenuation[0]	= 0x19;
+		eocregs.SNRmargin[0]	= 0x4E;
 		for(i=0; i<30; i++)
 			eocregs.ATURconfig[i]= 0x00;
 		eocregs.linkstate	= 0x00;		
@@ -214,6 +215,9 @@ void eoc_execute(u_int16_t eocmesval) {
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 30;
 					eocdatareg = &(eocregs.ATURconfig[0]);
+					break;
+				case EOC_OPCODE_REQTPU:	
+					/*	nothing to do - kolja*/
 					break;
 				default:
 					eoc_encode(EOC_OPCODE_UTC);

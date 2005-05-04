@@ -1,3 +1,9 @@
+all: eoc.o
+eoc.o: eoc.c eoc.h
+CLEANFILES = eoc.o
+install :
 
-include ../Makefile.config
-all: eoc.o interrupt.o
+clean: clean-generic
+
+clean-generic:
+	-test -z "$(CLEANFILES)" || rm -f $(CLEANFILES)
