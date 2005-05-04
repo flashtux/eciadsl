@@ -1,3 +1,5 @@
+SUBDIRS = eci-common
+
 bin_PROGRAMS = eciadsl-firmware \
 	eciadsl-synch eciadsl-pppoeci \
 	eciadsl-check-hdlc eciadsl-check-hdlc-bug
@@ -18,7 +20,7 @@ eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c \
 	gsinterface.c
 	
 	
-eciadsl_pppoeci_LDADD = eci-common/eoc.o eci-common/interrupt.o
+eciadsl_pppoeci_LDADD = eci-common/eoc.o
 
 eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
