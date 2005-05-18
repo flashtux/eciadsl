@@ -430,4 +430,4 @@ void eoc_encode(u_int16_t eoc_opcode) {
 	}
 	eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
 	eoc_out_buf[eoc_out_buffer_pos-2] = (mes >> 8) & 0xff;		
-};
+}
