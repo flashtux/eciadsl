@@ -439,9 +439,9 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 			return(0);
 		}
 
-		if (!option_verbose)
+/*		if (!option_verbose)
 				printprogres();
-
+*/
 		if (option_verbose)
 			printf ("Block %3d: request_type=%02x request=%02x value=%04x index=%04x size=%04x\n",
 					nbr_urbs_sent, block.request_type, block.request, block.value,block.index, block.size);
