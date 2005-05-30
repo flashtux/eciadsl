@@ -19,6 +19,7 @@
 */
 #include <assert.h>
 #include <sys/types.h>
+#include <stdio.h>
 #include <errno.h>
 
 #include "eoc.h"
@@ -36,15 +37,25 @@ static char *eocdatareg;		/*	pointer to data that will be read or write */
 static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
+#define MAX_WRONG_EOCS 100
+
+static int eoc_wrong_msg_count;
+
 struct eoc_registers eocregs;
 
+#ifdef DEBUG
+	#define DBG_OUT printf
+#else
+	#define DBG_OUT(...)
+#endif
 /*
  * 	init the eoc stuff
  */
 
 void eoc_init() {
 	    int i;
-		printf("EOC.C - eco_init - START\n");
+		DBG_OUT("EOC.C - eco_init - START\n");
+		eoc_wrong_msg_count=0;
 		eoc_out_buffer_pos = eocmescnt = eocmesval = eocstate = 0;
 		for(i=0; i<8; i++)
 			eocregs.vendorID[i] = 0x00;
@@ -61,15 +72,15 @@ void eoc_init() {
 		for(i=0; i<30; i++)
 			eocregs.ATURconfig[i]= 0x00;
 		eocregs.linkstate	= 0x00;		
-		printf("EOC.C - eco_init - END\n");
+		DBG_OUT("EOC.C - eco_init - END\n");
 }
 
 /*
  *		Decode the buffer and return the 13 bit eoc code  
  */
 u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
-	printf("EOC.C - eco_decode - START [b1 : %02x b2 : %02x]\n", b1, b2);
-	printf("EOC.C - eco_decode - END     [b1: %04x b2 : %04x]\n", ((b1 >>2) & 0x3f ) , ((b2 << 5) & 0x1fc0));
+	DBG_OUT("EOC.C - eco_decode - START [b1 : %02x b2 : %02x]\n", b1, b2);
+	DBG_OUT("EOC.C - eco_decode - END     [b1: %04x b2 : %04x]\n", ((b1 >>2) & 0x3f ) , ((b2 << 5) & 0x1fc0));
 	return (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0x1fc0));
 }
 
@@ -77,7 +88,7 @@ u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
  * Handle the eoc messages in idle state - changed by kolja
  */
 void eoc_execute(u_int16_t eocmesval) {
-	printf("EOC.C - eco_execute - START [eocmesval : %04x]\n", eocmesval);
+	DBG_OUT("EOC.C - eco_execute - START [eocmesval : %04x]\n", eocmesval);
 	/*determine parity bit*/
 	if((EOC_PARITY(eocmesval)>>3)!=eocpar){
 		if(eocpar)
@@ -92,125 +103,125 @@ void eoc_execute(u_int16_t eocmesval) {
 			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_READ_0:
 					eocstate = _preread;
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_0]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_0]\n");
 					eocdataregpos =eocmescnt = eocmesval  = 0;
 					eocreadlen = 8;
 					eocdatareg = &(eocregs.vendorID[0]);
 					break;
 				case EOC_OPCODE_READ_1:
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_1]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_1]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval  = 0;
 					eocreadlen = 2;
 					eocdatareg = &(eocregs.revision[0]);
 					break;
 				case EOC_OPCODE_READ_2:	/*	SERIAL  Number */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_2]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_2]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocreadlen = 32;
 					eocdatareg = &(eocregs.serial[0]);
 					break;
 				case EOC_OPCODE_READ_3:	/*	Self test Result */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_3]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_3]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocreadlen = 1;
 					eocdatareg = &(eocregs.selftest[0]);
 					break;
 				case EOC_OPCODE_READ_4:	/*	Vendor 1 */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_4]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_4]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval  = 0;
 					eocreadlen = 1;
 					eocdatareg = &(eocregs.vendor1[0]);
 					break;
 				case EOC_OPCODE_READ_5:	/*	Vendor 2 */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_5]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_5]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval  = 0;
 					eocreadlen = 1;
 					eocdatareg = &(eocregs.vendor2[0]);
 					break;
 				case EOC_OPCODE_READ_6:	/*	Attenuation */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_6]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_6]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval  = 0;
 					eocreadlen = 1;
 					eocdatareg = &(eocregs.attenuation[0]);
 					break;
 				case EOC_OPCODE_READ_7:	/*	SNR margin */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_7]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_7]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval  = 0;
 					eocreadlen = 1;
 					eocdatareg = &(eocregs.SNRmargin[0]);
 					break;
 				case EOC_OPCODE_READ_8:	/*	ATUR config */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_8]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_READ_8]\n");
 					eocstate = _preread;
 					eocdataregpos = eocmescnt = eocmesval  = 0;
 					eocreadlen = 30;
 					eocdatareg = &(eocregs.ATURconfig[0]);
 					break;
 				case EOC_OPCODE_WRITE_0:
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_0]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_0]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 8;
 					eocdatareg = &(eocregs.vendorID[0]);
 					break;
 				case EOC_OPCODE_WRITE_1:
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_1]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_1]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 2;
 					eocdatareg = &(eocregs.revision[0]);
 					break;
 				case EOC_OPCODE_WRITE_2:	/*	SERIAL  Number */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_2]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_2]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 32;
 					eocdatareg = &(eocregs.serial[0]);
 					break;
 				case EOC_OPCODE_WRITE_3:	/*	Self test Result */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_3]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_3]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 1;
 					eocdatareg = &(eocregs.selftest[0]);
 					break;
 				case EOC_OPCODE_WRITE_4:	/*	Vendor 1 */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_4]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_4]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 1;
 					eocdatareg = &(eocregs.vendor1[0]);
 					break;
 				case EOC_OPCODE_WRITE_5:	/*	Vendor 2 */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_5]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_5]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 1;
 					eocdatareg = &(eocregs.vendor2[0]);
 					break;
 				case EOC_OPCODE_WRITE_6:	/*	Attenuation */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_6]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_6]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 1;
 					eocdatareg = &(eocregs.attenuation[0]);
 					break;
 				case EOC_OPCODE_WRITE_7:	/*	SNR margin */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_7]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_7]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 1;
 					eocdatareg = &(eocregs.SNRmargin[0]);
 					break;
 				case EOC_OPCODE_WRITE_8:	/*	ATUR config */
-					printf("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_8]\n");
+					DBG_OUT("EOC.C - eco_execute - IDLE [eocmesval : EOC_OPCODE_WRITE_8]\n");
 					eocstate = _prewrite;
 					eocdataregpos = eocmescnt = eocmesval = 0;
 					eocwritelen = 30;
@@ -227,14 +238,14 @@ void eoc_execute(u_int16_t eocmesval) {
 		case _preread:
 			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_NEXT:
-					printf("EOC.C - eco_execute - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
+					DBG_OUT("EOC.C - eco_execute - PREREAD - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 					if(EOC_PARITY(eocmesval) == EOC_PARITY_ODD)
 						eocstate = _read;
 					break;
 				case EOC_OPCODE_RTN:
-					printf("EOC.C - eco_execute - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+					DBG_OUT("EOC.C - eco_execute - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 				case EOC_OPCODE_HOLD:
-					printf("EOC.C - eco_execute - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
+					DBG_OUT("EOC.C - eco_execute - PREREAD [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 					eocstate = _idle;
 					break;	
 			}
@@ -242,14 +253,14 @@ void eoc_execute(u_int16_t eocmesval) {
 		case _prewrite:
 			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_NEXT:
-					printf("EOC.C - eco_execute - PREWRITE - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
+					DBG_OUT("EOC.C - eco_execute - PREWRITE - [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 					if(EOC_PARITY(eocmesval) == EOC_PARITY_ODD)
 						eocstate = _write;
 					break;
 				case EOC_OPCODE_RTN:
-					printf("EOC.C - eco_execute - PREWRITE [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+					DBG_OUT("EOC.C - eco_execute - PREWRITE [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 				case EOC_OPCODE_HOLD:
-					printf("EOC.C - eco_execute - PREWRITE [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
+					DBG_OUT("EOC.C - eco_execute - PREWRITE [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 					eocstate = _idle;
 					break;
 			}
@@ -257,15 +268,15 @@ void eoc_execute(u_int16_t eocmesval) {
 		case _read:
 			switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 				case EOC_OPCODE_RTN:
-					printf("EOC.C - eco_execute - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+					DBG_OUT("EOC.C - eco_execute - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 				case EOC_OPCODE_HOLD:
-					printf("EOC.C - eco_execute - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
+					DBG_OUT("EOC.C - eco_execute - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 					eocstate = _idle;
 					break;
 			}
 			break;
 	}					
-	printf("EOC.C - eco_execute - END   [eocmesval : %04x]\n", eocmesval);
+	DBG_OUT("EOC.C - eco_execute - END   [eocmesval : %04x]\n", eocmesval);
 }
 
 /*
@@ -276,7 +287,7 @@ int eoc_read_next() {
 	u_int16_t data;
 	u_int16_t mes;
 	
-	printf("EOC.C - eco_readnext - START [eocdataregpos : %d| eocreadlen : %d]\n", eocdataregpos, eocreadlen);
+	DBG_OUT("EOC.C - eco_readnext - START [eocdataregpos : %d| eocreadlen : %d]\n", eocdataregpos, eocreadlen);
 	if(eocdataregpos < eocreadlen) {
 		data = eocdatareg[eocdataregpos];
 		mes = 0x4301;
@@ -289,21 +300,21 @@ int eoc_read_next() {
 	} else {
 		mes |= EOC_ENCODED_PARITY_EVEN;
 	}
-	printf("EOC.C - eco_readnext - STEP1 [mes : %04x| data : %02x]\n", mes, data);
+	DBG_OUT("EOC.C - eco_readnext - STEP1 [mes : %04x| data : %02x]\n", mes, data);
 	mes |= (data & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
 	mes |= (data & 0xFE); /* 2d byte contain 7 msb in bits 1 to 7 */
-	printf("EOC.C - eco_readnext - STEP2 [mes : %04x| data : %02x]\n", mes, data);
-	printf("EOC.C - eco_readnext - END   [mes : %04x]\n", mes);
+	DBG_OUT("EOC.C - eco_readnext - STEP2 [mes : %04x| data : %02x]\n", mes, data);
+	DBG_OUT("EOC.C - eco_readnext - END   [mes : %04x]\n", mes);
 	return(mes);
 }
 
 
 void eoc_write_data(u_int16_t code) {
-	printf("EOC.C - eco_writenext - START [eocdataregpos : %d| eocwritelen : %d]\n", eocdataregpos, eocwritelen);
+	DBG_OUT("EOC.C - eco_writenext - START [eocdataregpos : %d| eocwritelen : %d]\n", eocdataregpos, eocwritelen);
 	if(eocdataregpos < eocwritelen) {
 		eocdatareg[eocdataregpos] = (code >> 5) & 0xff;
 	}
-	printf("EOC.C - eco_writenext - END   [code : %04x]\n", code);
+	DBG_OUT("EOC.C - eco_writenext - END   [code : %04x]\n", code);
 }
 
 /*
@@ -328,14 +339,19 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	0100 0011 0000 0001 0x4301
 	0111 0011 0001 0001 0x7311
 */		
-	printf("EOC.C - parse_eoc_buffer - START [eocmesval : %04x]\n", eocmesval);
+	DBG_OUT("EOC.C - parse_eoc_buffer - START [eocmesval : %04x]\n", eocmesval);
 	
 	for(;i<bufflen;i+=2) {		
-		if(buffer[i] !=0xc0) {
+		if(buffer[i] !=0x0c) {
 			/* check for eoc valicode*/
-			if((((buffer[i] << 8 ) | buffer[i+1]) & 0x0D01) != 0x0101) continue;
+			if((((buffer[i] << 8 ) | buffer[i+1]) & 0x0D01) != 0x0101) {
+				eoc_wrong_msg_count++;
+				DBG_OUT("EOC.C - parse_eoc_buffer - WRONG EOC !! [count : %d |code 0x%02x%02x]\n", eoc_wrong_msg_count, buffer[i], buffer[i+1]);	
+				continue;
+			}
+			eoc_wrong_msg_count=0;
 			eoccode = eoc_decode(buffer[i], buffer[i+1]);
-			printf("EOC.C - parse_eoc_buffer - GOOD EOC CODE [eoccode : %04x| EOC_ADDRESS(eoccode) : %04x| eocpar %d]\n", eoccode, EOC_ADDRESS(eoccode), eocpar);	
+			DBG_OUT("EOC.C - parse_eoc_buffer - GOOD EOC CODE [eoccode : %04x| EOC_ADDRESS(eoccode) : %04x| eocpar %d]\n", eoccode, EOC_ADDRESS(eoccode), eocpar);	
 			if(EOC_ADDRESS(eoccode) != EOC_ADDRESS_ATU_R) {
 				continue; /* creapy message or not for us */
 			}
@@ -356,7 +372,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 			if(eocmescnt >= 2){
 				/* determine ecostate & eoc parity (eocpar)- kolja */
 				eoc_execute(eocmesval);				
-				printf("EOC.C - parse_eoc_buffer - CYCLE1 [eocmesval : %04x| eoccode . %04x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
+				DBG_OUT("EOC.C - parse_eoc_buffer - CYCLE1 [eocmesval : %04x| eoccode . %04x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 				/* do actions if needed - kolja */
 				/* you could use if statement instead switch ??? - kolja */
 				switch(eocstate) {
@@ -369,27 +385,27 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 						} 
 						break;
 					case _read:
-						printf("EOC.C - parse_eoc_buffer - READ [eocstate : _read]\n");
+						DBG_OUT("EOC.C - parse_eoc_buffer - READ [eocstate : _read]\n");
 						switch(EOC_DECODE_OP(EOC_OPCODE(eocmesval))) {
 							case EOC_OPCODE_NEXT:
-								printf("EOC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
+								DBG_OUT("EOC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_NEXT]\n");
 								mes = eoc_read_next();
 								eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
 								eoc_out_buf[eoc_out_buffer_pos-2] = (mes >>8 ) & 0xff;
 								break;
 							case EOC_OPCODE_RTN:
-								printf("EOC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
+								DBG_OUT("EOC.C - parse_eoc_buffer - READ [EOC_OPCODE(eocmesval) : EOC_OPCODE_RTN]\n");
 							case EOC_OPCODE_HOLD:
-								printf("EOC.C - parse_eoc_buffer - CYCLE4C [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
+								DBG_OUT("EOC.C - parse_eoc_buffer - CYCLE4C [EOC_OPCODE(eocmesval) : EOC_OPCODE_HOLD]\n");
 								break;
 						}
 						break;
 				}
 			}
 		}
-		printf("EOC.C - parse_eoc_buffer - LOOP [eocmesval : %04x| eoccode . %02x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
+		DBG_OUT("EOC.C - parse_eoc_buffer - LOOP [eocmesval : %04x| eoccode . %02x| eocmescnt : %d| eocstate : %d| EOC_ADDRESS(eoccode) : %d]\n", eocmesval, eoccode, eocmescnt, eocstate, EOC_ADDRESS(eoccode));
 	}
-	printf("EOC.C - parse_eoc_buffer - END  [eocmesval : %04x]\n", eocmesval);
+	DBG_OUT("EOC.C - parse_eoc_buffer - END  [eocmesval : %04x]\n", eocmesval);
 	return 0;
 }
 
@@ -401,7 +417,7 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  	int i;
  	
  	assert(eoc_out_buffer_pos<32);
- 	printf("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
+ 	DBG_OUT("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	
  	for(i=0; i< 32; i++) {	/* to be optimized */
  			eocoutbuff[i] = 0x0c;
@@ -410,11 +426,11 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  		eocoutbuff[i] = eoc_out_buf[i];
  	}
  	eoc_out_buffer_pos = 0;
-	printf("EOC.C - get_eoc_answer - END \n");
+	DBG_OUT("EOC.C - get_eoc_answer - END \n");
 }
 
 int has_eocs(){
-	printf("EOC.C - has_eocs  [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
+	DBG_OUT("EOC.C - has_eocs  [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	return (eoc_out_buffer_pos);
 }
 void eoc_encode(u_int16_t eoc_opcode) {
@@ -430,4 +446,31 @@ void eoc_encode(u_int16_t eoc_opcode) {
 	}
 	eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
 	eoc_out_buf[eoc_out_buffer_pos-2] = (mes >> 8) & 0xff;		
+}
+
+/* 
+ * 	return the buffer for special eoc answer : DISCONNECT
+ */
+
+ void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff) {
+ 	int i;
+ 	
+ 	for(i=0; i< 32; i++) {	/* to be optimized */
+ 			eocoutbuff[i] = 0x0c;
+ 	}
+ 	for(i=0; i < 12; i+=2) {
+ 		/* setup op code : EOC_OPCODE_DGASP */
+ 		eocoutbuff[i] = 0xbf;
+ 		eocoutbuff[i+1] = 0xe7;
+ 	}
+}
+
+/*
+ * return true if wrong eoc count is greater than MAX_WRONG_EOCS
+ */
+int has_eoc_problem(){
+	if(eoc_wrong_msg_count > MAX_WRONG_EOCS){
+		return(1);
+	}
+	return(0);
 }
