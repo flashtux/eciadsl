@@ -2,6 +2,7 @@ SUBDIRS = eci-common
 
 bin_PROGRAMS = eciadsl-firmware \
 	eciadsl-synch eciadsl-pppoeci \
+	eciadsl-ctrlui \
 	eciadsl-check-hdlc eciadsl-check-hdlc-bug
 
 dist_bin_SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor \
@@ -16,9 +17,10 @@ eciadsl_firmware_SOURCES = eciadsl-firmware.c pusb.c pusb.h util.c util.h \
 eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c semaphore.h pusb.c util.c \
 	gsinterface.c
 
-eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c \
+eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c ecimsgh.c \
 	gsinterface.c
-	
+
+eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c
 	
 eciadsl_pppoeci_LDADD = eci-common/eoc.o
 

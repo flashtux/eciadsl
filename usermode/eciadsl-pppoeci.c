@@ -131,10 +131,14 @@
 #include "gsinterface.h"
 /* eoc handling interface */
 #include "eci-common/eoc.h"
+/* msg que handler*/
+#include "ecimsgh.h"
 
 #define LOG_FILE "/tmp/eciadsl-pppoeci.log"
 
 #define PPP_BUF_SIZE 64*1024
+
+struct eci_msg ecimsg;
 
 char* exec_filename;
 
@@ -1182,6 +1186,8 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 		dump(buf, size);
 	}
 
+	if(buf[0]!=0xf0)
+		return;
 	parse_eoc_buffer(buf+(eci_device.ep_int_data_start_point+1), 32);
 	
 	if (has_eocs() == 0)
@@ -1303,6 +1309,50 @@ void handle_urb(pusb_urb_t urb)
 	}
 }
 
+/* this function check for message and do the appropriate action */
+int ecimsgh(void){
+	int ret=0;
+	int i;
+	unsigned char outbuf[40] =
+	{
+		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
+		0x0c, 0x0c
+	};
+	ret = rcvEciMsg(&ecimsg,0,0);
+	if(ret>0){
+		switch(ecimsg.ecicmd){
+			case ECI_MC_DO_DISCONNECT:
+				get_eoc_answer_DISCONNECT(outbuf+8);
+				for(i=0;i<5;i++){
+					if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
+							sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
+					{
+						message("error on sending vendor device URB");
+						perror("error: can't send vendor device!");
+					}
+					else
+					{
+						if (verbose > 1)
+						{
+							snprintf(errText, ERR_BUFSIZE,
+							"ctrl msg sent: len=%d", sizeof(outbuf));
+							message(errText);
+							dump(outbuf, sizeof(outbuf));
+						}
+					}
+				}
+				sndEciMsg(ECI_MC_DISCONNECTED, NULL, 0, ecimsg.sender, 1);
+				return(0);				
+				break;			
+		}
+	}
+	return(1);
+}
+
+
 /*
   handle_ep_data_in_ep_int : must be called after init_ep_int()
   and init_ep_data_int()
@@ -1313,7 +1363,9 @@ void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 {
 	pusb_urb_t urb;
 
-	for (;;)
+	/* initialize message queue handler */
+	initEciMsgQueue(ECI_PT_PPP);
+	while(ecimsgh() && !has_eoc_problem())
 	{
 		urb = pusb_device_get_urb(fdusb);
 		if (urb == NULL)
@@ -1330,7 +1382,7 @@ void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 
 		free(urb);
 	}
-
+	deallocEciMsgQueue();
 	message("end of handle_ep_data_in_ep_int");
 }
 
@@ -1941,9 +1993,8 @@ int main(int argc, char** argv)
 		_exit(0);
 	}
 #endif
-
+	pthread_t th_id;
 	{
-		pthread_t th_id;
 		pthread_attr_t attr;
 
 		pthread_attr_init(&attr);
@@ -1967,7 +2018,10 @@ int main(int argc, char** argv)
 	/* we release all the interface we'd claim before exiting */
 	if (pusb_release_interface(fdusb, 0) < 0)
 		message("pusb_release_interface failed");
-
+	
+	/* kill thread handling data out */
+	kill (th_id,SIGTERM);
+	
 	pusb_endpoint_close(ep_int);
 	pusb_endpoint_close(ep_data_in);
 	pusb_endpoint_close(ep_data_out);

@@ -10,18 +10,19 @@
 #             http://eciadsl.flashtux.org
 #
 
-echo -n "EciAdsl: shutting down... "
+echo -e "EciAdsl: shutting down..."
 ps ax | grep "eciadsl-pppoeci" | grep -v grep > /dev/null 2>&1
 if [ $? -eq 0 ]; then
-    killall pppd && killall eciadsl-pppoeci
+	eciadsl-ctrlui --disconnect
+    killall pppd
     if [ $? -eq 0 ]; then
-        echo "stopped."
+        echo -e "stopped."
     else
-        echo "failed to stop"
+        echo -e "failed to stop"
         exit 2
     fi
 else
-    echo "failed (not running)"
+    echo -e "failed (not running)"
     exit 1
 fi
 exit 0
