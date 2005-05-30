@@ -14,6 +14,7 @@ echo -e "EciAdsl: shutting down..."
 ps ax | grep "eciadsl-pppoeci" | grep -v grep > /dev/null 2>&1
 if [ $? -eq 0 ]; then
 	eciadsl-ctrlui --disconnect
+    sleep 1
     killall pppd
     if [ $? -eq 0 ]; then
         echo -e "stopped."
