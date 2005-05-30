@@ -112,5 +112,7 @@ void get_eoc_answer(unsigned char *eocoutbuff);
 int has_eocs(void);
 int parse_eoc_buffer(unsigned char *buffer, int bufflen);
 void get_oec_answer(unsigned char *eocoutbuff);
+void get_oec_answer_DISCONNECT(unsigned char *eocoutbuff);
 int has_eocs(void);
+int has_eoc_problem(void);
 void eoc_encode(u_int16_t eoc_opcode);
