@@ -1088,7 +1088,10 @@ P:	Cuando ejecuto sudo eciadsl-start, obtengo este error:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-R:	En la consola o terminal como root, digite:
+R:	Check if pppd is installed on your system and try "su -" to get root
+	privileges (instead of "su").
+
+	En la consola o terminal como root, digite:
 		>PATH="/sbin:/usr/sbin:/usr/local/sbin:$PATH" sudo eciadsl-start
 
 	Si esto funciona, agregue la línea siguiente a su usuario normal 

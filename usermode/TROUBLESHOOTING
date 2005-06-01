@@ -1052,7 +1052,8 @@ Q:	When I run eciadsl-start or sudo eciadsl-start, I get this error:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-A:	Check if pppd is installed on your system.
+A:	Check if pppd is installed on your system and try "su -" to get root
+	privileges (instead of "su").
 
 	For sudo:
 

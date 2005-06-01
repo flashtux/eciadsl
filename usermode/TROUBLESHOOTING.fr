@@ -1104,7 +1104,8 @@ Q:	Quand je lance eciadsl-start ou sudo eciadsl-start, j'ai cette erreur :
 	nice: pppd: Aucun fichier ou répertoire de ce type
 
 --------------------------------------------------------------------------------
-R:	Vérifiez si pppd est installé sur votre système.
+R:	Vérifiez si pppd est installé sur votre système et essayez "su -" pour
+	obtenir les droits root (au lieu de "su").
 
 	Pour sudo :
 

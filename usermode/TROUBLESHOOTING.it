@@ -970,7 +970,8 @@ D:	Quando eseguo 'eciadsl-start' o 'sudo eciadsl-start' ottengo questo errore:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-R:	Controllo se il pppd è installato sul vostro sistema.
+R:	Controllo se il pppd è installato sul vostro sistema and try "su -" to
+	get root privileges (instead of "su").
 
 	Per sudo:
 
