@@ -63,6 +63,8 @@ struct eci_device_t
 	short int ep_int_out_buf_size;
 	/* EP INT data start point */
 	short int ep_int_data_start_point;
+	/* EP INT data size */
+	short int ep_int_data_size;	
 	/* BULK RESPONSE VALUE */
 	unsigned short bulk_response_value;	
 	/* AAL5 INPUT CELL STRUCTURE */

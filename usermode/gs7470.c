@@ -52,6 +52,9 @@ void gs7470InitParams(void){
 	eci_device.ep_int_out_buf_size = 40;
 	/* EP INT data start point */
 	eci_device.ep_int_data_start_point = 3;
+	/* EP INT data size */
+	eci_device.ep_int_data_size=32;	
+	
 	/* BULK RESPONSE VALUE */
 	eci_device.bulk_response_value = 0x0c02;
 

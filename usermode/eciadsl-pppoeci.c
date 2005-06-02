@@ -1188,7 +1188,7 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 
 	if(buf[0]!=0xf0)
 		return;
-	parse_eoc_buffer(buf+(eci_device.ep_int_data_start_point+1), 32);
+	parse_eoc_buffer(buf+(eci_device.ep_int_data_start_point+1), eci_device.ep_int_data_size);
 	
 	if (has_eocs() == 0)
 		/* no data/control information so don't bother to respond */
