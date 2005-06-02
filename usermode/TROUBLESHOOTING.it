@@ -7,11 +7,11 @@ Dedicato a:
 utilizzatori del driver per modem USB ECI ADSL (fino alla versione 0.10).
 
 Prima di leggere il resto:
-la seguente lista di Q/A *non* è esaustiva.
+la seguente lista di Q/A *non* ï¿½ esaustiva.
 E' possibile che non troverai alcuna Q/A che corrisponde al tuo problema.
 Sei pregato di leggerle comunque, potrebbero comunque aiutarti a risolvere il
 tuo problema.
-Se anche il tuo problema fosse elencato di seguito, è possibile che le risposte
+Se anche il tuo problema fosse elencato di seguito, ï¿½ possibile che le risposte
 non ti aiutino a risolverlo comunque. In questo caso, contattaci, cercheremo di
 aiutarti a trovare una soluzione.
 
@@ -23,7 +23,7 @@ aiutarti a trovare una soluzione.
 
 1.0
 ================================================================================
-D:	Non so se il mio modem è supportato.
+D:	Non so se il mio modem ï¿½ supportato.
 	Non vedo il mio modem nella lista (usando eciadsl-config-tk o eciadsl-config-text).
 
 --------------------------------------------------------------------------------
@@ -33,7 +33,7 @@ R:	Controlla i prerequisiti.
 	
 	Installa l'ultima versione dei driver, quindi esegui eciadsl-start o
 	eciadsl-doctor, se ottieni degli errori prova ad eseguire eciadsl-probe-device
-	per controllare la compatibilità del tuo modem. Se non sei ancora sicuro
+	per controllare la compatibilitï¿½ del tuo modem. Se non sei ancora sicuro
 	contattaci!
 
 
@@ -46,7 +46,7 @@ R:	Sei pregato di farci avere l'output di `./configure`.
 	Controlla quali opzioni (vedi `./configure --help`) possano aiutarti.
 	Per esempio, potresti usare --disable-gcc-check se `./configure` non
 	riesce a trovare gcc o a controllare la sua versione allorquando gcc fosse
-	installato e fosse nel $PATH. Questo errore può verificarsi su alcuni
+	installato e fosse nel $PATH. Questo errore puï¿½ verificarsi su alcuni
 	sistemi che includono una versione modificata di gcc (ad es. Debian).
 
 
@@ -67,13 +67,13 @@ D:	`eciadsl-config-tk` si interrompe immediatamente dicendo:
 	wish: command not found
 
 --------------------------------------------------------------------------------
-R:	Installa tcl/tk oppure esegui `eciadsl-config-tk`. Anche se tcl/tk non è
+R:	Installa tcl/tk oppure esegui `eciadsl-config-tk`. Anche se tcl/tk non ï¿½
 	obligatorio, controlla i prerequisiti.
 
 
 1.4
 ================================================================================
-D:	eciadsl-probe-device mostra che VID1/PID1 sono gli stessi di VID2/PID2, è
+D:	eciadsl-probe-device mostra che VID1/PID1 sono gli stessi di VID2/PID2, ï¿½
 	normale?
 
 --------------------------------------------------------------------------------
@@ -82,9 +82,9 @@ R:	Devi resettare il tuo modem (scollegalo/aspetta/ricollegalo) prima di
 	Sei pregato di leggere i WARNING mostrati dallo script quando viene
 	eseguito.
 
-	Può essere causato da problemi generali nella configurazione USB del tuo
+	Puï¿½ essere causato da problemi generali nella configurazione USB del tuo
 	sistema. hotplug interferisce con il driver, oppure i moduli USB del kernel
-	hanno problemi con il tuo hardware (può anche essere un bug del kernel).
+	hanno problemi con il tuo hardware (puï¿½ anche essere un bug del kernel).
 
 	Inoltre controlla se il modulo dabusb compare in /var/log/messages (vedi
 	sopra la domanda relativa a dabusb).
@@ -92,7 +92,7 @@ R:	Devi resettare il tuo modem (scollegalo/aspetta/ricollegalo) prima di
 
 1.5
 ================================================================================
-D:	eciadsl-start, eciadsl-config-tk o eciadsl-doctor avvertono che il modem non è
+D:	eciadsl-start, eciadsl-config-tk o eciadsl-doctor avvertono che il modem non ï¿½
 	supportato!
 
 --------------------------------------------------------------------------------
@@ -103,9 +103,9 @@ R:	Vedi 1.4.
 	seguente:
 		kernel: usb_control/bulk_msg: timeout
 		kernel: usb.c: USB device not accepting new address=2 (error=-110)
-	c'è un problema nella configurazione del tuo hardware/BIOS/kernel, è una
+	c'ï¿½ un problema nella configurazione del tuo hardware/BIOS/kernel, ï¿½ una
 	questione di interrupt. Disabilitare il supporto per l'APIC nel kernel al
-	boot può aiutare (usa noapic al boot del kernel), ma può anche essere
+	boot puï¿½ aiutare (usa noapic al boot del kernel), ma puï¿½ anche essere
 	causato da altri conflitti di IRQ tra le periferiche hardware, oppure
 	qualche altro problema relativo al kernel, oppure disabilita/abilita il
 	supporto legacy USB nel BIOS.
@@ -113,7 +113,7 @@ R:	Vedi 1.4.
 	Spesso questi problemi sono comuni con alcuni chipset come i vecchi VIA ed i
 	SiS 700x. Contattaci se non sai che chipset hai o vuoi avere conferma del
 	fatto che il tuo problema sia legato all'hardware/kernel.
-	In caso di conferma una possibile soluzione  è quella di comprare un HUB USB
+	In caso di conferma una possibile soluzione  ï¿½ quella di comprare un HUB USB
 	ed inserirlo in uno slot PCI libero (non provare a collegare un HUB USB
 	esterno in una porta del sistema HUB USB integrato nella motherboard, non
 	funzionerebbe dal momento che il problema risiede proprio nel chipset della
@@ -121,7 +121,7 @@ R:	Vedi 1.4.
 	provarla prima!
 	
 	Leggi anche la domanda relativa al modulo dabusb, se dabusb viene caricato,
-	non sarà possibile usare il modem con questo driver finchè non verrà
+	non sarï¿½ possibile usare il modem con questo driver finchï¿½ non verrï¿½
 	disabilitato il suo caricamento.
 
 
@@ -131,7 +131,7 @@ D:	L'output di eciadsl-start, eciadsl-config-tk o eciadsl-doctor's mostra:
 	/proc/bus/usb: No such file or directory
 
 --------------------------------------------------------------------------------
-R:	Controlla la configurazione dell'USB del tuo sistema. Può essere causato
+R:	Controlla la configurazione dell'USB del tuo sistema. Puï¿½ essere causato
 	dalla mancanza di supporto per usbdevfs nella configurazione del tuo
 	kernel. Se il kernel lo supporta prova a montarlo con:
 		> mount -t usbdevfs none /proc/bus/usb
@@ -139,14 +139,14 @@ R:	Controlla la configurazione dell'USB del tuo sistema. Può essere causato
 	boot aggiungi la seguente linea:
 		usbdevfs /proc/bus/usb usbdevfs defaults 0 0 
 
-	Nota: non ci sarà nulla in /proc/bus/usb finchè non viene caricato un
+	Nota: non ci sarï¿½ nulla in /proc/bus/usb finchï¿½ non viene caricato un
 	modulo per un host controller.
 
 
 2.1
 ================================================================================
-D:	ecidoctor avverte che il modulo DABUSB è stato caricato, o eciadsl-start dice
-	che è stato trovato dabusb, però non riesco a rimuoverlo!
+D:	ecidoctor avverte che il modulo DABUSB ï¿½ stato caricato, o eciadsl-start dice
+	che ï¿½ stato trovato dabusb, perï¿½ non riesco a rimuoverlo!
 
 --------------------------------------------------------------------------------
 R:	Accendi il sistema Linux con il modem "SCOLLEGATO", poi puoi rimuovere il
@@ -158,13 +158,13 @@ R:	Accendi il sistema Linux con il modem "SCOLLEGATO", poi puoi rimuovere il
 	Oppure manualmente esegui i seguenti comandi:
 		> modprobe -r dabusb && rm -f $(modprobe -l | grep dabusb) && depmod -a
 
-	Se il kernel è stato compilato manualmente non dimenticare di rimuovere il
+	Se il kernel ï¿½ stato compilato manualmente non dimenticare di rimuovere il
 	supporto per dabusb anche dalla configurazione del kernel.
 
 
 2.2
 ================================================================================
-D:	Non c'è modo di rimuovere dabusb! Ad ogni boot viene caricato nuovamente!
+D:	Non c'ï¿½ modo di rimuovere dabusb! Ad ogni boot viene caricato nuovamente!
 
 --------------------------------------------------------------------------------
 R:	Vedi 2.1, ma usa il metodo manuale.
@@ -186,7 +186,7 @@ D:	Sembra che il modem venga inizializzato in fase di boot, i LED lampeggiano
 	non devo installare i driver?
 
 --------------------------------------------------------------------------------
-R:	No! Non è assolutamente scontato.
+R:	No! Non ï¿½ assolutamente scontato.
 	E' un problema relativo al modulo dabusb. Vedi 2.3.
 
 
@@ -219,7 +219,7 @@ R:	Segui i prerequisiti, leggi la documentazione riguardo il problema con
 D:	eciadsl-start dice: eciadsl-firmware: timeout
 
 --------------------------------------------------------------------------------
-R:	Probabilmente il tuo modem non è supportato, inizia a leggere questa FAQ
+R:	Probabilmente il tuo modem non ï¿½ supportato, inizia a leggere questa FAQ
 	dall'inizio.
 
 
@@ -229,8 +229,8 @@ D:	eciadsl-start/eciadsl-probe-device/eciadsl-doctor non riescono a trovare il
 	mio modem
 
 --------------------------------------------------------------------------------
-R:	Probabilmente il tuo modem non è supportato oppure c'è un probelam con il
-	tuo hardware USB HUB, può anche essere un bug nei moduli del kernel.
+R:	Probabilmente il tuo modem non ï¿½ supportato oppure c'ï¿½ un probelam con il
+	tuo hardware USB HUB, puï¿½ anche essere un bug nei moduli del kernel.
 
 
 3.0
@@ -248,9 +248,9 @@ D:	eciadsl-start dice: eciadsl-synch: failed
 --------------------------------------------------------------------------------
 R:	Vedi 3.2.
 
-	Problema noto: in GNOME o KDE, eciadsl-synch può non riuscire ad eseguire la
+	Problema noto: in GNOME o KDE, eciadsl-synch puï¿½ non riuscire ad eseguire la
 	sincronizzazione. Prova gli ultimi driver o contattaci.
-	Può anche accadere se esegui eciadsl-start mentre la CPU è sovraccarica.
+	Puï¿½ anche accadere se esegui eciadsl-start mentre la CPU ï¿½ sovraccarica.
 
 
 3.2
@@ -277,12 +277,12 @@ R:	Controlla il file /etc/ppp/pap-secrets o /etc/ppp/chap-secrets. Le voci
 	Puoi configurarlo con eciadsl-config-tk.
 
 	A seconda della versione di pppd, la sintassi di pap-secrets e chap-secrets
-	può cambiare. In questo caso prova a modificarli a mano o contattaci.
+	puï¿½ cambiare. In questo caso prova a modificarli a mano o contattaci.
 
 
 4.1
 ================================================================================
-D:	eciadsl-start è OK, ma non riesco ancora ad usare l'accesso ad Internet?
+D:	eciadsl-start ï¿½ OK, ma non riesco ancora ad usare l'accesso ad Internet?
 
 
 --------------------------------------------------------------------------------
@@ -321,22 +321,22 @@ R:	Vedi 4.0.
 
 	  L'IP e gli altri valori saranno diversi da questi qui sopra.
 
-	Se l'interfaccia ppp0 non è up controlla eventuali errori in
+	Se l'interfaccia ppp0 non ï¿½ up controlla eventuali errori in
 	/var/log/messages o in /var/log/ppp dopo aver eseguito eciadsl-start.
 
-	Se il default route (UG) è settato su eth0 rimuovilo:
+	Se il default route (UG) ï¿½ settato su eth0 rimuovilo:
 		> route del default dev eth0
 	o rimuovi la linea "gateway" dal file /etc/sysconfig/network, oppure
 	disabilita la network legata alla LAN prima di eseguire eciadsl-start.
 
-	Se il default route NON viene impostato su ppp0 anche se ppp0 è up:
+	Se il default route NON viene impostato su ppp0 anche se ppp0 ï¿½ up:
 		> route add default dev ppp0
 
-	Può essere un problema di firewall. Prova a disabilitare il tuo firewall,
+	Puï¿½ essere un problema di firewall. Prova a disabilitare il tuo firewall,
 	se adesso funziona devi correggere le impostazionei del firewall.
 	Utenti di Mandrake 9: se vdete linee come le seguenti in /var/log/messages:
 		Shorewall:INPUT:REJECT:IN=ppp0 ....
-	allora potete essere sicuri che è un problema legato al firewall.
+	allora potete essere sicuri che ï¿½ un problema legato al firewall.
 
 
 4.2
@@ -353,7 +353,7 @@ R:	Sai che pppd richiama /etc/ppp/ip-down al momento della disconnessione e poi
 
 4.3
 ================================================================================
-D:	Dopo alcuni minuti di accesso ad Internet sembra che non funzioni più nulla.
+D:	Dopo alcuni minuti di accesso ad Internet sembra che non funzioni piï¿½ nulla.
 	Nessun ping verso un IP, niente accesso ad http e neanche nslookup.
 
 --------------------------------------------------------------------------------
@@ -366,8 +366,8 @@ R:	E' stato notato spesso su distribuzioni recenti (MDK9, Slackware 8.1 e RH8).
 	Trovi una disconessione (e forse anche una riconnessione) in
 	/var/log/messages o /var/log/ppp? Se si ritorna alla domanda precedente.
 
-	Può anche essere un problema legato alla configurazione della rete/firewall,
-	ma non è sicuro. Prova con `network down` se hai una rete locale ma non ne
+	Puï¿½ anche essere un problema legato alla configurazione della rete/firewall,
+	ma non ï¿½ sicuro. Prova con `network down` se hai una rete locale ma non ne
 	hai bisogno.
 
 
@@ -382,11 +382,11 @@ D:	Ottengo linee con LCP timeout in /var/log/messages e poi il modem
 		Connection terminated.
 
 --------------------------------------------------------------------------------
-R:	Il tuo kernel è veramente OK? N_HDLC è OK? Controlla sopra!
+R:	Il tuo kernel ï¿½ veramente OK? N_HDLC ï¿½ OK? Controlla sopra!
 
 	Controlla la versione di pppd.
 
-	Vedi anche 4.5, perchè spesso pppd non riporta in maniera prolissa i
+	Vedi anche 4.5, perchï¿½ spesso pppd non riporta in maniera prolissa i
 	problemi con CHAP/PAP.
 	Anche i punti da 4.6 fino a 4.9 potrebbero aiutarti.
 
@@ -397,13 +397,13 @@ R:	Il tuo kernel è veramente OK? N_HDLC è OK? Controlla sopra!
 4.5
 ================================================================================
 D:	A volte trovo degli LCP timeout in /var/log/messages, ma la mia connessione
-	è ancora attiva oppure non si disconnette sempre.
+	ï¿½ ancora attiva oppure non si disconnette sempre.
 
 --------------------------------------------------------------------------------
 R:	Prova a commentare le due linee relative agli LCP in /etc/ppp/peers/adsl, e
 	prova ad aumentarne leggermente i valori.
 
-	Può essere dovuto anche al tuo provider, aspetta alcuni minuti/ore se non
+	Puï¿½ essere dovuto anche al tuo provider, aspetta alcuni minuti/ore se non
 	riesci ancora a connetterti.
 
 	Se questi problemi di LCP timeout non disturbano la TUA connessione PPP
@@ -424,13 +424,13 @@ R:	Controlla la configurazione del kernel (vedi sotto).
 
 	Prova un altro synch .bin.
 
-	Può accadere quando l'invocazione di eciadsl-pppoeci nel file /etc/ppp/peers/adsl è
-	corrotta o scorretta (probabilmente perchè è stata modificata a mano?).
-	Per esempio, l'utilizzo di "-vendor 0915" è sbagliato. L'esatta sintassi è
+	Puï¿½ accadere quando l'invocazione di eciadsl-pppoeci nel file /etc/ppp/peers/adsl ï¿½
+	corrotta o scorretta (probabilmente perchï¿½ ï¿½ stata modificata a mano?).
+	Per esempio, l'utilizzo di "-vendor 0915" ï¿½ sbagliato. L'esatta sintassi ï¿½
 	"-vendor 0x0915". Usa eciocnf.sh per configurare correttamente il driver!
 
-	Più generalmente, può essere causato da una cattiva configurazione, per
-	esempio se il modulo PPP non è quello che ti serve.
+	Piï¿½ generalmente, puï¿½ essere causato da una cattiva configurazione, per
+	esempio se il modulo PPP non ï¿½ quello che ti serve.
 
 	Abilita il logging prolisso ti eciadsl-pppoeci (-v 2), e se trovi nel log
 	di eciadsl-pppoeci le seguenti linee:
@@ -449,7 +449,7 @@ D:	Ottengo alcune linee con  "USB timeout" in /var/log/messages.
 R:	Prova a commentare la linea per l'MTU in /etc/ppp/peers/adsl.
 	Eventualmente modifica il valore di MTU (vedi `man pppd`).
 
-	Può anche essere un problema relativo al kernel/hardware (vedi i punti che
+	Puï¿½ anche essere un problema relativo al kernel/hardware (vedi i punti che
 	seguono).
 
 
@@ -458,15 +458,15 @@ R:	Prova a commentare la linea per l'MTU in /etc/ppp/peers/adsl.
 D:	A volte la linea PPP cade (il modem riaggancia).
 
 --------------------------------------------------------------------------------
-R:	Può essere dovuto ad un elevato traffico sulla linea o ad alcuni problemi
+R:	Puï¿½ essere dovuto ad un elevato traffico sulla linea o ad alcuni problemi
 	del provider o casuali disconnessioni (lista non esaustiva).
 
 	Abilita l'opzione 'persist' di pppd in /etc/ppp/peers/adsl (richiede il
 	supporto N_HDLC nel kernel, vedi sotto la domanda relativa alla
-	configurazione del kernel). Verifica che l'opzione persist sia settata (lo è
+	configurazione del kernel). Verifica che l'opzione persist sia settata (lo ï¿½
 	di default).
 
-	Ridurre il valore di MTU in /etc/ppp/peers/adsl a 1000 o anche a 512 può
+	Ridurre il valore di MTU in /etc/ppp/peers/adsl a 1000 o anche a 512 puï¿½
 	aiutare.
 
 	Puoi anche provare ad usare script per l'autoriconnessione scritti da altri,
@@ -480,16 +480,16 @@ D:	Il modem si disconnette ma il problema non corrisponde alla precedente
 	domanda oppure il modem si spegne!
 
 --------------------------------------------------------------------------------
-R:	Il chipset USB è un vecchio VIA o un SiS 700x? Si sa che alcuni sono bacati
+R:	Il chipset USB ï¿½ un vecchio VIA o un SiS 700x? Si sa che alcuni sono bacati
 	e hanno problemi con l'alimentazione USB o con moduli kernel bacati. Se il
-	modem si spegne (niente alimentazione) può essere proprio questo il caso
+	modem si spegne (niente alimentazione) puï¿½ essere proprio questo il caso
 	(VIA).
 	
-	Su alcuni sistemi (chipset USB cabati o vecchi processori), può accedere
+	Su alcuni sistemi (chipset USB cabati o vecchi processori), puï¿½ accedere
 	quando si usano periferiche USB multiple che consumano parecchia energia
 	(apparati video, harddisk).
 
-	Può accedere anche se la CPU è sovraccarica (es. masterizzare CD) o quando è
+	Puï¿½ accedere anche se la CPU ï¿½ sovraccarica (es. masterizzare CD) o quando ï¿½
 	sovraccarico il bus USB (uso di webcam, etc...).
 
 
@@ -498,16 +498,16 @@ R:	Il chipset USB è un vecchio VIA o un SiS 700x? Si sa che alcuni sono bacati
 D:	Vedo strani caratteri sul terminale/console dopo che eciadsl-start ha finito,
 	e non ottengo alcuna connessione PPP:
 	Connect Modem ...
-	~ÿ}#À!}!}!} }4}"}&} } } } }%}&øïpÆ}
+	~ï¿½}#ï¿½!}!}!} }4}"}&} } } } }%}&ï¿½ï¿½pï¿½}
 
 --------------------------------------------------------------------------------
 R:	Non sei ubriaco, pppd non riesce a comunicare con eciadsl-pppoeci (una parte del
 	driver) a deriva da una versione non funzionante di pppd, da una
-	configurazione ppp errata nel kernel, oppure perchè stai usando il driver su
+	configurazione ppp errata nel kernel, oppure perchï¿½ stai usando il driver su
 	un sistema che non lo supporta.
 
 	Controlla anche il file /etc/ppp/peers/adsl. Anche l'invocazione di eciadsl-pppoeci
-	può essere sbagliata oppure il file non esiste proprio (bug noto).
+	puï¿½ essere sbagliata oppure il file non esiste proprio (bug noto).
 
 
 4.11
@@ -515,7 +515,7 @@ R:	Non sei ubriaco, pppd non riesce a comunicare con eciadsl-pppoeci (una parte 
 D:	Ottengo dei kernel panic/oops.
 
 --------------------------------------------------------------------------------
-R:	Può derivare da un bug del modulo kernel (OHCI?), supportato malamente,
+R:	Puï¿½ derivare da un bug del modulo kernel (OHCI?), supportato malamente,
 	CPU o bus USB molto carichi, o un qualunque altro problema del sistema di
 	natura generale (persino un bug del driver, chiaramente).
 
@@ -529,7 +529,7 @@ D:	Ottengo questo messaggio in /var/log/messages:
 R:	<TODO: descrivere i problemi con gli endpoints URB>
 
 	Prova a disabilitare tutti gli altri dispositivi USB per assicurarti che il
-	problema è relativo all'uso del modem.
+	problema ï¿½ relativo all'uso del modem.
 
 
 4.13
@@ -546,7 +546,7 @@ R:	Troppe ragioni possibili! Sei pregato di contattarci.
 
 4.14
 ================================================================================
-D:	Il mio transfer rate è molto basso (ad es. 2-5KB/sec anzichè 40KB/sec come
+D:	Il mio transfer rate ï¿½ molto basso (ad es. 2-5KB/sec anzichï¿½ 40KB/sec come
 	mi aspettavo).
 
 --------------------------------------------------------------------------------
@@ -576,15 +576,15 @@ R:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 	Copia il file rc.adsl in /etc/init.d:
 		> cp rc.adsl /etc/init.d
 		> chmod +x /etc/init.d/rc.adsl
-	(il file rc.adsl è disponibile nella versione >= 0.7 (o in CVS))
+	(il file rc.adsl ï¿½ disponibile nella versione >= 0.7 (o in CVS))
 
 	Per Debian basta eseguire da root: 'update-rc.d rc.adsl defaults 15'
 	
 	Per le altre distribuzioni seguire le seguenti istruzioni:
 	
 	In /etc/rc.d ogni directory rc*.d corrisponde ad un livello init. Ad
-	esempio init level 5 è quello che porta al login grafico (è il default sui
-	sistemi Linux standard, a volte è il 3), quindi /etc/rc.d/rc5.d corrisponde
+	esempio init level 5 ï¿½ quello che porta al login grafico (ï¿½ il default sui
+	sistemi Linux standard, a volte ï¿½ il 3), quindi /etc/rc.d/rc5.d corrisponde
 	a questo livello.
 
 	Troverai altre informazioni riguardo i livelli init con:
@@ -594,18 +594,18 @@ R:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 	Per sapere quale livello init viene raggiunto al boot cerca una linea simile
 	alla seguente nel file /etc/inittab:
 		id:5:initdefault:
-	Qui, il livello di default è 5.
+	Qui, il livello di default ï¿½ 5.
 	Per le operazioni che seguono supponiamo che il livello al boot sia 5.
 
 	Bisogna sapere che, quando il sistema entra in un init level, richiama tutti
 	i file K* del livello precedente, poi richiama tutti i file S* del nuovo
 	livello. Tutti i file K* ed S* si trovano in /etc/rc.d/rc<init level>.d
 	ai quali appartengono.
-	In realtà questi file S* e K* sono dei link simbolici e puntano agli script,
-	conservati (il più delle volte) in /etc/init.d.
+	In realtï¿½ questi file S* e K* sono dei link simbolici e puntano agli script,
+	conservati (il piï¿½ delle volte) in /etc/init.d.
 
-	Ogni file S* è del tipo: Sxxyyyyy, dove xx è un numero di due cifre e yyyyy
-	è il nome di un servizio (il nome usa una notazione descrittiva e può
+	Ogni file S* ï¿½ del tipo: Sxxyyyyy, dove xx ï¿½ un numero di due cifre e yyyyy
+	ï¿½ il nome di un servizio (il nome usa una notazione descrittiva e puï¿½
 	essere deciso a piacere).
 	Tutti i file Sxxyyyyy vengono richiamati seguendo il valore xx (in ordine
 	crescente), poi seguendo il nome del servizio (yyyyy, in ordine alfabetico
@@ -619,12 +619,12 @@ R:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 		S99dummy
 		K10makemyday
 		K80whatthefuck
-	(fai attenzione, è solo un esempio).
-	Quindi quando si entra in init level 5 verrà richiamato S01foo, S15bar e poi
+	(fai attenzione, ï¿½ solo un esempio).
+	Quindi quando si entra in init level 5 verrï¿½ richiamato S01foo, S15bar e poi
 	S99dummy.
 
 	Quando si lascia init level 5 viene fatto lo stesso per i file K*. Ma a
-	seconda del sistema l'ordine sarà lo stesso (ordine crescente di xx) oppure
+	seconda del sistema l'ordine sarï¿½ lo stesso (ordine crescente di xx) oppure
 	al contrario (ordine decrescente di xx).
 
 	Ora che sai in che modo funziona puoi creare i relativi link simbolici a
@@ -635,7 +635,7 @@ R:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 	Prima di creare questi link nota che S90 ha una funzione particolare, i
 	file S90* vengono richiamati dopo tutti gli altri servizi di rete.
 	Naturalmente fai attenzione anche a K90. Secondo alcuni sistemi (ordine
-	inverso) può essere meglio usare K00, semplicemente pensa al modo migliore
+	inverso) puï¿½ essere meglio usare K00, semplicemente pensa al modo migliore
 	di ordinare la disattivazione delle connessione.
 
 	Una volta che tutti i link simbolici sono stati creati puoi testarli
@@ -652,16 +652,16 @@ R:	Certamente si, usando ad esempio init.d , oppure /etc/ppp/ppp_on_boot per
 
 5.1
 ================================================================================
-D:	Non riesco a connettermi in modalità console anche se funziona bene in X11.
+D:	Non riesco a connettermi in modalitï¿½ console anche se funziona bene in X11.
 
 --------------------------------------------------------------------------------
-R:	Può essere un problema di framebuffer. Prova a far partire Linux senza il
+R:	Puï¿½ essere un problema di framebuffer. Prova a far partire Linux senza il
 	supporto framebuffer in console.
 
 
 5.2
 ================================================================================
-D:	Non riesco a connettermi in X11 anche se funziona in modalità console.
+D:	Non riesco a connettermi in X11 anche se funziona in modalitï¿½ console.
 
 --------------------------------------------------------------------------------
 R:	Vedi 5.1.
@@ -721,7 +721,7 @@ R:	Esegui i seguenti comandi:
 	bisogno di altre impostazioni nella configurazione del kernel. Gli utenti di
 	PPPoE e PPPoATM si rifacciano al 5.3.1.
 
-	Una volta che il file di configurazione è stato salvato, esegui:
+	Una volta che il file di configurazione ï¿½ stato salvato, esegui:
 		> make -s dep modules modules_install && depmod -a
 	o qualunque altro comando sei abituato ad usare per compilare ed installare
 	i moduli del kernel. Naturalmente tutta la configurazione del kernel deve
@@ -790,19 +790,19 @@ R:	La configurazione del kernel ed i principi per la compilazione sono ancora
 
 5.4
 ================================================================================
-D:	Non vivo in Francia, il driver funzionerà con il mio modem ed il mio
+D:	Non vivo in Francia, il driver funzionerï¿½ con il mio modem ed il mio
 	provider?
 
 --------------------------------------------------------------------------------
-R:	Verifica che il tuo modem sia supportato. Se il modem non è nella lista dei
-	modem supportati e NON è nella lista dei modem NON supportati, chiedi a noi
+R:	Verifica che il tuo modem sia supportato. Se il modem non ï¿½ nella lista dei
+	modem supportati e NON ï¿½ nella lista dei modem NON supportati, chiedi a noi
 	per ulteriori informazioni.
 
 	Controlla quale protocllo/incapsulamento PPP viene usato in MS Windows dal
 	tuo provider. Controlla anche se il tuo provider usa DHCP o ti assegna un IP
 	statico.
 	Usa eciadsl-config-tk o eciadsl-config-text per usarlo correttamente. Se non
-	è supportato dal driver o se sei insicuro, scarica l'ultima versione del
+	ï¿½ supportato dal driver o se sei insicuro, scarica l'ultima versione del
 	driver o contattaci.
 
 	FYI:
@@ -810,34 +810,34 @@ R:	Verifica che il tuo modem sia supportato. Se il modem non è nella lista dei
 			RFC2364 PPPoATM NULL Encapsulation
 		RFC1483 LLC PPPoA == RFC2364 LLC Routed
 		RFC1483 BRIDGED ETH senza FCS (ethernet over ADSL, ETHoA o ETHoATM)
-			E' una modalità usata tipicamente per incapsulare frame ethernet, e
+			E' una modalitï¿½ usata tipicamente per incapsulare frame ethernet, e
 			spesso viene usato insieme con il PPPoE, IP statico ethernet, o DHCP
 			over ADSL.
-		    Questa modalità è molto flessibile; il tuo provider ti fornisce una
+		    Questa modalitï¿½ ï¿½ molto flessibile; il tuo provider ti fornisce una
 		    username/password per connetterti con PPPoE, oppure un IP statico ed
 		    un gateway, oppure usi un client DHCP per connetterti.
-		VCM RFC1483 BRIDGED ETH è una modalità simile a RFC1483 BRIDGED ETH 
-		    senza FCS ma non così usato.
+		VCM RFC1483 BRIDGED ETH ï¿½ una modalitï¿½ simile a RFC1483 BRIDGED ETH 
+		    senza FCS ma non cosï¿½ usato.
 		LLC RFC1483 ROUTED IP viene usato per trasmissioni dirette di datagrammi
 			IP su ADSL (IPoATM o IPoA) tipicamente nel caso di IP statico,
 			questo protocollo necessita di un IP statico e di un gateway fornito
 			dal tuo provider.
-		VCM RFC1483 ROUTED IP è una modalità simile a LLC RFC1483 ROUTED IP ma
-			non è così usato.
+		VCM RFC1483 ROUTED IP ï¿½ una modalitï¿½ simile a LLC RFC1483 ROUTED IP ma
+			non ï¿½ cosï¿½ usato.
 
-		SNAP è un livello di incapsulamento, tra ethernet ed LLC o tra IP e LLC.
+		SNAP ï¿½ un livello di incapsulamento, tra ethernet ed LLC o tra IP e LLC.
 		
 		Per ulteriori informazioni sei invitato a riferirti all'applicazione di
-		controllo del tuo modem in MS Windows, dovrebbe elencare le modalità
+		controllo del tuo modem in MS Windows, dovrebbe elencare le modalitï¿½
 		usate, o al tuo provider.
 
 		Puoi anche leggere le RFC1483 e RFC2364 che descrivono in dettaglio
-		tutte queste modalità.
+		tutte queste modalitï¿½.
 
 
 5.5
 ================================================================================
-D:	Non vivo in Francia, il mio modem è supportato e eciadsl-start ha dato OK, ma
+D:	Non vivo in Francia, il mio modem ï¿½ supportato e eciadsl-start ha dato OK, ma
 	ho dei problemi con pppd (forse problemi LCP).
 
 --------------------------------------------------------------------------------
@@ -857,13 +857,13 @@ R:	Verifica che il tuo modem sia supportato e che l'installazione e la
 D:	Posso usare il modem USB con un HUB USB2.0?
 
 --------------------------------------------------------------------------------
-R:	Abbiamo riscontrato dei problemi quando il modem o un altro dispositivo è
+R:	Abbiamo riscontrato dei problemi quando il modem o un altro dispositivo ï¿½
 	connesso ad un HUB USB2.0, il quale non viene attualmente supportato. Nel
-	più dei casi il modulo HUB USB2.0 deve essere scaricato dalla memoria. Per
+	piï¿½ dei casi il modulo HUB USB2.0 deve essere scaricato dalla memoria. Per
 	questo motivo oramai eciadsl-start scarica incondizionatamente il modulo
 	ehci-hcd non appena lo trova.
 
-	Se le porte USB2.0 vengono controllate da usb-uhci o usb-ohci è possibile
+	Se le porte USB2.0 vengono controllate da usb-uhci o usb-ohci ï¿½ possibile
 	che funzioni, abbiamo esperienze di tali configurazioni funzionanti.
 
 
@@ -872,13 +872,13 @@ R:	Abbiamo riscontrato dei problemi quando il modem o un altro dispositivo è
 D:	Ho molti HUB USB hardware o molte periferiche USB. E' un problema?
 
 --------------------------------------------------------------------------------
-R:	Può esserlo. Se non riesci ad inizializzare il modem, prova a scollegare
+R:	Puï¿½ esserlo. Se non riesci ad inizializzare il modem, prova a scollegare
 	tutte le periferiche HUB USB addizionali. Abbiamo solo poche esperienze a
 	riguardo.
 	
 	Molti utenti hanno delle webcam, mouse o altre periferiche USB oltre al
 	modem, tutte funzionanti contemporaneamente. Questo tuttavia non esclude
-	problemi con alcune periferiche USB. A volte può essere un problema anche
+	problemi con alcune periferiche USB. A volte puï¿½ essere un problema anche
 	l'ordine delle periferiche (da verificare). Prova anche ad usare il tuo
 	modem con tutte le altre periferiche USB scollegate.
 
@@ -892,13 +892,13 @@ D:	Passando da Linux a MS Windows, non riesco a usare il modem e devo
 	reinstallare i driver per MS Windows per farlo funzionare nuovamente.
 
 --------------------------------------------------------------------------------
-R:	Quando chiudi Linux scarica tutti i moduli USB legati al modem. Può essere
+R:	Quando chiudi Linux scarica tutti i moduli USB legati al modem. Puï¿½ essere
 	fatto automaticamente, con il manager USB della tua distribuzione Linux, o
 	usando init.d, (pensa a scaricare i moduli in cascata usando i comandi
 	post-remove o pre-remove nel file /etc/modules.conf).
 
 	Se ancora non funziona devi disconnettere manualmente il modem, aspettare
-	qualche secondo così da farlo resettare, e poi riconnetterlo. Dopo lo
+	qualche secondo cosï¿½ da farlo resettare, e poi riconnetterlo. Dopo lo
 	potrai usare in MS Windows.
 
 	Se il problema persiste contattaci.
@@ -908,12 +908,12 @@ R:	Quando chiudi Linux scarica tutti i moduli USB legati al modem. Può essere
 
 5.8.1
 ================================================================================
-D:	Passando da MS Windows a Linux eciadsl-start avverte che il firmware è già
+D:	Passando da MS Windows a Linux eciadsl-start avverte che il firmware ï¿½ giï¿½
 	stato caricato e non funziona.
 
 --------------------------------------------------------------------------------
-R:	Devi scollegare manualmente il modem, aspettare qualche secondo così viene
-	resettato, e poi ricollegarlo. Potrai così riprovare eciadsl-start.
+R:	Devi scollegare manualmente il modem, aspettare qualche secondo cosï¿½ viene
+	resettato, e poi ricollegarlo. Potrai cosï¿½ riprovare eciadsl-start.
 
 
 5.9
@@ -921,7 +921,7 @@ R:	Devi scollegare manualmente il modem, aspettare qualche secondo così viene
 D:	Posso usare questo driver con *BSD?
 
 --------------------------------------------------------------------------------
-R:	Un port su BSD della versione 0.5 è in fase di sviluppo.
+R:	Un port su BSD della versione 0.5 ï¿½ in fase di sviluppo.
 	Non ancora ufficialmente supportato!
 
 
@@ -941,9 +941,9 @@ D:	Come posso chiudere la connessione PPP?
 R:	`eciadsl-stop`
 
 	Se vuoi veramente resettare il modem, scarica i moduli che controllano l'HUB
-	USB (`modprobe -r usb-uhci` ad es.). Però così facendo potrai avere problemi
-	perchè altre periferiche USB potrebbero essere legate a questo modulo (!), e
-	potresti avere problemi rieseguendo eciadsl-start (è necessario lanciarlo due
+	USB (`modprobe -r usb-uhci` ad es.). Perï¿½ cosï¿½ facendo potrai avere problemi
+	perchï¿½ altre periferiche USB potrebbero essere legate a questo modulo (!), e
+	potresti avere problemi rieseguendo eciadsl-start (ï¿½ necessario lanciarlo due
 	volte oppure scollegare/ricollegare il modem e poi rieseguire eciadsl-start).
 
 
@@ -952,10 +952,10 @@ R:	`eciadsl-stop`
 D:	E' possibile eseguire eciadsl-start come utente generico?
 
 --------------------------------------------------------------------------------
-R:	Assicurati semplicemente che sudo è installato nel sistema.
+R:	Assicurati semplicemente che sudo ï¿½ installato nel sistema.
 	Modifica il file /etc/sudoers come root e aggiungi una linea:
 		username ALL=NOPASSWD:/usr/local/bin/eciadsl-start
-	dove username è il nome dell'utente al quale vuoi permettere di eseguire
+	dove username ï¿½ il nome dell'utente al quale vuoi permettere di eseguire
 	eciadsl-start. Puoi farlo per tanti utenti o per diversi script, aggiungendo la
 	stessa linea con uno username ed uno script (path/nome).
 	Gli utenti abilitati potranno lanciare eciadsl-start scrivendo:
@@ -970,8 +970,8 @@ D:	Quando eseguo 'eciadsl-start' o 'sudo eciadsl-start' ottengo questo errore:
 	nice: pppd: no such file or directory
 
 --------------------------------------------------------------------------------
-R:	Controllo se il pppd è installato sul vostro sistema and try "su -" to
-	get root privileges (instead of "su").
+R:	Controllare se pppd ï¿½ installato sul vostro sistema ed usate "su -" pre prendere
+	i privilegi di root (invece di "su").
 
 	Per sudo:
 
@@ -984,11 +984,11 @@ R:	Controllo se il pppd è installato sul vostro sistema and try "su -" to
 
 	La prossima volta che aprirai il terminale (se hai modificato ~/.bashrc) o
 	la prossima volta che ti autenticherai in console o nell'ambiente grafico
-	(se hai modificato ~/.profile) 'sudo eciadsl-start' funzionerà.
+	(se hai modificato ~/.profile) 'sudo eciadsl-start' funzionerï¿½.
 
 	Puoi anche creare un piccolo script che contiene il primo comando, quindi
 	dovrai solo lanciare questo script. Non dimenticare di cambiare i permessi
-	di questo script (con 'chmod 777 nome_dello_script') così da renderlo
+	di questo script (con 'chmod 777 nome_dello_script') cosï¿½ da renderlo
 	eseguibile.
 
 	(*) attenzione: a seconda della distribuzione di Linux questi file possono
