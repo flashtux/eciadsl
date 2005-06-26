@@ -550,8 +550,7 @@ case "$mode" in
 
 "LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS"|"VCM_RFC_1483_BRIDGED_ETH")
 
-    $BIN_DIR/eciadsl-pppoeci -vendor "0x${vid2}" -product "0x${pid2}" -alt 4 \
-        -vpi "${VPI}" -vci "${VCI}" -mode "${mode}" $pppoeci_options
+    $BIN_DIR/eciadsl-pppoeci $pppoeci_options
     if [ $? -ne 0 ]; then
         echo "ERROR: failed to connect"
         exit $STEP
@@ -565,8 +564,7 @@ case "$mode" in
 
 "LLC_RFC1483_ROUTED_IP"|"VCM_RFC1483_ROUTED_IP")
 
-    $BIN_DIR/eciadsl-pppoeci -vendor "0x${vid2}" -product "0x${pid2}" -alt 4 \
-        -vpi "${VPI}" -vci "${VCI}" -mode "${mode}" $pppoeci_options
+    $BIN_DIR/eciadsl-pppoeci $pppoeci_options
     if [ $? -ne 0 ]; then
         echo "ERROR: failed to connect"
         exit $STEP
