@@ -1419,12 +1419,12 @@ void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 					"aal5_write=%d", r);
 			message(errText);
 			tcount++;
-			if (tcount > 3)
+			if (tcount > 1)
 			    break;
 		}
 	    else
 			if (tcount > 0)
-				tcount--;
+				tcount=0;
 	}
 
 	snprintf(errText, ERR_BUFSIZE,
