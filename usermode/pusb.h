@@ -63,4 +63,7 @@ int pusb_urb_buffer_first(pusb_urb_t urb,
 int pusb_urb_buffer_next(pusb_urb_t urb,
 						 unsigned char ** pbuf, int * psize, int * idx);
 
+/* function returning usb status - kolja */
+int pusb_get_urb_status(pusb_urb_t urb);
+
 #endif

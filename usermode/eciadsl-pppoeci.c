@@ -1368,7 +1368,7 @@ void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 	while(ecimsgh() && !has_eoc_problem())
 	{
 		urb = pusb_device_get_urb(fdusb);
-		if (urb == NULL)
+		if ((urb == NULL) || (pusb_get_urb_status(urb)<0))
 			break;
 
 		handle_urb(urb);

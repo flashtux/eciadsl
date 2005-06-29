@@ -690,3 +690,11 @@ int pusb_urb_buffer_next(pusb_urb_t urb,
 
 	return(0);
 }
+
+/* return urb status if urb is NULL then return 0 - kolja */
+int pusb_get_urb_status(pusb_urb_t urb){
+	if (urb==NULL){
+		return(0);
+	}
+	return(urb->status);
+}
