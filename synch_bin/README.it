@@ -95,7 +95,8 @@ ADESSO PUOI ANDARE AVANTI E LEGGERE IL RESTO!
 
 
 
-Lista dei file Synch .bin disponibili:
+Lista dei file Synch .bin disponibili (chipset GS7070 ONLY):
+
 	synch00.bin (prima era eci_wan3.bin)
 	synch01.bin (prima era eci_wan3.dmt.bin)
 	synch02.bin (prima era eci_paris19_9telecom.bin)
@@ -151,6 +152,28 @@ Lista dei file Synch .bin disponibili:
 	synch52.bin (generato in France/Palaiseau, provider Club Internet, G.DMT)
 	synch53.bin (generato in Belgio/Chimay, provider Belgacom, G.DMT)
 	synch54.bin (generato in Belgio/Chimay, provider Belgacom, T1.413)
+
+Synch .bin files for GS7470 chipset ONLY:
+
+        gs7470_synch01a.bin
+        gs7470_synch01b.bin
+        gs7470_synch01.bin
+        gs7470_synch02.bin
+        gs7470_synch02a.bin
+        gs7470_synch02b.bin
+        gs7470_synch03.bin
+        gs7470_synch04.bin
+        gs7470_synch05.bin
+        gs7470_synch06.bin
+        gs7470_synch07.bin
+        gs7470_synch08.bin
+        gs7470_synch09.bin
+        gs7470_synch10.bin
+        gs7470_synch11.bin
+        gs7470_synch12.bin
+        gs7470_synch13.bin
+        gs7470_synch14.bin
+        gs7470_synch15.bin
 
 Se hai generato il tuo .bin file sei pregato di spedircelo con alcune
 informazioni riguardo la localit… ed il provider.
