@@ -22,7 +22,7 @@ eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c ecimsgh.c \
 
 eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c
 	
-eciadsl_pppoeci_LDADD = eci-common/eoc.o
+eciadsl_pppoeci_LDADD = eci-common/libeoc.a
 
 eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
@@ -36,6 +36,7 @@ debian_DIST = debian/changelog debian/control debian/copyright debian/rules \
 rpm_DIST = eciadsl-usermode.spec eciadsl-usermode.spec.in
 
 EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
+        ecimsgh.h \
 	eciadsl-start.in eciadsl-stop eciadsl-doctor.in \
 	eciadsl-config-tk.in eciadsl-config-text.in \
 	eciadsl-probe-device eciadsl-probe-synch \

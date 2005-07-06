@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(eciadsl-usermode, 0.10cvs, eci@ml.free.fr)
-AM_INIT_AUTOMAKE([eciadsl-usermode],[0.10cvs])
+AC_INIT(eciadsl-usermode, 0.11beta1, eci@ml.free.fr)
+AM_INIT_AUTOMAKE([eciadsl-usermode],[0.11beta1])
 AC_CONFIG_SRCDIR([eciadsl-check-hdlc-bug.c])
 
 # if no --sysconfdir is specified, default to /etc
@@ -14,6 +14,7 @@ test "x$sysconfdir" = 'x${prefix}/etc' && sysconfdir="/etc"
 AC_PROG_CC
 AC_PROG_INSTALL
 AC_PROG_LN_S
+AC_PROG_RANLIB
 
 # Checks for libraries.
 AC_CHECK_LIB(pthread, pthread_create)
@@ -42,5 +43,6 @@ AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_CHECK_FUNCS([alarm gettimeofday memset select socket strcasecmp strtol strtoul uname])
 
-AC_CONFIG_FILES([Makefile VERSION eciadsl-usermode.spec])
-AC_OUTPUT
+AC_CONFIG_FILES([VERSION eciadsl-usermode.spec])
+AC_OUTPUT([Makefile
+           eci-common/Makefile])
