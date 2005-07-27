@@ -173,6 +173,7 @@ Synch .bin files for GS7470 chipset ONLY:
         gs7470_synch13.bin
         gs7470_synch14.bin
         gs7470_synch15.bin
+        gs7470_synch16.bin (modem hm121dp/di)
 
 Se gerou o seu próprio ficheiro .bin, por favor envie-nos juntamente com alguma
 informação relativa à localização/provedor.
