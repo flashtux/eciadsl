@@ -151,6 +151,7 @@ Liste des fichiers .bin disponibles pour la synchro (chipset GS7070 SEULEMENT):
 	synch52.bin (généré en France, fournisseur Club Internet, G.DMT)
 	synch53.bin (généré en Belgique, fournisseur Belgacom, G.DMT)
 	synch54.bin (généré en Belgique, fournisseur Belgacom, T1.413)
+        synch55.bin (généré en Colombie, fournisseur ETB, G.DMT)
 
 Fichiers .bin pour le chipset GS7470 SEULEMENT:
 
