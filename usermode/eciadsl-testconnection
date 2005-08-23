@@ -1,0 +1,135 @@
+# EciAdsl Test Adsl Connection Status
+#
+# Patrizio Bassi aka Hetfield - www.blight.tk -  hetfield666@virgilio.it
+#
+# Version 1.1, released 25 Aug 2005
+#
+# GPL licensed code, if you don't agree, don't use it.
+#
+# This script has been written because sometimes, after heavy usage of cpu,
+# pppd and pppoeci may be running, but connection down.
+# It may happens if you compile too many things, or burn cd with DMA off.
+#
+# This script checks if drivers are running, connection is up,
+# and restart eciadsl if needed.
+#
+# NO WARRANTIES PROVIDED USE AT YOUR OWN RISK.
+#
+#
+# USAGE: chmod +x eciadsl-testconnection
+# and add to your root crontab. Runtime period: every 4-5 minutes, or much if
+# connection is stable
+#
+# EXAMPLE:
+# */5 * * * * /path/to/eciadsl-testconnection
+#
+
+
+
+#SETTINGS
+
+#how many pin tries
+ping_retries=1
+
+# interface we expect to use for eci connection
+interface="ppp0"
+
+# internet addresses that are known to answer ping echo
+addresses_to_ping="www.google.it www.libero.it www.patriziobassi.it www.tophost.it 217.64.202.205"
+
+#where to log a restart, put /dev/null for no logs
+logfile="/var/log/adsl_restart"
+
+#program to be called if connection is down
+restart_program="/usr/bin/eciadsl-start"
+
+#END OF SETTINGS
+
+
+
+
+function ping_it {
+
+	ping -c"$ping_retries" $1 #one ping is sufficient, bug you can set the number above
+	return $?
+}
+
+function solve {
+
+	#beeping, logging, and reconnecting
+	beep -l 700
+	echo `date +%d-%m-%y`: "Connection down, restart at" `date +%H:%M:%S` >> "$logfile"
+	$restart_program
+	exit 1
+}
+
+function check_ping {
+
+	if [ $1 -eq 4 ] ; then 
+		solve 
+	fi
+	
+	#if interface is down pppoeci may be still handshaking and identifing..wait some secs
+	ifconfig $interface
+	up=$?
+	if [ $up -eq 0 ]; then
+		# interface is up....lets see if it works for real!
+		for address in `echo $addresses_to_ping `
+			do 
+				sleep 1
+				ping_it $address
+				if [ $? -eq 0 ]; then 
+					exit 0 #works...exit!
+				fi
+			done
+		solve #tried to ping all addresses, no reply..
+	else
+		sleep 13
+		check_ping $[$1+1] #recheck if interface is now up 3 times
+	fi
+
+}
+
+# check if it's still synching....
+lsusb |grep globe -i
+status=$?
+if [ $status -eq 1 ] ; then
+        exit 0
+fi
+
+# already reconnecting?
+ps aux > /tmp/eci-test
+grep startmodem /tmp/eci-test
+status=$?
+if [ $status -eq 1 ] ; then
+	grep "eciadsl-start" /tmp/eci-test
+	status=$?
+	if [ $status -eq 0 ] ; then
+		rm -f /tmp/eci-test
+	        exit 0
+	fi
+	else
+	rm -f /tmp/eci-test
+fi
+rm -f /tmp/eci-test
+
+# synching?
+num=`ps aux|grep eciadsl-synch| wc -l`
+if [ $num -eq 3 ] ; then
+	exit 0 # we are synching!
+fi
+
+#if pppd or pppoeci are not running, you need to reconnect
+pidof pppd
+status=$?
+if [ $status -eq 1 ] ; then 
+	solve
+else 
+	pidof eciadsl-pppoeci
+	status=$?
+	if [ $status -eq 1 ]; then
+		solve
+	else
+		check_ping 1 # pppd and pppoeci are running...but really connected? check!
+	fi	
+fi                        
