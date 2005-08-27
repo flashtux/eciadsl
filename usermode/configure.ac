@@ -43,6 +43,20 @@ AC_TYPE_SIGNAL
 AC_FUNC_STAT
 AC_CHECK_FUNCS([alarm gettimeofday memset select socket strcasecmp strtol strtoul uname])
 
+AC_SUBST(pppdpath)
+
+#do it twice, just to hide bad messages, not a problem
+which pppd > /dev/null 2>&1
+res=$?
+if test $res -eq 0 ; then
+        pppdpath=`which pppd`
+        echo checking for pppd... $pppdpath
+else
+        echo checking for pppd...NOT FOUND defaulting to \"pppd\"
+        pppdpath="pppd"
+fi
+
+
 AC_CONFIG_FILES([VERSION eciadsl-usermode.spec])
 AC_OUTPUT([Makefile
            eci-common/Makefile])

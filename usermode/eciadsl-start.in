@@ -537,7 +537,7 @@ GW=""
 case "$mode" in
 "VCM_RFC2364"|"LLC_RFC2364")
 
-    nice --20 pppd call adsl updetach
+    nice --20 @pppdpath@ call adsl updetach
     if [ $? -ne 0 ]; then
         echo "ERROR: failed to connect"
         exit $STEP

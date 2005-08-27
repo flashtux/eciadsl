@@ -62,7 +62,9 @@ edit = sed \
 eciadsl-start: $(srcdir)/eciadsl-start.in Makefile
 	rm -f $@ $@.tmp
 	$(edit) < $< > $@.tmp
-	mv $@.tmp $@
+	sed -e 's,\@pppdpath\@,$(pppdpath),g' < $@.tmp > $@.tmp2
+	mv $@.tmp2 $@
+	rm $@.tmp
 
 eciadsl-config-tk: $(srcdir)/eciadsl-config-tk.in Makefile
 	rm -f $@ $@.tmp
