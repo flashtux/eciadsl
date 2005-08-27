@@ -92,7 +92,7 @@ eciadsl-doctor: $(srcdir)/eciadsl-doctor.in Makefile
 	mv $@.tmp $@
 
 CLEANFILES = eciadsl-start eciadsl-config-tk eciadsl-config-text \
-	eciadsl-makeconfig eciadsl-remove-dabusb eciadsl-doctor eciadsl-testconnection
+	eciadsl-makeconfig eciadsl-remove-dabusb eciadsl-doctor
 
 # for files in /etc/eciadsl
 
