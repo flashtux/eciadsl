@@ -110,6 +110,9 @@ if [ $status -eq 1 ] ; then
 	fi
 	else
 	rm -f /tmp/eci-test
+else
+	rm -f /tmp/eci-test
+	exit 0
 fi
 rm -f /tmp/eci-test
 
