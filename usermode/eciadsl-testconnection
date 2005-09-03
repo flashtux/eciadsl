@@ -107,9 +107,9 @@ if [ $status -eq 1 ] ; then
 	if [ $status -eq 0 ] ; then
 		rm -f /tmp/eci-test
 	        exit 0
-	fi
 	else
-	rm -f /tmp/eci-test
+		rm -f /tmp/eci-test
+	fi
 else
 	rm -f /tmp/eci-test
 	exit 0
