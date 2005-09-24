@@ -72,6 +72,9 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 /usr/bin/eciadsl-data.pl
 /usr/bin/eciadsl-uc.pl
 /usr/bin/eciadsl-makeconfig
+/usr/bin/eciadsl-ctrlui
+/usr/bin/eciadsl-testconnection
+
 # compatibility links
 #/usr/bin/startmodem
 #/usr/bin/eci-load1
