@@ -15,7 +15,8 @@ PRE-REQUISITI
   BSD ed altri sistemi non sono ancora ufficialmente supportati)
 - supporto hardware USB 1.1
 - kernel Linux 2.4.x (>=2.4.18-pre3 o <2.4.18-pre3 + patch N_HDLC per attivare
-  la riconnessione pppd automatica, che raccomandiamo)
+  la riconnessione pppd automatica, che raccomandiamo),
+  2.6.x (recommended: >= 2.6.9)
 	- supporto USB (come modulo):
 		- supporto generale USB
 		- fs USB preliminare

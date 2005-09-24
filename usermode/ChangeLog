@@ -1,7 +1,16 @@
 EciAdsl - Driver for USB ADSL modems with Globespan chipset
 ===========================================================
 
-ChangeLog - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
+ChangeLog - updated on 2005-09-24 by FlashCode <flashcode@flashtux.org>
+
+Version 0.11 (2005-09-24)
+   * eciadsl Nortek driver merged within standard eciadsl release
+   * synch process automatic retry on fail
+   * new pppoeci process protocol handling (eoc's handling)                                                                           
+   * pppoeci soft disconnection                                                                                                       
+   * new program eciadsl-ctrlui (base user interface) at this moment it
+     handles only disconnection process
+   * minor bug fixes
 
 2005-04-17 Benoit PAPILLAULT <benoit.papillault@free.fr>
 	* Tested building debian package on Debian 3.0 (alpha) : OK
@@ -40,7 +49,7 @@ ChangeLog - updated on 2004-04-23 by FlashCode <flashcode@flashtux.org>
 	* Added default-asyncmap option to eciadsl-makeconfig
 	* Replace harcoded cc by $(CC) in Makefile
 
-Version 0.10 (under dev!):
+Version 0.10 (2004-11-03):
    * renamed scripts (with "eciadsl-" prefix)
 
 Version 0.9 (2004-04-04):

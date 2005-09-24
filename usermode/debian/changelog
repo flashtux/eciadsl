@@ -1,3 +1,9 @@
+eciadsl-usermode (0.11-1) unstable; urgency=low
+
+  * Updated with the 0.11 release
+
+ -- Sebastien HELLEU <flashcode@flashtux.org>  Sat, 24 Sep 2005 10:05:18 +0100
+
 eciadsl-usermode (0.10-1) unstable; urgency=low
 
   * Updated with the 0.10 release

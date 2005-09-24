@@ -18,7 +18,7 @@ PRÉ-REQUIS
 - support matériel USB 1.1
 - noyau Linux 2.4.x (>=2.4.18-pre3 ou <2.4.18-pre3+patch N_HDLC
   pour avoir la reconnection automatique pppd, ce qui est
-  recommandé)
+  recommandé) ou 2.6.x (recommandé: >= 2.6.9)
 	- support USB (sous forme de modules) :
 		- support USB
 		- "USB preliminary fs"

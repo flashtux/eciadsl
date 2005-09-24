@@ -16,7 +16,7 @@ PRE-REQUISITES
 - USB 1.1 hardware support
 - Linux kernel 2.4.x (>=2.4.18-pre3 or <2.4.18-pre3+N_HDLC patch in
   order to get automatic pppd reconnection feature working, which is
-  recommanded)
+  recommanded) or 2.6.x (recommended: >= 2.6.9)
 	- USB support (as modules):
 		- general USB support
 		- USB preliminary fs

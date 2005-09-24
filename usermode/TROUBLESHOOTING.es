@@ -2,7 +2,7 @@ PREGUNTAS DE USO FRECUENTE Y ALGUNOS PROBLEMAS COMUNES
 ======================================================
 
 Al público interesado:
-Driver para los usuarios del modem USB ECI ADSL (hasta la versión 0.10).
+Driver para los usuarios del modem USB ECI ADSL (hasta la versión 0.11).
 
 Antes de leer por favor tome en cuenta lo siguiente:
 la lista de Preguntas/Respuestas (Q/A) no es exhaustiva, Es posible que usted no

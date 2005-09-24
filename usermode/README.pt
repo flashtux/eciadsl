@@ -17,7 +17,7 @@ PRÉ-REQUESITOS
  - Suporte para hardware USB 1.1
  - Kernel Linux 2.4.x (>=2.4.18-pre3 ou <2.4.18-pre3+N_HDLC patch de modo a
    poder usufruir da funcionalidade de reconecção automática do pppd, que é
-   recomendado)
+   recomendado), 2.6.x (recommended: >= 2.6.9)
    	- Suporte para USB (em modulos):
 		- suporte geral para USB
 		- sistema de ficheiros USB preliminar
