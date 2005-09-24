@@ -241,6 +241,13 @@ int eci_load1(const char* file, unsigned short vid1, unsigned short pid1,
 		return(0);
 	}
 
+       if (pusb_claim_interface(dev, 0) < 0) {
+              printf("\rERROR can't claim interface 0\n");
+              pusb_close(dev);
+              fclose(fp);
+              return(0);
+	}
+
 	/*
     initialize the USB device : useless since our device has only 1
     configuration and prevent hotplug from properly working
