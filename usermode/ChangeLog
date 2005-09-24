@@ -10,6 +10,7 @@ Version 0.11 (2005-09-24)
    * pppoeci soft disconnection                                                                                                       
    * new program eciadsl-ctrlui (base user interface) at this moment it
      handles only disconnection process
+   * added eciadsl-testconnection script
    * minor bug fixes
 
 2005-04-17 Benoit PAPILLAULT <benoit.papillault@free.fr>
