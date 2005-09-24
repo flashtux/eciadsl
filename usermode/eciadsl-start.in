@@ -40,6 +40,9 @@
 #  - new exit codes according to step with error (firm, synch, ..)
 #  - added comments
 #
+# 24/09/2005 FlashCode <flashcode@flashtux.org>
+#  - added usbfs mount
+#
 
 
 function usage()
@@ -251,16 +254,19 @@ fi
 # ===== Mount usbdevfs if needed ======
 
 if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
-	echo "Preliminary USB device filesystem is missing... trying to mount" ;
-	mount -t usbdevfs usbdevfs /proc/bus/usb
+    echo "Preliminary USB device filesystem is missing... trying to mount" ;
+    mount -t usbdevfs usbdevfs /proc/bus/usb >/dev/null 2>&1
     if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
-		echo "Preliminary USB device filesystem: failed to load" ;
-		fatal ;
-	else
-		echo "Preliminary USB device filesystem is now OK" ;
-	fi
+        mount -t usbfs usbfs /proc/bus/usb >/dev/null 2>&1
+        if ! awk '{print $3}' /proc/mounts | egrep -q "usbfs|usbdevfs"; then
+            echo "Preliminary USB device filesystem: failed to load" ;
+            fatal ;
+        fi
+    else
+        echo "Preliminary USB device filesystem is now OK" ;
+    fi
 else
-	echo "Preliminary USB device filesystem is OK" ;
+    echo "Preliminary USB device filesystem is OK" ;
 fi
 
 # ===== Check if dabusb is loaded =====
