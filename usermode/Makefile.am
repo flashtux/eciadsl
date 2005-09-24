@@ -22,7 +22,7 @@ eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c ecimsgh.c \
 	gsinterface.c
 
 eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c
-	
+
 eciadsl_pppoeci_LDADD = eci-common/libeoc.a
 
 eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
@@ -113,7 +113,7 @@ uninstall-local::
 
 # for files in /usr/share/doc/eciadsl
 
-doc_DIST = README README.es README.fr README.it README.pt README_GS7470.txt \
+doc_DIST = README README.es README.fr README.it README.pt \
 	INSTALL INSTALL.es INSTALL.fr INSTALL.it INSTALL.pt \
 	TROUBLESHOOTING TROUBLESHOOTING.es TROUBLESHOOTING.fr \
 	TROUBLESHOOTING.it TROUBLESHOOTING.pt BUGS TODO rc.adsl
