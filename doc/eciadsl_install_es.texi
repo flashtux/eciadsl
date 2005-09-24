@@ -6,7 +6,7 @@
 
 @c Documentación EciAdsl (versión en español)
 @c
-@c Derechos Reservados (c) 2004 por FlashCode <flashcode@flashtux.org>
+@c Derechos Reservados (c) 2001-2005 por FlashCode <flashcode@flashtux.org>
 @c Traducido al español por Eduardo Gonzalez P. <dudu@interactiva.cl>
 @c
 @c Permission is granted to copy, distribute and/or modify this document
@@ -27,7 +27,7 @@
 @titlepage
 @title Driver EciAdsl - Gu@'ia de Instalaci@'on
 @subtitle Driver Linux gratuito para modems ADSL USB basados en el chipset Globespan
-@subtitle Doc para EciAdsl v0.10 - Noviembre, 05 2004
+@subtitle Doc para EciAdsl v0.11 - Septiembre, 24 2005
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -323,6 +323,22 @@ Si su modem no se encuentra en la lista, verifique en la p@'agina web de los mod
 - Si su modem esta en la categor@'ia ``puede ser soportado'', entonces pregunte a los desarrolladores 
 para mas detalles.
 @xref{Autores / Soporte}.@*
+@item Modem chipset
+[@b{el valor es configurado automaticamente eligiendo el modelo del Modem}].@*
+Ante cualquier duda por favor verifique en la pagina de Modems:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+@item Alt synch
+[@b{el valor es configurado automaticamente eligiendo el modelo del Modem}].@*
+Este es el interface alt USB utilizado por eciadsl para comunicarse con los modems durante la fase de sincronismo.@*
+Valores Estandar: 4 para el GS7070 (Antiguos modelos de Modems) - 5 o 0 para el chipset GS7470 (nuevos modelos de modem)@*
+Ante cualquier duda por favor verifique en la pagina de Modems:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+@item Alt pppoeci
+[@b{el valor es configurado automaticamente eligiendo el modelo del Modem}].@*
+Este es el interface alt USB utilizado por eciadsl para comunicarse con los modems durante la fase pppoeci.@*
+Valores Estandar: 4 para el GS7070 (Antiguos modelos de Modems) - 1 o 0 para el chipset GS7470 (nuevos modelos de modem)@*
+Ante cualquier duda por favor verifique en la pagina de Modems:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
 @item Synch .bin file
 Seleccione esta opci@'on solamente si eciadsl-start falla en la sincronizaci@'on.@*
 @item PPP mode
@@ -424,6 +440,8 @@ De otro modo, usted puede saltarse este cap@'itulo.
 
 @node Eci Windows driver, USB Sniffer, Creacion del archivo .bin de sincronizacion, Creacion del archivo .bin de sincronizacion
 @section Eci Windows driver
+[@cite{Saltese esta seccion si su modem posee el chipset GS7470, USTED DEBE UTILIZAR SU DRIVER DE WINDOWS.@*
+Ante cualquier duda por favor verifique el chipset de su modem en:} @uref{http://eciadsl.flashtux.org/modems.php?lang=en}].@*
 
 @subsection Download
 
@@ -489,11 +507,14 @@ Reinicie bajo Linux.
 
 Monte la partici@'on windows que contiene el archivo usbsnoop log para copiarlo donde usted desee.@*
 Ejecute este comando:@*
-@kbd{eciadsl-vendor-device.pl usbsnoop.log}@*
-Este script perl parsea el archivo log y genera un nuevo archivo eci_vendor.bin
+@kbd{eciadsl-vendor-device.pl usbsnoop.log -chipset=#EL_CHIPSET_DE_SU_MODEM#}@*
+substituya @kbd{#EL_CHIPSET_DE_SU_MODEM#} con el chipset que posee su modem (GS7070 or GS7470).@*
+Para mas ayuda, ejecute el siguiente comando: @kbd{eciadsl-vendor-device.pl -h}@*
+Este script de perl analiza el archivo de log y crea un nuevo archivo bin
 (script provisto con el paquete usermode).@*
 Ejecute este comando:@*
-@kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
+@kbd{mv #BIN_FILENAME_CREATED# /etc/eciadsl/my_synch.bin}@*
+substituya @kbd{#BIN_FILENAME_CREATED} con el nombre del archivo bin creado.@*
 y luego ejecute eciadsl-config-text para usar este .bin@*
 @*
 Ejecute eciadsl-start...@*
@@ -582,7 +603,7 @@ Este manual documenta el driver EciAdsl, un driver linux gratuito para los
 modems basados en el conjunto de chips Globespan.@*
 Este manual es parte integrante del driver EciAdsl.@*
 
-Copyright @copyright{} 2004 FlashCode
+Copyright @copyright{} 2001-2005 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 @*
 Este documento puede ser utilizado bajo los t@'erminos de la Licencia P@'ublica General de la GNU version 2 o superior.

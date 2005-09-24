@@ -6,7 +6,7 @@
 
 @c Documentazione EciAdsl (versiona italiana)
 @c
-@c Copyright (c) 2004 di FlashCode <flashcode@flashtux.org>
+@c Copyright (c) 2001-2005 di FlashCode <flashcode@flashtux.org>
 @c Versione italiana di ComputerX <computerx@@tin.it>
 @c
 @c è permesso copiare, distribuire e/o modificare questo documento
@@ -28,7 +28,7 @@
 @titlepage
 @title Driver EciAdsl - Guida di installazione
 @subtitle Driver liberi ADSL USB Linux per modem basati su chipset Globespan
-@subtitle Documentazione per EciAdsl v0.10 - 05 Novembre 2004
+@subtitle Documentazione per EciAdsl v0.11 - 24 Settembre 2005
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -335,6 +335,27 @@ Se il tuo modem non @`e nella lista, controlla la pagina dei modem:@*
 (@b{per favore non chiedere supporto agli sviluppatori, devi cercare un altro driver}).@*
 - Se il tuo modem @`e ``probabilmente supportato'', chiedi agli sviluppatori
 per i dettagli. @xref{Autori / Supporto}.@*
+@item Modem chipset
+[@b{value is automatically setted by choosing Modem model}].@*
+Select your modem chipset model from the list.@*
+For any doubt please check on modems page:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+@item Alt synch
+[@b{value is automatically setted by choosing Modem model}].@*
+It is the USB alt interface used by eciadsl to comunicate with modems during
+synch phase.@*
+Standard values: 4 for GS7070 (old modem models) - 5 or 0 for GS7470 chipset
+(new modem models)@*
+For any doubt please check on modems page:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+@item Alt pppoeci
+[@b{value is automatically setted by choosing Modem model}].@*
+It is the USB alt interface used by eciadsl to comunicate with modems during
+pppoeci phase.@*
+Standard values: 4 for GS7070 (old modem models) - 1 or 0 for GS7470 chipset
+(new modem models)@*
+For any doubt please check on modems page:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
 @item File di sincronizzazione .bin
 Seleziona questa opzione solo se eciadsl-start fallisce la sincronizzazione.@*
 @item Modalita' PPP
@@ -442,6 +463,8 @@ Altrimenti, puoi saltare questo capitolo.
 
 @node Driver Eci per Windows, Sniffer USB, Creazione del .bin di sincronizzazione, Creazione del .bin di sincronizzazione
 @section Driver Eci per Windows
+[@cite{Skip this section if your modem has a GS7470 chipset, YOU MUST USE YOUR OWN WINDOWS DRIVER.@*
+For any doubt please check your modem chipset at:} @uref{http://eciadsl.flashtux.org/modems.php?lang=en}].@*
 
 @subsection Download
 
@@ -509,11 +532,14 @@ Riavvia sotto Linux.
 Monta la partizione di windows contente il file usbsnoop.log e copialo
 dove vuoi.@*
 Esegui questo comando:@*
-@kbd{eciadsl-vendor-device.pl usbsnoop.log}@*
-Questo script perl legge il file log e genera un nuovo file eci_vendor.bin
+@kbd{eciadsl-vendor-device.pl usbsnoop.log -chipset=#YOUR_MODEM_CHISPET#}@*
+substitute @kbd{#YOUR_MODEM_CHISPET#} with your modem chipset (GS7070 or GS7470).@*
+For help, issue this command: @kbd{eciadsl-vendor-device.pl -h}@*
+This perl script parses the log file and generates a new bin file
 (script fornito con il pacchetto usermode).@*
 Esegui questo comando:@*
-@kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
+@kbd{mv #BIN_FILENAME_CREATED# /etc/eciadsl/my_synch.bin}@*
+substitute @kbd{#BIN_FILENAME_CREATED} with bin file name created.@*
 quindi esegui eciadsl-config-text e usa questo.bin@*
 @*
 Esegui eciadsl-start...@*
@@ -604,7 +630,7 @@ Questo manuale documenta i driver EciAdsl, un driver ADSL USB Linux libero per
 modem basati su chipset Globespan.@*
 Questo manuale fa parte dei driver EciAdsl.@*
 
-Copyright @copyright{} 2004 FlashCode
+Copyright @copyright{} 2001-2005 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 Versione italiana di ComputerX <@email{computerx@@tin.it, computerx AT tin.it}>@*
 @*

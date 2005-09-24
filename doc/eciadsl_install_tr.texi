@@ -6,7 +6,7 @@
 
 @c EciAdsl Dokumani (turkce surum)
 @c
-@c Kopyalama Hakki (c) 2004 by FlashCode <flashcode@flashtux.org>
+@c Kopyalama Hakki (c) 2001-2005 by FlashCode <flashcode@flashtux.org>
 @c
 @c Turkish version by Emre Onur KURT <1030215196@erciyes.edu.tr>
 @c
@@ -29,7 +29,7 @@
 @titlepage
 @title EciAdsl surucu - Kurulum kilavuzu
 @subtitle Free ADSL USB linux driver for Globespan based modems
-@subtitle EciAdsl icin  dokuman v0.10 - Kas@'ym, 05 2004
+@subtitle EciAdsl icin dokuman v0.11 - 2005-09-24
 
 @author FlashCode <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>
 @page
@@ -335,6 +335,24 @@ Eger modeminiz listede yoksa, modem sayfasini kontrol ediniz:@*
 (@b{lutfen, destek konusu icin gelistiricilere soru sormayiniz, baska bir surucu aramak durumundasiniz}).@*
 - Eger modeminiz ``belki desteklenebilir'' ise, detay icin gelistiricilere soru sorunuz.
 @xref{Yapimcilar / Destek}.@*
+@item Modem chipset
+[@b{Deger Modem modeli secilerek otomatik olarak atanir.}].@*
+Listeden modem yonga setinizi seciniz.@*
+Herhangi bir sorun icin modemler sayfasýný kontrol ediniz:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+@item Alt synch
+[@b{Deger Modem modeli secilerek otomatik olarak atanir}].@*
+Bu synch durumunda eciadsl tarafindan modemlerle baglanti kuran USB alt arabirimidir.@*
+Standart degerler: GS7070 icin 4 (eski modem modelleri) - 5 yada 0 GS7470 yongaseti icin(yeni modem modelleri))@*
+Herhangi bir sorun icin modemler sayfasini kontrol ediniz:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
+@item Alt pppoeci
+[@b{Deger Modem modeli secilerek otomatik olarak atanir}].@*
+Bu pppoeci durumunda eciadsl tarafindan modemlerle baglanti kuran USB alt arabirimidir.@*
+Standart degerler: GS7070 icin 4 (eski modem modelleri) - 1 yada 0 GS7470 yongaseti icin
+(yeni modem modelleri))@*
+Herhangi bir sorun icin modemler sayfasini kontrol ediniz:@*
+@uref{http://eciadsl.flashtux.org/modems.php?lang=en}@*
 @item Synch .bin dosyasi
 Bu secenegi yalnizca eciadsl-start eszamanlilik sorunu yasarsa kullaniniz.@*
 @item PPP modu
@@ -441,6 +459,8 @@ Aksi takdirde, bu bolumu gecebilirsiniz.
 
 @node Eci Windows surucusu, USB Sniffer, Synch .bin olusturulmasi, Synch .bin olusturulmasi
 @section Eci Windows surucusu
+[@cite{Modeminiz 7470 yongasetine sahipse bu bolumu geciniz, KENDI WINDOWS SURUCUNUZU KULLANMALISINIZ.@*
+Herhangi bir sorun icin modemler sayfasini kontrol ediniz:} @uref{http://eciadsl.flashtux.org/modems.php?lang=en}].@*
 
 @subsection Download
 
@@ -510,11 +530,19 @@ Linux altinda tekrar baslatiniz.
 usbsnoop log dosyasini iceren windows partisyonu veya nereye kopyalamak isterseniz o partisyonu
 mount ediniz.@*
 Bu komutu uygulayiniz:@*
-@kbd{eciadsl-vendor-device.pl usbsnoop.log}@*
-Bu perl skripti log dosyasini kullanir ve yeni bir eci_vendor.bin dosyasi uretir
+@kbd{eciadsl-vendor-device.pl usbsnoop.log -chipset=#MODEM_YONGA_SETINIZ#}@*
+@kbd{#MODEM_YONGA_SETINIZ#} modem yonga setinizi kullanarak (GS7070 ya da GS7470).@*
+Yardim icin, bu komutu uygulayiniz @kbd{eciadsl-vendor-device.pl -h}@*
+Bu perl skripti bir log dosyasi acar ve yeni bir bin dosyasi uretir
+
+@kbd{eciadsl-vendor-device.pl usbsnoop.log -chipset=#YOUR_MODEM_CHISPET#}@*
+substitute @kbd{#YOUR_MODEM_CHISPET#} with your modem chipset (GS7070 or GS7470).@*
+For help, issue this command: @kbd{eciadsl-vendor-device.pl -h}@*
+This perl script parses the log file and generates a new bin file
 (skript usermode paketinde mevcuttur).@*
 Bu komutu uygulayiniz:@*
-@kbd{mv eci_vendor.bin /etc/eciadsl/my_synch.bin}@*
+@kbd{mv #OLUSAN_BIN_DOSYADI# /etc/eciadsl/my_synch.bin}@*
+@kbd{#OLUSAN_BIN_DOSYAADI} olusan bin dosyasi kullanilarak.@*
 ve daha sonra bu .bin dosyasini calistirmak icin eciadsl-config-text calistirilmalidir@*
 @*
 eciadsl-start i calistiriniz...@*
@@ -606,7 +634,7 @@ Bu dokuman Globespan cipsetli modemler icin serbest bir ADSL USB linux surucusu 
 Bu dokuman EciADSL surucusunun bir parcasidir.@*
 Turkce versiyon Emre Onur KURT 
 <@email{1030215196@@erciyes.edu.tr}>@*
-Kopyalama hakki @copyright{} 2004 FlashCode
+Kopyalama hakki @copyright{} 2001-2005 FlashCode
 <@email{flashcode@@flashtux.org, flashcode AT flashtux.org}>@*
 @*
 Bu dokuman GNU Genel Yayim Lisansi surum 2 ya da yukarisi
