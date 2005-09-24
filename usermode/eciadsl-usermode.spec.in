@@ -91,7 +91,6 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 %doc README.fr
 %doc README.it
 %doc README.pt
-%doc README_GS7470.txt
 %doc INSTALL
 %doc INSTALL.es
 %doc INSTALL.fr
@@ -111,6 +110,8 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 	rm -rf %buildroot
 
 %changelog
+* Sat Sep 24 2005 Sebastien HELLEU <flashcode@flashtux.org> 0.11-1
+- Updated to the 0.11 release
 * Tue Nov 02 2004 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.10-1
 - Updated to the 0.10 release
 * Sat Apr 03 2004 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.9-1
