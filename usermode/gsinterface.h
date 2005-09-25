@@ -15,6 +15,8 @@
 #ifndef GSINTERFACE_H
 #define GSINTERFACE_H
 
+#include "pusb.h"
+
 /* Vendor/ProdID for "ECI Telecom USB ADSL Loader" */
 #define EZUSB_NAME    "EZUSB USB ADSL Loader"
 #define EZUSB_VENDOR  0x0547 /* 0x0547 */
@@ -47,9 +49,9 @@ struct eci_device_t
 	eci_device_chiset eci_modem_chipset;
 	/* ep numbers */
 	unsigned char eci_int_ep;
-	unsigned char eci_iso_ep;
-	unsigned char eci_in2_ep;
-	unsigned char eci_bulk_ep;	
+	unsigned char eci_in_ep;
+	unsigned char eci_out_ep;
+	unsigned char use_datain_iso_urb;
 	/* interfaces # */
 	unsigned short int alt_interface_synch;
 	unsigned short int alt_interface_ppp;	
@@ -94,6 +96,11 @@ void getAal5HeaderStructure(const unsigned char* aal5Header, struct aal5_header_
 
 /* set eci modem_chipset - kolja */
 void set_eci_modem_chipset(char* chipset);
+
+/* set eci modem devie altIface Descriptor infos - kolja 
+ *  (retrieves informations related to ep handled by required altIface
+ *   and set it up on eci_device structure) */
+int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interface);
 
 const char * get_chipset_descr(eci_device_chiset eci_chipset);
 #endif

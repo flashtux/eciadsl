@@ -33,12 +33,12 @@ void gs7470InitParams(void){
 	eci_device.eci_modem_chipset = ECIDC_GS7470;
 	/* endpoint numbers */
 	eci_device.eci_int_ep = 0x81;
-	eci_device.eci_iso_ep = 0x82;
-	eci_device.eci_in2_ep = 0x83;	
-	eci_device.eci_bulk_ep = 0x04;
+	eci_device.eci_in_ep = 0x82;
+	eci_device.eci_out_ep = 0x04;	
+	eci_device.use_datain_iso_urb = 1;
 
 	/* interfaces # */
-	eci_device.alt_interface_synch = 1;
+	eci_device.alt_interface_synch = 5;
 	eci_device.alt_interface_ppp = 5;
 
 	/* PPP DEFINES */

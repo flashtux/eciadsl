@@ -256,7 +256,6 @@ int verbose = 0;
 pusb_device_t fdusb;
 pusb_endpoint_t ep_data_out, ep_data_in, ep_int;
 pid_t this_process;	 /* always the current process pid */
-int use_DataIn_ISO_Urb = 1; /* define if must use ISO for DATA_IN endpoint (default) otherwise it uses Interrupt*/
 
 /* predeclarations */
 
@@ -1085,7 +1084,7 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
         * eci_device.eci_iso_packet_size);
 
 	/* if DATA_IN type is not ISO call init for Interrupt handling - kolja*/
-	if(!use_DataIn_ISO_Urb)
+	if(!eci_device.use_datain_iso_urb)
 		return(init_ep_data_in_int(ep_data_in));
 	
 	for (i = 0; i < eci_device.eci_nb_pkt_ep_data_in; i++)
@@ -1253,7 +1252,7 @@ void handle_urb(pusb_urb_t urb)
 				}
 			}
 	}else
-	if (ep==eci_device.eci_iso_ep){
+	if (ep==eci_device.eci_in_ep && eci_device.use_datain_iso_urb){
 			/* printf("data in!\n"); */
 			if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
 			{
@@ -1280,7 +1279,7 @@ void handle_urb(pusb_urb_t urb)
 				}
 			}
 	}else
-	if (ep==eci_device.eci_in2_ep){
+	if (ep==eci_device.eci_in_ep && !eci_device.use_datain_iso_urb){
 			if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
 			sbuf = buf;
 
@@ -1302,7 +1301,7 @@ void handle_urb(pusb_urb_t urb)
 			}
 		}
 	}else
-	if (ep!=eci_device.eci_bulk_ep){
+	if (ep!=eci_device.eci_out_ep){
 			snprintf(errText, ERR_BUFSIZE,
 					"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
 			message(errText);
@@ -1665,6 +1664,7 @@ int main(int argc, char** argv)
 		usage(-1);
 	}
 
+	/* get chipset configuration - kolja*/
 	if (strcmp(chipset,"GSNONE")!=0){
 		set_eci_modem_chipset(chipset);
 	}
@@ -1673,7 +1673,7 @@ int main(int argc, char** argv)
 	if (pusb_set_interface_alt < 0)
 	{
 		/* set dafault interface - kolja*/ 
-		pusb_set_interface_alt = config.alt_interface_synch;
+		pusb_set_interface_alt = config.alt_interface_ppp;
 	}
 	if (data_timeout < 0)
 	{
@@ -1945,22 +1945,15 @@ int main(int argc, char** argv)
 			fatal_error(ERR_PUSB_SET_INTERFACE, errText);
 		}
 
-	/* if altInterface is setted to 0 use Interrupt instead ISO for DATA_IN - kolja*/
-	if (pusb_set_interface_alt == 0){
-		use_DataIn_ISO_Urb = 0;
-	}
+	/* retreive altiface endpoint infos - kolja */
+	gsGetDeviceIfaceInfo(fdusb, pusb_set_interface_alt);
 
 	ep_int = pusb_endpoint_open(fdusb, eci_device.eci_int_ep, O_RDWR);
 	if (ep_int == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_INT,
 					"pusb_endpoint_open EP_INT failed");
 
-	/* if no ISO used for DATA_IN endpoint number must be 0x83 - kolja */
-	if (use_DataIn_ISO_Urb)
-		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_iso_ep, O_RDWR);
-	else
-		ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_in2_ep, O_RDWR);
-	
+	ep_data_in = pusb_endpoint_open(fdusb, eci_device.eci_in_ep, O_RDWR);	
 	if (ep_data_in == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_DATA_IN,
 					"pusb_endpoint_open EP_DATA_IN failed");
@@ -1970,7 +1963,7 @@ int main(int argc, char** argv)
 	 * is an infinite loop and will return only on errors.
 	 */
 
-	ep_data_out = pusb_endpoint_open(fdusb, eci_device.eci_bulk_ep, O_RDWR);
+	ep_data_out = pusb_endpoint_open(fdusb, eci_device.eci_out_ep, O_RDWR);
 	if (ep_data_out == NULL)
 		fatal_error(ERR_PUSB_OPEN_EP_DATA_OUT,
 					"pusb_endpoint_open EP_DATA_OUT failed");

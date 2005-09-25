@@ -21,7 +21,7 @@ eciadsl_synch_SOURCES = eciadsl-synch.c semaphore.c semaphore.h pusb.c util.c \
 eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c ecimsgh.c \
 	gsinterface.c
 
-eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c
+eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c pusb.c
 
 eciadsl_pppoeci_LDADD = eci-common/libeoc.a
 

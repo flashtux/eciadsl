@@ -628,6 +628,9 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 		fclose(fp);
 		return(0);
 	}
+	
+	/* retreive altiface endpoint infos - kolja */
+	gsGetDeviceIfaceInfo(dev, altInterface);	
 
 	/*open ep int endpoint*/
 	/* here, we are running in a child process */

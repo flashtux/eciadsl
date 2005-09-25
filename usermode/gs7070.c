@@ -37,9 +37,9 @@ void gs7070InitParams(void){
 
 	/* endpoint numbers */
 	eci_device.eci_int_ep = 0x86;
-	eci_device.eci_iso_ep = 0x88;
-	eci_device.eci_in2_ep = 0x89;
-	eci_device.eci_bulk_ep = 0x02;
+	eci_device.eci_in_ep = 0x88;
+	eci_device.eci_out_ep = 0x02;
+	eci_device.use_datain_iso_urb = 1;	
 
 	/* interfaces # */
 	eci_device.alt_interface_synch = 4;
