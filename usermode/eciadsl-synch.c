@@ -879,5 +879,8 @@ int main(int argc, char** argv){
 	if (pidIntSigChild)
 		kill(pidIntSigChild, SIGQUIT);
 
+	if (!ret) 
+		return 1;
+
 	return(0);
 }
