@@ -13,6 +13,8 @@ Sorted according to priority (the upper in the list, the prior):
 
 v 0.12:
 
+  - automatically restart driver (or synch too) on modem hangup (via ctrlui??)
+  - profile pppoeci. it uses really too much cpu. (static and inline is a good way to start)
   - improve synch .bin detection (eciadsl-probe-synch script)
   - detect if 2.6 USB patch is needed or not
   - eciadsl-pppoeci, eciadsl-firmware and eciadsl-synch must rehook TERM
