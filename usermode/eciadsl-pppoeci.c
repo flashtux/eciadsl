@@ -1207,54 +1207,27 @@ static inline void handle_urb(pusb_urb_t urb)
 				}
 			}
 	}else
-	if (ep==eci_device.eci_in_ep && eci_device.use_datain_iso_urb){
-			/* printf("data in!\n"); */
-			if (pusb_urb_buffer_first(urb, &buf, &size, &idx))
-			{
+	if (ep==eci_device.eci_in_ep){
+			if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
 				sbuf = buf;
-
-				do
-				{
-					if (size != 0)
-					{
-/*						printf("data_in %02x, packet len = %d\n",
-							   epnum_data_in_used, size);
-						dump(buf, size);
-*/
+				do{
+					if (size != 0){
 						handle_ep_data_in(buf, size);
 					}
-				}
-				while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
+				} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
 
-			/* use ISO URB depending on AltInterface Setted - kolja*/
-			ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, eci_device.eci_iso_packet_size, eci_device.eci_nb_iso_packet, 0); /* SIGRTMIN); */
+			if (eci_device.use_datain_iso_urb){
+				/* use ISO URB depending on AltInterface Setted - kolja*/
+				ret=pusb_endpoint_submit_iso_read(ep_data_in, sbuf, eci_device.eci_iso_packet_size, eci_device.eci_nb_iso_packet, 0); /* SIGRTMIN); */
+			}else{
+				/* Interrupt URB depending on AltInterface Setted - kolja*/
+				ret = pusb_endpoint_submit_read(ep_data_in, buf, 0x40, 0); /* SIGRTMIN); */	
+			}
 			if (ret < 0){
 					message("error on re-submit URB on EP_DATA_IN");
 					perror("error: can't re-submit on ep EP_DATA_IN");
 				}
 			}
-	}else
-	if (ep==eci_device.eci_in_ep && !eci_device.use_datain_iso_urb){
-			if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
-			sbuf = buf;
-
-			do{
-				if (size != 0){
-/*						printf("data_in %02x, packet len = %d\n",
-							   EP_DATA_IN2, size);
-						dump(buf, size);
-*/
-					handle_ep_data_in(buf, size);
-				}
-			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
-
-			/* Interrupt URB depending on AltInterface Setted - kolja*/
-			ret = pusb_endpoint_submit_read(ep_data_in, buf, 0x40, 0); /* SIGRTMIN); */					
-			if (ret < 0){
-				message("error on re-submit URB on EP_DATA_IN2");
-				perror("error: can't re-submit on ep EP_DATA_IN2");
-			}
-		}
 	}else
 	if (ep!=eci_device.eci_out_ep){
 			snprintf(errText, ERR_BUFSIZE,
