@@ -434,9 +434,8 @@ inline void get_eoc_answer(unsigned char *eocoutbuff) {
  	assert(eoc_out_buffer_pos<32);
  	DBG_OUT("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	
- 	for(i=0; i < eoc_out_buffer_pos; i++) {
- 		eocoutbuff[i] = eoc_out_buf[i];
- 	}
+	memcpy(eocoutbuff, eoc_out_buf, eoc_out_buffer_pos);
+
  	eoc_out_buffer_pos = 0;
 	DBG_OUT("EOC.C - get_eoc_answer - END \n");
 }
