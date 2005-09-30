@@ -128,10 +128,6 @@ typedef struct
 	unsigned char bInterval;
 } __attribute__ ((packed)) usb_desc_endpoint_t;
 
-int (*pF_gsSetControl)(unsigned char*);
-void (*pF_gsGetResponse)(unsigned char*);
-void (*pF_allocateGSint)(void);
-void (*pF_deallocateGSint)(void);
 void (*pF_getAal5HeaderStructure)(const unsigned char*,
                                   struct aal5_header_st*);
 
@@ -139,17 +135,9 @@ void (*pF_getAal5HeaderStructure)(const unsigned char*,
 void set_eci_modem_chipset(char* chipset){
 	if (memcmp(chipset, "GS7470", 6)==0){
 		gs7470InitParams();
-		pF_gsSetControl  = gs7470SetControl;
-		pF_gsGetResponse = gs7470GetResponse;
-		pF_allocateGSint = allocateGS7470int;
-		pF_deallocateGSint = deallocateGS7470int;
 		pF_getAal5HeaderStructure = getAal5HeaderStructure7470;				
 	}else{
 		gs7070InitParams();
-		pF_gsSetControl  = gs7070SetControl;
-		pF_gsGetResponse = gs7070GetResponse;
-		pF_allocateGSint = allocateGS7070int;
-		pF_deallocateGSint = deallocateGS7070int;
 		pF_getAal5HeaderStructure = getAal5HeaderStructure7070;			
 	}
 }
@@ -157,7 +145,7 @@ void set_eci_modem_chipset(char* chipset){
 /* set eci modem devie altIface Descriptor infos - kolja 
  *  (retrieves informations related to ep handled by required altIface
  *   and set it up on eci_device structure) */
-int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interface){
+inline int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interface){
 	usb_desc_device_t device;
 	/* we fixe to use Interface 0  - kolja*/
 	int conf = 0;
@@ -262,23 +250,7 @@ const char * get_chipset_descr(eci_device_chiset eci_chipset){
 		return("GS7070");
 }
 
-int  gsSetControl(unsigned char* buffer){
-	return(pF_gsSetControl(buffer));
-}
-
-void gsGetResponse(unsigned char* buffer){
-	pF_gsGetResponse(buffer);
-}
-
-void allocateGSint(void){
-	pF_allocateGSint();
-}
-
-void deallocateGSint(void){
-	pF_deallocateGSint();
-}
-
-void getAal5HeaderStructure(const unsigned char* aal5Header,
+inline void getAal5HeaderStructure(const unsigned char* aal5Header,
                             struct aal5_header_st* aal5HeaderOut)
 {
 	pF_getAal5HeaderStructure(aal5Header, aal5HeaderOut);

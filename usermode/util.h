@@ -20,13 +20,13 @@ struct config_t
 
 };
 
-void get_unsigned_value(const char*, unsigned int*);
-void get_signed_value(const char*, int*);
-void get_hexa_value(const char*, unsigned int*);
-void read_config_file(void);
-void printprogres(void);
-char* strDup(char** var, const char* text);
+inline void get_unsigned_value(const char*, unsigned int*);
+inline void get_signed_value(const char*, int*);
+inline void get_hexa_value(const char*, unsigned int*);
+inline void read_config_file(void);
+inline void printprogres(void);
+inline char* strDup(char** var, const char* text);
 
-const char * config_filename();
+inline const char * config_filename();
 
 #endif

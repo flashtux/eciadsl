@@ -87,11 +87,7 @@ struct aal5_header_st {
 		unsigned int pti;
 };
 
-int  gsSetControl(unsigned char* buffer);
-void gsGetResponse(unsigned char* buffer);
-void allocateGSint(void);
-void deallocateGSint(void);
-void getAal5HeaderStructure(const unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut);
+inline void getAal5HeaderStructure(const unsigned char* aal5Header, struct aal5_header_st* aal5HeaderOut);
 
 
 /* set eci modem_chipset - kolja */
@@ -100,7 +96,7 @@ void set_eci_modem_chipset(char* chipset);
 /* set eci modem devie altIface Descriptor infos - kolja 
  *  (retrieves informations related to ep handled by required altIface
  *   and set it up on eci_device structure) */
-int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interface);
+inline int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interface);
 
-const char * get_chipset_descr(eci_device_chiset eci_chipset);
+inline const char * get_chipset_descr(eci_device_chiset eci_chipset);
 #endif

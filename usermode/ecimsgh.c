@@ -44,10 +44,10 @@ struct {
 } msgbuf;
 
 /* process calling for queue Messages*/
-long lProcessType = (long)ECI_PT_UNKNOWN;
+static long lProcessType = (long)ECI_PT_UNKNOWN;
 
 /*return message queue id and create it if it still does not set*/
-int getMsgQueueId(){
+inline int getMsgQueueId(){
 	/*check if message queue id is already setted */
 	if(iMsgQueueId==-1){
 		key_t kEciKey;
@@ -66,7 +66,7 @@ int getMsgQueueId(){
 	return (iMsgQueueId);
 }
 
-int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read){
+inline int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read){
 	ssize_t retval;
 	int msgflg=0;
 
@@ -87,7 +87,7 @@ int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read){
 	return((int)retval);
 }
 
-int sndEciMsg(enum EciadslMsgCmd msgcmd, char * data, int datasize, long DestEciPT, int wait){
+inline int sndEciMsg(enum EciadslMsgCmd msgcmd, char * data, int datasize, long DestEciPT, int wait){
 	int retval;
 	int i;
 	int msgflg=0;
@@ -115,7 +115,7 @@ int sndEciMsg(enum EciadslMsgCmd msgcmd, char * data, int datasize, long DestEci
 }
 
 
-int initEciMsgQueue(long EciPT){
+inline int initEciMsgQueue(long EciPT){
 	lProcessType = EciPT;
 	return(0);
 }
@@ -123,7 +123,7 @@ int initEciMsgQueue(long EciPT){
 /* ATTENTION : process initializing EciMsgQueue must call this function on exit 
  * 			   remember to handle all termination signal (at least : SIGTERM, SIGINT, SIGQUIT)
  */
-int deallocEciMsgQueue(){
+inline int deallocEciMsgQueue(){
 	struct msqid_ds queueInfo;
 	int retval=0;
 	

@@ -55,9 +55,9 @@ struct eci_msg{
 	char 				data[ECI_MSG_MAX_DATA_SIZE];
 };
 
-int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read);
-int sndEciMsg(enum EciadslMsgCmd msgcmd, char * data, int datasize, long DestEciPT, int wait);
-int initEciMsgQueue(long EciPT);
-int deallocEciMsgQueue();
+inline int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read);
+inline int sndEciMsg(enum EciadslMsgCmd msgcmd, char * data, int datasize, long DestEciPT, int wait);
+inline int initEciMsgQueue(long EciPT);
+inline int deallocEciMsgQueue();
 
 #endif

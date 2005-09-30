@@ -54,13 +54,7 @@ typedef struct /* GS7070ControlINT */
 } GS7070ControlINT; /* GS7070ControlINT */
 
 void gs7070InitParams(void);
-int gs7070SetControl(unsigned char* buffer);
-void gs7070GetResponse(unsigned char* buffer);
-GS7070ControlReg* allocategs7070ctlreg(char matchhi, char matchlow, char replacehi, char replacelow);
-void deallocategs7070ctlreg(GS7070ControlReg* gscr);
-void allocateGS7070int(void);
-void deallocateGS7070int(void);
-void getAal5HeaderStructure7070(const unsigned char* aal5Header,
+static inline void getAal5HeaderStructure7070(const unsigned char* aal5Header,
                                 struct aal5_header_st* aal5HeaderOut);
 
 #endif

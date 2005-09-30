@@ -79,10 +79,10 @@
                      - add its name to enum encapsulation_modes and array mode_name
                      - add the frame header to array frame_header
                      - specify the frame header length in array frame_header_len 
-                     - update max_frame_header_len if necessary 
+                     - update MAX_FRAME_HEADER_LEN if necessary 
 	Antoine REVERSAT aka Crevetor 4/1/2004 : These last days : got rid of linux/ * includes (thanks to MD)
 		   				 Added support for 2.6 kernels (binary stays the same but works for both kernels)
-		   				 Changed pusb_set_interface_alt to allow alt setting 0 to be used (which wasn't the case before)
+		   				 Changed pusb_alt_interface to allow alt setting 0 to be used (which wasn't the case before)
 
     21/11/2003 Kolja (gavaatbergamoblog.it)
     Enanchement for gs7470 chipset support
@@ -138,41 +138,11 @@
 
 #define PPP_BUF_SIZE 64*1024
 
-struct eci_msg ecimsg;
+#define SYNCLEN 2
 
-char* exec_filename;
+#define MAX_FRAME_HEADER_LEN 10
 
-extern struct config_t config;
-extern struct eci_device_t eci_device;
-
-typedef enum
-{
-	/* must be the first element since (frame_type==0)
-	   must mean no encapsulation */
-	VCM_RFC2364 = 0,
-	LLC_RFC2364,
-	LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS,
-	VCM_RFC_1483_BRIDGED_ETH,
-	LLC_RFC1483_ROUTED_IP,
-	VCM_RFC1483_ROUTED_IP, 
-	modes_count
-} encapsulation_mode;
-
-/* defaults to no mode selected, we'll set the mode later
-   based on config file or commandline */
-int frame_type=-1;
-
-const char* mode_name[] =
-{
-	"VCM_RFC2364",
-	"LLC_RFC2364",
-	"LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS",
-	"VCM_RFC_1483_BRIDGED_ETH",
-	"LLC_RFC1483_ROUTED_IP",
-	"VCM_RFC1483_ROUTED_IP"
-};
-
-encapsulation_mode default_frame_type=VCM_RFC2364;
+#define NOBUF_RETRIES 5
 
 #ifdef USE_BIG_ENDIAN
 #define HDLC_HEADER (short)0xff03
@@ -180,105 +150,18 @@ encapsulation_mode default_frame_type=VCM_RFC2364;
 #define HDLC_HEADER (short)0x03ff
 #endif
 
-const char* frame_header[] =
-{
-	"",											/* VCM_RFC2364 */
-	"\xfe\xfe\x03\xcf",							/* LLC_RFC2364 */
-	"\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00", /* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
-	"\x00\x00", 								/* VCM_RFC_1483_BRIDGED_ETH */
-	"\xaa\xaa\x03\x00\x00\x00\x08\x00",			/* LLC_RFC1483_ROUTED_IP */
-	""											/* VCM_RFC1483_ROUTED_IP */
-};
-
-#define max_frame_header_len 10
-const size_t frame_header_len[] =
-{
-	0,	/* VCM_RFC2364 */
-	4,	/* LLC_RFC2364 */
-	10,	/* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
-	2,	/* VCM_RFC_1483_BRIDGED_ETH */
-	8,	/* LLC_RFC1483_ROUTED_IP */
-	0 	/* VCM_RFC1483_ROUTED_IP */
-};
-
-/* #define CHECK_FRAME_HEADER 1  // just overload i suppose.. */
-
-/* main program error codes (must be returned as negative ints) */
-typedef enum
-{
-	ERR_NONE = 0,
-	ERR_USAGE,
-	ERR_SIGTERM,
-	ERR_OPEN_LOGFILE,
-	ERR_LOADING_N_HDLC,
-	ERR_FOUNDING_MODEM,
-	ERR_PUSB_SET_INTERFACE,
-	ERR_PUSB_CLAIM_INTERFACE,
-	ERR_PUSB_OPEN_EP_INT,
-	ERR_PUSB_OPEN_EP_DATA_IN,
-	ERR_PUSB_OPEN_EP_DATA_OUT,
-	ERR_PUSB_INIT_EP_INT,
-	ERR_PUSB_INIT_EP_DATA_INT,
-	ERR_WRONG_FRAME_HEADER,
-	ERR_TUN,
-	ERR_FORK
-} error_codes;
-
 #define ERR_BUFSIZE (1024 - 1)
-char errText[ERR_BUFSIZE + 1];
 
-/* for debugging only */
-void dump_urb(char* buffer, int size);
-
-/* for ident(1) command */
-static const char id[] = "@(#) $Id$";
-
-/* USB level */
 #define DATA_TIMEOUT 300
-int data_timeout = 0;
 
-/* ATM level : adapt according your ADSL provider settings */
-unsigned int my_vpi = 0xffffffff;
-unsigned int my_vci = 0xffffffff;
-
-unsigned int vendor = 0;
-unsigned int product = 0;
-
-int pusb_set_interface_alt = -1;
-char* chipset="GSNONE";
-
-int syncHDLC = 1;
-
-#define synclen 2
-
-/* global parameters */
-int verbose = 0;
-pusb_device_t fdusb;
-pusb_endpoint_t ep_data_out, ep_data_in, ep_int;
-pid_t this_process;	 /* always the current process pid */
-
-/* predeclarations */
-
-int aal5_read(const unsigned char* cell_buf, /* size_t count, */
-              unsigned int vpi, unsigned int vci,
-              unsigned int pti, int fdout);
-
-int init_ep_data_in_int(pusb_endpoint_t ep_data_in);
-
-/*
- * variable that will be used in several function
- *   => so global
- */
-
-int gfdout;
-int g_fdin;
+#define NB_PKT_EP_INT 64
 
 #define CRC32_REMAINDER CBF43926
 #define CRC32_INITIAL 0xffffffff
 
 #define CRC32(c, crc) (crc32tab[((size_t)((crc) >> 24) ^ (c)) & 0xff] ^ (((crc) << 8)))
 
-unsigned long crc32tab[256] =
+static const unsigned long crc32tab[256] =
 {
 	0x00000000L, 0x04C11DB7L, 0x09823B6EL, 0x0D4326D9L,
 	0x130476DCL, 0x17C56B6BL, 0x1A864DB2L, 0x1E475005L,
@@ -346,16 +229,136 @@ unsigned long crc32tab[256] =
 	0xBCB4666DL, 0xB8757BDAL, 0xB5365D03L, 0xB1F740B4L
 };
 
-unsigned int calc_crc(unsigned char* mem, int len, unsigned int initial)
-{
-	unsigned int crc;
+struct eci_msg ecimsg;
 
-	crc = initial;
+static char* exec_filename;
+
+extern struct config_t config;
+extern struct eci_device_t eci_device;
+
+typedef enum
+{
+	/* must be the first element since (frame_type==0)
+	   must mean no encapsulation */
+	VCM_RFC2364 = 0,
+	LLC_RFC2364,
+	LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS,
+	VCM_RFC_1483_BRIDGED_ETH,
+	LLC_RFC1483_ROUTED_IP,
+	VCM_RFC1483_ROUTED_IP, 
+	modes_count
+} encapsulation_mode;
+
+/* defaults to no mode selected, we'll set the mode later
+   based on config file or commandline */
+static int frame_type=-1;
+
+static const char* mode_name[] =
+{
+	"VCM_RFC2364",
+	"LLC_RFC2364",
+	"LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS",
+	"VCM_RFC_1483_BRIDGED_ETH",
+	"LLC_RFC1483_ROUTED_IP",
+	"VCM_RFC1483_ROUTED_IP"
+};
+
+static const encapsulation_mode default_frame_type=VCM_RFC2364;
+
+static const char* frame_header[] =
+{
+	"",											/* VCM_RFC2364 */
+	"\xfe\xfe\x03\xcf",							/* LLC_RFC2364 */
+	"\xaa\xaa\x03\x00\x80\xc2\x00\x07\x00\x00", /* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
+	"\x00\x00", 								/* VCM_RFC_1483_BRIDGED_ETH */
+	"\xaa\xaa\x03\x00\x00\x00\x08\x00",			/* LLC_RFC1483_ROUTED_IP */
+	""											/* VCM_RFC1483_ROUTED_IP */
+};
+
+static const size_t frame_header_len[] =
+{
+	0,	/* VCM_RFC2364 */
+	4,	/* LLC_RFC2364 */
+	10,	/* LLC_SNAP_RFC1483_BRIDGED_ETH_NO_FCS */
+	2,	/* VCM_RFC_1483_BRIDGED_ETH */
+	8,	/* LLC_RFC1483_ROUTED_IP */
+	0 	/* VCM_RFC1483_ROUTED_IP */
+};
+
+/* #define CHECK_FRAME_HEADER 1  // just overload i suppose.. */
+
+/* main program error codes (must be returned as negative ints) */
+typedef enum
+{
+	ERR_NONE = 0,
+	ERR_USAGE,
+	ERR_SIGTERM,
+	ERR_OPEN_LOGFILE,
+	ERR_LOADING_N_HDLC,
+	ERR_FOUNDING_MODEM,
+	ERR_PUSB_SET_INTERFACE,
+	ERR_PUSB_CLAIM_INTERFACE,
+	ERR_PUSB_OPEN_EP_INT,
+	ERR_PUSB_OPEN_EP_DATA_IN,
+	ERR_PUSB_OPEN_EP_DATA_OUT,
+	ERR_PUSB_INIT_EP_INT,
+	ERR_PUSB_INIT_EP_DATA_INT,
+	ERR_WRONG_FRAME_HEADER,
+	ERR_TUN,
+	ERR_FORK
+} error_codes;
+
+static char errText[ERR_BUFSIZE + 1];
+
+/* for debugging only */
+void dump_urb(char* buffer, int size);
+
+/* for ident(1) command */
+static const char id[] = "@(#) $Id$";
+
+/* USB level */
+static int data_timeout = 0;
+
+/* ATM level : adapt according your ADSL provider settings */
+static unsigned int my_vpi = 0xffffffff;
+static unsigned int my_vci = 0xffffffff;
+
+static unsigned int vendor = 0;
+static unsigned int product = 0;
+
+static int pusb_alt_interface = -1;
+static char* chipset="GSNONE";
+
+static short int syncHDLC = 1;
+
+/* global parameters */
+static int verbose = 0;
+static pusb_device_t fdusb;
+static pusb_endpoint_t ep_data_out, ep_data_in, ep_int;
+static pid_t this_process;	 /* always the current process pid */
+
+static int gfdout;
+static int gfdin;
+
+static const unsigned char gfc = 0;
+static const unsigned char hec = 0x00; /* change to the value used in the Windows driver */
+
+
+/* predeclarations */
+
+static inline int aal5_read(const unsigned char* cell_buf, /* size_t count, */
+              unsigned int vpi, unsigned int vci,
+              unsigned int pti, int fdout);
+
+int init_ep_data_in_int(pusb_endpoint_t ep_data_in);
+
+static inline unsigned int calc_crc(unsigned char* mem, int len, unsigned int initial)
+{
 
 	for (; len; mem++, len--)
-		crc = CRC32(*mem, crc);
+		initial = CRC32(*mem, initial);
 
-	return(crc);
+	return(initial);
 }
 
 /*
@@ -363,7 +366,7 @@ unsigned int calc_crc(unsigned char* mem, int len, unsigned int initial)
  * the line printed is not \n terminated
  */
 
-void print_time(void)
+static inline void print_time(void)
 {
 	struct timeval tv;
 
@@ -371,13 +374,13 @@ void print_time(void)
 	printf("< pid=%u > [%.24s %6ld] ", getpid(), ctime(&tv.tv_sec), tv.tv_usec);
 }
 
-void message(const char* text)
+static inline void message(const char* text)
 {
 	print_time();
 	printf("%s\n", text);
 }
 
-void fatal_error(const error_codes err, const char* text)
+static inline void fatal_error(const error_codes err, const char* text)
 {
 	if (text && verbose)
 		message(text);
@@ -394,7 +397,7 @@ void fatal_error(const error_codes err, const char* text)
 	else \
 		printf(".");
 
-void dump(const unsigned char* buf, int len)
+static inline void dump(const unsigned char* buf, int len)
 {
 	int i, j;
 
@@ -416,22 +419,23 @@ void dump(const unsigned char* buf, int len)
  * 0 should indicates that pppd exited (not tested).
  */
 
-int ppp_read(int fd, unsigned char** buf, int* n)
+static inline int ppp_read(const int fd, unsigned char** buf, int* n)
 {
 	/*
 	 * we must handle HDLC framing, since this is what pppd
 	 * sends to us. I use some code from rp-pppoe
 	 */
 
-	static unsigned char frame_buf[max_frame_header_len + PPP_BUF_SIZE];
+	static unsigned char frame_buf[MAX_FRAME_HEADER_LEN + PPP_BUF_SIZE];
 	static unsigned char* ppp_buf;
 
-	int r;
+	unsigned char* s;
+	int i, l, r;
 
         if (frame_type)
 		{
             if (syncHDLC)
-                ppp_buf = frame_buf+frame_header_len[frame_type]-synclen;
+                ppp_buf = frame_buf+frame_header_len[frame_type]-SYNCLEN;
             else
                 ppp_buf = frame_buf+frame_header_len[frame_type];
         }
@@ -468,7 +472,7 @@ int ppp_read(int fd, unsigned char** buf, int* n)
 
 		if (syncHDLC)
 		{
-			if (r < (synclen+1))
+			if (r < (SYNCLEN+1))
 			{
 				snprintf(errText, ERR_BUFSIZE,
 						"reading from PPP: short on data, r=%d => ignored", r);
@@ -486,30 +490,22 @@ int ppp_read(int fd, unsigned char** buf, int* n)
 
 			if (frame_type)
 			{
-				unsigned char* s;
-				int i;
-				int l;
-
 				l = frame_header_len[frame_type];
 				s = (unsigned char*)frame_header[frame_type];
 				for (i = 0; l--; ++i)
 					frame_buf[i] = s[i];
 				*buf = frame_buf;
-				*n = r - synclen + frame_header_len[frame_type];
+				*n = r - SYNCLEN + frame_header_len[frame_type];
 			}
 			else
 			{
-				*buf = frame_buf + synclen;
-				*n = r - synclen;
+				*buf = frame_buf + SYNCLEN;
+				*n = r - SYNCLEN;
 			}
 			return(*n);
 		}
 		else /* no syncHDLC for pppoe */
-		{
-			unsigned char* s;
-			int i;
-			int l;
-			
+		{			
 			if (r < 1)
 			{
 				snprintf(errText, ERR_BUFSIZE,
@@ -539,11 +535,9 @@ int ppp_read(int fd, unsigned char** buf, int* n)
 	}
 }
 
-#define NOBUF_RETRIES 5
-
-int ppp_write(int fd, unsigned char* buf, int n)
+static inline int ppp_write(const int fd, unsigned char* buf, int n)
 {
-	/* static unsigned char ppp_buf[synclen+max_frame_header_len+PPP_BUF_SIZE]; */
+	/* static unsigned char ppp_buf[SYNCLEN+MAX_FRAME_HEADER_LEN+PPP_BUF_SIZE]; */
 	static int errs = 0;
 
 	int r;
@@ -551,7 +545,7 @@ int ppp_write(int fd, unsigned char* buf, int n)
 
 	if (syncHDLC)
 	{
-		static unsigned char ppp_buf[synclen+max_frame_header_len + PPP_BUF_SIZE];
+		static unsigned char ppp_buf[SYNCLEN+MAX_FRAME_HEADER_LEN + PPP_BUF_SIZE];
 
     ppp_buf[0] = 0xff;
     ppp_buf[1] = 0x03;
@@ -578,10 +572,10 @@ int ppp_write(int fd, unsigned char* buf, int n)
 			}
 #endif
 			n -= frame_header_len[frame_type];
-			memcpy(ppp_buf + synclen, buf + frame_header_len[frame_type], n);
+			memcpy(ppp_buf + SYNCLEN, buf + frame_header_len[frame_type], n);
 		}
 		else
-			memcpy(ppp_buf + synclen, buf, n);
+			memcpy(ppp_buf + SYNCLEN, buf, n);
                 
 		if (verbose > 1)
 		{
@@ -636,7 +630,7 @@ int ppp_write(int fd, unsigned char* buf, int n)
 	else /* no syncHDLC for pppoe */ 
 	{
 
-	    static unsigned char ppp_buf[max_frame_header_len + PPP_BUF_SIZE];
+	static unsigned char ppp_buf[MAX_FRAME_HEADER_LEN + PPP_BUF_SIZE];
 
 #ifdef CHECK_FRAME_HEADER 
 			int l;
@@ -723,7 +717,7 @@ int ppp_write(int fd, unsigned char* buf, int n)
 
  */
 
-int cell_read(const unsigned char* cellbuf, /* size_t count, */ int fdout){
+static inline int cell_read(const unsigned char* cellbuf, /* size_t count, */ int fdout){
 	struct aal5_header_st aal5Header;
 
 	getAal5HeaderStructure(cellbuf, &aal5Header);
@@ -737,12 +731,9 @@ int cell_read(const unsigned char* cellbuf, /* size_t count, */ int fdout){
 	return(aal5_read(cellbuf + eci_device.cell_r_hdr, /* CELL_DATA, */ aal5Header.vpi, aal5Header.vci, aal5Header.pti, fdout));
 }
 
-int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
+static inline int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
 			 unsigned int vpi, unsigned int vci, unsigned int pti)
 {
-	unsigned char gfc = 0;
-	unsigned char hec = 0x00; /* change to the value used in the Windows driver */
-
 	if (n != eci_device.cell_w_data)
 		return(-1);
 
@@ -769,7 +760,7 @@ int cell_write(unsigned char* cellbuf, unsigned char* buf, int n,
  * (0 otherwise)
  */
 
-int aal5_read(const unsigned char* cell_buf, /* size_t count, */
+static inline int aal5_read(const unsigned char* cell_buf, /* size_t count, */
 		unsigned int vpi, unsigned int vci, unsigned int pti, int fdout)
 {
 	static unsigned char buf[64 * 1024];
@@ -877,7 +868,7 @@ int aal5_read(const unsigned char* cell_buf, /* size_t count, */
  * with its layer.
  */
 
-int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
+static inline int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 {
 	/* add the trailer */
 	int total_len = 48 * ((n + 8 + eci_device.cell_w_data - 1) / 48);
@@ -888,7 +879,7 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 	 * so AAL5 frame is max 64K + 48 that's 1367 cells at max
 	 */
 
-	unsigned char bigbuf[1367 * 53];
+	static unsigned char bigbuf[1367 * 53];
 	int ptr;
 	int ret;
 /*
@@ -971,7 +962,7 @@ int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 }
 /* returns -1 in case of errors */
 
-int decode_usb_pkt(const unsigned char* buf, int len)
+static inline int decode_usb_pkt(const unsigned char* buf, int len)
 {
 	static unsigned char rbuf [64 * 1024];
 	static int rlen = 0;
@@ -1040,8 +1031,6 @@ int init_ep_int(pusb_endpoint_t ep_int)
 	  like the Windows driver. If we we using a buffer of size 100 bytes,
 	  we would receive 100 bytes instead...
 	*/
-
-#define NB_PKT_EP_INT 64
 	static unsigned char buf[NB_PKT_EP_INT][0x40];
 
 	int i, ret;
@@ -1076,7 +1065,7 @@ int init_ep_int(pusb_endpoint_t ep_int)
 
 int init_ep_data_in(pusb_endpoint_t ep_data_in)
 {
-	unsigned char* buf; 
+	static unsigned char* buf; 
 	int i, ret;
 
     buf = (unsigned char *) malloc(
@@ -1108,7 +1097,7 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 int init_ep_data_in_int(pusb_endpoint_t ep_data_in)
 {
 
-	unsigned char* buff;
+	static unsigned char* buff;
 	int i, ret;
 
 	buff = (unsigned char*) malloc(eci_device.eci_nb_pkt_ep_data_in * 0x40);
@@ -1133,50 +1122,17 @@ int init_ep_data_in_int(pusb_endpoint_t ep_data_in)
 	return(0);
 }
 
-void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
+static inline void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 {
-	unsigned char outbuf[40] =
+	static unsigned char outbuf[40] =
 	{
-		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c
+		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c
 	};
 	
-#if 0
-	static int lost_synchro = 0;
-	int i, outi = 0;
-	int dataBlock = 0;
-
-	if (verbose > 1)
-	{
-		snprintf(errText, ERR_BUFSIZE,
-				"reading from ep int: len=%d", size);
-		message(errText);
-		dump(buf, size);
-	}
-
-	if (!lost_synchro || 1)
-	{
-		for (i = eci_device.ep_int_data_start_point; i < 18; i++)
-		{
-			unsigned short code = (buf[2 * i + 0] << 8) | buf[2 * i + 1];
-
-			if (code != 0x0c0c)
-			{ /* don't bother with 0c0c blocks, there 'empty' */
-				dataBlock=-1;
-				gsSetControl(buf + i * 2);
-				memcpy(outbuf + 10 + outi, buf + i * 2, 2);
-				gsGetResponse(outbuf + 10 + outi);
-				outi = outi+2;				
-			}
-		}
-	}
-	if (dataBlock == 0)
-		/* no data/control information so don't bother to respond */
-		return;
-#else
 	if (verbose > 1)
 	{
 		snprintf(errText, ERR_BUFSIZE,
@@ -1193,10 +1149,9 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 		/* no data/control information so don't bother to respond */
 		return;
 	get_eoc_answer(outbuf+8);		
-#endif
 
 	if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
-			sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
+			sizeof(outbuf), data_timeout) != sizeof(outbuf))
 	{
 		message("error on sending vendor device URB");
 		perror("error: can't send vendor device!");
@@ -1213,15 +1168,15 @@ void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdusb)
 	}
 }
 
-void handle_ep_data_in(unsigned char* buf, int size)
+static inline void handle_ep_data_in(unsigned char* buf, int size)
 {
 	decode_usb_pkt(buf, size);
 }
 
-void handle_urb(pusb_urb_t urb)
+static inline void handle_urb(pusb_urb_t urb)
 {
-	unsigned char* buf;
-	unsigned char* sbuf;
+	static unsigned char* buf;
+	static unsigned char* sbuf;
 	int idx, size, ret;
 	int ep;
 
@@ -1309,16 +1264,16 @@ void handle_urb(pusb_urb_t urb)
 }
 
 /* this function check for message and do the appropriate action */
-int ecimsgh(void){
+static inline int ecimsgh(void){
 	int ret=0;
 	int i;
-	unsigned char outbuf[40] =
+	static unsigned char outbuf[40] =
 	{
-		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,  0x0c,
-		0x0c, 0x0c
+		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c
 	};
 	ret = rcvEciMsg(&ecimsg,0,0);
 	if(ret>0){
@@ -1327,7 +1282,7 @@ int ecimsgh(void){
 				get_eoc_answer_DISCONNECT(outbuf+8);
 				for(i=0;i<5;i++){
 					if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
-							sizeof(outbuf), DATA_TIMEOUT) != sizeof(outbuf))
+							sizeof(outbuf), data_timeout) != sizeof(outbuf))
 					{
 						message("error on sending vendor device URB");
 						perror("error: can't send vendor device!");
@@ -1357,7 +1312,7 @@ int ecimsgh(void){
   and init_ep_data_int()
 */
 
-void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
+static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 							  pusb_endpoint_t ep_int, int fdout */)
 {
 	pusb_urb_t urb;
@@ -1392,10 +1347,10 @@ void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
    loop, keeping writing on endpoint EP_DATA_OUT
 */
 
-void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
+static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 {
 	int r, n, tcount;
-	unsigned char* buf;
+	static unsigned char* buf;
 	tcount = 0;
 	
 	for (;;)
@@ -1431,9 +1386,9 @@ void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 	message(errText);
 }
 
-void* fn_handle_ep_data_out(void* ignored)
+static inline void* fn_handle_ep_data_out(void* ignored)
 {
-	handle_ep_data_out(ep_data_out, g_fdin);
+	handle_ep_data_out(ep_data_out, gfdin);
 
 	/* when the thread is terminating, we need to exit the whole process */
 	exit(0);
@@ -1575,7 +1530,7 @@ int main(int argc, char** argv)
 			get_hexa_value(argv[++i], &product);
 		else
 		if ((strcmp(argv[i], "-alt") == 0) && (i + 1 < argc))
-			get_signed_value(argv[++i], &pusb_set_interface_alt);
+			get_signed_value(argv[++i], &pusb_alt_interface);
 		else
 		if (((strcmp(argv[i], "-mc") == 0) || (strcmp(argv[i], "--modem_chipset") == 0) ) && (i + 1 < argc))
 			strDup(&chipset, argv[++i]);
@@ -1670,10 +1625,10 @@ int main(int argc, char** argv)
 	}
 
 	/* check some other params */
-	if (pusb_set_interface_alt < 0)
+	if (pusb_alt_interface < 0)
 	{
 		/* set dafault interface - kolja*/ 
-		pusb_set_interface_alt = config.alt_interface_ppp;
+		pusb_alt_interface = config.alt_interface_ppp;
 	}
 	if (data_timeout < 0)
 	{
@@ -1698,6 +1653,9 @@ int main(int argc, char** argv)
 		usage(-1);
 	}
 
+	if (!data_timeout)
+		data_timeout=DATA_TIMEOUT;
+
 	if (verbose)
 	{
 		fprintf(stderr, "Using:\n"
@@ -1708,14 +1666,12 @@ int main(int argc, char** argv)
 						my_vpi, my_vci, vendor, product,
 						verbose, logfile,
 						verbose?"en":"dis");
-		if (pusb_set_interface_alt > -1)
-			fprintf(stderr, " pusb_set_interface_alt=%d\n", pusb_set_interface_alt);
+		if (pusb_alt_interface > -1)
+			fprintf(stderr, " pusb_alt_interface=%d\n", pusb_alt_interface);
 		if (data_timeout)
 			fprintf(stderr, " data timeout=%d\n", data_timeout);
 
 	}
-	if (!data_timeout)
-		data_timeout=DATA_TIMEOUT;
 	
 	if (frame_type > VCM_RFC2364)
 		syncHDLC = 0;
@@ -1937,16 +1893,16 @@ int main(int argc, char** argv)
 					"pusb_claim_interface 0 failed");
 
 	/* set interface */
-	if (pusb_set_interface_alt > -1)
-		if (pusb_set_interface(fdusb, 0, pusb_set_interface_alt) < 0)
+	if (pusb_alt_interface > -1)
+		if (pusb_set_interface(fdusb, 0, pusb_alt_interface) < 0)
 		{
 			snprintf(errText, ERR_BUFSIZE,
-					"pusb_set_interface : interface 0, alt setting : %d failed", pusb_set_interface_alt);
+					"pusb_set_interface : interface 0, alt setting : %d failed", pusb_alt_interface);
 			fatal_error(ERR_PUSB_SET_INTERFACE, errText);
 		}
 
 	/* retreive altiface endpoint infos - kolja */
-	gsGetDeviceIfaceInfo(fdusb, pusb_set_interface_alt);
+	gsGetDeviceIfaceInfo(fdusb, pusb_alt_interface);
 
 	ep_int = pusb_endpoint_open(fdusb, eci_device.eci_int_ep, O_RDWR);
 	if (ep_int == NULL)
@@ -1993,7 +1949,7 @@ int main(int argc, char** argv)
 		pthread_attr_init(&attr);
 		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 
-		g_fdin = fdin;
+		gfdin = fdin;
 
 		if (pthread_create(&th_id, &attr, fn_handle_ep_data_out, NULL) != 0)
 		{

@@ -11,7 +11,7 @@ extern struct eci_device_t eci_device;
 
 struct config_t config;
 
-void get_unsigned_value(const char* param, unsigned int* var)
+inline void get_unsigned_value(const char* param, unsigned int* var)
 {
 	unsigned int value;
 	char* chk;
@@ -21,7 +21,7 @@ void get_unsigned_value(const char* param, unsigned int* var)
 		*var = value;
 }
 
-void get_unsigned_short_value(const char* param, unsigned short int* var)
+static inline void get_unsigned_short_value(const char* param, unsigned short int* var)
 {
 	unsigned short int value;
 	char* chk;
@@ -31,7 +31,7 @@ void get_unsigned_short_value(const char* param, unsigned short int* var)
 		*var = value;
 }
 
-void get_signed_value(const char* param, int* var)
+inline void get_signed_value(const char* param, int* var)
 {
 	int value;
 	char* chk;
@@ -41,7 +41,7 @@ void get_signed_value(const char* param, int* var)
 		*var = value;
 }
 
-void get_signed_short_value(const char* param, short int* var)
+static inline void get_signed_short_value(const char* param, short int* var)
 {
 	short int value;
 	char* chk;
@@ -51,7 +51,7 @@ void get_signed_short_value(const char* param, short int* var)
 		*var = value;
 }
 
-void get_hexa_value(const char* param, unsigned int* var)
+inline void get_hexa_value(const char* param, unsigned int* var)
 {
 	unsigned int value;
 	char* chk;
@@ -61,7 +61,7 @@ void get_hexa_value(const char* param, unsigned int* var)
 		*var = value;
 }
 
-char* strDup(char** var, const char* text)
+inline char* strDup(char** var, const char* text)
 {
 	*var=malloc((strlen(text)+1)*sizeof(char));
 	if (!*var)
@@ -74,7 +74,7 @@ char* strDup(char** var, const char* text)
 	strcpy(dest, "0x"); \
 	strncat(dest, src, 4);
 
-void read_config_file(void)
+inline void read_config_file(void)
 {
 	FILE* file;
 	char line[8192];
@@ -250,12 +250,12 @@ void read_config_file(void)
 char* pchars = "-\\|/";
 unsigned int ppos = 0;
 
-void printprogres(void){
+inline void printprogres(void){
 		printf ("\r Please Wait.. Synchronisation in progress [%c]", (char)(pchars[ppos]));
 		ppos==3 ? ppos=0 : ppos++;
 }
 
-const char * config_filename()
+inline const char * config_filename()
 {
     return eciadsl_conf;
 }

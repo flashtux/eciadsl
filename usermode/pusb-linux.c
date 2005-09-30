@@ -68,7 +68,7 @@ static const char usb_path[] = "/proc/bus/usb";
    a usable file descriptor in this case. Else returns -1.
 */
 
-int test_file(const char* path, int vendorID, int productID)
+static inline int test_file(const char* path, int vendorID, int productID)
 {
 	int fd;
 	struct usb_device_descriptor desc;
@@ -171,7 +171,7 @@ int usbfs_search(const char* path, int vendorID, int productID)
 }
 
 
-static int is_kernel_2_5()
+static inline int is_kernel_2_5()
 {
     struct utsname uts;
     int ret;
@@ -186,7 +186,7 @@ static int is_kernel_2_5()
 }
 
 
-static pusb_device_t make_device(int fd)
+static inline pusb_device_t make_device(int fd)
 {
     pusb_device_t dev;
 
@@ -238,7 +238,7 @@ int pusb_close(pusb_device_t dev)
 	return(ret);
 }
 
-int pusb_control_msg(pusb_device_t dev,
+inline int pusb_control_msg(pusb_device_t dev,
 		     int request_type, int request,
 		     int value, int index, 
 		     unsigned char* buf, int size, int timeout)
@@ -281,7 +281,7 @@ int pusb_set_interface(pusb_device_t dev, int interface, int alternate)
   return(ret);
 }
 
-pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
+inline pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 {
 	pusb_endpoint_t ep;
 	int foo;
@@ -298,7 +298,7 @@ pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 	return(ep);
 }
 
-int pusb_endpoint_rw_no_timeout(int fd, int ep,
+inline int pusb_endpoint_rw_no_timeout(int fd, int ep,
 		       unsigned char* buf, int size)
 {
 	struct usbdevfs_urb urb, *purb = &urb;
@@ -340,7 +340,7 @@ int pusb_endpoint_rw_no_timeout(int fd, int ep,
 	return(purb->actual_length);
 }
 
-int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int timeout)
+inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int timeout)
 {
 	struct usbdevfs_bulktransfer bulk;
 	int ret, received = 0;
@@ -373,7 +373,7 @@ int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int timeout)
 	return(received);
 }
 
-int pusb_endpoint_read(pusb_endpoint_t ep, 
+inline int pusb_endpoint_read(pusb_endpoint_t ep, 
 			unsigned char* buf, int size, int timeout)
 {
 	if (timeout == 0)
@@ -381,7 +381,7 @@ int pusb_endpoint_read(pusb_endpoint_t ep,
 	return(pusb_endpoint_rw(ep->fd ,ep->ep|USB_DIR_IN, buf, size, timeout));
 }
 
-int pusb_endpoint_write(pusb_endpoint_t ep, 
+inline int pusb_endpoint_write(pusb_endpoint_t ep, 
 			const unsigned char* buf, int size, int timeout)
 {
 	if (timeout == 0)
@@ -399,7 +399,7 @@ int pusb_endpoint_write(pusb_endpoint_t ep,
 			timeout));
 }
 
-int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
+inline int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 							   int size, int signr)
 {
 	struct usbdevfs_urb* purb;
@@ -431,7 +431,7 @@ int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 	return(ret);
 }
 
-int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
+inline int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 							   int size, int signr)
 {
 	struct usbdevfs_urb* purb;
@@ -464,7 +464,7 @@ int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 	return(ret);
 }
 
-int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
+inline int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
 								   int size, int signr)
 {
 	struct usbdevfs_urb* purb;
@@ -497,7 +497,7 @@ int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
 }
 
 /* buf is at least pkt_size*pkt_nb bytes */
-int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
+inline int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 								  int pkt_size, int pkt_nb, int signr)
 {
 	struct usbdevfs_urb* purb;
@@ -544,7 +544,7 @@ int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
   Returns a valid URB or NULL
 */
 
-pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
+inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 {
 	int ret;
 	struct usbdevfs_urb* purb;
@@ -668,14 +668,14 @@ int pusb_urb_get_status(pusb_urb_t urb)
     return urb->status;
 }
 
-int pusb_urb_buffer_first(pusb_urb_t urb,
+inline int pusb_urb_buffer_first(pusb_urb_t urb,
 						  unsigned char** pbuf, int* psize, int* pidx)
 {
 	*pidx = 0;
 	return(pusb_urb_buffer_next(urb, pbuf, psize, pidx));
 }
 
-int pusb_urb_buffer_next(pusb_urb_t urb,
+inline int pusb_urb_buffer_next(pusb_urb_t urb,
 						 unsigned char** pbuf, int* psize, int* pidx)
 {
 	int idx = *pidx;

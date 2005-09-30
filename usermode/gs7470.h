@@ -54,13 +54,7 @@ typedef struct /* GS7470ControlINT */
 } GS7470ControlINT; /* GS7470ControlINT */
 
 void gs7470InitParams(void);
-GS7470ControlReg* allocateGS7470CtrlReg(char cdType, unsigned int connType);
-void deallocateGS7470CtrlRegs(GS7470ControlReg* gscrl[]);
-void allocateGS7470int(void);
-void deallocateGS7470int(void);
-int gs7470SetControl(unsigned char* inBuffer);
-void gs7470GetResponse(unsigned char* buffer);
-void getAal5HeaderStructure7470(const unsigned char* aal5Header,
+static inline void getAal5HeaderStructure7470(const unsigned char* aal5Header,
                                 struct aal5_header_st* aal5HeaderOut);
 
 #endif
