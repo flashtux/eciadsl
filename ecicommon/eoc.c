@@ -75,10 +75,25 @@ void eoc_init() {
 		DBG_OUT("EOC.C - eco_init - END\n");
 }
 
+static inline void eoc_encode(u_int16_t eoc_opcode) {
+	u_int16_t mes;
+		
+	mes = 0x5301;
+	mes |= (eoc_opcode & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
+	mes |= (eoc_opcode & 0xFE); /* 2d byte contain 7 msb in bits 1 to 7 */
+	if(eocpar) {	/* set parity bit and switch eocwritepar value */
+		mes |= EOC_ENCODED_PARITY_ODD;
+	} else {
+		mes |= EOC_ENCODED_PARITY_EVEN;
+	}
+	eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
+	eoc_out_buf[eoc_out_buffer_pos-2] = (mes >> 8) & 0xff;		
+}
+
 /*
  *		Decode the buffer and return the 13 bit eoc code  
  */
-u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
+static inline u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
 	DBG_OUT("EOC.C - eco_decode - START [b1 : %02x b2 : %02x]\n", b1, b2);
 	DBG_OUT("EOC.C - eco_decode - END     [b1: %04x b2 : %04x]\n", ((b1 >>2) & 0x3f ) , ((b2 << 5) & 0x1fc0));
 	return (((b1 >>2) & 0x3f ) | ((b2 << 5) & 0x1fc0));
@@ -87,7 +102,7 @@ u_int16_t eoc_decode(unsigned char b1, unsigned char b2) {
 /*
  * Handle the eoc messages in idle state - changed by kolja
  */
-void eoc_execute(u_int16_t eocmesval) {
+static inline void eoc_execute(u_int16_t eocmesval) {
 	DBG_OUT("EOC.C - eco_execute - START [eocmesval : %04x]\n", eocmesval);
 	/*determine parity bit*/
 	if((EOC_PARITY(eocmesval)>>3)!=eocpar){
@@ -283,7 +298,7 @@ void eoc_execute(u_int16_t eocmesval) {
  * Handle the eoc next opcode depending on the current state	
  */
 
-int eoc_read_next() {
+static inline int eoc_read_next() {
 	u_int16_t data;
 	u_int16_t mes;
 	
@@ -309,7 +324,7 @@ int eoc_read_next() {
 }
 
 
-void eoc_write_data(u_int16_t code) {
+static inline void eoc_write_data(u_int16_t code) {
 	DBG_OUT("EOC.C - eco_writenext - START [eocdataregpos : %d| eocwritelen : %d]\n", eocdataregpos, eocwritelen);
 	if(eocdataregpos < eocwritelen) {
 		eocdatareg[eocdataregpos] = (code >> 5) & 0xff;
@@ -322,7 +337,7 @@ void eoc_write_data(u_int16_t code) {
 	
 */
 
-int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
+inline int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	int i=0;
 	int mes; 
 	u_int16_t eoccode;
@@ -413,15 +428,12 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  * 	return the buffer for eoc answer
  */
 
- void get_eoc_answer(unsigned char *eocoutbuff) {
+inline void get_eoc_answer(unsigned char *eocoutbuff) {
  	int i;
- 	
+ 	/* eocoutbuff expected already initialized to 0x0c, 0x0c.. - kolja */
  	assert(eoc_out_buffer_pos<32);
  	DBG_OUT("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	
- 	for(i=0; i< 32; i++) {	/* to be optimized */
- 			eocoutbuff[i] = 0x0c;
- 	}
  	for(i=0; i < eoc_out_buffer_pos; i++) {
  		eocoutbuff[i] = eoc_out_buf[i];
  	}
@@ -429,35 +441,20 @@ int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 	DBG_OUT("EOC.C - get_eoc_answer - END \n");
 }
 
-int has_eocs(){
+inline int has_eocs(){
 	DBG_OUT("EOC.C - has_eocs  [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
 	return (eoc_out_buffer_pos);
-}
-void eoc_encode(u_int16_t eoc_opcode) {
-	u_int16_t mes;
-		
-	mes = 0x5301;
-	mes |= (eoc_opcode & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
-	mes |= (eoc_opcode & 0xFE); /* 2d byte contain 7 msb in bits 1 to 7 */
-	if(eocpar) {	/* set parity bit and switch eocwritepar value */
-		mes |= EOC_ENCODED_PARITY_ODD;
-	} else {
-		mes |= EOC_ENCODED_PARITY_EVEN;
-	}
-	eoc_out_buf[eoc_out_buffer_pos-1] = mes & 0xff;
-	eoc_out_buf[eoc_out_buffer_pos-2] = (mes >> 8) & 0xff;		
 }
 
 /* 
  * 	return the buffer for special eoc answer : DISCONNECT
  */
 
- void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff) {
+inline void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff) {
  	int i;
- 	
- 	for(i=0; i< 32; i++) {	/* to be optimized */
- 			eocoutbuff[i] = 0x0c;
- 	}
+
+ 	/* eocoutbuff expected already initialized to 0x0c, 0x0c.. - kolja */
+ 	 	
  	for(i=0; i < 12; i+=2) {
  		/* setup op code : EOC_OPCODE_DGASP */
  		eocoutbuff[i] = 0xbf;
@@ -468,7 +465,7 @@ void eoc_encode(u_int16_t eoc_opcode) {
 /*
  * return true if wrong eoc count is greater than MAX_WRONG_EOCS
  */
-int has_eoc_problem(){
+inline int has_eoc_problem(){
 	if(eoc_wrong_msg_count > MAX_WRONG_EOCS){
 		return(1);
 	}
