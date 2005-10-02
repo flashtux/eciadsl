@@ -31,28 +31,27 @@
 #include "pusb-linux.h"
 #include <asm/page.h>
 
+#include "pusb.h"
+
+#define MAXBUFFER 20
+
 struct pusb_endpoint_t
 {
 	int fd;
-    	int is_2_5;
+	int is_2_5;
 	int ep;
 };
-
-#include "pusb.h"
 
 struct pusb_device_t
 {
 	int fd;
-    	int is_2_5;
+	int is_2_5;
 };
-
-
-#define MAXBUFFER 20
 
 struct pusb_urb_t
 {
 	int ep;
-    	int status;
+	int status;
 	int buf_nb;
 	unsigned char* buf [MAXBUFFER];
 	int buf_size[MAXBUFFER];
@@ -75,13 +74,13 @@ static inline int test_file(const char* path, int vendorID, int productID)
 	
 	fd = open(path, O_RDWR);
 	if (fd == -1)
-    {
+	{
 		perror(path);
 		return -1;
-    }
-  
+	}
+
 	if (read(fd, &desc, sizeof(desc)) == sizeof(desc))
-    {
+	{
 		/* great, we read something */
 		
 		/* check, it match the correct structure */
@@ -101,7 +100,7 @@ static inline int test_file(const char* path, int vendorID, int productID)
 				&& productID == desc.idProduct)
 				return(fd);
 		}
-    }
+	}
 	
 	close(fd);
 	return(-1);
@@ -120,13 +119,13 @@ int usbfs_search(const char* path, int vendorID, int productID)
 	
 	dir = opendir(path);
 	if (dir == NULL)
-    {
+	{
 		perror(path);
 		return(-1);
-    }
+	}
 	
 	while ((dirp=readdir(dir)) != NULL)
-    {
+	{
 		char file[PATH_MAX+1];
 		struct stat statbuf;
 		
@@ -164,8 +163,7 @@ int usbfs_search(const char* path, int vendorID, int productID)
 			else
 				break;
 		}
-    }
-	
+	}
 	closedir(dir);
 	return(result);
 }
@@ -188,19 +186,18 @@ static inline int is_kernel_2_5()
 
 static inline pusb_device_t make_device(int fd)
 {
-    pusb_device_t dev;
+	pusb_device_t dev;
 
-    if (!(dev = malloc(sizeof(*dev))))
+	if (!(dev = malloc(sizeof(*dev))))
 	{
 		close (fd);
 		return(0);
 	}
 
-    /* check for a 2.5 or 2.6 kernel */
-	
-    dev->fd = fd;
-    dev->is_2_5 = is_kernel_2_5();
-    return(dev);
+	/* check for a 2.5 or 2.6 kernel */
+	dev->fd = fd;
+	dev->is_2_5 = is_kernel_2_5();
+	return(dev);
 }
 
 pusb_device_t pusb_search_open(int vendorID, int productID)
@@ -243,8 +240,7 @@ inline int pusb_control_msg(pusb_device_t dev,
 		     int value, int index, 
 		     unsigned char* buf, int size, int timeout)
 {
-	int ret;
-	struct usbdevfs_ctrltransfer ctrl;
+	static struct usbdevfs_ctrltransfer ctrl;
 /*
 	printf("URB xxx: out request_type=0x%02x request=%08x value=%08x index=%08x\n",
 		   request_type, request, value, index);
@@ -257,36 +253,28 @@ inline int pusb_control_msg(pusb_device_t dev,
 	ctrl.wLength      = size;
 	ctrl.timeout     = timeout;
 	ctrl.data        = buf;
-	ret = ioctl(dev->fd, USBDEVFS_CONTROL, &ctrl);
-	return(ret);
+	return(ioctl(dev->fd, USBDEVFS_CONTROL, &ctrl));
 }
 
 int pusb_set_configuration(pusb_device_t dev, int config)
 {
-  int ret;
-
-  ret = ioctl(dev->fd, USBDEVFS_SETCONFIGURATION, &config);
-  return(ret);
+	return (ioctl(dev->fd, USBDEVFS_SETCONFIGURATION, &config));
 }
 
 int pusb_set_interface(pusb_device_t dev, int interface, int alternate)
 {
-  struct usbdevfs_setinterface setintf;
-  int ret;
-
-  setintf.interface = interface;
-  setintf.altsetting = alternate;
-
-  ret = ioctl(dev->fd, USBDEVFS_SETINTERFACE, &setintf);
-  return(ret);
+	static struct usbdevfs_setinterface setintf;
+	setintf.interface = interface;
+	setintf.altsetting = alternate;
+	return(ioctl(dev->fd, USBDEVFS_SETINTERFACE, &setintf));
 }
 
 inline pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 {
 	pusb_endpoint_t ep;
-	int foo;
+//	int foo;
 
-	foo=flags||foo; /* trick for pedantic C compilers */
+//	foo=flags||foo; /* trick for pedantic C compilers */
 	ep = (pusb_endpoint_t)malloc(sizeof(*ep));
 	if (ep == NULL)
 		return(NULL);
@@ -331,11 +319,13 @@ inline int pusb_endpoint_rw_no_timeout(int fd, int ep,
 	if (ret < 0)
 		return(ret);
 
+#ifdef DEBUG
 	if (purb != &urb)
 		printf("purb=%p, &urb=%p\n", (void*)purb, (void*)&urb);
 
 	if (purb->buffer != buf)
 		printf("purb->buffer=%p, buf=%p\n", (void*)purb->buffer, (void*)buf);
+#endif
 
 	return(purb->actual_length);
 }
@@ -348,9 +338,14 @@ inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int ti
 	do
     {
 		bulk.ep      = ep;
-		bulk.len     = size;
+
+/*		bulk.len     = size;
 		if (bulk.len > PAGE_SIZE)
 			bulk.len = PAGE_SIZE;
+*/
+		if (size > PAGE_SIZE)
+			bulk.len = PAGE_SIZE;
+		else bulk.len = size;
 		bulk.timeout = timeout;
 		bulk.data    = buf;
 
@@ -546,60 +541,62 @@ inline int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 
 inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 {
-	int ret;
+	static int ret;
 	struct usbdevfs_urb* purb;
 	pusb_urb_t urb;
-	int i, offset;
+	static int i, offset;
 
-    do
-    {
-        ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
-    }
-    while (ret < 0 && errno == EINTR);
-    
-    if (ret < 0 && errno == EAGAIN)
-        /* ok, there was no URB waiting for us */
-        return NULL;
-    
-    /* si ioctl echoue, je retourne -1 code d'erreur dans errno	*/
-    if (ret<0)
-    {
-        perror("ioctl USBDEVFS_REAPURB");
-        return(NULL);
-    }
+	do
+	{
+		ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
+	}
+	while (ret < 0 && errno == EINTR);
+
+	/* si ioctl echoue, je retourne -1 code d'erreur dans errno */
+	if (ret<0)
+	{
+#ifdef DEBUG
+        	perror("ioctl USBDEVFS_REAPURB");
+#endif
+		return(NULL);
+	}
 	
 	urb = (pusb_urb_t) malloc(sizeof(struct pusb_urb_t));
 	if (urb == NULL)
 	{
+#ifdef DEBUG
 		perror("malloc");
+#endif
 		return(NULL);
 	}
 
 	urb->ep     = purb->endpoint;
-    urb->status = purb->status;
-    urb->buf_nb = 0;
+	urb->status = purb->status;
+	urb->buf_nb = 0;
 
+#ifdef DEBUG
 	if (purb->status !=0 || purb->error_count != 0)
 	{
 		printf("ep=%02x status=%d error_count=%d\n", purb->endpoint,
 			   purb->status, purb->error_count);
 	}
-
+#endif
 	switch (purb->type)
 	{
-    case USBDEVFS_URB_TYPE_ISO:
-        urb->buf_nb = purb->number_of_packets;
-        offset = 0;
-        for (i=0;i<purb->number_of_packets && i<MAXBUFFER;i++)
-        {
-            urb->buf[i] = (unsigned char*)purb->buffer + offset;
+		case USBDEVFS_URB_TYPE_ISO:
+			urb->buf_nb = purb->number_of_packets;
+			offset = 0;
+
+			for (i=0;i<((purb->number_of_packets > MAXBUFFER) ? MAXBUFFER : purb->number_of_packets);i++)
+			{
+				urb->buf[i] = (unsigned char*)purb->buffer + offset;
 				urb->buf_size[i] = purb->iso_frame_desc[i].actual_length;
 	/*
 				printf("size [%d] = %p / %d\n", i, urb->buf[i], urb->buf_size[i]);
 	*/
 				offset += purb->iso_frame_desc[i].length;
 			}
-			break;
+		break;
 
 		case USBDEVFS_URB_TYPE_INTERRUPT:
 		case USBDEVFS_URB_TYPE_BULK:
@@ -617,7 +614,7 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 			urb->buf_nb = 1;
 			urb->buf[0] = purb->buffer;
 			urb->buf_size[0] = purb->actual_length;
-			break;
+		break;
 
 		default:
 			printf("unsupported URB\n");
@@ -644,18 +641,13 @@ int pusb_endpoint_close(pusb_endpoint_t ep)
 
 int pusb_claim_interface(pusb_device_t dev, int interface)
 {
-	int ret;
-
-	ret = ioctl(dev->fd, USBDEVFS_CLAIMINTERFACE, &interface);
-	return(ret);
+	return( ioctl(dev->fd, USBDEVFS_CLAIMINTERFACE, &interface));
 }
 
 int pusb_release_interface(pusb_device_t dev, int interface)
 {
-	int ret;
-
-	ret = ioctl(dev->fd, USBDEVFS_RELEASEINTERFACE, &interface);
-	return(ret);
+	return(ioctl(dev->fd, USBDEVFS_RELEASEINTERFACE, &interface));
+	
 }
 
 int pusb_urb_get_epnum(pusb_urb_t urb)
@@ -668,15 +660,13 @@ int pusb_urb_get_status(pusb_urb_t urb)
     return urb->status;
 }
 
-inline int pusb_urb_buffer_first(pusb_urb_t urb,
-						  unsigned char** pbuf, int* psize, int* pidx)
+inline int pusb_urb_buffer_first(pusb_urb_t urb, unsigned char** pbuf, int* psize, int* pidx)
 {
 	*pidx = 0;
 	return(pusb_urb_buffer_next(urb, pbuf, psize, pidx));
 }
 
-inline int pusb_urb_buffer_next(pusb_urb_t urb,
-						 unsigned char** pbuf, int* psize, int* pidx)
+inline int pusb_urb_buffer_next(pusb_urb_t urb, unsigned char** pbuf, int* psize, int* pidx)
 {
 	int idx = *pidx;
 
@@ -693,8 +683,11 @@ inline int pusb_urb_buffer_next(pusb_urb_t urb,
 
 /* return urb status if urb is NULL then return 0 - kolja */
 int pusb_get_urb_status(pusb_urb_t urb){
+/*
+useless... no check in pusb_urb_get_status neither
 	if (urb==NULL){
 		return(0);
 	}
+*/
 	return(urb->status);
 }
