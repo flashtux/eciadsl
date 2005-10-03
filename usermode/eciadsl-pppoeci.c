@@ -1306,8 +1306,8 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		   should be freed by the "module" that allocate it (ie pusb).
 		   Anyway, it's a quick fix.
 		*/
-
-		free(urb);
+#warning alert here. (static1) hetfield
+	/*	free(urb); */
 	}
 	deallocEciMsgQueue();
 	message("end of handle_ep_data_in_ep_int");

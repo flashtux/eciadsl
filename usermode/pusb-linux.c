@@ -172,15 +172,11 @@ int usbfs_search(const char* path, int vendorID, int productID)
 static inline int is_kernel_2_5()
 {
     struct utsname uts;
-    int ret;
-
     uname(&uts);
     /* printf("release = %s\n",uts.release);*/
-
-    ret = (strncmp(uts.release,"2.5.",4) == 0) || (strncmp(uts.release,"2.6.",4) == 0) ;
+    return (strncmp(uts.release,"2.5.",4) == 0) || (strncmp(uts.release,"2.6.",4) == 0) ;
     /*printf("is_kernel_2_5 = %d\n",ret);*/
 
-    return ret;
 }
 
 
@@ -272,9 +268,10 @@ int pusb_set_interface(pusb_device_t dev, int interface, int alternate)
 inline pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags)
 {
 	pusb_endpoint_t ep;
-//	int foo;
-
-//	foo=flags||foo; /* trick for pedantic C compilers */
+	 /* trick for pedantic C compilers */	
+	/* int foo;
+		foo=flags||foo;
+	*/
 	ep = (pusb_endpoint_t)malloc(sizeof(*ep));
 	if (ep == NULL)
 		return(NULL);
@@ -332,11 +329,12 @@ inline int pusb_endpoint_rw_no_timeout(int fd, int ep,
 
 inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int timeout)
 {
-	struct usbdevfs_bulktransfer bulk;
-	int ret, received = 0;
+	static struct usbdevfs_bulktransfer bulk;
+	static int ret;
+	int received = 0;
 
 	do
-    {
+	{
 		bulk.ep      = ep;
 
 /*		bulk.len     = size;
@@ -362,7 +360,7 @@ inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int ti
 		size -= ret;
 		
 		received += ret;
-    }
+	}
 	while (ret==(int)bulk.len && size>0);
 	
 	return(received);
@@ -397,14 +395,20 @@ inline int pusb_endpoint_write(pusb_endpoint_t ep,
 inline int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 							   int size, int signr)
 {
-	struct usbdevfs_urb* purb;
-	int ret;
+	static struct usbdevfs_urb* purb;
+	static int ret;
 /*
 	printf("submit BULK read %p, len %d\n", buf, size);
 */
+/*
 	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	if (purb == NULL)
 		return(-1);
+*/
+
+#warning static5
+	if (purb == NULL)
+		purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
@@ -419,9 +423,9 @@ inline int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 		ret = ioctl(ep->fd, USBDEVFS_SUBMITURB, purb);
 	}
 	while (ret < 0 && errno == EINTR);
-
-	if (ret < 0)
-		free(purb);
+#warning static5
+//	if (ret < 0)
+//		free(purb);
 
 	return(ret);
 }
@@ -429,16 +433,20 @@ inline int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 inline int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 							   int size, int signr)
 {
-	struct usbdevfs_urb* purb;
-	int ret;
+static	struct usbdevfs_urb* purb;
+	static int ret;
 /*
 	printf("URB xxx: BULK/INT endpoint=%d size=%d\n", ep->ep, size);
 	dump(buf, size);
 */
-	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
+/*	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	if (purb == NULL)
 		return(-1);
-	
+*/
+#warning static4
+	if (purb == NULL) 
+		purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
+
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = USBDEVFS_URB_TYPE_BULK;
 	purb->endpoint = ep->ep | USB_DIR_OUT;	
@@ -452,9 +460,9 @@ inline int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 		ret = ioctl(ep->fd, USBDEVFS_SUBMITURB, purb);
 	}
 	while (ret < 0 && errno == EINTR);
-
-	if (ret < 0)
-		free(purb);
+#warning static4
+//	if (ret < 0)
+//		free(purb);
 
 	return(ret);
 }
@@ -462,15 +470,21 @@ inline int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 inline int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf,
 								   int size, int signr)
 {
-	struct usbdevfs_urb* purb;
-	int ret;
+static	struct usbdevfs_urb* purb;
+	static int ret;
 
 /*	printf("submit INT read %p, len = %d\n", buf, size);*/
 
-	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
+/*	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
 	if (purb == NULL)
 		return(-1);
-	
+*/
+
+#warning static3
+	if (purb == NULL) 
+		purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb));
+
+
 	memset(purb, 0, sizeof(struct usbdevfs_urb));
 	purb->type = ep->is_2_5 ? USBDEVFS_URB_TYPE_INTERRUPT : USBDEVFS_URB_TYPE_BULK; /* in 2.4 kernel INTERRUPT wasn't suported and BULK works with ep in so*/
 	purb->flags = ep->is_2_5 ? 0 : USBDEVFS_URB_QUEUE_BULK;
@@ -485,8 +499,9 @@ inline int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf
 	}
 	while (ret < 0 && errno == EINTR);
 
-	if (ret < 0)
-		free(purb);
+#warning static 3
+//	if (ret < 0)
+//		free(purb);
 
 	return(ret);
 }
@@ -495,14 +510,15 @@ inline int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf
 inline int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 								  int pkt_size, int pkt_nb, int signr)
 {
-	struct usbdevfs_urb* purb;
-	int i, ret;
+	static struct usbdevfs_urb* purb=NULL;
+	static int i, ret;
 
 /*
 	printf("submit ISO read ep=%d buf=%p len=%d\n", ep->ep, buf, pkt_size * pkt_nb);
 */
+
 	
-	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb)
+/*	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb)
 				 + pkt_nb* sizeof(struct usbdevfs_iso_packet_desc));
 	
 	if (purb == NULL)
@@ -510,7 +526,18 @@ inline int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 	
 	memset(purb, 0, sizeof(struct usbdevfs_urb)
 		   + pkt_nb * sizeof(struct usbdevfs_iso_packet_desc));
+*/	
+
+#warning static2
+
+	if (purb == NULL) {
+	purb = (struct usbdevfs_urb*)malloc(sizeof(struct usbdevfs_urb)
+				 + pkt_nb* sizeof(struct usbdevfs_iso_packet_desc));
+	}
 	
+	memset(purb, 0, sizeof(struct usbdevfs_urb)
+		   + pkt_nb * sizeof(struct usbdevfs_iso_packet_desc));
+
 	purb->type = USBDEVFS_URB_TYPE_ISO;
 	purb->endpoint = ep->ep | USB_DIR_IN;	
 	purb->flags  = USBDEVFS_URB_ISO_ASAP;
@@ -529,8 +556,9 @@ inline int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 	}
 	while (ret < 0 && errno == EINTR);
 
-	if (ret < 0)
-		free(purb);
+#warning static2
+//	if (ret < 0)
+//		free(purb);
 
 	return(ret);
 }
@@ -542,10 +570,10 @@ inline int pusb_endpoint_submit_iso_read(pusb_endpoint_t ep, unsigned char* buf,
 inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 {
 	static int ret;
-	struct usbdevfs_urb* purb;
-	pusb_urb_t urb;
-	static int i, offset;
-
+	static struct usbdevfs_urb* purb=NULL;
+	static pusb_urb_t urb;
+	static int i, offset,limit;
+	
 	do
 	{
 		ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
@@ -560,7 +588,9 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 #endif
 		return(NULL);
 	}
-	
+
+#warning alert here. (static1) hetfield
+	/*
 	urb = (pusb_urb_t) malloc(sizeof(struct pusb_urb_t));
 	if (urb == NULL)
 	{
@@ -568,7 +598,11 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 		perror("malloc");
 #endif
 		return(NULL);
-	}
+	}*/
+
+	if ( urb == NULL) 
+		urb = (pusb_urb_t) malloc(sizeof(struct pusb_urb_t));
+
 
 	urb->ep     = purb->endpoint;
 	urb->status = purb->status;
@@ -586,8 +620,8 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 		case USBDEVFS_URB_TYPE_ISO:
 			urb->buf_nb = purb->number_of_packets;
 			offset = 0;
-
-			for (i=0;i<((purb->number_of_packets > MAXBUFFER) ? MAXBUFFER : purb->number_of_packets);i++)
+			limit=(purb->number_of_packets > MAXBUFFER) ? MAXBUFFER : purb->number_of_packets;
+			for (i=0;i<limit;i++)
 			{
 				urb->buf[i] = (unsigned char*)purb->buffer + offset;
 				urb->buf_size[i] = purb->iso_frame_desc[i].actual_length;
@@ -617,12 +651,15 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 		break;
 
 		default:
+#ifdef DEBUG
 			printf("unsupported URB\n");
+#endif
 			urb->buf_nb = 0;
 	}
 
 	/* free it, as it's allocated in pusb_endpoint_[iso_]read */
-	free(purb);
+#warning static2,3,4,5
+	//if (purb!=NULL) free(purb);
 	return(urb);
 }
 
