@@ -673,7 +673,7 @@ case "$1" in
             else
                 echo $i_altpppoeci | grep -E "^([0-5]{1})$" > /dev/null 2>&1
                 if [ $? -eq 0 ]; then
-					altsynch="$i_altpppoeci"
+					altpppoeci="$i_altpppoeci"
                 else
 					i_altpppoeci=""
                     echo -e "** invalid USB ALT INTERFACE for PPPOECI, please enter it again\n"
