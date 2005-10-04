@@ -9,15 +9,14 @@
 /*
  * USB directions
  */
-#define USB_DIR_OUT			0		/* to device */
-#define USB_DIR_IN			0x80		/* to host */
+#define USB_DIR_OUT	0	/* to device */
+#define USB_DIR_IN	0x80	/* to host */
 
 
 /* from <linux/usb_ch9.h> */
 struct usb_device_descriptor {
 	__u8  bLength;
 	__u8  bDescriptorType;
-
 	__u16 bcdUSB;
 	__u8  bDeviceClass;
 	__u8  bDeviceSubClass;
@@ -32,8 +31,7 @@ struct usb_device_descriptor {
 	__u8  bNumConfigurations;
 } __attribute__ ((packed));
 
-#define USB_DT_DEVICE_SIZE		18
-
+#define USB_DT_DEVICE_SIZE 18
 
 /* from <linux/usbdevice_fs.h> */
 

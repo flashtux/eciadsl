@@ -305,7 +305,8 @@ typedef enum
 	ERR_PUSB_INIT_EP_DATA_INT,
 	ERR_WRONG_FRAME_HEADER,
 	ERR_TUN,
-	ERR_FORK
+	ERR_FORK,
+	ERR_INIT_PUSB
 } error_codes;
 
 static char errText[ERR_BUFSIZE + 1];
@@ -1254,8 +1255,7 @@ static inline int ecimsgh(void){
 			case ECI_MC_DO_DISCONNECT:
 				get_eoc_answer_DISCONNECT(outbuf+8);
 				for(i=0;i<5;i++){
-					if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
-							sizeof(outbuf), data_timeout) != sizeof(outbuf))
+					if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf, sizeof(outbuf), data_timeout) != sizeof(outbuf))
 					{
 						message("error on sending vendor device URB");
 						perror("error: can't send vendor device!");
@@ -1272,8 +1272,8 @@ static inline int ecimsgh(void){
 					}
 				}
 				sndEciMsg(ECI_MC_DISCONNECTED, NULL, 0, ecimsg.sender, 1);
-				return(0);				
-				break;			
+				return(0);	
+				break;
 		}
 	}
 	return(1);
@@ -1328,34 +1328,30 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 	
 	for (;;)
 	{
-	    n = ppp_read(fdin, &buf, &n);
-
-	    if (n <= 0)
+		n = ppp_read(fdin, &buf, &n);
+		if (n <= 0)
 		{
-			snprintf(errText, ERR_BUFSIZE,
-					"reading from PPP=%d", n);
+			snprintf(errText, ERR_BUFSIZE,"reading from PPP=%d", n);
 			message(errText);
 			break;
 		}
+	
+		r = aal5_write(epdata, buf, n);
 
-	    r = aal5_write(epdata, buf, n);
-
-	    if (r < 0)
+		if (r < 0)
 		{
-			snprintf(errText, ERR_BUFSIZE,
-					"aal5_write=%d", r);
+			snprintf(errText, ERR_BUFSIZE,"aal5_write=%d", r);
 			message(errText);
 			tcount++;
 			if (tcount > 1)
-			    break;
+				break;
 		}
-	    else
+		else
 			if (tcount > 0)
 				tcount=0;
 	}
 
-	snprintf(errText, ERR_BUFSIZE,
-			"end of handle_ep_data_out tcount=%d", tcount);
+	snprintf(errText, ERR_BUFSIZE, "end of handle_ep_data_out tcount=%d", tcount);
 	message(errText);
 }
 
@@ -1847,6 +1843,11 @@ int main(int argc, char** argv)
 	 *  here, according to your config
 	 */
 
+	/* MUST init pusb pointers */
+	if (init_pusb()==-1) {
+		fatal_error(ERR_INIT_PUSB,"Error during pusb pointers malloc\nDriver will abort!");
+	}
+
 	fdusb = pusb_search_open(vendor, product);
 
 	if (fdusb == NULL)
@@ -1949,6 +1950,9 @@ int main(int argc, char** argv)
 	pusb_endpoint_close(ep_data_out);
 
 	pusb_close(fdusb);
+
+	/* Free pointers! */
+	deinit_pusb();
 
 	return(0);
 }

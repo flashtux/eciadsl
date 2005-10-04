@@ -66,4 +66,7 @@ inline int pusb_urb_buffer_next(pusb_urb_t urb,
 /* function returning usb status - kolja */
 int pusb_get_urb_status(pusb_urb_t urb);
 
+int init_pusb();
+void deinit_pusb();
+
 #endif
