@@ -20,6 +20,7 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <stdio.h>
+#include <string.h>
 #include <errno.h>
 
 #include "eoc.h"
@@ -38,6 +39,16 @@ static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
 #define MAX_WRONG_EOCS 100
+
+static unsigned char init_eocs[32] ={ 
+			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c};
+
+static unsigned disconnect_eocs[12]= { 
+			0xbf, 0xe7, 0xbf, 0xe7, 0xbf, 0xe7,
+			0xbf, 0xe7, 0xbf, 0xe7, 0xbf, 0xe7};
 
 static int eoc_wrong_msg_count;
 
@@ -430,11 +441,13 @@ inline int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 
 inline void get_eoc_answer(unsigned char *eocoutbuff) {
  	int i;
- 	/* eocoutbuff expected already initialized to 0x0c, 0x0c.. - kolja */
+
  	assert(eoc_out_buffer_pos<32);
  	DBG_OUT("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
-	
-	memcpy(eocoutbuff, eoc_out_buf, eoc_out_buffer_pos);
+ 	
+ 	memcpy((void *)eocoutbuff, (void *)init_eocs, 32);
+ 		
+	memcpy((void *)eocoutbuff, (void*)eoc_out_buf, eoc_out_buffer_pos);
 
  	eoc_out_buffer_pos = 0;
 	DBG_OUT("EOC.C - get_eoc_answer - END \n");
@@ -452,13 +465,9 @@ inline int has_eocs(){
 inline void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff) {
  	int i;
 
- 	/* eocoutbuff expected already initialized to 0x0c, 0x0c.. - kolja */
- 	 	
- 	for(i=0; i < 12; i+=2) {
- 		/* setup op code : EOC_OPCODE_DGASP */
- 		eocoutbuff[i] = 0xbf;
- 		eocoutbuff[i+1] = 0xe7;
- 	}
+ 	memcpy((void *)eocoutbuff, (void *)init_eocs, 32);
+
+ 	memcpy((void *)eocoutbuff, (void *)disconnect_eocs, 12);
 }
 
 /*
