@@ -45,19 +45,20 @@ struct usbdevfs_ctrltransfer {
 	__u16 wLength;
 	__u32 timeout;  /* in milliseconds */
 	void *data;
-};
+}__attribute__ ((packed));
 
 struct usbdevfs_bulktransfer {
 	unsigned int ep;
 	unsigned int len;
 	unsigned int timeout; /* in milliseconds */
 	void *data;
-};
+}__attribute__ ((packed));
 
 struct usbdevfs_setinterface {
 	unsigned int interface;
 	unsigned int altsetting;
-};
+}__attribute__ ((packed));
+
 
 struct usbdevfs_disconnectsignal {
 	unsigned int signr;
@@ -78,7 +79,7 @@ struct usbdevfs_iso_packet_desc {
 	unsigned int length;
 	unsigned int actual_length;
 	unsigned int status;
-};
+}__attribute__ ((packed));
 
 struct usbdevfs_urb {
 	unsigned char type;
@@ -94,7 +95,7 @@ struct usbdevfs_urb {
 	unsigned int signr;  /* signal to be sent on error, -1 if none should be sent */
 	void *usercontext;
 	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
-};
+}__attribute__ ((packed));
 
 /* ioctls for talking directly to drivers */
 struct usbdevfs_ioctl {
@@ -102,7 +103,7 @@ struct usbdevfs_ioctl {
 	int	ioctl_code;	/* MUST encode size + direction of data so the
 				 * macros in <asm/ioctl.h> give correct values */
 	void	*data;		/* param buffer (in, or out) */
-};
+}__attribute__ ((packed));
 
 #define USBDEVFS_CONTROL           _IOWR('U', 0, struct usbdevfs_ctrltransfer)
 #define USBDEVFS_BULK              _IOWR('U', 2, struct usbdevfs_bulktransfer)

@@ -25,15 +25,14 @@
 
 #include "eoc.h"
 
-static int eocmescnt;			/*	Message counter */
-static int eocmesval;			/*	last received message	*/
-static eoc_state eocstate;		/*	State of the eoc system	*/
-static int eocpar;				/*	1 odd, 0 even	*/
-static int eocdataregpos;		/* position index in register	*/
-static int eocreadlen;			/* length inread register	*/
+static int eocmescnt;		/*	Message counter 	*/
+static int eocmesval;		/*	last received message	*/
+static eoc_state eocstate;	/*	State of the eoc system	*/
+static int eocpar;		/*	1 odd, 0 even		*/
+static int eocdataregpos;	/* position index in register	*/
+static int eocreadlen;		/* length inread register	*/
 static int eocwritelen;		/* length inread register	*/
-static char *eocdatareg;		/*	pointer to data that will be read or write */
-
+static char *eocdatareg;	/* pointer to data that will be read or write */
 
 static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
@@ -52,7 +51,7 @@ static const unsigned disconnect_eocs[12]= {
 
 static int eoc_wrong_msg_count;
 
-struct eoc_registers eocregs;
+static struct eoc_registers eocregs;
 
 #ifdef DEBUG
 	#define DBG_OUT printf
@@ -440,16 +439,14 @@ inline int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
  */
 
 inline void get_eoc_answer(unsigned char *eocoutbuff) {
- 	int i;
 
- 	assert(eoc_out_buffer_pos<32);
- 	DBG_OUT("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
- 	
- 	memcpy((void *)eocoutbuff, (void *)init_eocs, 32);
- 		
+	assert(eoc_out_buffer_pos<32);
+	DBG_OUT("EOC.C - get_eoc_answer - START [eoc_out_buffer_pos : %d]\n", eoc_out_buffer_pos);
+
+	memcpy((void *)eocoutbuff, (void *)init_eocs, 32);
 	memcpy((void *)eocoutbuff, (void*)eoc_out_buf, eoc_out_buffer_pos);
 
- 	eoc_out_buffer_pos = 0;
+	eoc_out_buffer_pos = 0;
 	DBG_OUT("EOC.C - get_eoc_answer - END \n");
 }
 
@@ -463,11 +460,9 @@ inline int has_eocs(){
  */
 
 inline void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff) {
- 	int i;
 
- 	memcpy((void *)eocoutbuff, (void *)init_eocs, 32);
-
- 	memcpy((void *)eocoutbuff, (void *)disconnect_eocs, 12);
+	memcpy((void *)eocoutbuff, (void *)init_eocs, 32);
+	memcpy((void *)eocoutbuff, (void *)disconnect_eocs, 12);
 }
 
 /*

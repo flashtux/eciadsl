@@ -35,13 +35,13 @@
 #endif
 
 /*queue id */
-int iMsgQueueId=-1;
+static int iMsgQueueId=-1;
 
 /*msg structure*/
-struct {
-	long 			mtype;
-	struct eci_msg  mtext;
-} msgbuf;
+static struct {
+	long mtype;
+	struct eci_msg mtext;
+} __attribute__ ((packed)) msgbuf;
 
 /* process calling for queue Messages*/
 static long lProcessType = (long)ECI_PT_UNKNOWN;
@@ -67,7 +67,7 @@ inline int getMsgQueueId(){
 }
 
 inline int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read){
-	ssize_t retval;
+	static ssize_t retval;
 	int msgflg=0;
 
 	if (!wait)
@@ -88,8 +88,8 @@ inline int rcvEciMsg(struct eci_msg* ecimsg, int wait, int force_read){
 }
 
 inline int sndEciMsg(enum EciadslMsgCmd msgcmd, char * data, int datasize, long DestEciPT, int wait){
-	int retval;
-	int i;
+	static int retval;
+	static int i;
 	int msgflg=0;
 
 	if (!wait)

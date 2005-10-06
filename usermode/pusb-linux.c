@@ -43,13 +43,13 @@ struct pusb_endpoint_t
 	int fd;
 	int is_2_5;
 	int ep;
-};
+}__attribute__ ((packed));
 
 struct pusb_device_t
 {
 	int fd;
 	int is_2_5;
-};
+}__attribute__ ((packed));
 
 struct pusb_urb_t
 {
@@ -58,7 +58,7 @@ struct pusb_urb_t
 	int buf_nb;
 	unsigned char* buf [MAXBUFFER];
 	int buf_size[MAXBUFFER];
-};
+}__attribute__ ((packed));
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
