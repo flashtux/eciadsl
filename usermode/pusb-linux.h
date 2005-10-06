@@ -95,7 +95,7 @@ struct usbdevfs_urb {
 	unsigned int signr;  /* signal to be sent on error, -1 if none should be sent */
 	void *usercontext;
 	struct usbdevfs_iso_packet_desc iso_frame_desc[0];
-}__attribute__ ((packed));
+};
 
 /* ioctls for talking directly to drivers */
 struct usbdevfs_ioctl {

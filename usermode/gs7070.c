@@ -27,7 +27,7 @@
 extern struct eci_device_t eci_device;
 
 /* GSControlINT variable */
-GS7070ControlINT* gs7070;
+/* GS7070ControlINT* gs7070; */
 
 /* Initialize Device Parameters */
 void gs7070InitParams(void){
@@ -39,7 +39,7 @@ void gs7070InitParams(void){
 	eci_device.eci_int_ep = 0x86;
 	eci_device.eci_in_ep = 0x88;
 	eci_device.eci_out_ep = 0x02;
-	eci_device.use_datain_iso_urb = 1;	
+	eci_device.use_datain_iso_urb = 1;
 
 	/* interfaces # */
 	eci_device.alt_interface_synch = 4;
@@ -51,13 +51,13 @@ void gs7070InitParams(void){
 	/* number of ISO packet per URB (Windows driver uses 10) */
 	eci_device.eci_nb_iso_packet = 10;
 	/* number of simultaneous URB submitted to data endpoint (Windows drv : 20) */
-	eci_device.eci_nb_pkt_ep_data_in = 20; 		
+	eci_device.eci_nb_pkt_ep_data_in = 20;
 	/* EP INT output buffer size */
 	eci_device.ep_int_out_buf_size = 40;
 	/* EP INT data start point */
 	eci_device.ep_int_data_start_point = 5;
 	/* EP INT data size */
-	eci_device.ep_int_data_size=30;	
+	eci_device.ep_int_data_size=30;
 
 	/* BULK RESPONSE VALUE */
 	eci_device.bulk_response_value = 0x0c02;

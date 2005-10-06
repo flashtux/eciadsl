@@ -135,10 +135,10 @@ void (*pF_getAal5HeaderStructure)(const unsigned char*,
 void set_eci_modem_chipset(char* chipset){
 	if (memcmp(chipset, "GS7470", 6)==0){
 		gs7470InitParams();
-		pF_getAal5HeaderStructure = getAal5HeaderStructure7470;				
+		pF_getAal5HeaderStructure = getAal5HeaderStructure7470;
 	}else{
 		gs7070InitParams();
-		pF_getAal5HeaderStructure = getAal5HeaderStructure7070;			
+		pF_getAal5HeaderStructure = getAal5HeaderStructure7070;
 	}
 }
 

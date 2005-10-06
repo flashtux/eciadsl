@@ -1069,7 +1069,7 @@ int init_ep_data_in(pusb_endpoint_t ep_data_in)
 	static unsigned char* buf; 
 	int i, ret;
 
-    buf = (unsigned char *) malloc(
+	buf = (unsigned char *) malloc(
         eci_device.eci_nb_pkt_ep_data_in * eci_device.eci_nb_iso_packet
         * eci_device.eci_iso_packet_size);
 
@@ -1239,8 +1239,8 @@ static inline void handle_urb(pusb_urb_t urb)
 
 /* this function check for message and do the appropriate action */
 static inline int ecimsgh(void){
-	int ret=0;
-	int i;
+	static int ret=0;
+	static int i;
 	static unsigned char outbuf[40] =
 	{
 		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
@@ -1300,14 +1300,6 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 
 		handle_urb(urb);
 
-		/* very bad line : pusb_device_get_urb() returns a pointer
-		   to a memory block allocated by malloc(), so we need to call free().
-		   However, this is a bad design in general, since allocated memory
-		   should be freed by the "module" that allocate it (ie pusb).
-		   Anyway, it's a quick fix.
-		*/
-#warning alert here. (static1) hetfield
-	/*	free(urb); */
 	}
 	deallocEciMsgQueue();
 	message("end of handle_ep_data_in_ep_int");
