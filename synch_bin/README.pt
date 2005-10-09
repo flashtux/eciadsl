@@ -176,6 +176,7 @@ Synch .bin files for GS7470 chipset ONLY:
         gs7470_synch15.bin
         gs7470_synch16.bin (modem hm121dp/di)
         gs7470_synch17.bin (modem dsl-200 rev B1, gerado em Australia/Sydney, provedor TPG, G.DMT)
+        gs7470_synch18.bin (modem dslink 180U, gerado em Brazil/Goiania, proveder Brasil Telecom, G.DMT)
 
 Se gerou o seu próprio ficheiro .bin, por favor envie-nos juntamente com alguma
 informação relativa à localização/provedor.
