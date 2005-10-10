@@ -156,6 +156,8 @@
 
 #define NB_PKT_EP_INT 64
 
+#define WAIT_SIG_TIMEOUT 1
+
 #define CRC32_REMAINDER CBF43926
 #define CRC32_INITIAL 0xffffffff
 
@@ -306,9 +308,13 @@ typedef enum
 	ERR_WRONG_FRAME_HEADER,
 	ERR_TUN,
 	ERR_FORK,
-	ERR_INIT_PUSB
+	ERR_INIT_PUSB,
+	ERR_EOC_PROBLEM,
+	WRN_DISCONNECT_REQUESTED
 } error_codes;
 
+static int iEciPPPStatus=0;
+ 
 static char errText[ERR_BUFSIZE + 1];
 
 /* for debugging only */
@@ -344,6 +350,11 @@ static int gfdin;
 static const unsigned char gfc = 0;
 static const unsigned char hec = 0x00; /* change to the value used in the Windows driver */
 
+/* thread pointers & attributes - kolja */
+static pthread_t th_id_data_out;
+static pthread_t th_id_sig_int;
+static pthread_attr_t attr_data_out;
+static pthread_attr_t attr_sig_int;
 
 /* predeclarations */
 
@@ -1289,10 +1300,15 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 							  pusb_endpoint_t ep_int, int fdout */)
 {
 	pusb_urb_t urb;
+	static unsigned char intbufo[40]={
+		0xff, 0xff, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
+		0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c
+	};
 
-	/* initialize message queue handler */
-	initEciMsgQueue(ECI_PT_PPP);
-	while(ecimsgh() && !has_eoc_problem())
+	while(!iEciPPPStatus)
 	{
 		urb = pusb_device_get_urb(fdusb);
 		if ((urb == NULL) || (pusb_get_urb_status(urb)<0))
@@ -1301,7 +1317,29 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		handle_urb(urb);
 
 	}
-	deallocEciMsgQueue();
+	/* send disconnection urbs - kolja */
+	if(iEciPPPStatus==WRN_DISCONNECT_REQUESTED){
+		int i;
+		get_eoc_answer_DISCONNECT(intbufo+8);
+		for(i=0;i<5;i++){
+			if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, intbufo, sizeof(intbufo), data_timeout) != sizeof(intbufo))
+			{
+				message("error on sending vendor device URB");
+				perror("error: can't send vendor device!");
+			}
+			else
+			{
+				if (verbose > 1)
+				{
+					snprintf(errText, ERR_BUFSIZE,
+					"ctrl msg sent: len=%d", sizeof(intbufo));
+					message(errText);
+					dump(intbufo, sizeof(intbufo));
+				}
+			}
+		}
+		sndEciMsg(ECI_MC_DISCONNECTED, NULL, 0, ecimsg.sender, 1);
+	}
 	message("end of handle_ep_data_in_ep_int");
 }
 
@@ -1418,6 +1456,36 @@ void sig_term(int sig)
 	snprintf(errText, ERR_BUFSIZE,
 			"SIGTERM (%d) received.. exiting", sig);
 	fatal_error(ERR_SIGTERM, errText);
+}
+
+/* hadling sigtimeoout - kolja*/
+void sigtimeout(){
+
+	/* check if there are eocs problem - kolja*/
+	if(has_eoc_problem()){
+		iEciPPPStatus=ERR_EOC_PROBLEM;
+		return;
+	}
+	
+	/*chech if there is a eci queued msg - kolja*/
+	if(rcvEciMsg(&ecimsg,0,0)>0){
+		switch(ecimsg.ecicmd){
+			case ECI_MC_DO_DISCONNECT:
+				iEciPPPStatus=WRN_DISCONNECT_REQUESTED;
+				break;
+				return;
+		}
+	}
+	alarm(WAIT_SIG_TIMEOUT);
+}
+
+static inline void* fn_handle_sig_int(void* ignored){
+ 	signal(SIGALRM, sigtimeout);	
+	alarm(WAIT_SIG_TIMEOUT);
+	while(1){
+		pause();
+	}
+	_exit(-1);
 }
 
 int tap_open(char* dev, int tun)
@@ -1851,6 +1919,7 @@ int main(int argc, char** argv)
 
 	/* Initialize global variables */
 	gfdout = fdout;
+	gfdin = fdin;
 
 	/* we claim interface 0 (altsetting != 0 (we use 4)), where endpoints 0x02, 0x86 & 0x88 are */
 
@@ -1896,6 +1965,10 @@ int main(int argc, char** argv)
 	if (init_ep_data_in(ep_data_in) < 0)
 		fatal_error(ERR_PUSB_INIT_EP_DATA_INT, NULL);
 
+
+	/* initialize message queue handler */
+	initEciMsgQueue(ECI_PT_PPP);
+	
 	/*
 	  Relay data between fdin (PPP) => ep_data_out (USB).
 	  This is done in a sub process. (or another thread)
@@ -1908,18 +1981,24 @@ int main(int argc, char** argv)
 		_exit(0);
 	}
 #endif
-	pthread_t th_id;
 	{
-		pthread_attr_t attr;
+		/* data out thread handler - kolja*/
+		pthread_attr_init(&attr_data_out);
+		pthread_attr_setdetachstate(&attr_data_out, PTHREAD_CREATE_DETACHED);
 
-		pthread_attr_init(&attr);
-		pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
-
-		gfdin = fdin;
-
-		if (pthread_create(&th_id, &attr, fn_handle_ep_data_out, NULL) != 0)
+		if (pthread_create(&th_id_data_out, &attr_data_out, fn_handle_ep_data_out, NULL) != 0)
 		{
-			message("error creating thread");
+			message("error creating thread - [DATA OUT handler]");
+			perror("pthread_create");
+		}
+
+		/* sig int thread handler - kolja*/
+		pthread_attr_init(&attr_sig_int);
+		pthread_attr_setdetachstate(&attr_sig_int, PTHREAD_CREATE_DETACHED);
+
+		if (pthread_create(&th_id_sig_int, &attr_sig_int, fn_handle_sig_int, NULL) != 0)
+		{
+			message("error creating thread - [SIG INT handler]");
 			perror("pthread_create");
 		}
 	}
@@ -1935,7 +2014,10 @@ int main(int argc, char** argv)
 		message("pusb_release_interface failed");
 	
 	/* kill thread handling data out */
-	kill (th_id,SIGTERM);
+	kill (th_id_data_out,SIGTERM);
+
+	/* kill thread handling sig int */
+	kill (th_id_sig_int,SIGTERM);
 	
 	pusb_endpoint_close(ep_int);
 	pusb_endpoint_close(ep_data_in);
@@ -1943,6 +2025,9 @@ int main(int argc, char** argv)
 
 	pusb_close(fdusb);
 
+	/* Free message queue handler */
+	deallocEciMsgQueue();
+	
 	/* Free pointers! */
 	deinit_pusb();
 
