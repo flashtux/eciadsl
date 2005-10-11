@@ -1193,7 +1193,7 @@ static inline void handle_urb(pusb_urb_t urb)
 	static unsigned char* sbuf;
 	int idx, size, ret;
 	static int ep;
-
+	
 	ep = pusb_urb_get_epnum(urb);
 
 	if (ep==eci_device.eci_int_ep){
@@ -1254,6 +1254,7 @@ static inline void handle_urb(pusb_urb_t urb)
 			message(errText);
 	}
 #endif
+
 }
 
 /* this function check for message and do the appropriate action */
@@ -1319,9 +1320,16 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 	while(!iEciPPPStatus)
 	{
 		urb = pusb_device_get_urb(fdusb);
-		if (pusb_get_urb_status(urb)<0) break;
-			handle_urb(urb);
-
+		if (pusb_get_urb_status(urb)<0) {
+#warning timing
+			usleep(1900);
+			break;
+		}
+		handle_urb(urb);
+#warning timing
+		usleep(950);
+		
+		
 	}
 	/* send disconnection urbs - kolja */
 	if(iEciPPPStatus==WRN_DISCONNECT_REQUESTED){
@@ -1367,8 +1375,12 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 		n = ppp_read(fdin, &buf, &n);
 		if (n <= 0)
 		{
+#ifdef DEBUG
 			snprintf(errText, ERR_BUFSIZE,"reading from PPP=%d", n);
 			message(errText);
+#endif
+#warning timing
+			usleep(750);
 			break;
 		}
 	
@@ -1376,8 +1388,10 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 
 		if (r < 0)
 		{
+#ifdef DEBUG
 			snprintf(errText, ERR_BUFSIZE,"aal5_write=%d", r);
 			message(errText);
+#endif
 			tcount++;
 			if (tcount > 1)
 				break;
@@ -1385,6 +1399,8 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 		else
 			if (tcount > 0)
 				tcount=0;
+#warning timing
+		usleep(950);
 	}
 
 	snprintf(errText, ERR_BUFSIZE, "end of handle_ep_data_out tcount=%d", tcount);
