@@ -355,6 +355,8 @@ static pthread_t th_id_data_out;
 static pthread_t th_id_sig_int;
 static pthread_attr_t attr_data_out;
 static pthread_attr_t attr_sig_int;
+static pthread_t th_id_data_in;
+static pthread_attr_t attr_data_in;
 
 /* predeclarations */
 
@@ -1190,7 +1192,7 @@ static inline void handle_urb(pusb_urb_t urb)
 	static unsigned char* buf;
 	static unsigned char* sbuf;
 	int idx, size, ret;
-	int ep;
+	static int ep;
 
 	ep = pusb_urb_get_epnum(urb);
 
@@ -1212,21 +1214,23 @@ static inline void handle_urb(pusb_urb_t urb)
 				   one buffer in INT transfer, this works
 				*/
 				ret = pusb_endpoint_submit_int_read(ep_int, buf, 0x40, 0); /* SIGRTMIN); */
+#ifdef DEBUG
 				if (ret < 0)
 				{
 					message("error on re-submit URB on EP_INT");
 					perror("error: can't re-submit on EP_INT");
 				}
+#endif
 			}
-	}else
+	}
 	if (ep==eci_device.eci_in_ep){
-			if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
-				sbuf = buf;
-				do{
-					if (size != 0){
-						handle_ep_data_in(buf, size);
-					}
-				} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
+		if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
+			sbuf = buf;
+			do{
+				if (size != 0){
+					handle_ep_data_in(buf, size);
+				}
+			} while (pusb_urb_buffer_next(urb, &buf, &size, &idx));
 
 			if (eci_device.use_datain_iso_urb){
 				/* use ISO URB depending on AltInterface Setted - kolja*/
@@ -1235,17 +1239,21 @@ static inline void handle_urb(pusb_urb_t urb)
 				/* Interrupt URB depending on AltInterface Setted - kolja*/
 				ret = pusb_endpoint_submit_read(ep_data_in, buf, 0x40, 0); /* SIGRTMIN); */	
 			}
+#ifdef DEBUG
 			if (ret < 0){
 					message("error on re-submit URB on EP_DATA_IN");
 					perror("error: can't re-submit on ep EP_DATA_IN");
-				}
 			}
-	}else
+#endif
+		}
+	}
+#ifdef DEBUG
 	if (ep!=eci_device.eci_out_ep){
 			snprintf(errText, ERR_BUFSIZE,
 					"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
 			message(errText);
 	}
+#endif
 }
 
 /* this function check for message and do the appropriate action */
@@ -1311,10 +1319,8 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 	while(!iEciPPPStatus)
 	{
 		urb = pusb_device_get_urb(fdusb);
-		if ((urb == NULL) || (pusb_get_urb_status(urb)<0))
-			break;
-
-		handle_urb(urb);
+		if (pusb_get_urb_status(urb)<0) break;
+			handle_urb(urb);
 
 	}
 	/* send disconnection urbs - kolja */
@@ -1974,41 +1980,39 @@ int main(int argc, char** argv)
 	  This is done in a sub process. (or another thread)
 	*/
 
-#if 0
-	if (fork() == 0)
+	/* data out thread handler - kolja*/
+	pthread_attr_init(&attr_data_out);
+	pthread_attr_setdetachstate(&attr_data_out, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&th_id_data_out, &attr_data_out, fn_handle_ep_data_out, NULL) != 0)
 	{
-		handle_ep_data_out(ep_data_out, fdin);
-		_exit(0);
+		message("error creating thread - [DATA OUT handler]");
+		perror("pthread_create");
 	}
-#endif
+
+	/* sig int thread handler - kolja*/
+	pthread_attr_init(&attr_sig_int);
+	pthread_attr_setdetachstate(&attr_sig_int, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&th_id_sig_int, &attr_sig_int, fn_handle_sig_int, NULL) != 0)
 	{
-		/* data out thread handler - kolja*/
-		pthread_attr_init(&attr_data_out);
-		pthread_attr_setdetachstate(&attr_data_out, PTHREAD_CREATE_DETACHED);
-
-		if (pthread_create(&th_id_data_out, &attr_data_out, fn_handle_ep_data_out, NULL) != 0)
-		{
-			message("error creating thread - [DATA OUT handler]");
-			perror("pthread_create");
-		}
-
-		/* sig int thread handler - kolja*/
-		pthread_attr_init(&attr_sig_int);
-		pthread_attr_setdetachstate(&attr_sig_int, PTHREAD_CREATE_DETACHED);
-
-		if (pthread_create(&th_id_sig_int, &attr_sig_int, fn_handle_sig_int, NULL) != 0)
-		{
-			message("error creating thread - [SIG INT handler]");
-			perror("pthread_create");
-		}
+		message("error creating thread - [SIG INT handler]");
+		perror("pthread_create");
 	}
 
 	/*
-	  Relay data betwwen ep_data_in (USB) =>  fdout (PPP)
+	  Relay data between ep_data_in (USB) =>  fdout (PPP)
 	*/
+	pthread_attr_init(&attr_data_in);
 
-	handle_ep_data_in_ep_int(/* ep_data_in, ep_int, fdout */);
-
+	if (pthread_create(&th_id_data_in, &attr_data_in, (void*)handle_ep_data_in_ep_int, NULL) != 0)
+	{
+		message("error creating thread - [DATA IN handler]");
+		perror("pthread_create");
+	}
+	// wait for the end
+	pthread_join(th_id_data_in, NULL);
+	
 	/* we release all the interface we'd claim before exiting */
 	if (pusb_release_interface(fdusb, 0) < 0)
 		message("pusb_release_interface failed");

@@ -843,6 +843,11 @@ int main(int argc, char** argv){
         return(-1);
     }
 
+	if (init_pusb()==-1) {
+		printf("Error during pusb pointers malloc\nDriver will abort!\n");
+		exit(1);
+	}
+
 	ret=eci_load2(file, vid2, pid2);
 
 	if (!ret){
@@ -878,6 +883,9 @@ int main(int argc, char** argv){
 	/* kill process handling signal interrupt */
 	if (pidIntSigChild)
 		kill(pidIntSigChild, SIGQUIT);
+
+	/* Free pointers! */
+	deinit_pusb();
 
 	if (!ret) 
 		return 1;
