@@ -1303,6 +1303,22 @@ static inline int ecimsgh(void){
 }
 
 
+void execute_reconnect_script(char **argv)
+{
+	pid_t pid;
+
+	if ((pid = fork()) < 0) {     /* fork a child process           */
+		exit(1);
+	}
+	else if (pid == 0) {          /* for the child process:         */
+		if (execvp(*argv, argv) < 0) {     /* execute the command  */
+			exit(1);
+		}
+		exit(0);
+	}
+	exit(0);
+}
+
 /*
   handle_ep_data_in_ep_int : must be called after init_ep_int()
   and init_ep_data_int()
@@ -1331,9 +1347,8 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		handle_urb(urb);
 #warning timing
 		usleep(950);
-		
-		
 	}
+
 	/* send disconnection urbs - kolja */
 	if(iEciPPPStatus==WRN_DISCONNECT_REQUESTED){
 		int i;
@@ -1356,6 +1371,33 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 			}
 		}
 		sndEciMsg(ECI_MC_DISCONNECTED, NULL, 0, ecimsg.sender, 1);
+	}
+	if (iEciPPPStatus==ERR_EOC_PROBLEM) {
+		FILE * pFile;
+		char* logfile="/tmp/eciadsl-disconnect-log";
+		/*must be added as variable from argv */
+#warning todo...add log file management
+		if (logfile!="" && logfile!=NULL) {
+			pFile = fopen (logfile,"a");
+			if (pFile!=NULL) {
+				char mytime[150];
+				time_t rawtime;
+				struct tm * timeinfo;
+				time ( &rawtime );
+				timeinfo = localtime ( &rawtime );
+				sprintf (mytime, "Disconnection due to line problem at: %s", asctime (timeinfo) );
+				fputs (mytime,pFile);
+				fclose (pFile);
+			}
+		}
+		/* here reconnection is managed */
+#warning todo...add reconnect script management
+		char *reconnect_script[300];
+		*reconnect_script="/usr/bin/eciadsl-restart";
+		/*must be added as variable from argv */
+		if (*reconnect_script!=NULL && *reconnect_script!="")
+			execute_reconnect_script(reconnect_script);
+
 	}
 	message("end of handle_ep_data_in_ep_int");
 }

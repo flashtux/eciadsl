@@ -1,0 +1,9 @@
+#!/bin/sh
+killall pppd
+sleep 7    # gives the time to execute ip-down script...
+killall -9 pppd
+sleep 10  # gives the time to free modem
+killall -9 eciadsl-pppoeci
+killall -9 eciadsl-synch
+eciadsl-start > /dev/null 2>&1 &
+exit 0

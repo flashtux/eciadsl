@@ -10,7 +10,7 @@ dist_bin_SCRIPTS = eciadsl-start eciadsl-stop eciadsl-doctor \
 	eciadsl-probe-device eciadsl-probe-synch \
 	eciadsl-remove-dabusb eciadsl-makeconfig \
 	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl \
-	eciadsl-testconnection
+	eciadsl-testconnection eciadsl-restart
 
 eciadsl_firmware_SOURCES = eciadsl-firmware.c pusb.c pusb.h util.c util.h \
 	gsinterface.c gsinterface.h
@@ -42,7 +42,7 @@ EXTRA_DIST = pusb-linux.c pusb-linux.h gs7470.c gs7470.h gs7070.c gs7070.h \
 	eciadsl-config-tk.in eciadsl-config-text.in \
 	eciadsl-probe-device eciadsl-probe-synch \
 	eciadsl-remove-dabusb.in eciadsl-makeconfig.in \
-	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl eciadsl-testconnection \
+	eciadsl-vendor-device.pl eciadsl-data.pl eciadsl-uc.pl eciadsl-testconnection eciadsl-restart\
 	$(etc_DIST) $(doc_DIST) $(debian_DIST) $(rpm_DIST)
 
 CONF_DIR=$(sysconfdir)/eciadsl
