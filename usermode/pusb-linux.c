@@ -80,8 +80,8 @@ static struct usbdevfs_urb* purb_sub_iso_read;
 static struct usbdevfs_urb* purb_rw;
 static pusb_urb_t urb;
 
-static unsigned int flag1;
-static unsigned char flag2;
+static unsigned int urbFlag;
+static unsigned char urbType;
 
 static inline int is_kernel_2_5()
 {
@@ -104,8 +104,8 @@ int init_pusb(){
 	if (!urb || !purb_sub_read || !purb_sub_write || !purb_sub_int_read || !purb_sub_iso_read || !purb_rw )
 		return -1;
 
-	flag1=is_kernel_2_5() ? 0 : USBDEVFS_URB_QUEUE_BULK;
- 	flag2=is_kernel_2_5() ? USBDEVFS_URB_TYPE_INTERRUPT : USBDEVFS_URB_TYPE_BULK; 
+	urbFlag=is_kernel_2_5() ? 0 : USBDEVFS_URB_QUEUE_BULK;
+ 	urbType=is_kernel_2_5() ? USBDEVFS_URB_TYPE_INTERRUPT : USBDEVFS_URB_TYPE_BULK; 
 
 	memset(purb_rw, 0, sizeof(struct usbdevfs_urb));
 	memset(purb_sub_read, 0, sizeof(struct usbdevfs_urb));
@@ -448,7 +448,7 @@ inline int pusb_endpoint_submit_read (pusb_endpoint_t ep, unsigned char* buf,
 
 	purb_sub_read->type = USBDEVFS_URB_TYPE_BULK;
 	purb_sub_read->endpoint = ep->ep | USB_DIR_IN;
-	purb_sub_read->flags  = flag1;
+	purb_sub_read->flags  = urbFlag;
 	purb_sub_read->buffer = buf;
 	purb_sub_read->buffer_length = size;
 	purb_sub_read->signr =  signr;
@@ -469,7 +469,7 @@ inline int pusb_endpoint_submit_write(pusb_endpoint_t ep, unsigned char* buf,
 
 	purb_sub_write->type = USBDEVFS_URB_TYPE_BULK;
 	purb_sub_write->endpoint = ep->ep | USB_DIR_OUT;
-	purb_sub_write->flags = flag1;
+	purb_sub_write->flags = urbFlag;
 	purb_sub_write->buffer = buf;
 	purb_sub_write->buffer_length = size;
 	purb_sub_write->signr =  signr;
@@ -488,9 +488,9 @@ inline int pusb_endpoint_submit_int_read (pusb_endpoint_t ep, unsigned char* buf
 {
 	static int ret;
 
-	purb_sub_int_read->type = flag2;
+	purb_sub_int_read->type = urbType;
 	/* in 2.4 kernel INTERRUPT wasn't suported and BULK works with ep in so*/
-	purb_sub_int_read->flags = flag1;
+	purb_sub_int_read->flags = urbFlag;
 	purb_sub_int_read->endpoint = ep->ep | USB_DIR_IN;
 	purb_sub_int_read->buffer = buf;
 	purb_sub_int_read->buffer_length = size;
