@@ -966,11 +966,13 @@ static inline int aal5_write(pusb_endpoint_t epdata, unsigned char* buf, int n)
 /*
 	ret = pusb_endpoint_submit_write (epdata, bigbuf, ptr, 0);
 */
+#ifdef DEBUG
 	if (ret < 0)
 	{
 		message("error writing to USB");
 		perror("reason");
 	}
+#endif
 
 	return(ret);
 }
@@ -1162,7 +1164,7 @@ static inline void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdu
 	if (has_eocs() == 0)
 		/* no data/control information so don't bother to respond */
 		return;
-	get_eoc_answer(outbuf+8);		
+	get_eoc_answer(outbuf+8);
 
 	if (pusb_control_msg(fdusb, 0x40, 0xdd, eci_device.bulk_response_value, 0x580, outbuf,
 			sizeof(outbuf), data_timeout) != sizeof(outbuf))
@@ -1254,6 +1256,7 @@ static inline void handle_urb(pusb_urb_t urb)
 			message(errText);
 	}
 #endif
+
 
 }
 
@@ -1366,10 +1369,11 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 
 static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 {
-	int r, n, tcount;
+	int r, n;
 	static unsigned char* buf;
-	tcount = 0;
-	
+#ifdef DEBUG
+	int tcount = 0;
+#endif	
 	for (;;)
 	{
 		n = ppp_read(fdin, &buf, &n);
@@ -1385,13 +1389,15 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 		}
 	
 		r = aal5_write(epdata, buf, n);
-
+#warning timing
+		usleep(900);
+#ifdef DEBUG
 		if (r < 0)
 		{
-#ifdef DEBUG
+
 			snprintf(errText, ERR_BUFSIZE,"aal5_write=%d", r);
 			message(errText);
-#endif
+
 			tcount++;
 			if (tcount > 1)
 				break;
@@ -1399,12 +1405,13 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 		else
 			if (tcount > 0)
 				tcount=0;
-#warning timing
-		usleep(950);
-	}
 
+#endif
+	}
+#ifdef DEBUG
 	snprintf(errText, ERR_BUFSIZE, "end of handle_ep_data_out tcount=%d", tcount);
 	message(errText);
+#endif
 }
 
 static inline void* fn_handle_ep_data_out(void* ignored)
@@ -1495,8 +1502,8 @@ void sigtimeout(){
 			case ECI_MC_DO_DISCONNECT:
 				iEciPPPStatus=WRN_DISCONNECT_REQUESTED;
 				break;
-				return;
 		}
+		return;
 	}
 	alarm(WAIT_SIG_TIMEOUT);
 }
