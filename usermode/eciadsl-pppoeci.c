@@ -117,6 +117,7 @@
 #include <pthread.h>
 #if !defined(__FreeBSD__) && !defined(__NetBSD__)
 #include <net/if.h>
+#include <syslog.h> /* for syslogging, linux */
 /* from <linux/if_tun.h> */
 #define IFF_TUN		0x0001
 #define IFF_TAP		0x0002
@@ -394,10 +395,22 @@ static inline void message(const char* text)
 	printf("%s\n", text);
 }
 
+static inline void write_log(const char* msg) {
+
+	if (msg!=NULL && msg!="") {
+		openlog("eciadsl-pppoeci", LOG_CONS || LOG_PID, LOG_DAEMON);
+		syslog(LOG_DAEMON || LOG_WARNING, msg);
+		closelog();
+	}
+
+}
+
 static inline void fatal_error(const error_codes err, const char* text)
 {
-	if (text && verbose)
+	if (text && verbose) {
 		message(text);
+		write_log(text);
+	}
 	exit(-err);
 }
 
@@ -1371,25 +1384,18 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 			}
 		}
 		sndEciMsg(ECI_MC_DISCONNECTED, NULL, 0, ecimsg.sender, 1);
+		write_log("Disconnection requested by user");
 	}
 	if (iEciPPPStatus==ERR_EOC_PROBLEM) {
-		FILE * pFile;
-		char* logfile="/tmp/eciadsl-disconnect-log";
-		/*must be added as variable from argv */
-#warning todo...add log file management
-		if (logfile!="" && logfile!=NULL) {
-			pFile = fopen (logfile,"a");
-			if (pFile!=NULL) {
-				char mytime[150];
-				time_t rawtime;
-				struct tm * timeinfo;
-				time ( &rawtime );
-				timeinfo = localtime ( &rawtime );
-				sprintf (mytime, "Disconnection due to line problem at: %s", asctime (timeinfo) );
-				fputs (mytime,pFile);
-				fclose (pFile);
-			}
-		}
+
+		char mytime[150];
+		time_t rawtime;
+		struct tm * timeinfo;
+		time ( &rawtime );
+		timeinfo = localtime ( &rawtime );
+		sprintf (mytime, "Disconnection due to line problem at: %s", asctime (timeinfo) );
+		write_log(mytime);
+
 		/* here reconnection is managed */
 #warning todo...add reconnect script management
 		char *reconnect_script[300];
@@ -2075,6 +2081,9 @@ int main(int argc, char** argv)
 		message("error creating thread - [DATA IN handler]");
 		perror("pthread_create");
 	}
+
+	write_log("EciAdsl driver started");
+
 	// wait for the end
 	pthread_join(th_id_data_in, NULL);
 	
@@ -2099,6 +2108,8 @@ int main(int argc, char** argv)
 	
 	/* Free pointers! */
 	deinit_pusb();
+	
+	write_log("EciAdsl driver finished");
 
 	return(0);
 }
