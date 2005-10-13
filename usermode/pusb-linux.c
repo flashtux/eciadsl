@@ -611,8 +611,6 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 #endif
 			urb->buf_nb = 0;
 	}
-#warning timing
-	usleep(2500);
 
 	return(urb);
 }
