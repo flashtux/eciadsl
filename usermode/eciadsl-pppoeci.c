@@ -351,6 +351,9 @@ static int gfdin;
 static const unsigned char gfc = 0;
 static const unsigned char hec = 0x00; /* change to the value used in the Windows driver */
 
+/* 4 timings in the infinite loop */
+static int sleep1, sleep2, sleep3, sleep4;
+
 /* thread pointers & attributes - kolja */
 static pthread_t th_id_data_out;
 static pthread_t th_id_sig_int;
@@ -438,6 +441,72 @@ static inline void dump(const unsigned char* buf, int len)
 			PRINTCHAR(buf[j])
 		printf("\n");
 	}
+}
+
+/*
+this function returns the number of cycles
+of clock from machine start
+*/
+__inline__ unsigned long long int rdtsc() {
+	unsigned long long int x;
+	__asm__ volatile (".byte 0x0f, 0x31" : "=A" (x));
+	return x;
+}
+
+static void benchmark_for_sleep(){
+
+	/*
+	These timings are based on a pentium3 500Mhz experience.
+	This function tries to reproduce similar timings environment
+	on every machine - hetfield -
+	*/
+	unsigned long long int start,finish;
+	float diff=0;
+	float t1=2500;
+	float t2=4100;
+	float t3=750;
+	float t4=900;
+	float cpu_reference=501804482;
+	
+	start=rdtsc();
+	usleep(1000000);
+	finish=rdtsc();
+	
+	diff=finish-start;
+	
+	if (diff!=0){
+		/* make a proportion */
+		t1 =  t1/ (diff/cpu_reference);
+		t2 =  t2/ (diff/cpu_reference);
+		t3 =  t3/ (diff/cpu_reference);
+		t4 =  t4/ (diff/cpu_reference);
+
+		/* float to int round */
+		sleep1=(int)t1;
+		sleep2=(int)t2;
+		sleep3=(int)t3;
+		sleep4=(int)t4;
+
+		/* do not allow too low values (higher cpu)*/
+		if (sleep1 < 100) sleep1=100;
+		if (sleep2 < 100) sleep2=100;
+		if (sleep3 < 100) sleep3=100;
+		if (sleep4 < 100) sleep4=100;
+
+		/* do not allow too high values (slower cpu) */
+		if (sleep1 > 2500*(1.05)) sleep1=2500;
+		if (sleep2 > 4100*(1.05)) sleep2=4100;
+		if (sleep3 > 750*(1.05)) sleep3=750;
+		if (sleep4 > 900*(1.05)) sleep4=900;
+	}
+	else {
+		/* no sleeping, nowhere */
+		sleep1=0;
+		sleep2=0;
+		sleep3=0;
+		sleep4=0;
+	}
+
 }
 
 /*
@@ -1354,12 +1423,12 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		urb = pusb_device_get_urb(fdusb);
 		if (pusb_get_urb_status(urb)<0) {
 #warning timing
-			usleep(1900);
+			usleep(sleep1);
 			break;
 		}
 		handle_urb(urb);
 #warning timing
-		usleep(950);
+		usleep(sleep2);
 	}
 
 	/* send disconnection urbs - kolja */
@@ -1387,14 +1456,8 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		write_log("Disconnection requested by user");
 	}
 	if (iEciPPPStatus==ERR_EOC_PROBLEM) {
-
-		char mytime[150];
-		time_t rawtime;
-		struct tm * timeinfo;
-		time ( &rawtime );
-		timeinfo = localtime ( &rawtime );
-		sprintf (mytime, "Disconnection due to line problem at: %s", asctime (timeinfo) );
-		write_log(mytime);
+		
+		write_log("Disconnection due to line problem");
 
 		/* here reconnection is managed */
 #warning todo...add reconnect script management
@@ -1432,13 +1495,13 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 			message(errText);
 #endif
 #warning timing
-			usleep(750);
+			usleep(sleep3);
 			break;
 		}
 	
 		r = aal5_write(epdata, buf, n);
 #warning timing
-		usleep(900);
+		usleep(sleep4);
 #ifdef DEBUG
 		if (r < 0)
 		{
@@ -2051,6 +2114,17 @@ int main(int argc, char** argv)
 	  This is done in a sub process. (or another thread)
 	*/
 
+	/* set sleep timings - cpu benchmarking */
+#warning needs an option in preferences
+	if (1)	
+		benchmark_for_sleep();
+	else {	
+		sleep1=0;
+		sleep2=0;
+		sleep3=0;
+		sleep4=0;
+	}
+
 	/* data out thread handler - kolja*/
 	pthread_attr_init(&attr_data_out);
 	pthread_attr_setdetachstate(&attr_data_out, PTHREAD_CREATE_DETACHED);
@@ -2081,8 +2155,18 @@ int main(int argc, char** argv)
 		message("error creating thread - [DATA IN handler]");
 		perror("pthread_create");
 	}
-
+	
 	write_log("EciAdsl driver started");
+#warning needs option here too
+	if (1)	{
+		
+		char temp[200];
+		snprintf(temp,199,"Using timings: sleep1: %d - sleep2: %d - sleep3: %d - sleep4: %d",sleep1,sleep2,sleep3,sleep4);
+		write_log(temp);
+	}
+	else {
+		write_log("No timings setted for cycles");
+	}
 
 	// wait for the end
 	pthread_join(th_id_data_in, NULL);
