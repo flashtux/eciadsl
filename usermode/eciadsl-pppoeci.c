@@ -1491,13 +1491,13 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 			message(errText);
 #endif
 #warning timing
-			usleep(sleep3);
+//			usleep(sleep3);
 			break;
 		}
 	
 		r = aal5_write(epdata, buf, n);
 #warning timing
-		usleep(sleep4);
+//		usleep(sleep4);
 #ifdef DEBUG
 		if (r < 0)
 		{

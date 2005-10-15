@@ -551,14 +551,14 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	while (ret < 0 && errno == EINTR && purb->status<0 );
 
 	/* si ioctl echoue, je retourne -1 code d'erreur dans errno */
-	if (ret<0)
+/*	if (ret<0)
 	{
 #ifdef DEBUG
         	perror("ioctl USBDEVFS_REAPURB");
 #endif
 		return(NULL);
 	}
-
+*/
 	urb->ep     = purb->endpoint;
 	urb->status = purb->status;
 	urb->buf_nb = 0;
