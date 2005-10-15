@@ -351,8 +351,10 @@ static int gfdin;
 static const unsigned char gfc = 0;
 static const unsigned char hec = 0x00; /* change to the value used in the Windows driver */
 
-/* 4 timings in the infinite loop */
-static int sleep1, sleep2, sleep3, sleep4;
+#ifdef DEBUG
+/* timings in the infinite loop */
+static int sleep1;
+#endif
 
 /* thread pointers & attributes - kolja */
 static pthread_t th_id_data_out;
@@ -443,6 +445,7 @@ static inline void dump(const unsigned char* buf, int len)
 	}
 }
 
+#ifdef DEBUG
 /*
 this function returns the number of cycles
 of clock from machine start
@@ -462,10 +465,7 @@ static void benchmark_for_sleep(){
 	*/
 	unsigned long long int start,finish;
 	float diff=0;
-	float t1=2500;
-	float t2=4100;
-	float t3=750;
-	float t4=900;
+	float t=4100;
 	float cpu_reference=501804482;
 	
 	start=rdtsc();
@@ -476,39 +476,26 @@ static void benchmark_for_sleep(){
 	
 	if (diff!=0){
 		/* make a proportion */
-		t1 =  t1/ (diff/cpu_reference);
-		t2 =  t2/ (diff/cpu_reference);
-		t3 =  t3/ (diff/cpu_reference);
-		t4 =  t4/ (diff/cpu_reference);
+		t =  t/ (diff/cpu_reference);
+
 
 		/* float to int round */
-		sleep1=(int)t1;
-		sleep2=(int)t2;
-		sleep3=(int)t3;
-		sleep4=(int)t4;
+		sleep1=(int)t;
 
 		/* do not allow too low values (higher cpu)*/
 		if (sleep1 < 100) sleep1=100;
-		if (sleep2 < 100) sleep2=100;
-		if (sleep3 < 100) sleep3=100;
-		if (sleep4 < 100) sleep4=100;
 
 		/* do not allow too high values (slower cpu) */
-		if (sleep1 > 2500*(1.05)) sleep1=2500;
-		if (sleep2 > 4100*(1.05)) sleep2=4100;
-		if (sleep3 > 750*(1.05)) sleep3=750;
-		if (sleep4 > 900*(1.05)) sleep4=900;
+		if (sleep1 > 4100*(1.05)) sleep1=4100;
+
 	}
 	else {
 		/* no sleeping, nowhere */
 		sleep1=0;
-		sleep2=0;
-		sleep3=0;
-		sleep4=0;
 	}
 
 }
-
+#endif
 /*
  * ppp_read returns a pointer to a static buffer.
  * it returns the number of bytes read or -1 in case of errors.
@@ -1422,9 +1409,15 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 	{
 		//now it waits a valid urb. no checks needed so.
 		urb = pusb_device_get_urb(fdusb);
-		handle_urb(urb);
-#warning timing
-//		usleep(sleep2);
+		if (pusb_get_urb_status(urb)>=0) 
+			handle_urb(urb);
+		else {
+			write_log("Driver aborted due to an error in urb. (Modem unplugged?)");
+			break;
+		}
+#ifdef DEBUG
+		usleep(sleep1);
+#endif
 	}
 
 	/* send disconnection urbs - kolja */
@@ -1490,14 +1483,11 @@ static inline void handle_ep_data_out(pusb_endpoint_t epdata, int fdin)
 			snprintf(errText, ERR_BUFSIZE,"reading from PPP=%d", n);
 			message(errText);
 #endif
-#warning timing
-//			usleep(sleep3);
+
 			break;
 		}
 	
 		r = aal5_write(epdata, buf, n);
-#warning timing
-//		usleep(sleep4);
 #ifdef DEBUG
 		if (r < 0)
 		{
@@ -2110,17 +2100,14 @@ int main(int argc, char** argv)
 	  This is done in a sub process. (or another thread)
 	*/
 
+#ifdef DEBUG
 	/* set sleep timings - cpu benchmarking */
-#warning needs an option in preferences
 	if (1)	
 		benchmark_for_sleep();
 	else {	
 		sleep1=0;
-		sleep2=0;
-		sleep3=0;
-		sleep4=0;
 	}
-
+#endif
 	/* data out thread handler - kolja*/
 	pthread_attr_init(&attr_data_out);
 	pthread_attr_setdetachstate(&attr_data_out, PTHREAD_CREATE_DETACHED);
@@ -2153,17 +2140,18 @@ int main(int argc, char** argv)
 	}
 	
 	write_log("EciAdsl driver started");
-#warning needs option here too
+
+#ifdef DEBUG
 	if (1)	{
 		
-		char temp[200];
-		snprintf(temp,199,"Using timings: sleep1: %d - sleep2: %d - sleep3: %d - sleep4: %d",sleep1,sleep2,sleep3,sleep4);
+		char temp[100];
+		snprintf(temp,99,"Using timings: sleep1: %d",sleep1);
 		write_log(temp);
 	}
 	else {
 		write_log("No timings setted for cycles");
 	}
-
+#endif
 	// wait for the end
 	pthread_join(th_id_data_in, NULL);
 	

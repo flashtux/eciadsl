@@ -548,17 +548,17 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	{
 		ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
 	}
-	while (ret < 0 && errno == EINTR && purb->status<0 );
+	while (ret < 0 && errno == EINTR );
 
 	/* si ioctl echoue, je retourne -1 code d'erreur dans errno */
-/*	if (ret<0)
+	if (ret<0)
 	{
 #ifdef DEBUG
         	perror("ioctl USBDEVFS_REAPURB");
 #endif
 		return(NULL);
 	}
-*/
+
 	urb->ep     = purb->endpoint;
 	urb->status = purb->status;
 	urb->buf_nb = 0;
@@ -642,11 +642,6 @@ int pusb_release_interface(pusb_device_t dev, int interface)
 int pusb_urb_get_epnum(pusb_urb_t urb)
 {
 	return(urb->ep);
-}
-
-int pusb_urb_get_status(pusb_urb_t urb)
-{
-    return urb->status;
 }
 
 inline int pusb_urb_buffer_first(pusb_urb_t urb, unsigned char** pbuf, int* psize, int* pidx)
