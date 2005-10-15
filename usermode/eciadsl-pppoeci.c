@@ -1306,7 +1306,7 @@ static inline void handle_urb(pusb_urb_t urb)
 				}
 #endif
 			}
-	}
+	}else
 	if (ep==eci_device.eci_in_ep){
 		if (pusb_urb_buffer_first(urb, &buf, &size, &idx)){
 			sbuf = buf;
@@ -1332,7 +1332,7 @@ static inline void handle_urb(pusb_urb_t urb)
 		}
 	}
 #ifdef DEBUG
-	if (ep!=eci_device.eci_out_ep){
+	else if (ep!=eci_device.eci_out_ep){
 			snprintf(errText, ERR_BUFSIZE,
 					"Error: unknown endpoint : %02x", pusb_urb_get_epnum(urb));
 			message(errText);
@@ -1612,9 +1612,9 @@ void sigtimeout(){
 		switch(ecimsg.ecicmd){
 			case ECI_MC_DO_DISCONNECT:
 				iEciPPPStatus=WRN_DISCONNECT_REQUESTED;
+				return;
 				break;
 		}
-		return;
 	}
 	alarm(WAIT_SIG_TIMEOUT);
 }
