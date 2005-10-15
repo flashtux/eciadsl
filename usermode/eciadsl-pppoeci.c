@@ -1420,15 +1420,11 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 
 	while(!iEciPPPStatus)
 	{
+		//now it waits a valid urb. no checks needed so.
 		urb = pusb_device_get_urb(fdusb);
-		if (pusb_get_urb_status(urb)<0) {
-#warning timing
-			usleep(sleep1);
-			break;
-		}
 		handle_urb(urb);
 #warning timing
-		usleep(sleep2);
+//		usleep(sleep2);
 	}
 
 	/* send disconnection urbs - kolja */

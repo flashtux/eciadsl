@@ -548,7 +548,7 @@ inline pusb_urb_t pusb_device_get_urb(pusb_device_t dev)
 	{
 		ret = ioctl(dev->fd, USBDEVFS_REAPURB /* NDELAY */, &purb);
 	}
-	while (ret < 0 && errno == EINTR);
+	while (ret < 0 && errno == EINTR && purb->status<0 );
 
 	/* si ioctl echoue, je retourne -1 code d'erreur dans errno */
 	if (ret<0)
@@ -670,7 +670,7 @@ inline int pusb_urb_buffer_next(pusb_urb_t urb, unsigned char** pbuf, int* psize
 	return(0);
 }
 
-/* return urb status if urb is NULL then return -1 - hetifeld */
+/* return urb status if urb is NULL then return -1 - hetfield */
 int pusb_get_urb_status(pusb_urb_t urb){
 
 	if (urb==NULL) return -1;
