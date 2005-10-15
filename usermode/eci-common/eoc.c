@@ -37,7 +37,7 @@ static char *eocdatareg;	/* pointer to data that will be read or write */
 static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
-#define MAX_WRONG_EOCS 70
+#define MAX_WRONG_EOCS_PER_SECS 70
 
 static const unsigned char init_eocs[32] ={ 
 			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
@@ -50,7 +50,7 @@ static const unsigned disconnect_eocs[12]= {
 			0xbf, 0xe7, 0xbf, 0xe7, 0xbf, 0xe7};
 
 static int eoc_wrong_msg_count;
-
+static struct timeval tvn, tvl;
 static struct eoc_registers eocregs;
 
 #ifdef DEBUG
@@ -64,6 +64,7 @@ static struct eoc_registers eocregs;
 
 void eoc_init() {
 	    int i;
+		gettimeofday(&tvn, NULL);	
 		DBG_OUT("EOC.C - eco_init - START\n");
 		eoc_wrong_msg_count=0;
 		eoc_out_buffer_pos = eocmescnt = eocmesval = eocstate = 0;
@@ -87,7 +88,7 @@ void eoc_init() {
 
 static inline void eoc_encode(u_int16_t eoc_opcode) {
 	u_int16_t mes;
-		
+	
 	mes = 0x5301;
 	mes |= (eoc_opcode & 0x01) << (7 + 8); /* 1st byte contain lsb in bit 7 */
 	mes |= (eoc_opcode & 0xFE); /* 2d byte contain 7 msb in bits 1 to 7 */
@@ -374,7 +375,6 @@ inline int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 				DBG_OUT("EOC.C - parse_eoc_buffer - WRONG EOC !! [count : %d |code 0x%02x%02x]\n", eoc_wrong_msg_count, buffer[i], buffer[i+1]);	
 				continue;
 			}
-			eoc_wrong_msg_count=0;
 			eoccode = eoc_decode(buffer[i], buffer[i+1]);
 			DBG_OUT("EOC.C - parse_eoc_buffer - GOOD EOC CODE [eoccode : %04x| EOC_ADDRESS(eoccode) : %04x| eocpar %d]\n", eoccode, EOC_ADDRESS(eoccode), eocpar);	
 			if(EOC_ADDRESS(eoccode) != EOC_ADDRESS_ATU_R) {
@@ -469,8 +469,15 @@ inline void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff) {
  * return true if wrong eoc count is greater than MAX_WRONG_EOCS
  */
 inline int has_eoc_problem(){
-	if(eoc_wrong_msg_count > MAX_WRONG_EOCS){
+	static int t;
+	gettimeofday(&tvl, NULL);
+	t = (int)(tvl.tv_sec - tvn.tv_sec);
+	t = (t==0)?1:t;
+	if(eoc_wrong_msg_count > (MAX_WRONG_EOCS_PER_SECS / t)){
+		tvn = tvl;
 		return(1);
 	}
+	eoc_wrong_msg_count=0;
+	tvn = tvl;
 	return(0);
 }
