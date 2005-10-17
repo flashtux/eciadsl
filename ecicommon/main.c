@@ -55,10 +55,12 @@ int main()
 
 	eoc_init();
 	parse_eoc_buffer(buffer01+4, 32);
+	parse_status(interrupt_buffer, dsp);
 	get_eoc_answer(outbuf);
 	dump(outbuf,32);
 
 	parse_eoc_buffer(buffer02+4, 32);
+	parse_status(interrupt_buffer, dsp);
 	get_eoc_answer(outbuf);
 	dump(outbuf,32);
 

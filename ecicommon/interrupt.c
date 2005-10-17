@@ -32,7 +32,7 @@ static int interrupt_buffer_pos = 0;
 
 void parse_status(union ep_int_buf *ib,struct gs7x70_dsp *dsp) {
 	if(dsp->last_frameid != ib->buffer.frameid) 
-		WARN("Globespan Modem lmiss a frame \n");
+		WARN("Globespan Modem miss a frame \n");
 	switch(ib->buffer.frameid) {
 		case 0:
 			dsp->State = ib->buffer.status_buffer[0] | 
@@ -40,9 +40,12 @@ void parse_status(union ep_int_buf *ib,struct gs7x70_dsp *dsp) {
 			dsp->StartProgress = ib->buffer->status_buffer[6] | 
 							(ib->buffer.status_buffer[7] << 8);
 			dsp->LinePower = ib->buffer.status_buffer[8] | 
-							(ib->buffer.status_buffer[9] << 8);							
+							(ib->buffer.status_buffer[9] << 8);	
+			DBG_OUT("DSP State : %04x\nDSP StartProgess : %04x\nDSP LinePower : %04x\n", 
+			dsp->State, dsp->StartProgress, dsp->LinePower);	
+			break;				
 		default:
-		
+			DBG_OUT("Not handled frame : %0x4", ib->buffer.frameid);
 	}	
 };
 
