@@ -1,7 +1,7 @@
 /*
  *	Dsp.h
  * 
- *	Author : Valette Jean-Sébastien
+ *	Author : Valette Jean-Sï¿½bastien
  *
  * Creation : 30 09 2004
  * 
@@ -18,13 +18,13 @@
  * NOTE: Must be shareable by usermode and kernelmode drivers.
  * 
 */
-#include <type.h>
+#include <sys/types.h>
 
 struct gs7x70_dsp {
 	unsigned char 	next_state;	/*	Next state for download operation */
 	unsigned char 	is_ready;		/* Is the dsp OK ?	*/
 	unsigned char 	last_frameid;	/*	ID of last frame received in int urb */
-	u_int16t		State;			/*	State ?	*/
-	u_int16t		StartProgress;	/*	Status of init progression	?*/
-	u_int16t		LinePower;		/*	Line power attenation.*/
+	u_int16_t		State;			/*	State ?	*/
+	u_int16_t		StartProgress;	/*	Status of init progression	?*/
+	u_int16_t		LinePower;		/*	Line power attenation.*/
 };

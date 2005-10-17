@@ -1,7 +1,7 @@
 /*
  *	Interupt.c
  * 
- *	Author : Valette Jean-Sébastien
+ *	Author : Valette Jean-Sï¿½bastien
  *
  * Creation : 30 09 2004
  *
@@ -17,8 +17,17 @@
  * NOTE : this code is for both usermode and kernelmode so be careful when 
  * 		  using stdlib call.
 */
+#define DEBUG 1
 
+#include <assert.h>
+#include <stdio.h>
 #include "interrupt.h"
+
+#ifdef DEBUG
+	#define DBG_OUT printf
+#else
+	#define DBG_OUT(...)
+#endif
 
 static union ep_int_buf interrupt_buffer;
 
@@ -30,23 +39,24 @@ static int interrupt_buffer_pos = 0;
  * 
  */
 
-void parse_status(union ep_int_buf *ib,struct gs7x70_dsp *dsp) {
-	if(dsp->last_frameid != ib->buffer.frameid) 
-		WARN("Globespan Modem miss a frame \n");
-	switch(ib->buffer.frameid) {
-		case 0:
-			dsp->State = ib->buffer.status_buffer[0] | 
-							(ib->buffer.status_buffer[1] << 8);
-			dsp->StartProgress = ib->buffer->status_buffer[6] | 
-							(ib->buffer.status_buffer[7] << 8);
-			dsp->LinePower = ib->buffer.status_buffer[8] | 
-							(ib->buffer.status_buffer[9] << 8);	
-			DBG_OUT("DSP State : %04x\nDSP StartProgess : %04x\nDSP LinePower : %04x\n", 
+inline void dsp_parse_status(unsigned char *frameid, unsigned char *status_buffer, struct gs7x70_dsp *dsp){
+	if(dsp->last_frameid+1 != (unsigned char)*frameid) 
+		DBG_OUT("DSP_PARSE_STATUS - Globespan Modem miss a frame \n");
+	switch((unsigned char)*frameid) {
+		case 1:
+			dsp->State = status_buffer[0] | 
+							(status_buffer[1] << 8);
+			dsp->StartProgress = status_buffer[6] | 
+							(status_buffer[7] << 8);
+			dsp->LinePower = status_buffer[8] | 
+							(status_buffer[9] << 8);	
+			DBG_OUT("DSP_PARSE_STATUS - DSP State : %04x | DSP StartProgess : %04x | DSP LinePower : %04x\n", 
 			dsp->State, dsp->StartProgress, dsp->LinePower);	
 			break;				
 		default:
-			DBG_OUT("Not handled frame : %0x4", ib->buffer.frameid);
-	}	
+			DBG_OUT("DSP_PARSE_STATUS - Not handled frame : %0x2\n", (unsigned char)*frameid);
+	}
+	dsp->last_frameid = (unsigned char)*frameid;
 };
 
 /*
@@ -60,7 +70,7 @@ void parse_status(union ep_int_buf *ib,struct gs7x70_dsp *dsp) {
  * 
  * ASSUMPTION :INT_MAXPIPE_SIZE  divide the ep_int_buff struct size.
 */
-int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
+static inline int dsp_parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 							unsigned char *resp, int *resp_size,
 							struct gs7x70_dsp *dsp){
 	int max_resp_size;
@@ -73,7 +83,7 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 		if(interrupt_buffer_pos == sizeof(union ep_int_buf)) {
 			interrupt_buffer_pos = 0;
 /*	TODO : Handle the buffer !!!! */
-			parse_status(interrupt_buffer, dsp);
+			dsp_parse_status(&interrupt_buffer.buffer.frameid, interrupt_buffer.buffer.status_buffer , dsp);
 		}
 	} else {
 		if(buffer_size < INT_MIN_BUFFER_SIZE) return -EINVAL;
@@ -81,8 +91,8 @@ int parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 			case 0xF0:
 				dsp->is_ready = (buffer[2] << 8 ) | buffer[3];
 				dsp->next_state = (buffer[4] << 8 )| buffer[5];
-				DBG_OUT("DSP READY %d\Next state %2x", dsp->is_ready, 
-						dsp->nextstate);
+				DBG_OUT("DSP READY %d Next state %2x\n", dsp->is_ready, 
+						dsp->next_state);
 				break;
 			default:
 				break;

@@ -1,7 +1,7 @@
 /*
  *	Interupt.h
  * 
- *	Author : Valette Jean-Sébastien
+ *	Author : Valette Jean-Sï¿½bastien
  *
  * Creation : 30 09 2004
  * 
@@ -28,6 +28,7 @@
 #define INT_MAXPIPE_SIZE 64
 #define INT_BUFFER_LEN (INT_MAXPIPE_SIZE *2)
 #define INT_MIN_BUFFER_SIZE 8
+#define DSP_BUF_START 40
 
 union ep_int_buf {
 	unsigned char raw[INT_BUFFER_LEN];
@@ -41,7 +42,7 @@ union ep_int_buf {
 	}buffer;
 };
 
-
-int parse_interrupt_buffer(unsigned char *buffer,  int buffer_size,
+inline void dsp_parse_status(unsigned char *frameid, unsigned char *status_buffer, struct gs7x70_dsp *dsp);
+static inline int dsp_parse_interrupt_buffer(unsigned char *buffer,  int buffer_size,
 								unsigned char *resp, int *resp_size,
 								struct gs7x70_dsp *dsp);
