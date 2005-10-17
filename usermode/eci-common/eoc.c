@@ -20,8 +20,13 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <stdio.h>
+#ifdef _KERNEL_
+#include <linux/string.h>
+#include <linux/errno.h>
+#else
 #include <string.h>
 #include <errno.h>
+#endif
 
 #include "eoc.h"
 

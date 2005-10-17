@@ -21,3 +21,5 @@ eciadsl-check-hdlc-bug
 eciadsl-firmware
 eciadsl-pppoeci
 eciadsl-synch
+eciadsl-pppoeci-copy.c
+pusb-linux-copy.c

@@ -23,7 +23,7 @@ eciadsl_pppoeci_SOURCES = eciadsl-pppoeci.c pusb.c util.c ecimsgh.c \
 
 eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c pusb.c
 
-eciadsl_pppoeci_LDADD = eci-common/libeoc.a
+eciadsl_pppoeci_LDADD = eci-common/libeoc.a eci-common/libdsp.a
 
 eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 

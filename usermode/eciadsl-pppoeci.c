@@ -132,6 +132,9 @@
 #include "gsinterface.h"
 /* eoc handling interface */
 #include "eci-common/eoc.h"
+/* dsl handling interface */
+#include "eci-common/interrupt.h"
+
 /* msg que handler*/
 #include "ecimsgh.h"
 
@@ -364,6 +367,8 @@ static pthread_attr_t attr_sig_int;
 static pthread_t th_id_data_in;
 static pthread_attr_t attr_data_in;
 
+/* Dsp structured variable */
+static struct gs7x70_dsp eciDeviceDsp;
 /* predeclarations */
 
 static inline int aal5_read(const unsigned char* cell_buf, /* size_t count, */
@@ -1229,7 +1234,8 @@ static inline void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdu
 	if(buf[0]!=0xf0)
 		return;
 	parse_eoc_buffer(buf+(eci_device.ep_int_data_start_point+1), eci_device.ep_int_data_size);
-	
+	/*check dsp status - kolja */
+	dsp_parse_status(buf+(eci_device.ep_int_data_start_point-2), buf+DSP_BUF_START, &eciDeviceDsp);
 	if (has_eocs() == 0)
 		/* no data/control information so don't bother to respond */
 		return;
