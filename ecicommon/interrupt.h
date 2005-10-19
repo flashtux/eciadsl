@@ -39,10 +39,17 @@ union ep_int_buf {
 		unsigned char unknown1[2];	/* 2 unknown bytes  -- 2 -- 3*/
 		unsigned char eoc[36];		/* 36 byte eoc buffer -- 4 -- 39*/
 		unsigned char status_buffer[24];	/* 2 unknown bytes  -- 40 -- 64*/
-	}buffer;
+	}buffer_7070;
+	struct {
+		unsigned char	RequestType;	/* A1 ? */
+		unsigned char	Notification; 	/* F0 for DSP */
+		u_int16_t		Value;	/* Value ?	*/
+		u_int16_t		Index; /* DSP Number, alway 1 ? */
+		u_int16_t      wLength; /* Buffer len ? */
+		unsigned char Data[1];	/* Buffer data */	
+	} small_buffer;
 };
 
-inline void dsp_parse_status(unsigned char *frameid, unsigned char *status_buffer, struct gs7x70_dsp *dsp);
-static inline int dsp_parse_interrupt_buffer(unsigned char *buffer,  int buffer_size,
-								unsigned char *resp, int *resp_size,
-								struct gs7x70_dsp *dsp);
+static inline void dsp_parse_status(union *ep_int_buf buffer,  struct gs7x70_dsp *dsp);
+static inline int dsp_parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
+							struct gs7x70_dsp *dsp);

@@ -39,8 +39,21 @@ static int interrupt_buffer_pos = 0;
  * 
  */
 
-inline void dsp_parse_status(unsigned char *frameid, unsigned char *status_buffer, struct gs7x70_dsp *dsp){
-	if(dsp->last_frameid+1 != (unsigned char)*frameid) 
+inline void dsp_parse_status(union *ep_int_buf buffer,  struct gs7x70_dsp *dsp){
+	unsigned char frameid;
+	unsigned char *status_buffer;
+	switch(dsp->dsp){
+		case dsp_7070:
+			frameid = buffer->buffer_7070.frameid;
+			status_buffer = &(buffer->buffer_7070.status_buffer[0]);
+			break;
+		case dsp_unknown:
+			DBG_OUT("Not initialised dsp value !!!\n");
+			break;
+		default:
+			DNG_OUT("What the hell  is dsp number  %4x",dsp->dsp
+		
+	if(dsp->last_frameid+1 != frameid) 
 		DBG_OUT("DSP_PARSE_STATUS - Globespan Modem miss a frame \n");
 	switch((unsigned char)*frameid) {
 		case 1:
@@ -71,32 +84,34 @@ inline void dsp_parse_status(unsigned char *frameid, unsigned char *status_buffe
  * ASSUMPTION :INT_MAXPIPE_SIZE  divide the ep_int_buff struct size.
 */
 static inline int dsp_parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
-							unsigned char *resp, int *resp_size,
 							struct gs7x70_dsp *dsp){
-	int max_resp_size;
-	
-	max_resp_size = *resp_size;
+
+	memcpy (&(interrupt_buffer.raw[interrupt_buffer_pos]), 
+									buffer, INT_MAXPIPE_SIZE);	
+	interrupt_buffer_pos += buffer_size;									
 	if((buffer_size == INT_MAXPIPE_SIZE) && (buffer[0] == 0xf0))	{
-		memcpy (&(interrupt_buffer.raw[interrupt_buffer_pos]), 
-									buffer, INT_MAXPIPE_SIZE);
-		interrupt_buffer_pos += buffer_size;
 		if(interrupt_buffer_pos == sizeof(union ep_int_buf)) {
 			interrupt_buffer_pos = 0;
-/*	TODO : Handle the buffer !!!! */
-			dsp_parse_status(&interrupt_buffer.buffer.frameid, interrupt_buffer.buffer.status_buffer , dsp);
+/*	TODO : Handle the eoc buffer !!!! */
+			dsp_parse_status(&interrupt_buffer, dsp);
 		}
 	} else {
 		if(buffer_size < INT_MIN_BUFFER_SIZE) return -EINVAL;
-		switch(buffer[1]){
+		switch(interrupt_buffer.small_buffer.Notification){
 			case 0xF0:
-				dsp->is_ready = (buffer[2] << 8 ) | buffer[3];
+/*				dsp->is_ready = (buffer[2] << 8 ) | buffer[3];
 				dsp->next_state = (buffer[4] << 8 )| buffer[5];
 				DBG_OUT("DSP READY %d Next state %2x\n", dsp->is_ready, 
-						dsp->next_state);
+						dsp->next_state);*/
+					DBG_OUT("DSP Notification\nIsReady %d\n NextState %4x",
+								interrupt_buffer.small_buffer.Value,			
+								interrupt_buffer.small_buffer.Index);								
 				break;
 			default:
 				break;
 		}
+		interrupt_buffer_pos = 0;
+		
 	}
 	return 0;
 }
