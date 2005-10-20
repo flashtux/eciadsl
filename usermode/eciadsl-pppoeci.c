@@ -132,7 +132,7 @@
 #include "gsinterface.h"
 /* eoc handling interface */
 #include "eci-common/eoc.h"
-/* dsl handling interface */
+/* dsp handling interface */
 #include "eci-common/interrupt.h"
 
 /* msg que handler*/
@@ -1235,7 +1235,7 @@ static inline void handle_ep_int(unsigned char* buf, int size, pusb_device_t fdu
 		return;
 	parse_eoc_buffer(buf+(eci_device.ep_int_data_start_point+1), eci_device.ep_int_data_size);
 	/*check dsp status - kolja */
-	dsp_parse_status(buf+(eci_device.ep_int_data_start_point-2), buf+DSP_BUF_START, &eciDeviceDsp);
+	dsp_parse_interrupt_buffer(buf, size, &eciDeviceDsp);
 	if (has_eocs() == 0)
 		/* no data/control information so don't bother to respond */
 		return;
@@ -1670,7 +1670,6 @@ int main(int argc, char** argv)
 	exec_filename=basename(*argv);
 	this_process = getpid();
 	log = 0;
-
 	/* parse command line options */
 	for (i = 1; i < argc; i++)
 	{
@@ -1834,6 +1833,8 @@ int main(int argc, char** argv)
 
 	}
 	
+	eciDeviceDsp.type = eci_device.eci_modem_chipset;
+
 	if (frame_type > VCM_RFC2364)
 		syncHDLC = 0;
 

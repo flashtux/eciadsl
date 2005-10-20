@@ -243,7 +243,7 @@ inline int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interf
 	return 0;
 }
 
-const char * get_chipset_descr(eci_device_chiset eci_chipset){
+const char * get_chipset_descr(eci_device_chipset eci_chipset){
 	if (eci_chipset == ECIDC_GS7470)
 		return("GS7470");
 	else

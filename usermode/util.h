@@ -14,7 +14,7 @@ struct config_t
 	char* mode;
 	char* synch;
 	char* firmware;
-	eci_device_chiset modem_chipset;
+	eci_device_chipset modem_chipset;
 	short int alt_interface_synch;
 	short int alt_interface_ppp;
 

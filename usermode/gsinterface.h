@@ -39,14 +39,15 @@
 /* can happed after a lkine drop? */
 
 /* eci_device_chipset */
-typedef enum device_chiset{
-       ECIDC_GS7070  = 0,  /* GS7070 chipset - standard one */
-       ECIDC_GS7470  = 1  /* GS7470 chipset - new modems */
-} eci_device_chiset;
+typedef enum device_chipset{
+	   ECIDC_UNKNWN	 = 0,  /* Unknown chipset */
+       ECIDC_GS7070  = 1,  /* GS7070 chipset - standard one */
+       ECIDC_GS7470  = 2  /* GS7470 chipset - new modems */
+} eci_device_chipset;
 
 struct eci_device_t
 {
-	eci_device_chiset eci_modem_chipset;
+	eci_device_chipset eci_modem_chipset;
 	/* ep numbers */
 	unsigned char eci_int_ep;
 	unsigned char eci_in_ep;
@@ -98,5 +99,5 @@ void set_eci_modem_chipset(char* chipset);
  *   and set it up on eci_device structure) */
 inline int gsGetDeviceIfaceInfo(pusb_device_t dev, unsigned short int alt_interface);
 
-inline const char * get_chipset_descr(eci_device_chiset eci_chipset);
+inline const char * get_chipset_descr(eci_device_chipset eci_chipset);
 #endif

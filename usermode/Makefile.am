@@ -25,6 +25,8 @@ eciadsl_ctrlui_SOURCES = eciadsl-ctrlui.c util.c ecimsgh.c gsinterface.c pusb.c
 
 eciadsl_pppoeci_LDADD = eci-common/libeoc.a eci-common/libdsp.a
 
+eciadsl_synch_LDADD = eci-common/libdsp.a
+
 eciadsl_check_hdlc_SOURCES = eciadsl-check-hdlc.c
 
 eciadsl_check_hdlc_bug_SOURCES = eciadsl-check-hdlc-bug.c

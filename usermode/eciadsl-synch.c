@@ -60,6 +60,8 @@
 #include "gsinterface.h"
 #include "util.h"
 #include "semaphore.h"
+/* dsp handling interface */
+#include "eci-common/interrupt.h"
 
 #define TIMEOUT 2000
 #define INFINITE_TIMEOUT 24*60*60*1000 /* 24 hours should be enough */
@@ -123,6 +125,10 @@ struct usb_block{
 	unsigned char* buf; /* buf's content is stored in the .bin file
 							only for OUT request (ie request_type & 0x80)=0 */
 };
+
+/* Dsp structured variable */
+static struct gs7x70_dsp eciDeviceDsp;
+
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
@@ -348,6 +354,8 @@ void read_endpoint(pusb_endpoint_t ep_int, int epnum){
 		 * (thnx giancarlo) may-2004 - kolja*/
 		 
 		if (ret!=0 && ret != 64){
+			/*check dsp status - kolja */
+			dsp_parse_interrupt_buffer(lbuf, ret, &eciDeviceDsp);			
             if (semaphore_incr(shared_sem, 1) == -1){
                 printf("\rERROR eciadsl-synch: error incrementing the shared semaphore               \n");
 				fflush(stdout);
@@ -847,6 +855,8 @@ int main(int argc, char** argv){
 		printf("Error during pusb pointers malloc\nDriver will abort!\n");
 		exit(1);
 	}
+
+	eciDeviceDsp.type = eci_device.eci_modem_chipset;
 
 	ret=eci_load2(file, vid2, pid2);
 

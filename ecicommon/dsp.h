@@ -24,8 +24,8 @@ enum dsp_type {
 };
 
 struct gs7x70_dsp {
-	dsp_type		type;
-	unsigned char 	next_state;	/*	Next state for download operation */
+	enum dsp_type	type;
+	unsigned char 	next_state;		/*	Next state for download operation */
 	unsigned char 	is_ready;		/* Is the dsp OK ?	*/
 	unsigned char 	last_frameid;	/*	ID of last frame received in int urb */
 	u_int16_t		State;			/*	State ?	*/

@@ -19,9 +19,13 @@
  * 
 */
 #include <sys/types.h>
+enum dsp_type {
+		dsp_unknown = 0, dsp_7070, dsp_7470
+};
 
 struct gs7x70_dsp {
-	unsigned char 	next_state;	/*	Next state for download operation */
+	enum dsp_type	type;
+	unsigned char 	next_state;		/*	Next state for download operation */
 	unsigned char 	is_ready;		/* Is the dsp OK ?	*/
 	unsigned char 	last_frameid;	/*	ID of last frame received in int urb */
 	u_int16_t		State;			/*	State ?	*/
