@@ -56,7 +56,17 @@ else
         pppdpath="pppd"
 fi
 
-temppath=`echo ${prefix} | sed 's#\/#\\\/#g'`
+foo=""
+if test "$prefix" = "$foo" ; then
+        temppath=`echo /usr/local | sed 's#\/#\\\/#g'`
+else
+        foo2="NONE"
+        if test "$prefix" = "$foo2" ; then
+                temppath=`echo /usr/local | sed 's#\/#\\\/#g'`
+        else
+                temppath=`echo ${prefix} | sed 's#\/#\\\/#g'`
+        fi
+fi
 sed s/"\@prefix\@"/$temppath/ < eciadsl-pppoeci.c.in > eciadsl-pppoeci.c
 
 AC_CONFIG_FILES([VERSION eciadsl-usermode.spec])

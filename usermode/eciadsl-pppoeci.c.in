@@ -1455,7 +1455,6 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		write_log("Disconnection due to line problem");
 
 		/* here reconnection is managed */
-#warning todo...add reconnect script management
 		char *reconnect_script[300];
 		*reconnect_script="@prefix@/bin/eciadsl-restart";
 		/*must be added as variable from argv */
