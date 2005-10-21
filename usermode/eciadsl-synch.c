@@ -757,7 +757,7 @@ void usage(const int ret)
 
 int main(int argc, char** argv){
 	char* file;
-	int status, ret;
+	int /*status,*/ ret;
 	unsigned int vid2;
 	unsigned int pid2;
 	int i, j;

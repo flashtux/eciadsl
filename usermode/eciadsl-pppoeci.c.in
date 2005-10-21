@@ -1422,9 +1422,8 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 			break;
 		}
 #ifdef DEBUG
-		usleep(sleep1);
+//		usleep(sleep1);
 #endif
-		usleep(4100);
 	}
 
 	/* send disconnection urbs - kolja */
@@ -1458,7 +1457,7 @@ static inline void handle_ep_data_in_ep_int(/* pusb_endpoint_t ep_data_in,
 		/* here reconnection is managed */
 #warning todo...add reconnect script management
 		char *reconnect_script[300];
-		*reconnect_script="/usr//bin/eciadsl-restart";
+		*reconnect_script="@prefix@/bin/eciadsl-restart";
 		/*must be added as variable from argv */
 		if (*reconnect_script!=NULL && *reconnect_script!="")
 			execute_reconnect_script(reconnect_script);

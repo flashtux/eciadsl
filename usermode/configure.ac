@@ -56,6 +56,8 @@ else
         pppdpath="pppd"
 fi
 
+temppath=`echo ${prefix} | sed 's#\/#\\\/#g'`
+sed s/"\@prefix\@"/$temppath/ < eciadsl-pppoeci.c.in > eciadsl-pppoeci.c
 
 AC_CONFIG_FILES([VERSION eciadsl-usermode.spec])
 AC_OUTPUT([Makefile

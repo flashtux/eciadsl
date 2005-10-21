@@ -17,6 +17,7 @@
   We need -D_XOPEN_SOURCE for grantpt in <stdlib.h>
 */
 
+#define _XOPEN_SOURCE
 #include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
@@ -43,7 +44,7 @@ int get_master_slave_ptmx(int *master, int *slave)
 	/* open the slave side */
 	grantpt(*master);
 	unlockpt(*master);
-	pts = ptsname(*master);
+	pts =(const char*) ptsname(*master);
 
 	*slave = open(pts,O_RDWR|O_NOCTTY);
 	if (*slave < 0)
