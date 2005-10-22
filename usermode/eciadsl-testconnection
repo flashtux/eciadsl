@@ -35,7 +35,7 @@ ping_retries=1
 interface="ppp0"
 
 # internet addresses that are known to answer ping echo
-addresses_to_ping="www.google.it www.libero.it www.patriziobassi.it www.tophost.it 217.64.202.205"
+addresses_to_ping="www.google.it www.libero.it www.aruba.it 62.149.128.8"
 
 #where to log a restart, put /dev/null for no logs
 logfile="/var/log/adsl_restart"
