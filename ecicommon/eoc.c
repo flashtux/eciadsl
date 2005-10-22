@@ -20,8 +20,15 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <stdio.h>
+#ifdef _KERNEL_
+#include <linux/string.h>
+#include <linux/errno.h>
+#else
 #include <string.h>
 #include <errno.h>
+#endif
+
+#include <sys/time.h>
 
 #include "eoc.h"
 
@@ -37,7 +44,7 @@ static char *eocdatareg;	/* pointer to data that will be read or write */
 static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
-#define MAX_WRONG_EOCS_PER_SECS 70
+#define MAX_WRONG_EOCS_PER_SECS 300
 
 static const unsigned char init_eocs[32] ={ 
 			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
@@ -301,6 +308,14 @@ static inline void eoc_execute(u_int16_t eocmesval) {
 					break;
 			}
 			break;
+
+		case _utc:
+		case _exe:
+		case _write:
+
+		default: break;
+
+
 	}					
 	DBG_OUT("EOC.C - eco_execute - END   [eocmesval : %04x]\n", eocmesval);
 }
@@ -425,6 +440,15 @@ inline int parse_eoc_buffer(unsigned char *buffer, int bufflen) {
 								break;
 						}
 						break;
+
+					case _utc:
+					case _exe:
+					case _prewrite:
+					case _preread:
+					case _idle:
+					default:
+						break;
+
 				}
 			}
 		}

@@ -102,15 +102,11 @@ struct eoc_registers {
 						/* no reg B to F reserved for future */
 };
 
-static inline u_int16_t eoc_decode(unsigned char b1, unsigned char b2);
-static inline void eoc_encode(u_int16_t eoc_opcode);
-static inline void eoc_execute(u_int16_t eocmesval);
+
 void eoc_init(void); 
-static inline int eoc_read_next();
-static inline void eoc_write_data(u_int16_t code);
 inline void get_eoc_answer(unsigned char *eocoutbuff);
 inline int parse_eoc_buffer(unsigned char *buffer, int bufflen);
-inline void get_oec_answer_DISCONNECT(unsigned char *eocoutbuff);
+inline void get_eoc_answer_DISCONNECT(unsigned char *eocoutbuff);
 inline int has_eocs(void);
 inline int has_eoc_problem(void);
-static inline void eoc_encode(u_int16_t eoc_opcode);
+
