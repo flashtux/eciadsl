@@ -44,7 +44,7 @@ static char *eocdatareg;	/* pointer to data that will be read or write */
 static unsigned char eoc_out_buf[32];	/* out buffer */
 static int eoc_out_buffer_pos;
 
-#define MAX_WRONG_EOCS_PER_SECS 300
+#define MAX_WRONG_EOCS_PER_SECS 800
 
 static const unsigned char init_eocs[32] ={ 
 			0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c, 0x0c,
