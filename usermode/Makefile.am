@@ -51,7 +51,7 @@ CONF_DIR=$(sysconfdir)/eciadsl
 DOC_DIR=$(datadir)/doc/eciadsl
 
 AM_CPPFLAGS = -DETC_DIR=\"$(sysconfdir)\" -DCONF_DIR=\"$(CONF_DIR)\" \
-	-DDOC_DIR=\"$(DOC_DIR)\" -DDESTDIR=\"$(DESTDIR)\"
+	-DDOC_DIR=\"$(DOC_DIR)\" -DBINDIR=\"$(bindir)\"
 
 PACKAGE_VERSION=@PACKAGE_VERSION@
 
