@@ -12,6 +12,7 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <string.h>
+#include <errno.h>
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
@@ -25,9 +26,9 @@ static const char id[] = "@(#) $Id$";
 */
 
 #if defined(__GNU_LIBRARY__) && !defined(_SEM_SEMUN_UNDEFINED)
-/* l'union semun est définie en incluant <sys/sem.h> */
+/* l'union semun est dï¿½finie en incluant <sys/sem.h> */
 #else
-/* d'après X/OPEN nous devons la définir nous-même */
+/* d'aprï¿½s X/OPEN nous devons la dï¿½finir nous-mï¿½me */
 union  semun
 {
    int val;                           /* value for SETVAL */
@@ -56,30 +57,32 @@ int semaphore_init(int count)
 
 int semaphore_incr(int sem, int val)
 {
+	int ret;
     struct sembuf buf;
 
     buf.sem_num = 0;
     buf.sem_op  = val;
     buf.sem_flg = 0;
 
-    if (semop(sem, &buf, 1) == -1)
-        return(-1);
-
-    return(0);
+	do{
+    	ret = semop(sem, &buf, 1);
+	}while (ret<0 && errno==EINTR);
+    return(ret);
 }
 
 int semaphore_decr(int sem, int val)
 {
+	int ret;
     struct sembuf buf;
 
     buf.sem_num = 0;
     buf.sem_op  = -val;
     buf.sem_flg = 0;
 
-    if (semop(sem, &buf, 1) == -1)
-        return(-1);
-
-    return(0);
+	do{
+    	ret = semop(sem, &buf, 1);
+	}while (ret<0 && errno==EINTR);
+    return(ret);
 }
 
 int semaphore_done(int sem)

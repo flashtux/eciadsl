@@ -113,7 +113,7 @@ inline int dsp_parse_interrupt_buffer(unsigned char *buffer, int buffer_size,
 				dsp->next_state = (buffer[4] << 8 )| buffer[5];
 				DBG_OUT("DSP READY %d Next state %2x\n", dsp->is_ready, 
 						dsp->next_state);
-				DBG_OUT("DSP Notification\nIsReady %d\n NextState %4x",
+				DBG_OUT("DSP Notification\nIsReady %d | NextState %4x\n",
 						interrupt_buffer.small_buffer.Value,			
 						interrupt_buffer.small_buffer.Index);								
 				break;

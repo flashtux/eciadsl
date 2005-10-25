@@ -52,7 +52,7 @@
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include <errno.h>
-#include <sys/shm.h>
+#include <pthread.h>
 
 #include "pusb.h"
 /* modem.h deprecated - changed to common GS interface include - kolja */
@@ -72,37 +72,27 @@
 /*number of retry */
 #define NBR_SYNCH_RETRY 10
 
-unsigned int waiting_timeout = WAITING_TIMEOUT;
-unsigned int nbr_synch_retry = NBR_SYNCH_RETRY;
-unsigned int cnt_synch_retry =0;
-unsigned int nbr_urbs_sent=0;
-unsigned int option_timeout = ECILOAD_TIMEOUT;
-unsigned int cnt_option_timeout=0;
+static unsigned int waiting_timeout = WAITING_TIMEOUT;
+static unsigned int nbr_synch_retry = NBR_SYNCH_RETRY;
+static unsigned int cnt_synch_retry =0;
+static unsigned int nbr_urbs_sent=0;
+static unsigned int option_timeout = ECILOAD_TIMEOUT;
+static unsigned int cnt_option_timeout=0;
 
-/* --- sheared mem sids --- */
-/* ep int response sid id */
-int shmEpIntId;
-/* interrupt Signal handling variable sid id*/
-int shmIntSigId;
-
-char* exec_filename;
-int option_verbose = 0;
+static char* exec_filename;
+static int option_verbose = 0;
 
 /* the shared semaphore, defined as a global variable */
-
-int shared_sem = -1;
+static int shared_sem = -1;
 /* alt interface value */
-unsigned int altInterface=0;
-char* chipset="GSNONE";
+static unsigned int altInterface=0;
+static char* chipset="GSNONE";
 
-/* ep int handler child process */
-pid_t pidEpIntChild=0;
-
-/* interrupt signal handling child process */
-pid_t pidIntSigChild=0;
-
-/* just for testing without USB */
-/*#define TESTECI*/
+/* thread pointers & attributes - kolja */
+static pthread_t th_id_ep_int;
+static pthread_t th_id_sig_int;
+static pthread_attr_t attr_ep_int;
+static pthread_attr_t attr_sig_int;
 
 extern struct config_t config;
 extern struct eci_device_t eci_device;
@@ -114,7 +104,8 @@ struct int_handling_data
 	unsigned short int wTimeOut;
 };
 
-struct int_handling_data* intHandData;
+static struct int_handling_data* intHandData;
+static unsigned char sEpResponse[2];	
 
 struct usb_block{
 	unsigned char   request_type;
@@ -129,6 +120,9 @@ struct usb_block{
 /* Dsp structured variable */
 static struct gs7x70_dsp eciDeviceDsp;
 
+/* endpoint var for ep int handling */ 
+static pusb_endpoint_t ep_int=NULL;
+
 
 /* for ident(1) command */
 static const char id[] = "@(#) $Id$";
@@ -137,7 +131,7 @@ static const char id[] = "@(#) $Id$";
   Inserts a char in to an array of char at a specified
   position.
 */
-char* InsertChar(char* src, char chr, int pos){
+static inline char* InsertChar(char* src, char chr, int pos){
 	char *target;
 	target=malloc((strlen(src)+1));
 	strncpy(target, src, strlen(src)+1);
@@ -146,7 +140,7 @@ char* InsertChar(char* src, char chr, int pos){
     return(target);
 }
 
-int usb_block_read(FILE* fp, struct usb_block* p){
+static inline int usb_block_read(FILE* fp, struct usb_block* p){
 	unsigned char b[8];
 	int r;
 
@@ -184,7 +178,7 @@ int usb_block_read(FILE* fp, struct usb_block* p){
 	return(1);
 }
 
-void print_char(unsigned char c){
+static inline void print_char(unsigned char c){
 
 	if (c>=' ' && c<0x7f)
 		printf("%c", c);
@@ -195,8 +189,7 @@ void print_char(unsigned char c){
 	else
 		printf(".");
 }
-
-void dump(unsigned char* buf, int len){
+static inline void dump(unsigned char* buf, int len){
   int i, j;
   
 	for (i = 0; i < len; i+=16)	{
@@ -211,7 +204,7 @@ void dump(unsigned char* buf, int len){
 	
 }
 
-void sigtimeout(){
+static void sigtimeout(){
 	unsigned int wtime=0;
 	unsigned int t;
 	struct timeval tvn;
@@ -221,17 +214,19 @@ void sigtimeout(){
 		t = ((int)(tvn.tv_sec - intHandData->tv.tv_sec));
 		if (option_verbose)
 			printf("sigtimeout : waiting time = %d (secs)\n", t);
-		if (t>=10){
+		if (t>=waiting_timeout){
 			intHandData->wTimeOut=1;
 			wtime = waiting_timeout;
+			if (option_verbose)
+			printf("sigtimeout : TIMEOUT REACHED!!\n");
             if (semaphore_incr(shared_sem, 1) == -1){
 				intHandData->wTimeOut=99;            	
                 printf("\rERROR eciadsl-synch: error incrementing the shared semaphore from timing interrupt function \n");
 				fflush(stdout);
-				_exit(-1);	
+				return;	
             }
 		}else{
-			wtime = 11 - t;
+			wtime = waiting_timeout - t;
 		}
 	}else{
 		wtime = waiting_timeout;
@@ -242,73 +237,42 @@ void sigtimeout(){
 	if(option_timeout <cnt_option_timeout){
 		intHandData->wTimeOut=99;
 		printf("\rERROR eciadsl-synch: timeout                                             \n");
-		_exit(-1);	
+		return;
 	}
 	alarm(wtime);
 }
 
-void handle_int_signal(void){
-	pid_t child_pid;
+static inline void * fn_handle_int_signal(void* ignore){
 
 	fflush(stdout);
 	fflush(stderr);
-
-	child_pid = fork();
-	if (child_pid){
-		if (pidIntSigChild)
-		{
-			perror("damn");
-			_exit(-1);
-		}
-		pidIntSigChild = child_pid;
-		return;
-	}
-
-     /* attach to the segment to get a pointer to it: */
-    intHandData = shmat(shmIntSigId, (void *)0, 0);
 
 	signal(SIGALRM, sigtimeout);
 	
 	alarm(waiting_timeout);
 	while(1){
-		pause();
+		sleep(5);
+		if(intHandData->wTimeOut==99){
+		if (option_verbose)
+			printf("SIGTIMEOUT - Ended cause error\n");
+			break;
+		}
 	}
-	_exit(-1);
+	if (option_verbose)
+		printf("SIGTIMEOUT - Ended correctly\n");
+	return(ignore);
 }
 
-void read_endpoint(pusb_endpoint_t ep_int, int epnum){
-	pid_t child_pid;
-	unsigned char lbuf[0x40];
-	int ret, i;
-	unsigned char* sEpResponse;	
-	
+static void* fn_read_endpoint(void * ignore){
+	static unsigned char lbuf[0x40];
+	static int ret;
 	/* indicates if we already received 16 bytes packets */
-	int pkt16_received = 0;
+	static int pkt16_received = 0;
 
 	fflush(stdout);
 	fflush(stderr);
 
-	child_pid = fork();
-	if (child_pid)
-	{
-		if (pidEpIntChild)
-		{
-			perror("damn");
-			_exit(-1);
-		}
-		pidEpIntChild = child_pid;
-		return;
-	}
-
-     /* attach to the segment to get a pointer to it: */
-    sEpResponse = shmat(shmEpIntId, (void *)0, 0);
-    if ((int)sEpResponse == -1) {
-        printf("\rERROR - failed to share ep response (shmat)       \n");
-        _exit(-1);
-    }
-
-	/* we DO NOT stop after receiving 100 interrupts */
-	for (i = 0; /* i < 100 */; i++)	{
+	for (;;)	{
 		/*
 		  24/11/2001
 		  Warning : we use a TIMEOUT. This is very important and
@@ -330,8 +294,7 @@ void read_endpoint(pusb_endpoint_t ep_int, int epnum){
 
 		ret = pusb_endpoint_read(ep_int, lbuf, sizeof(lbuf), 0);
 		
-		if (ret < 0)
-		{
+		if (ret < 0){
 			printf("\r ERROR reading interrupts                              \n");
 			break;
 		}
@@ -340,9 +303,8 @@ void read_endpoint(pusb_endpoint_t ep_int, int epnum){
 	    memcpy(sEpResponse,(lbuf+4),2);
 		
 		if (option_verbose){
-			printf("endpoint %02x, packet len = %d\n", epnum, ret);
-			dump(lbuf, ret);
-			
+			printf("endpoint Int, packet len = %d\n", ret);
+			dump(lbuf, ret);			
 			fflush(stdout);
 			fflush(stderr);
 		}
@@ -355,7 +317,8 @@ void read_endpoint(pusb_endpoint_t ep_int, int epnum){
 		 
 		if (ret!=0 && ret != 64){
 			/*check dsp status - kolja */
-			dsp_parse_interrupt_buffer(lbuf, ret, &eciDeviceDsp);			
+			dsp_parse_interrupt_buffer(lbuf, ret, &eciDeviceDsp);
+            fflush(stdout);
             if (semaphore_incr(shared_sem, 1) == -1){
                 printf("\rERROR eciadsl-synch: error incrementing the shared semaphore               \n");
 				fflush(stdout);
@@ -382,24 +345,16 @@ void read_endpoint(pusb_endpoint_t ep_int, int epnum){
 				break;
 		}
 	}
-
-    if (shmdt(sEpResponse) == -1) {
-        printf("\rERROR - failed to release shared ep response (shmat)        \n");
-        _exit(-1);
-    }
-	_exit(0);
+	return(ignore);
 }
 
-int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int doCycle){
-	char* sEpResponse;
-	char* sEpResponseOK;
+static inline int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int doCycle){
+	unsigned char sEpResponseOK[2];
 	struct usb_block block;
  	FILE* fp;
 	long size;
 	int r, i;
 	struct timeval tv2;
-
-	sEpResponseOK = malloc(2);
 	
 	if (option_verbose)
 		printf("urb data file : %s  \n", file);
@@ -425,24 +380,14 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 			printf ("responseOK : %02x%02x\n", sEpResponseOK[0], sEpResponseOK[1]);
 	}
 
-    /* attach to the segment to get a pointer to it: */
-    sEpResponse = shmat(shmEpIntId, (void *)0, 0);
-    if (sEpResponse == (char *)(-1)) {
-        printf("ERROR - failed to share ep response (shmat)\n");
-		return(0);
-	}
-
 	memset(&block, 0, sizeof(block));
-
 	intHandData->bWaiting =0;
 	while ((ftell(fp) < size) && (doCycle==0 || (memcmp(sEpResponse, sEpResponseOK,2)!=0)))	{
 		nbr_urbs_sent++;
 	    /*printf ("test : 0 - %02x %02x ; 1 - %02x %02x\n", sEpResponse[0], sEpResponseOK[0], sEpResponse[1], sEpResponseOK[1]);*/
 		if (!usb_block_read(fp, &block)){
 			printf("can't read block\n");
-#ifndef TESTECI
 			pusb_close(dev);
-#endif
 			fclose(fp);
 			return(0);
 		}
@@ -453,7 +398,7 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 		if (option_verbose)
 			printf ("Block %3d: request_type=%02x request=%02x value=%04x index=%04x size=%04x\n",
 					nbr_urbs_sent, block.request_type, block.request, block.value,block.index, block.size);
-#ifndef TESTECI
+
 		if ((r=pusb_control_msg(dev, block.request_type, block.request,
 							 block.value, block.index, block.buf,
 							 block.size, TIMEOUT)) != block.size){
@@ -467,9 +412,7 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 
 		if (r != block.size)
 			printf("(expected %d, got %d) ", block.size, r);
-#else
-		r = block.size;
-#endif
+
 		if (option_verbose){
 			if ((block.request_type & 0x80))
 			{
@@ -478,22 +421,7 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 				printf("\n");
 			}
 		}
-/* Test code added [jeanseb]- start 
-		if (block.request_type == 0xc0)
-		{
-			printf("r:%02x|i:%04x|b:", block.request, block.index);
-			for (i = 0; i < r; i++)
-				printf("%02x ", block.buf[i]);			
-			if(block.buf[0] == 0x1 || block.buf[0] == 0x2 
-						|| block.buf[0] == 0xa0) {
-				printf("No Signal !\n");
-			} else {
-				printf("Training...\n");
-			}
-		}
- Test code added [jeanseb] - end */
 
-#ifndef TESTECI
 		if (block.request_type == 0x40 && block.request == 0xdc
 			&& block.value == 0x00 && block.index == 0x00)
 		{
@@ -505,8 +433,9 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 			gettimeofday(&intHandData->tv, NULL);
             /* decrement the shared semaphore, thus waiting for the child */
 			intHandData->bWaiting=1;
+			
             if (semaphore_decr(shared_sem, 1) == -1){
-                printf("\rERROR eciadsl-synch: error decrementing the shared semaphore\n");
+                printf("\ERROR eciadsl-synch: error decrementing the shared semaphore\n");
             }
 			intHandData->bWaiting=0;
 			if (option_verbose){
@@ -517,9 +446,6 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 		}
 
             if (intHandData->wTimeOut!=0){
-			    if (shmdt(sEpResponse) == -1) {
-			        printf("ERROR eciadsl-synch: failed to release shared ep response (shmat)\n");
-			    }
 				fclose(fp);
 				if(intHandData->wTimeOut==1){
 					intHandData->wTimeOut=0;
@@ -533,22 +459,17 @@ int eci_load2_send_synch_data(char* file, pusb_device_t dev, short unsigned int 
 		}
 		fflush(stdout);
 		fflush(stderr);
-#endif
+
 	/*restart reading STEP1 file ('b' file) if no valid EP response received and file is at the and  - kolja*/
 		if(ftell(fp)==size && doCycle==1){
 			fseek(fp, 2, SEEK_SET);
 		}	
 	}
-#ifndef TESTECI
-#endif
-    if (shmdt(sEpResponse) == -1) {
-        printf("ERROR - failed to release shared ep response (shmat)\n");
-    }
 	fclose(fp);
 	return(1);		
 }
 
-int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
+static inline int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 	FILE* fp ;
 	long foo;
 	uint approx_timeout;
@@ -556,20 +477,6 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 	int ret;
 	long size;	
 	unsigned short int doRetry;
-	/* endpoint var for ep int handling */ 
-	pusb_endpoint_t ep_int=NULL;
-
-    /* connect to (and possibly create) the segment for Ep Int data sharing: */
-    if ((shmEpIntId = shmget(IPC_PRIVATE, 2, 0644)) == -1) {
-        printf("ERROR - failed to share ep response (shmget - errno:%d)\n", errno);
-        return(0);
-    }
-
-    /* connect to (and possibly create) the segment for interrupt handling data sharing: */
-    if ((shmIntSigId = shmget(IPC_PRIVATE, sizeof(struct int_handling_data), 0644)) == -1) {
-        printf("ERROR - failed to share interrupt handling data (shmget - errno %d)\n", errno);
-			return(0);
-	}
 
 	/* open the file */
 
@@ -598,15 +505,7 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 	if (option_verbose)
 		printf("timeout set to %usec\n", option_timeout);
 
-	/*alarm(option_timeout);*/
-	/* create child process for interrupt handling control */
-	handle_int_signal();	
-
-	/* attach to the segment to get a pointer to it: */
-    intHandData = shmat(shmIntSigId, (void *)0, 0);
-
 	/* open the USB device */
-#ifndef TESTECI
 	dev = pusb_search_open(vid2, pid2);
 	if (dev == NULL){
 		printf("\rERROR can't find your GlobeSpan %s USB ADSL WAN Modem \n", get_chipset_descr(eci_device.eci_modem_chipset));
@@ -651,8 +550,25 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 		return(0);
 	}
 
-	read_endpoint(ep_int, eci_device.eci_int_ep);
-#endif
+	/* sig int thread handler - kolja*/
+	pthread_attr_init(&attr_sig_int);
+	pthread_attr_setdetachstate(&attr_sig_int, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&th_id_sig_int, &attr_sig_int, fn_handle_int_signal, NULL) != 0)
+	{
+		printf("error creating thread - [SIG INT handler]                       \n");
+		return(0);
+	}
+	
+	/* ep int thread handler - kolja*/
+	pthread_attr_init(&attr_ep_int);
+	pthread_attr_setdetachstate(&attr_ep_int, PTHREAD_CREATE_DETACHED);
+
+	if (pthread_create(&th_id_ep_int, &attr_ep_int, fn_read_endpoint, NULL) != 0)
+	{
+		printf("error creating thread - [EP INT handler]                        \n");
+		return(0);
+	}
 
 	ret=1;
 	doRetry = 1;	
@@ -720,13 +636,17 @@ int eci_load2(char* file, unsigned short vid2, unsigned short pid2){
 			}
 		}
 	}
+
+	if((nbr_synch_retry!=0 && cnt_synch_retry>=nbr_synch_retry))
+		return(0);	
+		
 	pusb_endpoint_close(ep_int);
 	/*pusb_release_interface(dev, 0);*/
 	pusb_close(dev);
 	return(1);
 }
 
-void version(const int full){
+static inline void version(const int full){
 	printf("%s, part of " PACKAGE_NAME PACKAGE_VERSION " (" __DATE__ " " __TIME__ ")\n",
 			exec_filename);
 	if (full)
@@ -734,7 +654,7 @@ void version(const int full){
 	_exit(0);
 }
 
-void usage(const int ret)
+static inline void usage(const int ret)
 {
 	printf(	"usage:\n"
 			"       %s [<switch>..] [[VID2 PID2] <synch.bin>]\n", exec_filename);
@@ -756,14 +676,24 @@ void usage(const int ret)
 }
 
 int main(int argc, char** argv){
-	char* file;
+	static char* file;
 	int /*status,*/ ret;
-	unsigned int vid2;
-	unsigned int pid2;
-	int i, j;
+	static unsigned int vid2;
+	static unsigned int pid2;
+	static int i, j;
+
+  	th_id_ep_int = th_id_sig_int = 0;
+
+	intHandData = (struct int_handling_data*)malloc(sizeof(struct int_handling_data));
+	if(!intHandData){
+        printf("\rERROR eciadsl-synch: failed initializing data memory\n");
+		fflush(stdout);
+        return(-1);
+	}	
+
 	/* read the configuration file */
 	read_config_file();
-
+	
 	exec_filename=basename(*argv);
 
 	/* parse command line options */
@@ -870,35 +800,21 @@ int main(int argc, char** argv){
 
 	semaphore_done(shared_sem);
 
-	/* wait for child process and intercept child abortion due to signal (user abort or timeout) */
-/*	do{
-		status = 0;
-		if (waitpid(pidEpIntChild, &status, 0) == -1)
-			if (errno == EINTR)
-			{
-				perror("\rERROR eciadsl-synch: child failed (aborted)");
-				_exit(1);
-			}
-	}
-	while(errno != ECHILD);
-
-	if (WEXITSTATUS(status) || !ret)
-		return(1);
-*/
-
 	/* kill process handling ep Int urb messages */
-	if (pidEpIntChild)
-		kill(pidEpIntChild, SIGQUIT);
+  	if(th_id_ep_int)
+  		kill(th_id_ep_int, SIGTERM);
 
 	/* kill process handling signal interrupt */
-	if (pidIntSigChild)
-		kill(pidIntSigChild, SIGQUIT);
+	if(th_id_sig_int)
+		kill(th_id_sig_int, SIGTERM);
 
 	/* Free pointers! */
 	deinit_pusb();
 
+	free(intHandData);
+	
 	if (!ret) 
 		return 1;
-
+		
 	return(0);
 }
