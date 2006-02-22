@@ -27,7 +27,7 @@ Q:	I don't know if my modem is supported.
 --------------------------------------------------------------------------------
 A:	Check the pre-requisites.
 
-	Check at http://eciadsl.flashtux.org/modems.php?lang=en.
+	Check at http://eciadsl.flashtux.org/modems.php?lang=en
 	
 	Install the latest driver version, then launch eciadsl-start or eciadsl-doctor,
 	if they report errors, try to launch eciadsl-probe-device to check your modem
@@ -241,7 +241,7 @@ A:	Follow the pre-requisites, read the documentation about the N_HDLC problem.
 	automatically when disconnected from the provider, then you will have to
 	patch your kernel or use a kernel >= 2.4.18-pre3.
 	You can find the patch n_hdlc.c.diff in the drivers' archive of the
-	Speedtouch modem: http://speedtouch.sourceforge.net/.
+	Speedtouch modem: http://speedtouch.sourceforge.net/
 	These are instructions about how to use it:
 		> cd /usr/src/linux
 		> patch -p1 --dry-run < /path/to/n_hdlc.c.diff

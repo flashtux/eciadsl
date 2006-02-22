@@ -203,7 +203,7 @@ R:	Segui i prerequisiti, leggi la documentazione riguardo il problema con
 	automaticamente dopo una disconnessione dal provider, devi applicare una
 	patch al tuo kernel o usare un kernel >= 2.4.18-pre3.
 	Puoi trovare la patch n_hdlc.c.diff nell'archivio dei driver del modem
-	SpeedTouch: http://speedtouch.sourceforge.net/.
+	SpeedTouch: http://speedtouch.sourceforge.net/
 	Queste sono le istruzioni per usarla:
 		> cd /usr/src/linux
 		> patch -p1 --dry-run < /path/to/n_hdlc.c.diff

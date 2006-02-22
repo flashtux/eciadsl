@@ -27,7 +27,7 @@ P:	No sé si mi módem es soportado.
 --------------------------------------------------------------------------------
 R:	Verifique los pre-requisitos.
 
-	Verifique en http://eciadsl.flashtux.org/modems.php?lang=en.
+	Verifique en http://eciadsl.flashtux.org/modems.php?lang=en
 
 	Instale la última versión del driver, entonces ejecute eciadsl-start o
 	eciadsl-doctor, si ellos reportan errores, intente ejecutar el script
@@ -262,7 +262,7 @@ R:	Siga los pre-requisitos, lea la documentación sobre el problema del N_HDLC.
 	automáticamente cuando es desconectado del proveedor de servicios, usted
 	tendrá que parchar el kernel o use un kernel >=2.4.18-pre3.
 	Usted puede encontrar el parche n_hdlc.c.diff en el archivo de los drivers
-	del módem Speedtouch en: http://speedtouch.sourceforge.net /.
+	del módem Speedtouch en: http://speedtouch.sourceforge.net/
 	Éstas son las instrucciones sobre cómo usarlo:
 		>cd /usr/src/linux
 		>patch -p1--dry-run < /path/to/n_hdlc.c.diff

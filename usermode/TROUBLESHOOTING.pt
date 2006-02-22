@@ -250,7 +250,7 @@ R:	Siga os pré-requesitos, leia a documentação sobre o problema do N_HDLC.
 	religar quando se desligar do seu provedor, então terá de aplicar um
 	patch ao seu kernel ou usar um kernel >= 2.4.18-pre3.
 	Encontrará o patch n_hdlc.c.diff nos arquivos do driver para o modem
-	Speedtouch: http://speedtouch.sourceforge.net/ .
+	Speedtouch: http://speedtouch.sourceforge.net/
 	Estas são as instruções de como usá-lo:
 		> cd /usr/src/linux
 		> patch -p1 --dry-run < /path/to/n_hdlc.c.diff
