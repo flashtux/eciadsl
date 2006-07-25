@@ -401,9 +401,9 @@ if ($epMaxPos!=-1 && $epMax2ndPos!=-1 && $epstoredcount[$epMax2ndPos]+1==$epstor
 	print " Process ended successfully\n";
 }else{
  if ($ok){
- 	print "interrupt packet detected. properly ending the generation of $file\n" ;
+ 	print "Synch .bin '$file' generated, OK.\n" ;
  }else{
- 	print "WARNING : interrupt packet not detected. file $file generated anyway but should not be correct\n";
+ 	print "WARNING: interrupt packet not detected! File '$file' was generated anyway but is probably incorrect.\n";
  }
  close (BIN);
 }
