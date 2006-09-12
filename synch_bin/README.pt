@@ -179,6 +179,7 @@ Synch .bin files for GS7470 chipset ONLY:
         gs7470_synch18.bin (modem DSLink 180U, gerado em Brazil/Goiania, provedor Brasil Telecom, G.DMT)
         gs7470_synch19.bin (modem BT105, gerado em UK/Norwich, provedor Plusnet, G.DMT)
         gs7470_synch20.bin (modem dsl-200 generation III, gerado em Russia/Saint-Petersburg, provedor Avangard, G.DMT)
+        gs7470_synch21.bin (modem dsl-200 generation III, gerado em Russia/Saint-Petersburg, provedor Avangard, Multimode)
 
 Se gerou o seu próprio ficheiro .bin, por favor envie-nos juntamente com alguma
 informação relativa à localização/provedor.
