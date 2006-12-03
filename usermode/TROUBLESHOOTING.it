@@ -997,65 +997,68 @@ R:	Controllare se pppd ï¿½ installato sul vostro sistema ed usate "su -" pre pre
 
 5.14
 ================================================================================
-D:	My provider use PPPoE (RFC1483, RFC2516), how can I manage to configure
-	this?
+D:	Il mio provider usa PPPoE (RFC1483, RFC2516), come faccio a
+	configurarlo?
 
 --------------------------------------------------------------------------------
-R:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
-	and used by default in Debian kernel. Use rp-pppoe instead as a userland
-	tool to manage the PPP connection. See 5.3.1 and 5.4.
+R:	Inanzi tutto non usate il supporto 'kernel's PPPoE' siccome è solamente
+	sperimentale ed è preimpostato nel "Debian kernel". In alternativa usate
+	rp-pppoe come impostazione per effetuare la connessione PPP. (cfr. 5.3.1
+	and 5.4)
 
-	Of course, the PPP mode defined in the ECIADSL config must be one of the
-	supported PPPoE modes (see `eciadsl-pppoeci --list`).
+	Ovviamente il PPP specificato nella configurazione ECIADSL deve essere una
+	delle modalità supportate da PPPoE (cfr. 'eciadsl-pppoeci --list').
 
-	You can find rp-pppoe here:
+	Potrete trovare il rp-pppoe a questo indirizzo:
 		http://www.roaringpenguin.com/pppoe
 
-	Install and configure it so that it uses tap0 as ETH interface.
+	Installare e configurare così da usare come interfaccia tap0 e ETH.
 
-	Run eciadsl-start, then use rp-pppoe to enable the PPP line (see rp-pppoe
-	documentation).
+	Avviare eciadsl-start, poi usare rp-pppoe per inizializzare la linea PPP
+	(cfr. rp-pppoe documentation / documentazione).
 
 
 5.15
 ================================================================================
-D:	My provider use PPPoA (RFC2364), how can I manage to configure this?
+D:	Il mio provider usa PPPoA (RFC2364), come posso configurarlo?
 
 --------------------------------------------------------------------------------
-R:	Please contact us.
+R:	Perfavore ci contattati.
 
 
 5.16
 ================================================================================
-D:	My provider use IPoATM (RFC1483), how can I manage to configure this?
+D:	Il mio provider usa IPoATM (RFC1483); Come posso configurarlo
+	corretamente?
 
 --------------------------------------------------------------------------------
-R:	Please contact us.
+R:	Perfavore ci contattati.
 
 
 5.17
 ================================================================================
-D:	My provider use a PPP mode I cannot find in the PPP modes list.
-	What can I do?
+D:	Il mio provider usa una modalità PPP che non riesco a trovare
+	nell'apposita lista. Cosa posso fare per trovare quella giusta da usare?
 
 --------------------------------------------------------------------------------
-R:	Please contact us.
+R:	Perfavore ci contattati.
 
 
 5.18
 ================================================================================
-D:	I don't know which PPP mode is used by my provider.
-	What can I do?
+D:	Non so quale modalità PPP viene usata dal mio provider. Cosa posso
+	fare per scoprirlo?
 
 --------------------------------------------------------------------------------
-R:	See 5.17.
+R:	Vedi 5.17.
 
 
 5.19
 ================================================================================
-D:	When EciAdsl is running, some apps like KDE run very slowly.
-	What can I do?
+D:	Mentre EciAdsl è in funzione altri programmi come KDE tendono a
+	rallentare. Come posso fare per correggere questo problema?
 
 --------------------------------------------------------------------------------
-R:	Look at ifconfig command output if "lo" (loopback) interface is here.
-	Add it if necessary (for example: ifconfig lo up).
+R:	Controllare se sul commando d'uscita ifconfig è presente l'interfaccia
+	'lo' (ovvero su continuo). In caso di neccesità, aggiungere l'apposito
+	commando (e.g. ifconfig lo up).
