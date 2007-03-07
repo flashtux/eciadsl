@@ -53,7 +53,7 @@ echo "You are using linux kernel version `uname -r`"
 line=`wc -l /var/log/messages | awk '{print $1}'`
 
 function fatal () {
-	tail +$line /var/log/messages > /tmp/msg.log
+	tail -n +$line /var/log/messages > /tmp/msg.log
 # check for "usb-uhci.c: ENXIO 80000380, flags 0, urb c7f401c0, burb c6469140"
 	grep 'usb-uhci.c: ENXIO' /tmp/msg.log
 
