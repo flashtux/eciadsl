@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # EciAdsl Linux driver configuration script.
 # Same goal as eciadsl-config-tk, but can be run in a terminal / console.
@@ -812,7 +812,7 @@ case "$1" in
         		while [ -z "$gateway" ]; do
             		read gateway
 					case "$gateway" in
-					"")		if [ -n "$gateway" ]; then
+					"")		if [ -n "$prev_gateway" ]; then
 								gateway="$prev_gateway"
 								echo "* gateway unchanged"
 							fi

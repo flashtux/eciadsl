@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # probe device's VIDs and PIDs
 

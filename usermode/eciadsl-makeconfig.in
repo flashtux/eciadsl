@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # ************************************************************************
 # *                                                                      *
 # *   eciadsl-makeconfig - EciAdsl Linux driver configuration script     *
