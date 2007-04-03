@@ -17,7 +17,8 @@
  * NOTE : this code is for both usermode and kernelmode so be careful when 
  * 		  using stdlib call.
 */
-#define DEBUG 1
+
+/*#define DEBUG 1*/
 
 #include <assert.h>
 #include <stdio.h>
