@@ -292,7 +292,7 @@ static void* fn_read_endpoint(void * ignore){
 		  device. So we revert to the old behaviour : NO TIMEOUTS ...
 		*/
 
-		ret = pusb_endpoint_read(ep_int, lbuf, sizeof(lbuf), 0);
+		ret = pusb_endpoint_read_int(ep_int, lbuf, sizeof(lbuf));
 		
 		if (ret < 0){
 			printf("\r ERROR reading interrupts                              \n");

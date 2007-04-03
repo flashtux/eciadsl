@@ -378,6 +378,54 @@ inline int pusb_endpoint_rw_no_timeout(int fd, int ep,
 	return(purb_rw->actual_length);
 }
 
+inline int pusb_endpoint_read_int_no_timeout(int fd, int ep,
+                                             unsigned char* buf, int size)
+{
+    struct usbdevfs_urb urb, *purb = &urb;
+    int ret;
+    
+    memset(purb, 0, sizeof(urb));
+    
+    purb->type = USBDEVFS_URB_TYPE_INTERRUPT;
+    purb->endpoint = ep;
+    purb->flags  = 0;
+    purb->buffer = buf;
+    purb->buffer_length = size;
+    purb->signr = 0;
+    
+    do
+    {
+        ret = ioctl(fd, USBDEVFS_SUBMITURB, purb);
+    }
+    while (ret < 0 && errno == EINTR);
+    
+    if (ret < 0)
+        return(ret);
+    
+    do
+    {
+        ret = ioctl(fd, USBDEVFS_REAPURB, &purb);
+    }
+    while (ret < 0 && errno == EINTR);
+    
+    if (ret < 0)
+        return(ret);
+    
+    if (purb != &urb)
+        printf("purb=%p, &urb=%p\n", (void*)purb, (void*)&urb);
+    
+    if (purb->buffer != buf)
+        printf("purb->buffer=%p, buf=%p\n", (void*)purb->buffer, (void*)buf);
+    
+    return(purb->actual_length);
+}
+
+inline int pusb_endpoint_read_int(pusb_endpoint_t ep,
+                                  unsigned char* buf, int size)
+{
+    return(pusb_endpoint_read_int_no_timeout(ep->fd, ep->ep|USB_DIR_IN, buf, size));
+}
+
 inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int timeout)
 {
 	static struct usbdevfs_bulktransfer bulk;

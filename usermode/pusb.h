@@ -30,6 +30,8 @@ int pusb_release_interface(pusb_device_t dev,int interface);
 pusb_endpoint_t pusb_endpoint_open(pusb_device_t dev, int epnum, int flags);
 inline int pusb_endpoint_read(pusb_endpoint_t ep, 
 		       unsigned char *buf, int size, int timeout);
+inline int pusb_endpoint_read_int(pusb_endpoint_t ep,
+                                  unsigned char *buf, int size);
 inline int pusb_endpoint_write(pusb_endpoint_t ep, 
 			const unsigned char *buf, int size, int timeout);
 
