@@ -7,7 +7,7 @@ Standards-Version: 3.6.2.1
 
 Package: eciadsl-usermode
 Architecture: any
-Depends: ${shlibs:Depends}, ppp
+Depends: ${shlibs:Depends}, ppp, bash
 Recommends: tk8.4|wish, pppoe
 Description: usermode drivers for eci adsl modem.
  The eciadsl-usermode package contains the driver for the ADSL USB modem
