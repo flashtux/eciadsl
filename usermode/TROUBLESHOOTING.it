@@ -1020,23 +1020,6 @@ R:	Inanzi tutto non usate il supporto 'kernel's PPPoE' siccome è solamente
 
 5.15
 ================================================================================
-D:	Il mio provider usa PPPoA (RFC2364), come posso configurarlo?
-
---------------------------------------------------------------------------------
-R:	Perfavore ci contattati.
-
-
-5.16
-================================================================================
-D:	Il mio provider usa IPoATM (RFC1483); Come posso configurarlo
-	corretamente?
-
---------------------------------------------------------------------------------
-R:	Perfavore ci contattati.
-
-
-5.17
-================================================================================
 D:	Il mio provider usa una modalità PPP che non riesco a trovare
 	nell'apposita lista. Cosa posso fare per trovare quella giusta da usare?
 
@@ -1044,16 +1027,16 @@ D:	Il mio provider usa una modalità PPP che non riesco a trovare
 R:	Perfavore ci contattati.
 
 
-5.18
+5.16
 ================================================================================
 D:	Non so quale modalità PPP viene usata dal mio provider. Cosa posso
 	fare per scoprirlo?
 
 --------------------------------------------------------------------------------
-R:	Vedi 5.17.
+R:	Vedi 5.15.
 
 
-5.19
+5.17
 ================================================================================
 D:	Mentre EciAdsl è in funzione altri programmi come KDE tendono a
 	rallentare. Come posso fare per correggere questo problema?

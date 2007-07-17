@@ -1153,22 +1153,6 @@ R:	Premièrement, n'utilisez pas le support PPPoE du noyau. C'est expérimental
 
 5.15
 ================================================================================
-Q:	Mon fournisseur utilise PPPoA (RFC2364), comment puis-je configurer ça ?
-
---------------------------------------------------------------------------------
-R:	Merci de nous contacter.
-
-
-5.16
-================================================================================
-Q:	Mon fournisseur utilise IPoATM (RFC1483), comment puis-je configurer ça ?
-
---------------------------------------------------------------------------------
-R:	Merci de nous contacter.
-
-
-5.17
-================================================================================
 Q:	Mon fournisseur utilise un mode PPP que je ne peux pas trouver dans la liste
 	des modes. Que puis-je faire ?
 
@@ -1176,16 +1160,16 @@ Q:	Mon fournisseur utilise un mode PPP que je ne peux pas trouver dans la liste
 R:	Merci de nous contacter.
 
 
-5.18
+5.16
 ================================================================================
 Q:	Je ne connais pas le mode PPP utilisé par mon fournisseur.
 	Que puis-je faire ?
 
 --------------------------------------------------------------------------------
-R:	Voir 5.17.
+R:	Voir 5.15.
 
 
-5.19
+5.17
 ================================================================================
 Q:	Lorsque EciAdsl tourne, des applications comme KDE tournent très lentement.
 	Que puis-je faire ?

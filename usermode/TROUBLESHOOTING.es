@@ -1137,22 +1137,6 @@ R:	First, don't use kernel's PPPoE support. It's experimental in 2.4 kernels
 
 5.15
 ================================================================================
-P:	My provider use PPPoA (RFC2364), how can I manage to configure this?
-
---------------------------------------------------------------------------------
-R:	Please contact us.
-
-
-5.16
-================================================================================
-P:	My provider use IPoATM (RFC1483), how can I manage to configure this?
-
---------------------------------------------------------------------------------
-R:	Please contact us.
-
-
-5.17
-================================================================================
 P:	My provider use a PPP mode I cannot find in the PPP modes list.
 	What can I do?
 
@@ -1160,16 +1144,16 @@ P:	My provider use a PPP mode I cannot find in the PPP modes list.
 R:	Please contact us.
 
 
-5.18
+5.16
 ================================================================================
 P:	I don't know which PPP mode is used by my provider.
 	What can I do?
 
 --------------------------------------------------------------------------------
-R:	See 5.17.
+R:	See 5.15.
 
 
-5.19
+5.17
 ================================================================================
 P:	When EciAdsl is running, some apps like KDE run very slowly.
 	What can I do?
