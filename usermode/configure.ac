@@ -2,8 +2,8 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_PREREQ(2.59)
-AC_INIT(eciadsl-usermode, 0.12, eci@ml.free.fr)
-AM_INIT_AUTOMAKE([eciadsl-usermode],[0.12])
+AC_INIT(eciadsl-usermode, 0.13cvs, eci@ml.free.fr)
+AM_INIT_AUTOMAKE([eciadsl-usermode],[0.13cvs])
 AC_CONFIG_SRCDIR([eciadsl-check-hdlc-bug.c])
 
 # if no --sysconfdir is specified, default to /etc
