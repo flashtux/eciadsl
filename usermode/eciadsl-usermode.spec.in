@@ -2,20 +2,18 @@
 # or       : rpm -ta eciadsl-usermode-0.10.tar.bz2
 # the tar.bz2 should contain a directory eciadsl-usermode-0.10
 
-Summary:	A beta-quality usermode driver for the ECI ADSL USB modem
-Name: @PACKAGE_NAME@
-Version: @PACKAGE_VERSION@
-Release:	1
-URL:      http://eciadsl.flashtux.org/
-License:	GPL
-Group:		Networking/Other
-Packager:	David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>
-
-Source:		http://eciadsl.flashtux.org/download/%{name}-%{version}.tar.gz
-
-BuildRoot:	%_tmppath/%name-%version-%release
-Requires:   ppp, rp-pppoe, tcl, tk
-Prefix: /usr
+Summary:   A beta-quality usermode driver for the ECI ADSL USB modem
+Name:      @PACKAGE_NAME@
+Version:   @PACKAGE_VERSION@
+Release:   1
+URL:       http://eciadsl.flashtux.org/
+License:   GPL
+Group:     Networking/Other
+Packager:  David Faure <david@mandrakesoft.com>, Benoit PAPILLAULT <benoit.papillault@free.fr>, FlashCode <flashcode@flashtux.org>
+Source:    http://eciadsl.flashtux.org/download/%{name}-%{version}.tar.gz
+BuildRoot: %_tmppath/%name-%version-%release
+Requires:  ppp, tcl, tk
+Prefix:    /usr
 
 %description
 The eciadsl-usermode package contains the driver for the ADSL USB modem
@@ -30,12 +28,13 @@ that handles the modem. A kernel module is under development.
 %setup -q
 
 %build
-%configure
+./configure --prefix=/usr --sysconfdir=/etc
+
 make
 
 %install
 rm -rf "$RPM_BUILD_ROOT"   
-%makeinstall
+make DESTDIR=$RPM_BUILD_ROOT install
 
 %pre
 # pre-install script
@@ -57,6 +56,7 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 %defattr(755,root,root)
 /usr/bin/eciadsl-start
 /usr/bin/eciadsl-stop
+/usr/bin/eciadsl-restart
 /usr/bin/eciadsl-firmware
 /usr/bin/eciadsl-synch
 /usr/bin/eciadsl-pppoeci
@@ -80,6 +80,7 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 #/usr/bin/eci-load1
 #/usr/bin/eci-load2
 #/usr/bin/pppoeci
+
 # config files should be : rw-r--r--
 %defattr(644,root,root)
 %config /etc/eciadsl/modems.db
@@ -87,6 +88,7 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 %config /etc/eciadsl/firmware00.bin
 %config /etc/eciadsl/synch01.bin
 %config /etc/eciadsl/modemeci.gif
+
 # doc files should be : rw-r--r--
 %defattr(644,root,root)
 %doc README
@@ -113,6 +115,8 @@ echo "and INSTALL files located in /usr/share/doc/%name-%version"
 	rm -rf %buildroot
 
 %changelog
+* Mon Aug 13 2007 Sebastien HELLEU <flashcode@flashtux.org> 0.12-1
+- Updated to the 0.12 release
 * Sat Sep 24 2005 Sebastien HELLEU <flashcode@flashtux.org> 0.11-1
 - Updated to the 0.11 release
 * Tue Nov 02 2004 Benoit PAPILLAULT <benoit.papillault@free.fr> 0.10-1

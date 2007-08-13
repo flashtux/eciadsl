@@ -1,7 +1,13 @@
 EciAdsl - Driver for USB ADSL modems with Globespan chipset
 ===========================================================
 
-ChangeLog - updated on 2005-09-24 by FlashCode <flashcode@flashtux.org>
+ChangeLog - updated on 2007-08-13 by FlashCode <flashcode@flashtux.org>
+
+Version 0.12 (2007-08-13)
+   * fixed synch with new kernels (>= 2.6.18)
+   * new modems supported
+   * driver now requires bash shell
+   * minor bug fixes
 
 Version 0.11 (2005-09-24)
    * eciadsl Nortek driver merged within standard eciadsl release
