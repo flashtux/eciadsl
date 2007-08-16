@@ -6,8 +6,16 @@ ChangeLog - updated on 2007-08-13 by FlashCode <flashcode@flashtux.org>
 Version 0.12 (2007-08-13)
    * fixed synch with new kernels (>= 2.6.18)
    * new modems supported
-   * driver now requires bash shell
-   * minor bug fixes
+   * driver now requires bash shell (/bin/sh replaced with /bin/bash in all
+     scripts)
+   * fixed use of deprecated option for tail command in eciadsl-doctor
+   * added syslog logging
+   * added eciadsl-restart script
+   * added driver restart when there's problem with line
+   * fixed bug wiht alt pppoeci option in eciadsl-config-text
+   * improved performance (CPU usage)
+   * fixed bug in synch exit value (was always 0 even if synch failed)
+   * fixed problem related to ISOC packet size detection
 
 Version 0.11 (2005-09-24)
    * eciadsl Nortek driver merged within standard eciadsl release
