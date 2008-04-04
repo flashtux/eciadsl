@@ -180,6 +180,7 @@ Synch .bin files for GS7470 chipset ONLY:
         gs7470_synch19.bin (modem BT105, generated in UK/Norwich, provider Plusnet, G.DMT)
         gs7470_synch20.bin (modem dsl-200 generation III, generated in Russia/Saint-Petersburg, provider Avangard, G.DMT)
         gs7470_synch21.bin (modem dsl-200 generation III, generated in Russia/Saint-Petersburg, provider Avangard, Multimode)
+        gs7470_synch22.bin (modem BT105, generated in UK/London, provider BT Broadband, G.DMT)
 
 If you've generated your own .bin file, please send it us with a few information
 regarding to the location/provider

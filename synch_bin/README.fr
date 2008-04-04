@@ -177,9 +177,10 @@ Fichiers .bin pour le chipset GS7470 SEULEMENT:
         gs7470_synch16.bin (modem hm121dp/di)
         gs7470_synch17.bin (modem dsl-200 rev B1, généré en Australie/Sydney, fournisseur TPG, G.DMT)
         gs7470_synch18.bin (modem DSLink 180U, généré au Brésil/Goiania, fournisseur Brasil Telecom, G.DMT)
-        gs7470_synch19.bin (modem BT105, généré en UK/Norwich, fournisseur Plusnet, G.DMT)
+        gs7470_synch19.bin (modem BT105, généré en Angleterre/Norwich, fournisseur Plusnet, G.DMT)
         gs7470_synch20.bin (modem dsl-200 generation III, généré en Russie/Saint-Petersbourg, fournisseur Avangard, G.DMT)
         gs7470_synch21.bin (modem dsl-200 generation III, généré en Russie/Saint-Petersbourg, fournisseur Avangard, Multimode)
+        gs7470_synch22.bin (modem BT105, généré en Angleterre/Londres, fournisseur BT Broadband, G.DMT)
 
 Si vous avez généré votre propre .bin, envoyez-le nous en joignant quelques
 information relatives au pays/ville/fournisseur utilisés lors de la génération !
