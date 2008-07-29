@@ -29,7 +29,6 @@
 #include <string.h>
 
 #include "pusb-linux.h"
-#include <asm/page.h>
 
 #include "pusb.h"
 
@@ -431,6 +430,7 @@ inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int ti
 	static struct usbdevfs_bulktransfer bulk;
 	static int ret;
 	int received = 0;
+        int page_size = getpagesize();
 
 	do
 	{
@@ -438,8 +438,8 @@ inline int pusb_endpoint_rw(int fd, int ep, unsigned char* buf, int size, int ti
 
 		bulk.len = size;
 
-		if (size > PAGE_SIZE)
-			bulk.len = PAGE_SIZE;
+		if (size > page_size)
+			bulk.len = page_size;
 
 		bulk.timeout = timeout;
 		bulk.data    = buf;
