@@ -465,6 +465,7 @@ Q:	I get something like this:
 		pppd[1954]: Modem hangup
 		pppd[1954]: Connection terminated.
 		pppd[1954]: Exit.
+
 --------------------------------------------------------------------------------
 A:	Check your PAP and/or CHAP files (/etc/ppp/pap-secrets and
 	/etc/ppp/chap-secrets). This may happen with broken authentication even if
